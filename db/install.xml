@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/topomojo/db" VERSION="20200115" COMMENT="XMLDB file for topomojo module"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="topomojo" COMMENT="each record is one topomojo resource">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="intro text format."/>
+        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The is the gui"/>
+        <FIELD NAME="vmapp" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
+        <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz closes. (0 = no restriction.)"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The total that the quiz is scaled out of."/>
+        <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This applies to grading multiple attempts"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="topomojo_grades" COMMENT="topomojo grades table to hold grades for individual users">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid that this grade is for"/>
+        <FIELD NAME="grade" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The grade for this user, for this topomojo lab"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time created/modified for this grade"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="topomojo_attempts" COMMENT="The topomojo attempts table to hold attempts for students">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the topomojo lab for this attempt"/>
+        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The workspace guid for this attempt"/>
+        <FIELD NAME="eventid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The gamespace guid for this attempt"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="The current state of the attempts. 'inprogress', 'overdue', 'finished' or 'abandoned'."/>
+        <FIELD NAME="tasks" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tasks for this attempt"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The score for this attempt"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The expirationDate of the event"/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>
+        <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this attempt ended"/>
+	<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
+	<FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
+</FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="topomojo_tasks" COMMENT="The table to hold steamfitter tasks">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo id"/>
+        <FIELD NAME="scenariotemplateid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter scenario template guid for this attempt"/>
+        <FIELD NAME="dispatchtaskid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter guid for this task"/>
+        <FIELD NAME="name" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task description"/>
+        <FIELD NAME="gradable" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is gradable"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is visible"/>
+        <FIELD NAME="points" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The max points for this task"/>
+        <FIELD NAME="multiple" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Process multiple vms as separate tasks"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="topomojo_task_results" COMMENT="The table to hold attempt task results for students">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the task"/>
+        <FIELD NAME="dispatchtaskid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The scenario task guid for this result"/>
+        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the topomojo attempt"/>
+        <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
+        <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="Score given to the student"/>
+        <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this result was modified"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
