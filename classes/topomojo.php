@@ -127,14 +127,14 @@ class topomojo {
     function list_events() {
 	    debugging("listing events", DEBUG_DEVELOPER);
         if ($this->userauth == null) {
-            echo 'error with userauth<br>';
+            print_error('error with userauth');
             return;
         }
 
         // web request
-        $url = get_config('topomojo', 'alloyapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name) . "&Filter=all";
-        //$url = get_config('topomojo', 'alloyapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name);
-        echo "GET $url<br>";
+        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name) . "&Filter=all";
+        //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name);
+        //echo "GET $url<br>";
 
         $response = $this->userauth->get($url);
 
@@ -181,15 +181,15 @@ class topomojo {
         global $USER;
 	    //debugging("filtering events for user", DEBUG_DEVELOPER);
         if ($this->userauth == null) {
-            echo 'error with userauth<br>';
+            print_error('error with userauth');
             return;
         }
         $user_events = array();
 
         foreach ($events as $event) {
             // web request
-            $url = get_config('topomojo', 'alloyapiurl') . "/gamespace/" . $event['id'];
-            echo "<br>GET $url<br>";
+            $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
+            //echo "<br>GET $url<br>";
 
             $response = $this->userauth->get($url);
             //print_r($response);
@@ -214,7 +214,7 @@ class topomojo {
             //echo "<br>subjectid $subjectid<br>";
             foreach ($players as $player) {
                 //print_r($player);
-                if ($player['subjectId'] = $subjectid) {
+                if ($player['subjectId'] == $subjectid) {
                     //echo "found user";
                     array_push($user_events, $r);
                 }
@@ -244,15 +244,6 @@ class topomojo {
         // get the first (and only) value in the array
         $this->openAttempt = reset($attempts);
 
-        if (isset($this->event)) {
-            // update values if null in attempt but exist in event
-            if ((!$this->openAttempt->eventid) && ($this->event->id)) {
-                $this->openAttempt->eventid = $this->event->id;
-            }
-
-            $this->openAttempt->endtime = strtotime($this->event->expirationTime);
-            $this->openAttempt->save();
-        }
         return true;
     }
 
@@ -318,22 +309,17 @@ class topomojo {
         $attempt->timestart = time();
         $attempt->timefinish = null;
         $attempt->topomojoid = $this->topomojo->id;
-        $attempt->setState('inprogress');
         $attempt->score = 0;
         $attempt->endtime = strtotime($this->event->expirationTime);
+        $attempt->eventid = $this->event->id;
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
-
-        if ($this->event->id) {
-            $attempt->eventid = $this->event->id;
-        } else {
-            $attempt->event->id = 0;
-        }
 
         if ($attempt->save()) {
             $this->openAttempt = $attempt;
         } else {
             return false;
         }
+        $attempt->setState('inprogress');
 
         //TODO call start attempt event class from here
         return true;

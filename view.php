@@ -114,20 +114,9 @@ if ($attempt == true) {
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
     debugging("start request received", DEBUG_DEVELOPER);
 
-    /* this should never happen
-    if ($attempt) { //&& (!$object->event !== null)
-        //TODO this should also check that we dont have an attempt
-        //print_error('attemptalreadyexists', 'topomojo');
-        debugging('closing attempt - not active', DEBUG_DEVELOPER);
-        $grader = new \mod_topomojo\utils\grade($object);
-        $grader->process_attempt($object->openAttempt);
-        $object->openAttempt->close_attempt();
-    }
-    */
-
     // check not started already
     if (!$object->event) {
-        $object->event = start_event($object->userauth, $object->topomojo->workspaceid);
+        $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
             //$object->event = get_event($object->userauth, $eventid);
@@ -162,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             $object->event = get_event($object->userauth, $object->event->id); //why call this again? just to check that it is ending
             debugging("stop_attempt called, get_event returned " . $object->event->isActive, DEBUG_DEVELOPER);
             topomojo_end($cm, $context, $topomojo);
+            redirect($url);
         }
     }
 }
@@ -175,15 +165,21 @@ if ((!$object->event) && ($attempt)) {
 }
 
 if ($object->event) {
-    // this should not happend because we create the attempt when we start it
     if (($object->event->isActive) && (!$attempt)) {
+        // this should not happend because we create the attempt when we start it
         debugging("active event with no attempt", DEBUG_DEVELOPER);
         //print_error('eventwithoutattempt', 'topomojo');
         // TODO give user a popup to confirm they are starting an attempt
         $attempt = $object->init_attempt();
     }
-}
-if ($object->event) {
+    // check age and get new link, chekcing for 30 minute timeout of the url
+    if (($object->openAttempt->state == 10) &&
+            ((time() - $object->openAttempt->timemodified) > 3600 )) {
+        debugging("getting new launchpointurl", DEBUG_DEVELOPER);
+        $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
+        $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
+        $object->openAttempt->save();
+    }
     $eventid = $object->event->id;
     $starttime = strtotime($object->event->startTime);
     $endtime = strtotime($object->event->expirationTime);
@@ -211,9 +207,13 @@ $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
 
 // TODO get value from settings
-$renderer->display_detail($topomojo, 120);
+$renderer->display_detail($topomojo, $topomojo->duration);
 
 if ($object->event) {
+
+    $jsoptions = ['keepaliveinterval' => 1];
+    $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
+
     // TODO add mod setting to pick format
     if ($topomojo->clock == 1) {
         $renderer->display_clock($starttime, $endtime, $extend);
@@ -226,10 +226,35 @@ if ($object->event) {
     $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init', array('endtime' => $endtime, 'id' => $object->event->id));
 
     // TODO display stop form
-    //$renderer->display_form($url, $object->topomojo->workspaceid);
+    $renderer->display_stopform($url, $object->topomojo->workspaceid);
 
     if ($vmapp == 1) {
-        $renderer->display_embed_page($object->openAttempt->launchpointurl);
+        $vmlist = array();
+        foreach ($object->event->vms as $vm) {
+            //TODO this doesnt work when the lab is first deployed but does after a refresh
+            if (is_array($vm)) {
+                if ($vm['isVisible']) {
+                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                    $vmdata['name'] = $vm['name'];
+                    array_push($vmlist, $vmdata);
+                }
+            } else {
+                if ($vm->isVisible) {
+                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                    $vmdata['name'] = $vm->name;
+                    array_push($vmlist, $vmdata);
+                }
+            }
+
+        }
+        $code = substr($object->event->id, 0, 8);
+
+        $invite = get_invite($object->userauth, $object->event->id);
+        if ($invite) {
+            $invitelinkurl = get_config('topomojo', 'playerappurl') . "lp/?c=" . $invite->code;
+        }
+
+        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist, $code, $invitelinkurl);
     } else {
         $renderer->display_link_page($object->openAttempt->launchpointurl);
     }
@@ -239,7 +264,7 @@ if ($object->event) {
         $renderer->display_grade($topomojo);
     }
     // display start form
-    $renderer->display_form($url, $object->topomojo->workspaceid);
+    $renderer->display_startform($url, $object->topomojo->workspaceid);
 }
 
 // attempts may differ from events pulled from history on server

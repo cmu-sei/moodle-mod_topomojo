@@ -40,16 +40,24 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
+
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
         $data->duration = $duration;
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
-    function display_form($url, $workspace) {
+    function display_startform($url, $workspace) {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
-        echo $this->render_from_template('mod_topomojo/form', $data);
+        echo $this->render_from_template('mod_topomojo/startform', $data);
+    }
+
+    function display_stopform($url, $workspace) {
+        $data = new stdClass();
+        $data->url = $url;
+        $data->workspace = $workspace;
+        echo $this->render_from_template('mod_topomojo/stopform', $data);
     }
 
     function display_return_form($url, $id) {
@@ -69,9 +77,24 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
     }
 
-    function display_embed_page($topomojo) {
+    function display_embed_page($launchpointurl, $markdown, $vmlist, $code, $invitelinkurl) {
         $data = new stdClass();
-        $data->fullscreen = get_string('fullscreen', 'mod_topomojo');
+        $data->url = $launchpointurl;
+        //$data->fullscreen = get_string('fullscreen', 'mod_topomojo');
+
+        $data->invitelinkurl = $invitelinkurl;
+
+        $data->vmlist = $vmlist;
+
+        $data->code = $code;
+
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+        $options['nocache'] = true;
+
+        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        $data->markdown = str_replace("/docs/", "https://topomojo.cyberforce.site/docs/", $data->markdown, $i);
+
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/embed', $data);
 

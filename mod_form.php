@@ -44,6 +44,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
     /** @var array options to be used with date_time_selector fields in the activity. */
     public static $datefieldoptions = array('optional' => true);
 
+    private $auth;
+
     function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
@@ -61,12 +63,12 @@ class mod_topomojo_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-	if ($config->autocomplete < 2) {
-	    #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
+	    if ($config->autocomplete < 2) {
+	        #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
 
             // pull list from topomojo
-            $auth = setup();
-            $this->workspaces = get_workspaces($auth);
+            $this->auth = setup();
+            $this->workspaces = get_workspaces($this->auth);
             $labnames = array();
             $labs = [];
             foreach ($this->workspaces as $workspace) {
@@ -85,10 +87,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $mform->addElement('autocomplete', 'workspaceid', get_string('workspace', 'topomojo'), $labs, $options);
             } else {
                 $mform->addElement('select', 'workspaceid', get_string('workspace', 'topomojo'), $labs);
-	    }
+	        }
         } else {
-	    debugging('need to manually select id', DEBUG_DEVELOPER);
-	    $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
+	        debugging('need to manually select id', DEBUG_DEVELOPER);
+	        $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
             $mform->setType('workspaceid', PARAM_ALPHANUMEXT);
         }
 
@@ -117,7 +119,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 
-	$mform->removeElement('grade');
+	    $mform->removeElement('grade');
         $currentgrade = 0;
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
@@ -136,6 +138,13 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'timing', get_string('timing', 'topomojo'));
+
+        //TODO pull duration from topomojo workspace
+        $mform->addElement('text', 'duration', get_string('duration', 'topomojo'), "0");
+        $mform->setType('duration', PARAM_INT);
+        $mform->addHelpButton('duration', 'duration', 'topomojo');
+
+
 
         // Open and close dates.
         $mform->addElement('date_time_selector', 'timeopen', get_string('eventopen', 'topomojo'),
@@ -197,15 +206,24 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $data->vmapp = 0;
         }
 
-	if (is_array($this->workspaces)) {
+        if (is_array($this->workspaces)) {
             $index = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
             $data->name = $this->workspaces[$index]->name;
             $data->intro = $this->workspaces[$index]->description;
-	} else {
+            // pull durationMinutes from topomojo
+            if ($data->duration == 0) {
+                $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
+                $data->duration = $this->workspace->durationMinutes;
+            }
+            $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
+
+            $data->introformat = FORMAT_MARKDOWN;
+
+        } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
-	    $data->name = "Unknown lab";
+            $data->name = "Unknown lab";
             $data->intro = "No description available";
-	}
+        }
         $data->introeditor['format'] = FORMAT_PLAIN;
 
         // TODO if grade method changed, update all grades

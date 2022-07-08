@@ -34,6 +34,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     extend_event();
                 };
                 console.log('set event for extend-event button');
+            } else {
+                console.log('missing extgend event button');
             }
 
             setInterval(function() {
@@ -99,4 +101,30 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
     };
 
+    function extend_event() {
+        $.ajax({
+            url: config.wwwroot + '/mod/topomojo/extendevent.php',
+            type: 'POST',
+            data: {
+                'sesskey': config.sesskey,
+                'id': eventid
+            },
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Expires': '-1'
+            },
+            success: function(result) {
+                console.log('extended lab');
+                console.log(result);
+                window.location.replace(window.location.href);
+            },
+            error: function(request) {
+                console.log("extend-event request failed");
+                alert('extend-event request failed');
+                console.log(request);
+                log.debug('moodle-mod_topomojo-extend-event: ' . request);
+            }
+        });
+
+    }
 });

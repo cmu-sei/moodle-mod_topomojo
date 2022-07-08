@@ -25,40 +25,23 @@ DM20-0196
 }}
 
 {{!
-    @template mod_topomojo/tasks_form
+    @template mod_topomojo/form
 
-    This template renders a table of data
+    This template renders a button that reloads the page and starts a lab.
 
             Example context (json):
             {
-	        tableheaders: [heading 1, heading 2]
-	        tabledata: [ [item1row 1, item2row 1], [item2row1, item2row2] ]
+	        "workspace": "guid",
+		"url": "url"
             }
 }}
 
-<div class = "table-responsive">
-    <table class = "table table-striped">
-        {{! Using a get_string helper }}
-        <caption>
-            {{# str }} taskcaption, mod_topomojo {{/ str }}
-        </caption>
-        <thead>
-            {{#tableheaders}}
-                <th>{{.}}</th>
-            {{/tableheaders}}
-        </thead>
-        <tbody>
-            {{#tabledata}}
-                <tr>
-                    {{#.}}
-                        <td>{{{.}}}</td>
-                    {{/.}}
-                </tr>
-            {{/tabledata}}
-        </tbody>
-    </table>
-</div>
+<form action="{{url}}" method="post">
+    <input id="event" type="hidden" name="event" value=""/>
+    <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
+    <input id="launch_button" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
+</form>
 
-
+<br>
 
 

@@ -47,8 +47,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('topomojo/autocomplete',
         get_string('autocomplete', 'topomojo'), get_string('configautocomplete', 'topomojo'), 1, $options));
 
-    $settings->add(new admin_setting_configtext('topomojo/alloyapiurl',
-        get_string('alloyapiurl', 'topomojo'), get_string('configalloyapiurl', 'topomojo'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext('topomojo/topomojoapiurl',
+        get_string('topomojoapiurl', 'topomojo'), get_string('configtopomojoapiurl', 'topomojo'), "", PARAM_URL, 60));
 
     $settings->add(new admin_setting_configtext('topomojo/playerappurl',
         get_string('playerappurl', 'topomojo'), get_string('configplayerappurl', 'topomojo'), "", PARAM_URL, 60));

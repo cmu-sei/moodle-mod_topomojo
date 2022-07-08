@@ -43,7 +43,7 @@ function setup() {
         $x_api_key = get_config('topomojo', 'apikey');
         $topoHeaders = array( 'x-api-key: ' . $x_api_key, 'content-type: application/json' );
         $client->setHeader($topoHeaders);
-	#debugging("api key $x_api_key", DEBUG_DEVELOPER);
+	    #debugging("api key $x_api_key", DEBUG_DEVELOPER);
         return $client;
 }
 
@@ -54,8 +54,8 @@ function get_workspace($client, $id) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/workspace/" . $id;
-    #echo "GET $url<br>";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/workspace/" . $id;
+    //echo "GET $url<br>";
 
     $response = $client->get($url);
 
@@ -125,7 +125,7 @@ function get_workspaces($client) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/workspaces";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/workspaces";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -146,7 +146,7 @@ function get_workspaces($client) {
     return $r;
 }
 
-function start_event($client, $id) {
+function start_event($client, $id, $topomojo) {
     global $USER;
     debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
 
@@ -156,8 +156,8 @@ function start_event($client, $id) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/gamespace";
-    echo "POST $url<br>";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
+    //echo "POST $url<br>";
 
     //generate post data
     $payload = new stdClass();
@@ -166,15 +166,15 @@ function start_event($client, $id) {
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = 1; // TODO get this from settings
-    $payload->maxMinutes = 120; // TODO get this from settings
-    $payload->points = 100; // TODO get this from settings
+    $payload->maxMinutes = $topomojo->duration;
+    $payload->points = $topomojo->grade;
     $payload->variant = 0; // TODO get this from settings
     $payload->players = array();
     $payload->players[0] = new stdClass();
     $payload->players[0]->subjectId = explode( "@", $USER->email )[0];
     $payload->players[0]->subjectName = $USER->username;
     $json = json_encode($payload);
-    print_r($json);
+    //print_r($json);
 
 
     $client->setopt( array( 'CURLOPT_POSTFIELDS' => $json) );
@@ -184,7 +184,7 @@ function start_event($client, $id) {
         debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
     }
-    echo "response:<br><pre>$response</pre>";
+    //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
         //echo "could not decode json<br>";
@@ -211,20 +211,51 @@ function stop_event($client, $id) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/events/" . $id . "/end";
-    //echo "DELETE $url<br>";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/complete";
+    //echo "POST $url<br>";
 
-    $response = $client->delete($url);
+    $response = $client->post($url);
 
-    if ($client->info['http_code']  !== 204) {
+    if ($client->info['http_code']  !== 200) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
     }
 
-    //if (!$response) {
-        //throw new \Exception($response);
-    //    return;
-    //}
+    if (!$response) {
+        throw new \Exception($response);
+        return;
+    }
     //echo "response:<br><pre>$response</pre>";
+    return;
+}
+
+function get_invite($client, $id) {
+
+    if ($client == null) {
+        debugging('error with client in get_invite', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/invite";
+    //echo "POST $url<br>";
+
+    $response = $client->post($url);
+
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        //echo "could not decode json<br>";
+        return;
+    }
+
+    // success
+    if ($client->info['http_code']  === 200) {
+        return $r;
+    }
+    if ($client->info['http_code']  === 500) {
+        //echo "response code ". $client->info['http_code'] . "<br>";
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
     return;
 }
 
@@ -255,7 +286,7 @@ function extend_event($client, $data) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/events/" . $data->id;
+    $url = get_config('topomojo', 'topomojoapiurl') . "/events/" . $data->id;
     $client->setHeader('Content-Type: application/json-patch+json');
 
     $response = $client->put($url, json_encode($data));
@@ -283,8 +314,8 @@ function get_event($client, $id) {
     }
 
     // web request
-    $url = get_config('topomojo', 'alloyapiurl') . "/gamespace/" . $id;
-    echo "GET $url<br>";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id;
+    //echo "GET $url<br>";
 
     $response = $client->get($url);
     if (!$response) {
@@ -343,6 +374,7 @@ function get_task($client, $id) {
     return;
 }
 
+// mot used
 function endDate($a, $b) {
     return strnatcmp($a['endDate'], $b['endDate']);
 }
@@ -439,12 +471,12 @@ function topomojo_start($cm, $context, $topomojo) {
 // this functions returns all the vms in a view
 function get_allvms($auth, $id) {
     if ($auth == null) {
-        echo 'error with auth<br>';
+        print_error('error with auth');
         return;
     }
 
     if ($id == null) {
-        echo 'error with id<br>';
+        print_error('error with id');
         return;
     }
 

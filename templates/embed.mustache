@@ -36,9 +36,17 @@ DM20-0196
 	    }
 }}
 
-<div id="topomojo-container">
-    <p id="enable-fullscreen" style="display: none;" class="btn btn-primary">{{fullscreen}}</p>
-    <div align="center" class="iframe-container">
-    <iframe src="" id="vm_or_link" allowfullscreen="yes" scrolling="no"></iframe>
-    </div><br>
+<div>
+	{{#vmlist}}
+	{{#.}}
+		<a href="{{url}}" class="btn btn-primary" target="_blank" >{{name}}</a>
+	{{/.}}
+	{{/vmlist}}
 </div>
+<br>
+<a href="{{invitelinkurl}}" class="btn btn-primary">{{# str }} invitelink, mod_topomojo {{/ str }}</a>
+<button onclick="get_invite()">Copy invite link</button>
+
+{{# str }} supportcode, mod_topomojo {{/ str }}{{code}}
+
+{{{markdown}}}

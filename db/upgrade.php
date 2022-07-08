@@ -92,7 +92,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         $field = new xmldb_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'intro');
 
         // Launch rename field workspaceid.
-	$dbman->rename_field($table, $field, 'workspaceid');
+	    $dbman->rename_field($table, $field, 'workspaceid');
 
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070700, 'topomojo');
@@ -100,7 +100,7 @@ function xmldb_topomojo_upgrade($oldversion) {
 
     if ($oldversion < 2022070701) {
 
-	// Define field launchpointurl to be added to topomojo_attempts.
+	    // Define field launchpointurl to be added to topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('launchpointurl', XMLDB_TYPE_TEXT, '255', null, null, null, null, null);
 
@@ -113,6 +113,20 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022070701, 'topomojo');
     }
 
+    if ($oldversion < 2022070702) {
+
+	    // Define field duration to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, null, null, null, null);
+
+        // Conditionally launch add field duration.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022070702, 'topomojo');
+    }
     return true;
 }
 

@@ -52,8 +52,8 @@ if (!confirm_sesskey()) {
 
 $response = array();
 
-$system = setup_system();
-$event = get_event($system, $id);
+$auth = setup();
+$event = get_event($auth, $id);
 if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
@@ -65,7 +65,7 @@ if (!$event) {
     $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
     $response['posttime'] = $posttime;
     $data->expirationDate = $posttime;
-    $result = extend_event($system, $data);
+    $result = extend_event($auth, $data);
     if (!$result) {
         header('HTTP/1.1 500 Error');
         $response['message'] = "error with extend_event";

@@ -43,7 +43,7 @@ $string['modulenameplural'] = 'Topomojos';
 $string['pluginname'] = 'Topomojo';
 
 // plugin settings
-$string['alloyapiurl'] = 'Alloy API Base URL';
+$string['topomojoapiurl'] = 'Alloy API Base URL';
 $string['vmapp'] = 'Display Mode';
 $string['vmappurl'] = 'VM App Base URL';
 $string['playerappurl'] = 'Player Base URL';
@@ -59,7 +59,7 @@ $string['configvmapp'] = 'This determines whether the VM app is emebedd or wheth
 $string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
 $string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
 $string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing /.';
-$string['configalloyapiurl'] = 'Base URL for Alloy API instance without trailing /.';
+$string['configtopomojoapiurl'] = 'Base URL for Alloy API instance without trailing /.';
 $string['configworkspace'] = 'Workspace GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
@@ -69,8 +69,8 @@ $string['configapikey'] = 'The value included with TopoMojo API requests under t
 
 // activity settings
 $string['vmapp_help'] = 'This determines whether the VM app is emebeded in an iframe or whether a link to the player is displayed';
-$string['workspace_help'] = 'This is the Workspace GUID in Alloy.';
-$string['workspace'] = 'Alloy Workspace';
+$string['workspace_help'] = 'This is the Workspace GUID in Topomojo.';
+$string['workspace'] = 'Topomojo Workspace';
 $string['pluginadministration'] = 'Topomojo administration';
 $string['playerlinktext'] = 'Click here to open player in a new tab';
 $string['clock'] = 'Clock';
@@ -87,6 +87,8 @@ $string['grademethoddesc'] = 'The grading method defines how the grade for a sin
 $string['extendeventsetting'] = 'Extend Event';
 $string['extendeventsetting_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
 $string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
+$string['duration'] = 'Duration';
+$string['duration_help'] = 'This is the duration of the lab in minutes.';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -96,14 +98,14 @@ $string['eventopen_help'] = 'The actitity will not be available until this date.
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
 // history table
-$string['id'] = 'Alloy Event GUID';
+$string['id'] = 'Topomojo Gamespace GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
 
 // attempt table
-$string['eventid'] = 'Alloy Event GUID';
+$string['eventid'] = 'Topomojo Event GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
 $string['timefinish'] = 'Time Finished';
@@ -136,6 +138,8 @@ $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
 $string['attemptscore'] = 'Attempt Grade: ';
+$string['invitelink'] = 'Generate Invite';
+$string['supportcode'] = 'Support Code: ';
 
 // review
 $string['returntext'] = 'Return to Lab';
