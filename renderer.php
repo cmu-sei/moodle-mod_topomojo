@@ -36,10 +36,11 @@ defined('MOODLE_INTERNAL') || die();
 
 class mod_topomojo_renderer extends plugin_renderer_base {
 
-    function display_detail ($topomojo, $duration) {
+    function display_detail ($topomojo, $duration, $code = false) {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
+        $data->code = $code;
 
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
         $data->duration = $duration;
@@ -77,14 +78,12 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
     }
 
-    function display_embed_page($launchpointurl, $markdown, $vmlist, $code) {
+    function display_embed_page($launchpointurl, $markdown, $vmlist) {
         $data = new stdClass();
         $data->url = $launchpointurl;
         //$data->fullscreen = get_string('fullscreen', 'mod_topomojo');
 
         $data->vmlist = $vmlist;
-
-        $data->code = $code;
 
         $options['trusted'] = true;
         $options['noclean'] = true;
@@ -370,7 +369,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         }
     }
 
-    function display_clock($starttime, $endtime, $extend = false) {
+    function display_controls($starttime, $endtime, $extend = false) {
 
         $data = new stdClass();
         $data->starttime = $starttime;
@@ -379,7 +378,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
             $data->extend = get_string('extendevent', 'mod_topomojo');
         }
 
-        echo $this->render_from_template('mod_topomojo/clock', $data);
+        echo $this->render_from_template('mod_topomojo/controls', $data);
     }
 }
 

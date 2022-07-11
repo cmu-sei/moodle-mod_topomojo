@@ -25,23 +25,27 @@ DM20-0196
 }}
 
 {{!
-    @template mod_topomojo/form
+    @template mod_topomojo/clock
 
-    This template renders a button that reloads the page and stops a lab.
+    This template renders a timer for the lab duration.
 
-            Example context (json):
-            {
-	        "workspace": "guid",
-		"url": "url"
-            }
+	    Example context (json):
+	    {
+		"": "",
+	    }
 }}
 
-<form action="{{url}}" method="post">
-    <input id="event" type="hidden" name="event" value=""/>
-    <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
-    <input id="lend_button" style="display:inline" class="btn btn-primary" type="submit" name="stop" value="End Lab" />
-</form>
-
+<div id="controls">
+    <span id="timer"></span>
+    {{#extend}}
+    <button id="extend-event" style"display:inline" class="btn btn-primary">{{extend}}</button>
+    {{/extend}}
+    <form action="{{url}}" method="post" style="display:inline">
+        <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
+        <input id="end_button" class="btn btn-primary" type="submit" name="stop" value="{{# str }} stoplab, mod_topomojo {{/ str }}" />
+    </form>
+    <span id="invitationlinkurl" style="display:none"></span>
+    <button id="generate_invite" class="btn btn-primary">{{# str }} invitelink, mod_topomojo {{/ str }}</button>
+    <button id="copy_invite" class="btn btn-primary" style="display:none">{{# str }} copyinvite, mod_topomojo {{/ str }}</button>
+</div>
 <br>
-
-

@@ -210,11 +210,11 @@ if ((int)$gradepass > 0) {
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
 
-// TODO get value from settings
-$renderer->display_detail($topomojo, $topomojo->duration);
-
 if ($object->event) {
-
+    $code = substr($object->event->id, 0, 8);
+    $renderer->display_detail($topomojo, $topomojo->duration, $code);
+    
+    
     $jsoptions = ['keepaliveinterval' => 1];
 
     $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
@@ -223,7 +223,8 @@ if ($object->event) {
     if ($object->userauth && $topomojo->extendevent) {
         $extend = true;
     }
-    $renderer->display_clock($starttime, $endtime, $extend);
+
+    $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
     // no matter what, start our session timer
     $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init', array('starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id));
     if ($topomojo->clock == 1) {
@@ -232,14 +233,14 @@ if ($object->event) {
         $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup');
     }
 
-    // display stop form
-    $renderer->display_stopform($url, $object->topomojo->workspaceid);
+    $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
+    $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
 
     if ($vmapp == 1) {
   
         $vmlist = array();
         if (!is_array($object->event->vms)) {
-            print_error("no vms in this lab");
+            print_error("No VMs visible to user");
         }
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
@@ -257,25 +258,15 @@ if ($object->event) {
             }
 
         }
-        $code = substr($object->event->id, 0, 8);
 
-        /*
-        $invitelinkurl = "";
-        $invite = get_invite($object->userauth, $object->event->id);
-        if ($invite) {
-            $invitelinkurl = get_config('topomojo', 'playerappurl') . "lp/?c=" . $invite->code;
-        }
-        */
-
-        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist, $code);
- 
-        $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
-           $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
+        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist); 
     } else {
         $renderer->display_link_page($object->openAttempt->launchpointurl);
     }
     
 } else {
+    $renderer->display_detail($topomojo, $topomojo->duration);
+
     if ($showgrade) {
         $renderer->display_grade($topomojo);
     }
