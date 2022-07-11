@@ -45,12 +45,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'Cache-Control': 'no-cache',
                 'Expires': '-1'
             },
-            // This section exists for understanding the code, but it is commented because it does nothing.
-            success: function() {
-            },
             error: function(request) {
-                console.log("topomojo keepalive failed");
-                log.debug('moodle-mod_topomojo-keepalive: ' . request);
+                log.debug('moodle-mod_topomojo-keepalive: ' + request);
                 // The AJAX call returned 403, we have to assume that the session was terminated and can't be kept alive anymore.
                 if (request.status == 403) {
                     // Stop doing any more requests.

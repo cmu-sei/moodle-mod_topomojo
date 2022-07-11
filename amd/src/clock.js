@@ -22,6 +22,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
     var eventid;
     var endtime;
+    var starttime;
 
     return {
 
@@ -34,11 +35,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             var button = document.getElementById('extend-event');
             if (button) {
                 button.onclick = function() {
-                    extend_event();
+                    extendEvent();
                 };
-                console.log('set event for extend-event button');
-            } else {
-                console.log('missing extend event button');
             }
 
             setInterval(function() {
@@ -105,9 +103,10 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
     };
 
     /**
-     * Extend the duration of thelab b y one hour
-     * */
-    function extend_event() {
+     * Extend the duration of the lab by one hour
+     *
+     */
+    function extendEvent() {
         $.ajax({
             url: config.wwwroot + '/mod/topomojo/extendevent.php',
             type: 'POST',
@@ -119,17 +118,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'Cache-Control': 'no-cache',
                 'Expires': '-1'
             },
-            success: function(result) {
-                console.log('extended lab');
-                console.log(result);
-                //window.location.replace(window.location.href);
+            success: function() {
                 endtime += 3600;
             },
             error: function(request) {
-                console.log("extend-event request failed");
-                alert('extend-event request failed');
-                console.log(request);
-                log.debug('moodle-mod_topomojo-extend-event: ' . request);
+                log.debug('moodle-mod_topomojo-extend-event: ' + request);
             }
         });
 

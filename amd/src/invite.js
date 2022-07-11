@@ -1,5 +1,5 @@
 /**
-topomojo Plugin for Moodle
+Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE
 MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO
@@ -19,68 +19,69 @@ subject to its own license:
 DM20-0196
  */
 
-define(['jquery', 'core/config', 'core/log'], function($, config, log) {
+define(['jquery', 'core/config', 'core/log', 'core/modal_factory'], function($, config, log, ModalFactory) {
 
-    var event_id;
+    var eventId;
 
     return {
         init: function(info) {
-            event_id = info.id;
+            eventId = info.id;
 
-            var button = document.getElementById('copy_invite');
-            if (button) {
-                console.log("found button with id copy_invite");
-                button.onclick = function() {
+            var copyButton = document.getElementById('copy_invite');
+            if (copyButton) {
+                copyButton.onclick = function() {
+
                     var text = document.getElementById("invitationlinkurl").textContent;
-                    console.log('link text is' + text);
                     navigator.clipboard.writeText(text).then(function() {
-                        console.log('Copied to clipboard: ' + text);
-                        alert('Invitation link copied to clipboard: ' + text);
-                    }, function(err) {
-                        console.error('Could not copy text: ', err);
+                        ModalFactory.create({
+                            type: ModalFactory.types.ALERT,
+                            title: 'Invitation Link Copied',
+                            body: text,
+                            removeOnClose: true,
+                        })
+                        .then(function(modal) {
+                            modal.show();
+                            return modal;
+                        })
+                        .fail(function(err) {
+                            log.debug(err);
+                        });
+                        return;
+                    })
+                    .catch(function(err) {
+                        log.debug('Could not copy text: ', err);
                     });
                 };
             }
 
-            var button = document.getElementById('generate_invite');
-            if (button) {
-                console.log("found button with id generate_invite");
-                button.onclick = function() {
-
+            var generateButton = document.getElementById('generate_invite');
+            if (generateButton) {
+                generateButton.onclick = function() {
 
                     $.ajax({
                         url: config.wwwroot + '/mod/topomojo/generateinvite.php',
                         type: 'POST',
                         data: {
                             'sesskey': config.sesskey,
-                            'id': event_id
+                            'id': eventId
                         },
                         headers: {
                             'Cache-Control': 'no-cache',
                             'Expires': '-1'
                         },
                         success: function(result) {
-                            console.log('generate_invite success');
-                            console.log(result);
                             var text = document.getElementById("invitationlinkurl");
                             text.innerText = result.invitelinkurl;
                             var x = document.getElementById("copy_invite");
                             x.style.display = 'inline';
                         },
                         error: function(request) {
-                            console.log("generate_invite request failed");
-                            alert('generate_invite request failed');
-                            console.log(request);
                             log.debug('moodle-mod_topomojo-generate_invite: ' + request);
                         }
                     });
-
-
                 };
             }
         },
-
     };
-
 });
 
