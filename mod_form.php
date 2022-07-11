@@ -115,6 +115,13 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
         $mform->setDefault('clock', '');
         $mform->addHelpButton('clock', 'clock', 'topomojo');
+            //TODO pull duration from topomojo workspace
+        $mform->addElement('text', 'duration', get_string('duration', 'topomojo'), "0");
+        $mform->setType('duration', PARAM_INT);
+        $mform->addHelpButton('duration', 'duration', 'topomojo');        
+        
+        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
+        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
 
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
@@ -138,13 +145,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'timing', get_string('timing', 'topomojo'));
-
-        //TODO pull duration from topomojo workspace
-        $mform->addElement('text', 'duration', get_string('duration', 'topomojo'), "0");
-        $mform->setType('duration', PARAM_INT);
-        $mform->addHelpButton('duration', 'duration', 'topomojo');
-
-
 
         // Open and close dates.
         $mform->addElement('date_time_selector', 'timeopen', get_string('eventopen', 'topomojo'),

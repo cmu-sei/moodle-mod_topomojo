@@ -77,12 +77,10 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
     }
 
-    function display_embed_page($launchpointurl, $markdown, $vmlist, $code, $invitelinkurl) {
+    function display_embed_page($launchpointurl, $markdown, $vmlist, $code) {
         $data = new stdClass();
         $data->url = $launchpointurl;
         //$data->fullscreen = get_string('fullscreen', 'mod_topomojo');
-
-        $data->invitelinkurl = $invitelinkurl;
 
         $data->vmlist = $vmlist;
 

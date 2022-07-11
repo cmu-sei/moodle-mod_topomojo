@@ -167,6 +167,10 @@ class topomojo {
 
     public function moodle_events($events) {
         $moodle_events = array();
+        if (!is_array($events)) {
+            debugging("no events to parse in moodle_events", DEBUG_DEVELOPER);
+            return;
+        }
         foreach ($events as $event) {
             if ($event['managerName'] == "Adam Welle") {
                 //echo "<br>got moodle user<br>";
@@ -186,6 +190,11 @@ class topomojo {
         }
         $user_events = array();
 
+        if (!is_array($events)) {
+            debugging("cannot parse for user_events if events is not an array", DEBUG_DEVELOPER);
+            return;
+        }
+
         foreach ($events as $event) {
             // web request
             $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
@@ -203,6 +212,7 @@ class topomojo {
 
             if (!$r) {
                 debugging("could not decode json $url", DEBUG_DEVELOPER);
+                print_error($response);
                 return;
             }
     
@@ -212,6 +222,12 @@ class topomojo {
 
             $subjectid = explode( "@", $USER->email )[0];
             //echo "<br>subjectid $subjectid<br>";
+
+            if (!is_array($players)) {
+                debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
+                return;
+        
+            }
             foreach ($players as $player) {
                 //print_r($player);
                 if ($player['subjectId'] == $subjectid) {

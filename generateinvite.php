@@ -56,13 +56,13 @@ $response = array();
 $auth = setup();
 $result = get_invite($auth, $id);
 
-if (!$result) {
+if (!$id || !$result) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with generate_invite";
     $response['gamespace'] = $id;
 } else {
     header('HTTP/1.1 200 OK');
-    $invitelinkurl = get_config('topomojo', 'playerappurl') . "lp/?c=" . $result->code;
+    $invitelinkurl = get_config('topomojo', 'playerappurl') . "/lp/?c=" . $result->code;
     $response['invitelinkurl'] = $invitelinkurl;
 }
 

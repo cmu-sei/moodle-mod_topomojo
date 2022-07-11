@@ -44,8 +44,9 @@ DM20-0196
 	{{/vmlist}}
 </div>
 <br>
-<a href="{{invitelinkurl}}" class="btn btn-primary">{{# str }} invitelink, mod_topomojo {{/ str }}</a>
-<button onclick="get_invite()">Copy invite link</button>
+<span id="invitationlinkurl" style="display:none"></span>
+<button id="generate_invite" class="btn btn-primary">{{# str }} invitelink, mod_topomojo {{/ str }}</button>
+<button id="copy_invite" class="btn btn-primary" style="display:none">Copy invite link</button>
 
 {{# str }} supportcode, mod_topomojo {{/ str }}{{code}}
 

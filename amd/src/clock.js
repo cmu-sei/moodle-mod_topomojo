@@ -21,12 +21,15 @@ DM20-0196
 define(['jquery', 'core/config', 'core/log'], function($, config, log) {
 
     var eventid;
+    var endtime;
 
     return {
 
-        init: function(endtime, id) {
+        init: function(start, end, id) {
 
             eventid = id;
+            endtime = end;
+            starttime = start;
 
             var button = document.getElementById('extend-event');
             if (button) {
@@ -35,7 +38,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 };
                 console.log('set event for extend-event button');
             } else {
-                console.log('missing extgend event button');
+                console.log('missing extend event button');
             }
 
             setInterval(function() {
@@ -51,7 +54,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }, 1000);
         },
 
-        countdown: function(endtime) {
+        countdown: function() {
 
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
@@ -80,7 +83,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             }, 1000);
         },
 
-        countup: function(starttime) {
+        countup: function() {
 
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
@@ -101,6 +104,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
     };
 
+    /**
+     * Extend the duration of thelab b y one hour
+     * */
     function extend_event() {
         $.ajax({
             url: config.wwwroot + '/mod/topomojo/extendevent.php',
@@ -116,7 +122,8 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             success: function(result) {
                 console.log('extended lab');
                 console.log(result);
-                window.location.replace(window.location.href);
+                //window.location.replace(window.location.href);
+                endtime += 3600;
             },
             error: function(request) {
                 console.log("extend-event request failed");

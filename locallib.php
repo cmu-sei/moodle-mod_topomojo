@@ -59,9 +59,12 @@ function get_workspace($client, $id) {
 
     $response = $client->get($url);
 
+    // TODO handle network error
+
     if ($client->info['http_code'] !== 200) {
         #debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        print_error($client->info['http_code'] . " for $url " . $client->response['raw-response']);
+        print_r($client->response);
+        print_error($client->info['http_code'] . " for $url");
     }
 
     if (!$response) {
@@ -286,19 +289,17 @@ function extend_event($client, $data) {
     }
 
     // web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/events/" . $data->id;
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
     $client->setHeader('Content-Type: application/json-patch+json');
 
     $response = $client->put($url, json_encode($data));
 
     if ($client->info['http_code']  !== 200) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        return;
+        return false;
     }
 
-    $r = json_decode($response);
-
-    return $r;
+    return true;
 }
 
 function get_event($client, $id) {
@@ -326,6 +327,7 @@ function get_event($client, $id) {
     $r = json_decode($response);
     if (!$r) {
         debugging("could not decode json for $url", DEBUG_DEVELOPER);
+        print_error($response);
         return;
     }
 

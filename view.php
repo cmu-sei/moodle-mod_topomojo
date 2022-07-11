@@ -116,6 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
 
     // check not started already
     if (!$object->event) {
+
+        //TODO check for open attempt and check for status of its event
+
+
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
@@ -212,26 +216,32 @@ $renderer->display_detail($topomojo, $topomojo->duration);
 if ($object->event) {
 
     $jsoptions = ['keepaliveinterval' => 1];
+
     $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
 
-    // TODO add mod setting to pick format
-    if ($topomojo->clock == 1) {
-        $renderer->display_clock($starttime, $endtime, $extend);
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown', array('endtime' => $endtime));
-    } else if ($topomojo->clock == 2) {
-        $renderer->display_clock($starttime, $endtime);
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup', array('starttime' => $starttime));
+    $extend = false;
+    if ($object->userauth && $topomojo->extendevent) {
+        $extend = true;
     }
+    $renderer->display_clock($starttime, $endtime, $extend);
     // no matter what, start our session timer
-    $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init', array('endtime' => $endtime, 'id' => $object->event->id));
+    $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init', array('starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id));
+    if ($topomojo->clock == 1) {
+        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
+    } else if ($topomojo->clock == 2) {
+        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup');
+    }
 
-    // TODO display stop form
+    // display stop form
     $renderer->display_stopform($url, $object->topomojo->workspaceid);
 
     if ($vmapp == 1) {
+  
         $vmlist = array();
+        if (!is_array($object->event->vms)) {
+            print_error("no vms in this lab");
+        }
         foreach ($object->event->vms as $vm) {
-            //TODO this doesnt work when the lab is first deployed but does after a refresh
             if (is_array($vm)) {
                 if ($vm['isVisible']) {
                     $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
@@ -249,12 +259,18 @@ if ($object->event) {
         }
         $code = substr($object->event->id, 0, 8);
 
+        /*
+        $invitelinkurl = "";
         $invite = get_invite($object->userauth, $object->event->id);
         if ($invite) {
             $invitelinkurl = get_config('topomojo', 'playerappurl') . "lp/?c=" . $invite->code;
         }
+        */
 
-        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist, $code, $invitelinkurl);
+        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist, $code);
+ 
+        $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
+           $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
     } else {
         $renderer->display_link_page($object->openAttempt->launchpointurl);
     }

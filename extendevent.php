@@ -37,6 +37,7 @@ define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
+require_once($CFG->libdir . '/filelib.php');
 
 require_login();
 require_sesskey();
@@ -58,13 +59,14 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
-    $data = $event;
-    $response['oldtime'] = $event->expirationDate;
-    $timestamp = new DateTime($event->expirationDate);
+    $data = new StdClass();
+    $response['oldtime'] = $event->expirationTime;
+    $timestamp = new DateTime($event->expirationTime);
     $timestamp->add(new DateInterval('PT1H'));
     $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
     $response['posttime'] = $posttime;
-    $data->expirationDate = $posttime;
+    $data->id = $id;
+    $data->expirationTime = $posttime;
     $result = extend_event($auth, $data);
     if (!$result) {
         header('HTTP/1.1 500 Error');
