@@ -31,11 +31,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             if (button) {
                 console.log("found button with id copy_invite");
                 button.onclick = function() {
-                    var elem = document.getElementById("invitationlinkurl");
                     var text = document.getElementById("invitationlinkurl").textContent;
-                    console.log('link text is' . text);
+                    console.log('link text is' + text);
                     navigator.clipboard.writeText(text).then(function() {
-                        console.log('Copied to clipboard: ' . text);
+                        console.log('Copied to clipboard: ' + text);
+                        alert('Invitation link copied to clipboard: ' + text);
                     }, function(err) {
                         console.error('Could not copy text: ', err);
                     });
@@ -71,7 +71,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                             console.log("generate_invite request failed");
                             alert('generate_invite request failed');
                             console.log(request);
-                            log.debug('moodle-mod_topomojo-generate_invite: ' . request);
+                            log.debug('moodle-mod_topomojo-generate_invite: ' + request);
                         }
                     });
 
