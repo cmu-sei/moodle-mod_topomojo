@@ -126,7 +126,8 @@ if ($isinstructor) {
     echo "Username: " . fullname($user);
 }
 
-$renderer->display_form($url, $object->topomojo->workspaceid);
+// TODO why should display attempt show the form to start the lab? shouldnt this be a return form instead?
+//$renderer->display_form($url, $object->topomojo->workspaceid);
 
 global $DB;
 
@@ -155,9 +156,9 @@ if ($isinstructor) {
         debugging("updating topomojo_task_results", DEBUG_DEVELOPER);
         $DB->update_record('topomojo_task_results', $data);
         $attempt = $object->get_attempt($a);
-	$score = $grader->calculate_attempt_grade($attempt);
-	$response['score'] = get_string("attemptscore", "topomojo") . $score;
-	debugging("grade " . $score, DEBUG_DEVELOPER);
+        $score = $grader->calculate_attempt_grade($attempt);
+        $response['score'] = get_string("attemptscore", "topomojo") . $score;
+        debugging("grade " . $score, DEBUG_DEVELOPER);
 
         redirect($PAGE->url, get_string('updated', 'core', 'grade item; new grade ' . $score), 2);
     }
