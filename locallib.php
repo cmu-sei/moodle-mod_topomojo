@@ -37,6 +37,7 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
+require_once($CFG->libdir . '/questionlib.php');
 
 function setup() {
         $client = new curl;
@@ -169,7 +170,7 @@ function start_event($client, $id, $topomojo) {
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = 1; // TODO get this from settings
-    $payload->maxMinutes = $topomojo->duration;
+    $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
     $payload->variant = 0; // TODO get this from settings
     $payload->players = array();

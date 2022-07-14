@@ -42,10 +42,10 @@ DM20-0196
 class scaletypes {
 
     /** Define grading scale types */
-    const topomojo_FIRSTATTEMPT = 1;
-    const topomojo_LASTATTEMPT = 2;
-    const topomojo_ATTEMPTAVERAGE = 3;
-    const topomojo_HIGHESTATTEMPTGRADE = 4;
+    const TOPOMOJO_FIRSTATTEMPT = 1;
+    const TOPOMOJO_LASTATTEMPT = 2;
+    const TOPOMOJO_ATTEMPTAVERAGE = 3;
+    const TOPOMOJO_HIGHESTATTEMPTGRADE = 4;
 
 
     /**
@@ -56,10 +56,10 @@ class scaletypes {
     public static function get_types() {
 
         return array(
-            'firstattempt' => self::topomojo_FIRSTATTEMPT,
-            'lastattempt'  => self::topomojo_LASTATTEMPT,
-            'average'      => self::topomojo_ATTEMPTAVERAGE,
-            'highestgrade' => self::topomojo_HIGHESTATTEMPTGRADE,
+            'firstattempt' => self::TOPOMOJO_FIRSTATTEMPT,
+            'lastattempt'  => self::TOPOMOJO_LASTATTEMPT,
+            'average'      => self::TOPOMOJO_ATTEMPTAVERAGE,
+            'highestgrade' => self::TOPOMOJO_HIGHESTATTEMPTGRADE,
         );
     }
 
@@ -72,10 +72,10 @@ class scaletypes {
     public static function get_display_types() {
 
         return array(
-            self::topomojo_FIRSTATTEMPT        => get_string('firstattempt', 'topomojo'),
-            self::topomojo_LASTATTEMPT         => get_string('lastattempt', 'topomojo'),
-            self::topomojo_ATTEMPTAVERAGE      => get_string('attemptaverage', 'topomojo'),
-            self::topomojo_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'topomojo'),
+            self::TOPOMOJO_FIRSTATTEMPT        => get_string('firstattempt', 'topomojo'),
+            self::TOPOMOJO_LASTATTEMPT         => get_string('lastattempt', 'topomojo'),
+            self::TOPOMOJO_ATTEMPTAVERAGE      => get_string('attemptaverage', 'topomojo'),
+            self::TOPOMOJO_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'topomojo'),
         );
     }
 

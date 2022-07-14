@@ -39,9 +39,9 @@ defined('MOODLE_INTERNAL') || die();
 if ($ADMIN->fulltree) {
     //--- general settings -----------------------------------------------------------------------------------
 
-    $options = array('Display Link to Topomojo', 'Embed Topomojo');
-    $settings->add(new admin_setting_configselect('topomojo/vmapp',
-        get_string('vmapp', 'topomojo'), get_string('configvmapp', 'topomojo'), 1, $options));
+    $options = array(get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo'));
+    $settings->add(new admin_setting_configselect('topomojo/embed',
+        get_string('embed', 'topomojo'), get_string('configembed', 'topomojo'), 1, $options));
 
     $options = array('Dropdown', 'Searchable', 'Manual');
     $settings->add(new admin_setting_configselect('topomojo/autocomplete',
@@ -55,6 +55,23 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('topomojo/apikey',
         get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
+
+        
+    // Review options.
+    $settings->add(new admin_setting_heading('reviewheading',
+            get_string('reviewoptionsheading', 'topomojo'), ''));
+    foreach (mod_topomojo_admin_review_setting::fields() as $field => $name) {
+        $default = mod_topomojo_admin_review_setting::all_on();
+        $forceduring = null;
+        if ($field == 'attempt') {
+            $forceduring = true;
+        } else if ($field == 'overallfeedback') {
+            $default = $default ^ mod_topomojo_admin_review_setting::DURING;
+            $forceduring = false;
+        }
+        $settings->add(new mod_topomojo_admin_review_setting('topomojo/review' . $field,
+                $name, '', $default, $forceduring));
+    }
 
 }
 

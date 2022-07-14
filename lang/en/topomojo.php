@@ -43,23 +43,22 @@ $string['modulenameplural'] = 'Topomojos';
 $string['pluginname'] = 'Topomojo';
 
 // plugin settings
-$string['topomojoapiurl'] = 'Alloy API Base URL';
-$string['vmapp'] = 'Display Mode';
-$string['vmappurl'] = 'VM App Base URL';
-$string['playerappurl'] = 'Player Base URL';
-$string['steamfitterapiurl'] = 'SteamFitter API URL';
-$string['issuerid'] = 'OAUTH2 Issuer';
+$string['topomojoapiurl'] = 'Topomojo API Base URL';
+$string['embed'] = 'Display Mode';
+$string['playerappurl'] = 'Topomojo Base URL';
 $string['autocomplete'] = 'Workspace Selection Method';
 $string['workspace'] = 'Workspace';
 $string['selectname'] = 'Search for an Workspace by name';
 $string['showfailed'] = 'Show Failed';
+$string['displaylink'] = 'Display Link to Topomojo';
+$string['embedlab'] = 'Embed Lab inside Moodle';
+$string['theattempt'] = 'The attempt';
+$string['theattempt_help'] = 'Whether the student can review the attempt at all.';
 
+$string['configplayerappurl'] = 'Base URL for Topomojo trailing /.';
 $string['configissuerid'] = 'This is the integer value for the issuer.';
-$string['configvmapp'] = 'This determines whether the VM app is emebedd or whether a link to player is displayed';
-$string['configvmappurl'] = 'Base URL for VM app instance without trailing /.';
-$string['configplayerappurl'] = 'Base URL for Player instance without trailing /.';
-$string['configsteamfitterapiurl'] = 'Base URL for SteamFitter API instance without trailing /.';
-$string['configtopomojoapiurl'] = 'Base URL for Alloy API instance without trailing /.';
+$string['configembed'] = 'This determines whether the lab is emebedd or whether a link to Topomojo is displayed';
+$string['configtopomojoapiurl'] = 'Base URL for Topomojo API instance without trailing /.';
 $string['configworkspace'] = 'Workspace GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
@@ -68,7 +67,7 @@ $string['apikey'] = 'API Key';
 $string['configapikey'] = 'The value included with TopoMojo API requests under the x-api-key header. Assigned by the TopoMojo administrator.';
 
 // activity settings
-$string['vmapp_help'] = 'This determines whether the VM app is emebeded in an iframe or whether a link to the player is displayed';
+$string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to Topomojo is displayed';
 $string['workspace_help'] = 'This is the Workspace GUID in Topomojo.';
 $string['workspace'] = 'Topomojo Workspace';
 $string['pluginadministration'] = 'Topomojo administration';
@@ -89,11 +88,16 @@ $string['extendeventsetting_help'] = 'Setting this allows the user to extend the
 $string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 $string['duration'] = 'Duration';
 $string['duration_help'] = 'This is the duration of the lab in minutes.';
+$string['overallfeedback'] = 'Overall feedback';
+$string['overallfeedback_help'] = 'Overall feedback is text that is shown after a quiz has been attempted. By specifying additional grade boundaries (as a percentage or as a number), the text shown can depend on the grade obtained.';
+$string['everythingon'] = 'Everything on';
+$string['manualcomment'] = 'Manual Comment';
+$string['manualcomment_help'] = 'The comment that instructors can add when grading an attempt';
 
 // Time options
 $string['timing'] = 'Timing';
-$string['eventopen'] = 'Start Quiz';
-$string['eventclose'] = 'Close the quiz';
+$string['eventopen'] = 'Open the activity';
+$string['eventclose'] = 'Close the activity';
 $string['eventopen_help'] = 'The actitity will not be available until this date.';
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
@@ -105,7 +109,7 @@ $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
 
 // attempt table
-$string['eventid'] = 'Topomojo Event GUID';
+$string['eventid'] = 'Topomojo Gamespace GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
 $string['timefinish'] = 'Time Finished';
@@ -117,22 +121,11 @@ $string['username'] = 'Username';
 $string['eventattemptstarted'] = 'Attempt started';
 $string['eventattemptended'] = 'Attempt ended';
 
-// tasks
-$string['taskcaption'] = 'Tasks';
-$string['taskid'] = 'Task ID';
-$string['taskdesc'] = 'Task Description';
-$string['taskname'] = 'Task Name';
-$string['taskresult'] = 'Latest Task Result';
-$string['taskaction'] = 'Action';
-$string['taskexecute'] = 'Run Task';
-$string['tasknoexecute'] = 'No Action';
-
 // view
-$string['eventwithoutattempt'] = 'Event exists but attempt does not exist in moodle db.';
+$string['eventwithoutattempt'] = 'Gamespace exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
 $string['overallgrade'] = 'Overall Grade: ';
-$string['fullscreen'] = 'Fullscreen VM App';
 $string['extendevent'] = 'Extend Lab';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['managetext'] = 'Review Course Attempts';
@@ -145,20 +138,46 @@ $string['stoplab'] = 'End Lab';
 
 // review
 $string['returntext'] = 'Return to Lab';
-$string['taskregrade'] = 'Edit Grade';
-$string['vmname'] = 'VM Name';
-$string['taskcomment'] = 'Comment';
 
-// tasks
-$string['managetasks'] = 'Manage Tasks';
-$string['taskcloseattempt'] = 'Close expired Topomojo attempts';
-$string['visible'] = 'Visible';
-$string['gradable'] = 'Gradable';
-$string['multiple'] = 'Multiple VMs';
-$string['points'] = 'Points';
+// review options
+$string['review'] = 'Review';
+$string['reviewafter'] = 'Allow review after lab is closed';
+$string['reviewalways'] = 'Allow review at any time';
+$string['reviewattempt'] = 'Review attempt';
+$string['reviewbefore'] = 'Allow review while lab is open';
+$string['reviewclosed'] = 'After the quiz is closed';
+$string['reviewduring'] = 'During the attempt';
+$string['reviewimmediately'] = 'Immediately after the attempt';
+$string['reviewnever'] = 'Never allow review';
+$string['reviewofattempt'] = 'Review of attempt {$a}';
+$string['reviewofpreview'] = 'Review of preview';
+$string['reviewofquestion'] = 'Review of question {$a->question} in {$a->topomojo} by {$a->user}';
+$string['reviewopen'] = 'While the lab is open';
+$string['reviewoptions'] = 'Students may review';
+$string['reviewoptionsheading'] = 'Review options';
+$string['reviewoptionsheading_help'] = 'These options control what information students can see when they review a lab attempt or look at the lab reports.
+
+**During the attempt** settings are only relevant for some behaviours, like \'interactive with multiple tries\', which may display feedback during the attempt.
+
+**Immediately after the attempt** settings apply for the first two minutes after \'Submit all and finish\' is clicked.
+
+**Later, while the lab is still open** settings apply after this, and before the lab close date.
+
+**After the lab is closed** settings apply after the lab close date has passed. If the lab does not have a close date, this state is never reached.';
+$string['reviewoverallfeedback'] = 'Overall feedback';
+$string['reviewoverallfeedback_help'] = 'The feedback given at the end of the attempt, depending on the student\'s total mark.';
+$string['reviewresponse'] = 'Review response';
+$string['reviewresponsetoq'] = 'Review response (question {$a})';
+$string['reviewthisattempt'] = 'Review your responses to this attempt';
+
 
 // roles
 $string['topomojo:manage'] = 'Manage Topomojo activities';
 $string['topomojo:view'] = 'View Topomojo activity information';
 $string['topomojo:addinstance'] = 'Add a new Topomojo activties';
+
+// questions
+$string['noquestions'] = 'No questions have been added yet';
+$string['questions'] = 'Questions';
+
 

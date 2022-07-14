@@ -127,6 +127,100 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070702, 'topomojo');
     }
+
+
+    if ($oldversion < 2022071401) {
+
+        // Define field reviewattempt to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewattempt', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'timemodified');
+
+        // Conditionally launch add field reviewattempt.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewcorrectness to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewcorrectness', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewattempt');
+
+        // Conditionally launch add field reviewcorrectness.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewmarks to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewmarks', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewcorrectness');
+
+        // Conditionally launch add field reviewmarks.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewspecificfeedback to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewspecificfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewmarks');
+
+        // Conditionally launch add field reviewspecificfeedback.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewgeneralfeedback to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewgeneralfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewspecificfeedback');
+
+        // Conditionally launch add field reviewgeneralfeedback.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewrightanswer to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewrightanswer', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewgeneralfeedback');
+
+        // Conditionally launch add field reviewrightanswer.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+
+        // Define field reviewoverallfeedback to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewoverallfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewrightanswer');
+
+        // Conditionally launch add field reviewoverallfeedback.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewmanualcomment to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('reviewmanualcomment', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewoverallfeedback');
+
+        // Conditionally launch add field reviewmanualcomment.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+
+        // Define field preferredbehaviour to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('preferredbehaviour', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null, 'shuffleanswers');
+
+        // Conditionally launch add field preferredbehaviour.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022071401, 'topomojo');
+    }
+
+
+
     return true;
 }
 

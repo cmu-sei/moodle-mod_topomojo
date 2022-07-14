@@ -57,7 +57,7 @@ class grade {
      *
      * For now this will always be the last attempt for the user
      *
-     * @param \mod_topomojo\topomojo_attempt $attempt
+     * @param \mod_topomojo\TOPOMOJO_Attempt $attempt
      * @param int                                $userid The userid to get the grade for
      * @return array($forgroupid, $number)
      */
@@ -136,7 +136,7 @@ class grade {
      *
      * Is public function so that tableviews can get an attempt calculated grade
      *
-     * @param \mod_topomojo\topomojo_attempt $attempt
+     * @param \mod_topomojo\TOPOMOJO_Attempt $attempt
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
@@ -229,18 +229,18 @@ class grade {
     protected function apply_grading_method($grades) {
         debugging("grade method is " . $this->topomojo->topomojo->grademethod . " for " . $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
-            case \mod_topomojo\utils\scaletypes::topomojo_FIRSTATTEMPT:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
                 // take the first record (as there should only be one since it was filtered out earlier)
                 reset($grades);
                 return current($grades);
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_LASTATTEMPT:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT:
                 // take the last grade (there should only be one, as the last attempt was filtered out earlier)
                 return end($grades);
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_ATTEMPTAVERAGE:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_ATTEMPTAVERAGE:
                 // average the grades
                 $gradecount = count($grades);
                 $gradetotal = 0;
@@ -250,7 +250,7 @@ class grade {
                 return $gradetotal / $gradecount;
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_HIGHESTATTEMPTGRADE:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_HIGHESTATTEMPTGRADE:
                 // find the highest grade
                 $highestgrade = 0;
                 foreach ($grades as $grade) {

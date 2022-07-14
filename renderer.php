@@ -43,7 +43,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $data->code = $code;
 
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
-        $data->duration = $duration;
+        $data->duration = $duration / 60;
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 

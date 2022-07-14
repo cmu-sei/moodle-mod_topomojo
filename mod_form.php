@@ -106,22 +106,15 @@ class mod_topomojo_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
-        $options = array('Display Link to Player', 'Embed VM App');
-        $mform->addElement('select', 'vmapp', get_string('vmapp', 'topomojo'), $options);
-        $mform->setDefault('vmapp', $config->vmapp);
-        $mform->addHelpButton('vmapp', 'vmapp', 'topomojo');
+        $options = array(get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo'));
+        $mform->addElement('select', 'embed', get_string('embed', 'topomojo'), $options);
+        $mform->setDefault('embed', $config->embed);
+        $mform->addHelpButton('embed', 'embed', 'topomojo');
 
         $options = array('', 'Countdown', 'Timer');
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
         $mform->setDefault('clock', '');
         $mform->addHelpButton('clock', 'clock', 'topomojo');
-            //TODO pull duration from topomojo workspace
-        $mform->addElement('text', 'duration', get_string('duration', 'topomojo'), "0");
-        $mform->setType('duration', PARAM_INT);
-        $mform->addHelpButton('duration', 'duration', 'topomojo');        
-        
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
 
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
@@ -155,6 +148,36 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 self::$datefieldoptions);
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
+        //TODO pull duration from topomojo workspace
+        // duration is referred to as timelimit in groupquiz plugin
+        // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
+        $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
+        $mform->setType('duration', PARAM_INT);
+        $mform->addHelpButton('duration', 'duration', 'topomojo');        
+    
+        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
+        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
+    
+
+        // -------------------------------------------------------------------------------
+        $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'groupquiz'));
+
+        // Shuffle within questions.
+        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'groupquiz'));
+        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'groupquiz');
+        $mform->setAdvanced('shuffleanswers', '');
+        $mform->setDefault('shuffleanswers', '');
+
+        // How questions behave (question behaviour).
+        if (!empty($this->current->preferredbehaviour)) {
+            $currentbehaviour = $this->current->preferredbehaviour;
+        } else {
+            $currentbehaviour = '';
+        }
+        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+        $mform->addElement('select', 'preferredbehaviour',
+                get_string('howquestionsbehave', 'question'), $behaviours);
+        $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
 
         //-------------------------------------------------------
         $this->standard_coursemodule_elements();
@@ -202,8 +225,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
             echo "return to settings page<br>";
             exit;
         }
-        if (!$data->vmapp) {
-            $data->vmapp = 0;
+        if (!$data->embed) {
+            $data->embed = 0;
         }
 
         if (is_array($this->workspaces)) {
