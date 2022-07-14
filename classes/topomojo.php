@@ -125,7 +125,7 @@ class topomojo {
      * the records returned do not listed players.
      */
     function list_events() {
-	    debugging("listing events", DEBUG_DEVELOPER);
+	    //debugging("listing events", DEBUG_DEVELOPER);
         if ($this->userauth == null) {
             print_error('error with userauth');
             return;
@@ -159,7 +159,7 @@ class topomojo {
             return;
         }
 
-        debugging("returned " . count($r) . " events with same name", DEBUG_DEVELOPER);
+        //debugging("returned " . count($r) . " events with same name", DEBUG_DEVELOPER);
 
         usort($r, 'whenCreated');
         return $r;
@@ -177,7 +177,7 @@ class topomojo {
                 array_push($moodle_events, $event);
             }    
         }
-        debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
+        //debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
         return $moodle_events;
     }
 
@@ -236,7 +236,7 @@ class topomojo {
                 }
             }
         }
-        debugging("found " . count($user_events) . " events for this user", DEBUG_DEVELOPER);
+        //debugging("found " . count($user_events) . " events for this user", DEBUG_DEVELOPER);
         return $user_events;
     }
 
@@ -246,6 +246,15 @@ class topomojo {
         $dbattempt = $DB->get_record('topomojo_attempts', array("id" => $attemptid));
 
         return new topomojo_attempt($dbattempt);
+    }
+
+    /**
+     * Get the course module isntance
+     *
+     * @return object
+     */
+    public function getCM() {
+        return $this->cm;
     }
 
 

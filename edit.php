@@ -36,13 +36,14 @@ DM20-0196
 
 use \mod_topomojo\topomojo;
 
-//require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/questionlib.php');
+require_once($CFG->dirroot . '/question/editlib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('cmid', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
 
 try {
@@ -61,16 +62,18 @@ try {
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
-require_capability('mod/topomojo:view', $context);
+require_capability('mod/topomojo:manage', $context);
 
+/*
+// TODO log an event when edit page is viewed
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
-    topomojo_view($topomojo, $course, $cm, $context);
+    topomojo_edit($topomojo, $course, $cm, $context);
 }
+*/
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/review.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/topomojo/edit.php', array ( 'cmid' => $cm->id ) );
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -82,20 +85,37 @@ $pageurl = $url;
 $pagevars = array();
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
+list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
+        question_edit_setup('editq', '/mod/topomojo/edit.php', true);
+
+
 // get workspace info
 $object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);
+#print_r($object->workspace);
 
-if (!$object->is_instructor()) {
-    redirect($returnurl);
+// Update the database.
+if ($object->workspace) {
+    // TODO get questions from workspace
 }
 
-$renderer = $PAGE->get_renderer('mod_topomojo');
-echo $renderer->header();
-$renderer->display_detail($topomojo, $object->workspace->durationMinutes);
-$renderer->display_return_form($returnurl, $id);
 
-$attempts = $object->getall_attempts('all', $review = true);
-echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+// get current state of workspace
+$all_events = $object->list_events();
+$moodle_events = $object->moodle_events($all_events);
+
+
+$renderer_subtype = 'edit';
+$renderer = $PAGE->get_renderer('mod_topomojo', $renderer_subtype);
+echo $renderer->header();
+//\core_question\local\bank\question_edit_contexts $contexts
+$questionbankview = new \core_question\local\bank\view($contexts, $pageurl, $course, $cm);
+
+// TODO get questions from db and make the right type of array
+$questions = $DB->get_records('topomojo_questions', array('topomojoid' => $topomojo->id));
+
+$renderer->listquestions($topomojo, $questions, $questionbankview, $cm, $pagevars);
+
+// TODO display questions
 
 echo $renderer->footer();
 

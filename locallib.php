@@ -44,7 +44,7 @@ function setup() {
         $x_api_key = get_config('topomojo', 'apikey');
         $topoHeaders = array( 'x-api-key: ' . $x_api_key, 'content-type: application/json' );
         $client->setHeader($topoHeaders);
-	    #debugging("api key $x_api_key", DEBUG_DEVELOPER);
+	    //debugging("api key $x_api_key", DEBUG_DEVELOPER);
         return $client;
 }
 
@@ -63,8 +63,8 @@ function get_workspace($client, $id) {
     // TODO handle network error
 
     if ($client->info['http_code'] !== 200) {
-        #debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        print_r($client->response);
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
         print_error($client->info['http_code'] . " for $url");
     }
 
@@ -80,45 +80,6 @@ function get_workspace($client, $id) {
     }
 
     return $r;
-}
-
-function tasksort($a, $b) {
-    return strcmp($a->name, $b->name);
-}
-
-// filter for tasks the user can see and sort by name
-function filter_tasks($tasks, $visible = 0, $gradable = 0) {
-    global $DB;
-    if (is_null($tasks)) {
-        return;
-    }
-    $filtered = array();
-    foreach ($tasks as $task) {
-
-        $rec = $DB->get_record_sql('SELECT * from {topomojo_tasks} WHERE '
-                . $DB->sql_compare_text('dispatchtaskid') . ' = '
-                . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
-
-        if ($rec === false) {
-            // do not display tasks we do not have in the db
-            debugging('could not find task in db ' . $task->id, DEBUG_DEVELOPER);
-            continue;
-        }
-
-        if ($visible === (int)$rec->visible ) {
-            $task->points = $rec->points;
-            $filtered[] = $task;
-        }
-
-        // TODO show automatic checks or show manual tasks only?
-        //if ($task->triggerCondition == "Manual") {
-        //    $filtered[] = $task;
-        //}
-        //$filtered[] = $task;
-    }
-    // sort the array by name
-    usort($filtered, "tasksort");
-    return $filtered;
 }
 
 function get_workspaces($client) {
@@ -263,26 +224,6 @@ function get_invite($client, $id) {
     return;
 }
 
-function run_task($client, $id) {
-
-    if ($client == null) {
-        return;
-    }
-
-    // web request
-    $url = get_config('topomojo', 'steamfitterapiurl') . "/tasks/" . $id . "/execute";
-
-    $response = $client->post($url);
-
-    if ($client->info['http_code']  !== 200) {
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
-
-    $r = json_decode($response);
-
-    return $r;
-}
-
 function extend_event($client, $data) {
 
     if ($client == null) {
@@ -339,47 +280,6 @@ function get_event($client, $id) {
         print_error($r->detail);
     }
     return;
-}
-
-function get_task($client, $id) {
-
-    if ($client == null) {
-        debugging('error with client in get_tasks', DEBUG_DEVELOPER);;
-        return;
-    }
-
-    if ($id == null) {
-        debugging('error with id in get_tasks', DEBUG_DEVELOPER);;
-        return;
-    }
-
-    // web request
-    $url = get_config('topomojo', 'steamfitterapiurl') . "/tasks/" . $id;
-    //echo "GET $url<br>";
-
-    $response = $client->get($url);
-    if (!$response) {
-        debugging('no response received by get_tasks', DEBUG_DEVELOPER);
-        return;
-    }
-    //echo "response:<br><pre>$response</pre>";
-    $r = json_decode($response);
-    if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
-        return;
-    }
-
-    if ($client->info['http_code']  === 200) {
-        return $r;
-    } else {
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
-    return;
-}
-
-// mot used
-function endDate($a, $b) {
-    return strnatcmp($a['endDate'], $b['endDate']);
 }
 
 function whenCreated($a, $b) {

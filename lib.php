@@ -426,10 +426,10 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
     }
 
     if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/edit.php', array('id' => $PAGE->cm->id));
+        $url = new moodle_url('/mod/topomojo/edit.php', array('cmid' => $PAGE->cm->id));
         $node = navigation_node::create(get_string('questions', 'mod_topomojo'),
                 new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_tasks', new pix_icon('i/edit', ''));
+                navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));
         $context->add_node($node, $beforekey);
     }
 

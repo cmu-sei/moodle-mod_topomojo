@@ -194,7 +194,7 @@ if ($object->event) {
 }
 
 // pull values from the settings
-$vmapp = $topomojo->vmapp;
+$embed = $topomojo->embed;
 
 $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
@@ -236,7 +236,7 @@ if ($object->event) {
     $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
     $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
 
-    if ($vmapp == 1) {
+    if ($embed == 1) {
   
         $vmlist = array();
         if (!is_array($object->event->vms)) {

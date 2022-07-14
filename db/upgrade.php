@@ -219,6 +219,18 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022071401, 'topomojo');
     }
 
+    if ($oldversion < 2022071403) {
+
+        // Rename field vmapp on table topomojo to embed.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('vmapp', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '1', 'workspaceid');
+
+        // Launch rename field vmapp.
+        $dbman->rename_field($table, $field, 'embed');
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022071403, 'topomojo');
+    }
 
 
     return true;

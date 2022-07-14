@@ -181,3 +181,10 @@ $string['noquestions'] = 'No questions have been added yet';
 $string['questions'] = 'Questions';
 
 
+// edit
+$string['questionlist'] = 'Question List';
+$string['cannoteditafterattempts'] = 'You cannot add or remove questions because this quiz has been attempted.';
+
+
+
+
