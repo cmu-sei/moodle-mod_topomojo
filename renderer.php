@@ -36,6 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class mod_topomojo_renderer extends plugin_renderer_base {
 
+
     function display_detail ($topomojo, $duration, $code = false) {
         $data = new stdClass();
         $data->name = $topomojo->name;
@@ -207,6 +208,77 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $this->pageurl = $pageurl;
         $this->topomojo = $topomojo;
     }
+
+    /**
+     * Renders the quiz to the page
+     *
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     */
+
+    public function render_quiz(\mod_topomojo\topomojo_attempt $attempt) {
+
+        $output = '';
+
+	    //$output .= html_writer::start_div();
+        //$output .= $this->quiz_intro();
+        //$output .= html_writer::end_div();
+
+        $output .= html_writer::start_div('', array('id'=>'quizview'));
+/*
+        if ($this->topomojo->is_instructor()) {
+            $instructions = get_string('instructorquizinst', 'topomojo');
+        } else {
+            $instructions = get_string('studentquizinst', 'topomojo');
+        }
+        $loadingpix = $this->output->pix_icon('i/loading', 'loading...');
+        $output .= html_writer::start_div('topomojoloading', array('id' => 'loadingbox'));
+        $output .= html_writer::tag('p', get_string('loading', 'topomojo'), array('id' => 'loadingtext'));
+        $output .= $loadingpix;
+        $output .= html_writer::end_div();
+
+	    // quiz instructions
+        $output .= html_writer::start_div('topomojobox', array('id' => 'instructionsbox'));
+	    $output .= $instructions;
+        $output .= html_writer::end_div();
+*/
+
+        debugging("we have counts of slots: " . count($attempt->getSlots()), DEBUG_DEVELOPER);
+        foreach ($attempt->getSlots() as $slot) {;
+            // render question form.
+            $output .= $this->render_question_form($slot, $attempt);
+        }
+
+        $params = array(
+            'id' => $this->topomojo->getCM()->id,
+            //'attemptid' => $this->topomojo->openAttempt->id,
+            'action' => 'submitquiz'
+        );
+        $endurl = new moodle_url('/mod/topomojo/view.php', $params);
+        //$output .= $this->output->single_button($endurl, 'Submit Quiz', 'get');
+        $output .= $this->output->single_button($endurl, 'Submit Quiz');
+
+        $output .= html_writer::end_div();
+        echo $output;
+    }
+
+
+    /**
+     * Render a specific question in its own form so it can be submitted
+     * independently of the rest of the questions
+     *
+     * @param int                                $slot the id of the question we're rendering
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment of the question
+     */
+    public function render_question_form($slot, $attempt) {
+
+        $output = '';
+        $output .= $attempt->render_question($slot);
+
+        return $output;
+    }
+
 
 }
 

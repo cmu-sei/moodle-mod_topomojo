@@ -211,7 +211,8 @@ if ((int)$gradepass > 0) {
     $showgrade = false;
 }
 
-$renderer = $PAGE->get_renderer('mod_topomojo');
+//$renderer = $PAGE->get_renderer('mod_topomojo');
+$renderer = $object->renderer;
 echo $renderer->header();
 
 if ($object->event) {
@@ -278,6 +279,36 @@ if ($object->event) {
     $renderer->display_startform($url, $object->topomojo->workspaceid);
 }
 
+$action = optional_param('action', '', PARAM_ALPHA);
+
+switch($action) {
+    case "submitquiz": 
+        debugging("stop request received", DEBUG_DEVELOPER);
+        if ($object->event) {
+            if ($object->event->isActive) {
+                if (!$attempt) {
+                    debugging('no attempt to close', DEBUG_DEVELOPER);
+                    print_error('no attempt to close');
+                }
+    
+                $grader = new \mod_topomojo\utils\grade($object);
+                $grader->process_attempt($object->openAttempt);
+                $object->openAttempt->close_attempt();
+    
+                stop_event($object->userauth, $object->event->id);
+                $object->event = get_event($object->userauth, $object->event->id); //why call this again? just to check that it is ending
+                debugging("stop_attempt called, get_event returned " . $object->event->isActive, DEBUG_DEVELOPER);
+                topomojo_end($cm, $context, $topomojo);
+                redirect($url);
+            }
+        }
+    
+        break;
+    default:
+        if ($object->openAttempt) {
+            $renderer->render_quiz($object->openAttempt);
+        }
+}
 // attempts may differ from events pulled from history on server
 $attempts = $object->getall_attempts('closed', $review = false);
 echo $renderer->display_attempts($attempts, $showgrade);

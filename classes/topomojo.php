@@ -80,8 +80,6 @@ class topomojo {
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
 
-        $this->is_instructor();
-
         $this->userauth = setup(); //fails when called by runtask
 
         $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderer_subtype);
@@ -251,7 +249,7 @@ class topomojo {
 
         $dbattempt = $DB->get_record('topomojo_attempts', array("id" => $attemptid));
 
-        return new topomojo_attempt($dbattempt);
+        return new topomojo_attempt($this->questionmanager, $dbattempt);
     }
 
     /**
@@ -263,6 +261,14 @@ class topomojo {
         return $this->cm;
     }
 
+    /**
+     * Gets the context for this instance
+     *
+     * @return \context_module
+     */
+    public function getContext() {
+        return $this->context;
+    }
 
     public function get_open_attempt() {
         $attempts = $this->getall_attempts('open');
@@ -314,7 +320,7 @@ class topomojo {
         $attempts = array();
         // create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
-            $attempts[] = new topomojo_attempt($dbattempt);
+            $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
         }
         return $attempts;
 
@@ -331,7 +337,7 @@ class topomojo {
         debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
 
         // create a new attempt
-        $attempt = new \mod_topomojo\topomojo_attempt();
+        $attempt = new topomojo_attempt($this->questionmanager);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -350,8 +356,7 @@ class topomojo {
         } else {
             return false;
         }
-        $attempt->setState('inprogress');$this->renderer->init($this, $pageurl, $pagevars);
-
+        $attempt->setState('inprogress');
 
         //TODO call start attempt event class from here
         return true;

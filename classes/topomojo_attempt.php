@@ -53,6 +53,17 @@ class topomojo_attempt {
     /** @var \context_module $context The context for this attempt */
     protected $context;
 
+
+    /** @var questionmanager $questionmanager $the queestion manager for the class */
+    protected $questionmanager;
+
+    /** @var \question_usage_by_activity $quba the question usage by activity for this attempt */
+    protected $quba;
+
+    /** @var int $qnum The question number count when rendering questions */
+    protected $qnum;
+
+
     /**
      * Construct the class.  if a dbattempt object is passed in set it,
      * otherwise initialize empty class
@@ -61,15 +72,25 @@ class topomojo_attempt {
      * @param \stdClass
      * @param \context_module $context
      */
-    public function __construct($dbattempt = null, $context = null) {
+    public function __construct($questionmanager, $dbattempt = null, $context = null) {
+        $this->questionmanager = $questionmanager;
         $this->context = $context;
 
         // if empty create new attempt
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
+            // create a new quba since we're creating a new attempt
+            $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
+                    $this->questionmanager->gettopomojo()->getContext());
+            // TODO get from module settings
+            $this->quba->set_preferred_behaviour('immediatefeedback');
+            $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
+            // add the attempt layout to this instance
+            $this->attempt->layout = implode(',', $attemptlayout);
 
         } else { // else load it up in this class instance
             $this->attempt = $dbattempt;
+            $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
         }
     }
 
@@ -148,6 +169,12 @@ class topomojo_attempt {
             debugging("null endtime passed to attempt->save for " . $this->attempt->id, DEBUG_DEVELOPER);
         }
 
+        // first save the question usage by activity object
+        \question_engine::save_questions_usage_by_activity($this->quba);
+
+        // this is here because for new usages there is no id until we save it
+        $this->attempt->uniqueid = $this->quba->get_id();
+
         $this->attempt->timemodified = time();
 
         if (isset($this->attempt->id)) { // update the record
@@ -182,7 +209,7 @@ class topomojo_attempt {
      */
     public function close_attempt() {
         global $USER;
-
+        $this->quba->finish_all_questions(time());
         $this->attempt->state = self::FINISHED;
         $this->attempt->timefinish = time();
         $this->save();
@@ -237,5 +264,136 @@ class topomojo_attempt {
 
         return $this;
     }
+
+    /**
+     * returns quba layout as an array as these are the "slots" or questionids
+     * that the question engine is expecting
+     *
+     * @return array
+     */
+    public function getSlots() {
+        return explode(',', $this->attempt->layout);
+    }
+
+    /**
+     * returns an integer representing the question number
+     *
+     * @return int
+     */
+    public function get_question_number() {
+        if (is_null($this->qnum)) {
+            $this->qnum = 1;
+
+            return (string)1;
+        } else {
+            return (string)$this->qnum;
+        }
+    }
+
+    /**
+     * Uses the quba object to render the slotid's question
+     *
+     * @param int              $slotid
+     * @param bool             $review Whether or not we're reviewing the attempt
+     * @param string|\stdClass $reviewoptions Can be string for overall actions like "edit" or an object of review options
+     * @return string the HTML fragment for the question
+     */
+    public function render_question($slotid, $review = false, $reviewoptions = '', $when = null) {
+        $displayoptions = $this->get_display_options($review, $reviewoptions, $when);
+
+        $questionnum = $this->get_question_number();
+        $this->add_question_number();
+
+        $qa = $this->quba->get_question_attempt($slotid);
+
+        global $PAGE;
+        $page = $PAGE;
+        $question = $qa->get_question();
+        $qoutput = $page->get_renderer('question');
+        $qtoutput = $question->get_renderer($page);
+        $behaviour = $qa->get_behaviour();
+        return $behaviour->render($displayoptions, $questionnum, $qoutput, $qtoutput);
+
+    }
+    /**
+     * Adds 1 to the current qnum, effectively going to the next question
+     *
+     */
+    protected function add_question_number() {
+        $this->qnum = $this->qnum + 1;
+    }
+
+    /**
+     * sets up the display options for the question
+     *
+     * @return \question_display_options
+     */
+    protected function get_display_options($review = false, $reviewoptions = '', $when = null) {
+        $options = new \question_display_options();
+        $options->flags = \question_display_options::HIDDEN;
+        $options->context = $this->context;
+
+        // if we're reviewing set up display options for review
+        if ($review) {
+
+            // default display options for review
+            $options->readonly = true;
+            $options->marks = \question_display_options::HIDDEN;
+            $options->hide_all_feedback();
+
+            // special case for "edit" reviewoptions value
+            if ($reviewoptions === 'edit') {
+                $options->correctness = \question_display_options::VISIBLE;
+                $options->marks = \question_display_options::MARK_AND_MAX;
+                $options->feedback = \question_display_options::VISIBLE;
+                $options->numpartscorrect = \question_display_options::VISIBLE;
+                $options->manualcomment = \question_display_options::EDITABLE;
+                $options->generalfeedback = \question_display_options::VISIBLE;
+                $options->rightanswer = \question_display_options::VISIBLE;
+                $options->history = \question_display_options::VISIBLE;
+            } else if ($reviewoptions instanceof \stdClass) {
+		        foreach ($reviewoptions as $field => $data) {
+		            if ($when == 'closed') {
+			            if (($field == 'reviewmarks') && 
+			                    ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+			                $options->marks = \question_display_options::MARK_AND_MAX;
+			            } else {
+                            $options->$field = \question_display_options::VISIBLE;
+			            }
+			            if (($field == 'reviewrightanswer') &&
+                                ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+                            $options->rightanswer = \question_display_options::VISIBLE;
+                        }
+                    }
+		        }
+		    }
+	
+            $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;	
+            if ($when == 'closed') {
+                $state = \mod_topomojo_display_options::AFTER_CLOSE;
+            }
+
+            foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
+
+                $name = 'review' . $field;
+                if ($reviewoptions->{$name} & $state) {
+                    if ($field == 'marks') {
+                        $options->$field = \question_display_options::MARK_AND_MAX;
+                    } else {
+                            $options->$field = \question_display_options::VISIBLE;
+                    }
+                }
+            }
+        } else {
+    // default options for during quiz
+            $options->rightanswer = \question_display_options::HIDDEN;
+            $options->numpartscorrect = \question_display_options::HIDDEN;
+            $options->manualcomment = \question_display_options::HIDDEN;
+            $options->manualcommentlink = \question_display_options::HIDDEN;
+        }
+
+        return $options;
+    }
+
 
 }

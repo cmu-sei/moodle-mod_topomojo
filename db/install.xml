@@ -28,7 +28,7 @@
         <FIELD NAME="reviewgeneralfeedback" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
         <FIELD NAME="reviewrightanswer" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
         <FIELD NAME="reviewoverallfeedback" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
-	      <FIELD NAME="reviewmanualcomment" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The comment that instructors can add when grading an attempt"/>
+              <FIELD NAME="reviewmanualcomment" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The comment that instructors can add when grading an attempt"/>
         <FIELD NAME="shuffleanswers" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the parts of the question should be shuffled, in those question types that support it."/>
         <FIELD NAME="preferredbehaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="The behaviour to ask questions to use."/>
       </FIELDS>
@@ -65,8 +65,9 @@
         <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The expirationDate of the event"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>
         <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this attempt ended"/>
-	      <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
-	      <FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
+        <FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
+        <FIELD NAME="layout" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="the layout for this particular attempt"/>
 </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

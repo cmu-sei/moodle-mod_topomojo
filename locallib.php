@@ -65,6 +65,7 @@ function get_workspace($client, $id) {
     if ($client->info['http_code'] !== 200) {
         //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
         print_error($client->info['http_code'] . " for $url");
     }
 

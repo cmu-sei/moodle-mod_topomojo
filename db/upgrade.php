@@ -232,6 +232,20 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022071403, 'topomojo');
     }
 
+    if ($oldversion < 2022071805) {
+
+        // Define field layout to be added to topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('layout', XMLDB_TYPE_TEXT, '255', null, null, null, null, 'launchpointurl');
+
+        // Conditionally launch add field layout.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+	// Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022071805, 'topomojo');
+    }
 
     return true;
 }
