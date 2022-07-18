@@ -37,8 +37,11 @@ DM20-0197
 namespace mod_topomojo\output;
 defined('MOODLE_INTERNAL') || die();
 
+use \mod_topomojo\traits\renderer_base;
+
 class edit_renderer extends \plugin_renderer_base {
 
+    use renderer_base;
 
     /**
      * Render the list questions view for the edit page
@@ -48,46 +51,53 @@ class edit_renderer extends \plugin_renderer_base {
     public function listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars) {
         global $CFG;
 	    $this->has_attempts = $topomojohasattempts;
-
 	    echo \html_writer::start_div('row', array('id' => 'questionrow'));
-        echo \html_writer::start_div('inline-block span6');
+        echo \html_writer::start_div('inline-block col-sm-6');
         echo \html_writer::tag('h2', get_string('questionlist', 'topomojo'));
-        echo \html_writer::div('', 'rtqstatusbox rtqhiddenstatus', array('id' => 'editstatus'));
-        if ($this->has_attempts) {
-            echo \html_writer::tag('p', get_string('cannoteditafterattempts', 'topomojo'));
+        echo \html_writer::div('', 'topomojostatusbox topomojohiddenstatus', array('id' => 'editstatus'));
+        if (count($questions) == 0) {
+            echo \html_writer::tag('p', get_string('noquestions', 'topomojo'));
         }
 
         echo $this->show_questionlist($questions);
 
         echo \html_writer::end_div(); //inline-block-span6 questionlist
 
-        echo \html_writer::start_div('inline-block span6');
-        echo $questionbankview->display($pagevars, 'editq');
-        echo \html_writer::end_div(); // inline-block-span6 questionbank
-        
-        echo \html_writer::end_div(); // questionrow
+        if ($this->has_attempts) {
+            echo \html_writer::start_div('inline-block span6');
+            echo \html_writer::tag('h2', get_string('questionbank', 'question'));
+            echo \html_writer::tag('p', get_string('cannoteditafterattempts', 'topomojo'));
+            echo \html_writer::end_div();
+        } else {
+            echo \html_writer::start_div('inline-block col-sm-6');
+            echo $questionbankview->display($pagevars, 'editq');
+            echo \html_writer::end_div(); // inline-block-span6 questionbank
+            
+            echo \html_writer::end_div(); // questionrow
 
-        // TODO update to amd
-        //$this->page->requires->js('/mod/topomojo/js/core.js');
-        //$this->page->requires->js('/mod/topomojo/js/sortable/sortable.min.js');
-        $this->page->requires->js('/mod/topomojo/js/edit_quiz.js');
+            // TODO update to amd
+            $this->page->requires->js('/mod/topomojo/js/core.js');
+            $this->page->requires->js('/mod/topomojo/js/sortable/sortable.min.js');
+            // TODO update to amd
+            $this->page->requires->js('/mod/topomojo/js/edit_quiz.js');
 
-        // next set up a class to pass to js for js info
-        $jsinfo = new \stdClass();
-        $jsinfo->sesskey = sesskey();
-        $jsinfo->siteroot = $CFG->wwwroot;
-        $jsinfo->cmid = $cm->id;
+            // next set up a class to pass to js for js info
+            $jsinfo = new \stdClass();
+            $jsinfo->sesskey = sesskey();
+            $jsinfo->siteroot = $CFG->wwwroot;
+            $jsinfo->cmid = $cm->id;
+            $jsinfo->topomojoid = $this->topomojo->topomojo->id;
 
-        // print jsinfo to javascript
-        echo \html_writer::start_tag('script', array('type' => 'text/javascript'));
-        echo "topomojoinfo = " . json_encode($jsinfo);
-        echo \html_writer::end_tag('script');
+            // print jsinfo to javascript
+            echo \html_writer::start_tag('script', array('type' => 'text/javascript'));
+            echo "topomojoinfo = " . json_encode($jsinfo);
+            echo \html_writer::end_tag('script');
 
-        $this->page->requires->strings_for_js(array(
-            'success',
-            'error'
-        ), 'core');
-
+            $this->page->requires->strings_for_js(array(
+                'success',
+                'error'
+            ), 'core');
+        }
     }
 
 
@@ -149,7 +159,7 @@ class edit_renderer extends \plugin_renderer_base {
 
             $moveupurl = clone($this->pageurl);
             $moveupurl->param('action', 'moveup');
-            $moveupurl->param('questionid', $question->getId()); // add the rtqqid so that the question manager handles the translation
+            $moveupurl->param('questionid', $question->getId()); // add the topomojoqid so that the question manager handles the translation
 
             $alt = get_string('questionmoveup', 'mod_topomojo', $qnum);
 
@@ -179,7 +189,7 @@ class edit_renderer extends \plugin_renderer_base {
 	    if (!$this->has_attempts) {
             $editurl = clone($this->pageurl);
             $editurl->param('action', 'editquestion');
-            $editurl->param('rtqquestionid', $question->getId());
+            $editurl->param('topomojoquestionid', $question->getId());
             $alt = get_string('questionedit', 'topomojo', $qnum);
             $deleteicon = new \pix_icon('t/edit', $alt);
             $controlHTML .= \html_writer::link($editurl, $this->output->render($deleteicon));
@@ -218,6 +228,25 @@ class edit_renderer extends \plugin_renderer_base {
 
         echo \html_writer::tag('h3', get_string('editpage_opensession_error', 'topomojo'));
 
+    }
+
+    /**
+     * Prints edit page header
+     *
+     */
+    public function print_header() {
+        $this->base_header('edit');
+        echo $this->output->box_start('generalbox boxaligncenter topomojobox');
+    }
+
+    /**
+     * Ends the edit page with the footer of Moodle
+     *
+     */
+    public function footer() {
+
+        echo $this->output->box_end();
+        $this->base_footer();
     }
 
 

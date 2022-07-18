@@ -24,6 +24,7 @@
 
 window.addEventListener('load', function () {
 
+    console.log("loaded");
     topomojo.set('sesskey', window.topomojoinfo.sesskey);
     topomojo.set('siteroot', window.topomojoinfo.siteroot);
     topomojo.set('cmid', window.topomojoinfo.cmid)
@@ -56,30 +57,30 @@ window.addEventListener('load', function () {
 
                 if (status == 500) {
 
-                    editStatus.classList.remove('rtqhiddenstatus');
-                    editStatus.classList.add('rtqerrorstatus');
+                    editStatus.classList.remove('topomojohiddenstatus');
+                    editStatus.classList.add('topomojoerrorstatus');
                     editStatus.innerHTML = M.util.get_string('error', 'core');
 
                 } else if (typeof response !== 'object') {
 
                     console.log(response);
-                    editStatus.classList.remove('rtqhiddenstatus');
-                    editStatus.classList.add('rtqerrorstatus');
+                    editStatus.classList.remove('topomojohiddenstatus');
+                    editStatus.classList.add('topomojoerrorstatus');
                     editStatus.innerHTML = response;
 
                 } else {
 
-                    editStatus.classList.remove('rtqhiddenstatus');
-                    editStatus.classList.add('rtqsuccessstatus');
+                    editStatus.classList.remove('topomojohiddenstatus');
+                    editStatus.classList.add('topomojosuccessstatus');
                     editStatus.innerHTML = M.util.get_string('success', 'core');
 
                 }
 
                 setTimeout(function () {
                     var editStatus = document.getElementById('editstatus');
-                    editStatus.classList.remove('rtqsuccessstatus');
-                    editStatus.classList.remove('rtqerrorstatus');
-                    editStatus.classList.add('rtqhiddenstatus');
+                    editStatus.classList.remove('topomojosuccessstatus');
+                    editStatus.classList.remove('topomojoerrorstatus');
+                    editStatus.classList.add('topomojohiddenstatus');
                 }, 2000);
 
             });

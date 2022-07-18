@@ -41,6 +41,8 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
+
+
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
 
@@ -76,9 +78,11 @@ $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
 // new topomojo class
-$pageurl = null;
+$pageurl = $url;
 $pagevars = array();
+$pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
+
 
 // get workspace info
 $object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);

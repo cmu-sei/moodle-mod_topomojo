@@ -448,3 +448,79 @@ function getall_topomojo_attempts($course) {
     return $attempts;
 
 }
+
+function topomojo_question_tostring($question, $showicon = false, $showquestiontext = true,
+        $showidnumber = false, $showtags = false) {
+    global $OUTPUT;
+    $result = '';
+
+    // Question name.
+    $name = shorten_text(format_string($question->name), 200);
+    if ($showicon) {
+        $name .= print_question_icon($question) . ' ' . $name;
+    }
+    $result .= html_writer::span($name, 'questionname');
+
+    // Question idnumber.
+    if ($showidnumber && $question->idnumber !== null && $question->idnumber !== '') {
+        $result .= ' ' . html_writer::span(
+                html_writer::span(get_string('idnumber', 'question'), 'accesshide') .
+                ' ' . s($question->idnumber), 'badge badge-primary');
+    }
+
+    // Question tags.
+    if (is_array($showtags)) {
+        $tags = $showtags;
+    } else if ($showtags) {
+        $tags = core_tag_tag::get_item_tags('core_question', 'question', $question->id);
+    } else {
+        $tags = [];
+    }
+    if ($tags) {
+        $result .= $OUTPUT->tag_list($tags, null, 'd-inline', 0, null, true);
+    }
+
+    // Question text.
+    if ($showquestiontext) {
+        $questiontext = question_utils::to_plain_text($question->questiontext,
+                $question->questiontextformat, array('noclean' => true, 'para' => false));
+        $questiontext = shorten_text($questiontext, 50);
+        if ($questiontext) {
+            $result .= ' ' . html_writer::span(s($questiontext), 'questiontext');
+        }
+    }
+
+    return $result;
+
+}
+
+/**
+ * @param object $topomojo the topomojo settings
+ * @param object $question the question
+ * @param int $variant which question variant to preview (optional).
+ * @return moodle_url to preview this question with the options from this quiz.
+ */
+function topomojo_question_preview_url($topomojo, $question, $variant = null) {
+    // Get the appropriate display options.
+    $displayoptions = mod_topomojo_display_options::make_from_topomojo($topomojo,
+            mod_topomojo_display_options::DURING);
+
+    $maxmark = null;
+    if (isset($question->maxmark)) {
+        $maxmark = $question->maxmark;
+    }
+
+    // Work out the correcte preview URL.
+    return \qbank_previewquestion\helper::question_preview_url($question->id, $topomojo->preferredbehaviour,
+            $maxmark, $displayoptions, $variant);
+}
+
+/**
+ * @param int $topomojoid The topomojo id.
+ * @return bool whether this topomojo has any (non-preview) attempts.
+ */
+function topomojo_has_attempts($topomojoid) {
+    global $DB;
+    return $DB->record_exists('topomojo_attempts', array('topomojoid' => $topomojoid));
+
+}

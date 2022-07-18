@@ -89,7 +89,7 @@ $string['grade_help'] = 'This setting specifies the maximum grade for the lab. I
 $string['duration'] = 'Duration';
 $string['duration_help'] = 'This is the duration of the lab in minutes.';
 $string['overallfeedback'] = 'Overall feedback';
-$string['overallfeedback_help'] = 'Overall feedback is text that is shown after a quiz has been attempted. By specifying additional grade boundaries (as a percentage or as a number), the text shown can depend on the grade obtained.';
+$string['overallfeedback_help'] = 'Overall feedback is text that is shown after a  has been attempted. By specifying additional grade boundaries (as a percentage or as a number), the text shown can depend on the grade obtained.';
 $string['everythingon'] = 'Everything on';
 $string['manualcomment'] = 'Manual Comment';
 $string['manualcomment_help'] = 'The comment that instructors can add when grading an attempt';
@@ -145,7 +145,7 @@ $string['reviewafter'] = 'Allow review after lab is closed';
 $string['reviewalways'] = 'Allow review at any time';
 $string['reviewattempt'] = 'Review attempt';
 $string['reviewbefore'] = 'Allow review while lab is open';
-$string['reviewclosed'] = 'After the quiz is closed';
+$string['reviewclosed'] = 'After the lab is closed';
 $string['reviewduring'] = 'During the attempt';
 $string['reviewimmediately'] = 'Immediately after the attempt';
 $string['reviewnever'] = 'Never allow review';
@@ -183,7 +183,19 @@ $string['questions'] = 'Questions';
 
 // edit
 $string['questionlist'] = 'Question List';
-$string['cannoteditafterattempts'] = 'You cannot add or remove questions because this quiz has been attempted.';
+$string['cannoteditafterattempts'] = 'You cannot add or remove questions because this lab has been attempted.';
+$string['addtotopomojo'] = 'Add to lab';
+$string['addselectedquestionstotopomojo'] = 'Add selected questions to the lab';
+$string['addselectedtotopomojo'] = 'Add selected to lab';
+$string['question'] = 'Question ';
+$string['points'] = 'Question Points';
+$string['points_help'] = 'The number of points you\'d like this question to be worth';
+$string['addquestion'] = 'Add question';
+$string['cantaddquestiontwice'] = 'You can not add the same question more than once';
+$string['questiondelete'] = 'Delete question {$a}';
+$string['questionedit'] = 'Edit question';
+$string['qdeletesucess'] = 'Successfully deleted question';
+$string['qdeleteerror'] = 'Couldn\'t delete question';
 
 
 

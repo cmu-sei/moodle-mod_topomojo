@@ -108,7 +108,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         // should only be 1 grade, but we'll always get end just in case
         $usergrade = end($usergrades);
         $data = new stdClass();
-        $data->overallgrade = get_string('overallgrade', 'groupquiz');
+        $data->overallgrade = get_string('overallgrade', 'topomojo');
         $data->grade = number_format($usergrade, 2);
         $data->maxgrade = $topomojo->grade;
         echo $this->render_from_template('mod_topomojo/grade', $data);
@@ -194,6 +194,20 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         echo $this->render_from_template('mod_topomojo/controls', $data);
     }
+
+    /**
+     * Initialize the renderer with some variables
+     *
+     * @param \mod_topomojo\topomojo $topomojo
+     * @param moodle_url                 $pageurl Always require the page url
+     * @param array                      $pagevars (optional)
+     */
+    public function init($topomojo, $pageurl, $pagevars = array()) {
+        $this->pagevars = $pagevars;
+        $this->pageurl = $pageurl;
+        $this->topomojo = $topomojo;
+    }
+
 }
 
 

@@ -54,6 +54,9 @@ class topomojo {
 
     public $userauth;
 
+    private $questionmanager;
+
+    public $cm;
 
     /**
      * Construct class
@@ -82,6 +85,9 @@ class topomojo {
         $this->userauth = setup(); //fails when called by runtask
 
         $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderer_subtype);
+        $this->renderer->init($this, $pageurl, $pagevars);
+
+        $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
     }
 
 
@@ -344,10 +350,30 @@ class topomojo {
         } else {
             return false;
         }
-        $attempt->setState('inprogress');
+        $attempt->setState('inprogress');$this->renderer->init($this, $pageurl, $pagevars);
+
 
         //TODO call start attempt event class from here
         return true;
+    }
+    /**
+     * Returns the class instance of the question manager
+     *
+     * @return \mod_topomojo\questionmanager
+     */
+    public function get_question_manager() {
+        return $this->questionmanager;
+    }
+
+    /**
+     * Saves the topomojo instance to the database
+     *
+     * @return bool
+     */
+    public function save() {
+        global $DB;
+
+        return $DB->update_record('topomojo', $this->topomojo);
     }
 
 }

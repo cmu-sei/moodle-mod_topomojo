@@ -72,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 */
 
-// Print the page header.
 $url = new moodle_url ( '/mod/topomojo/edit.php', array ( 'cmid' => $cm->id ) );
 
 $PAGE->set_url($url);
@@ -80,43 +79,86 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
+$action = optional_param('action', '', PARAM_ALPHA);
+
 // new topomojo class
 $pageurl = $url;
 $pagevars = array();
-$object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
+$pagevars['pageurl'] = $pageurl;
+$object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
 list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
         question_edit_setup('editq', '/mod/topomojo/edit.php', true);
 
 
-// get workspace info
-$object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);
-#print_r($object->workspace);
+$topomojohasattempts = topomojo_has_attempts($topomojo->id);
 
-// Update the database.
-if ($object->workspace) {
-    // TODO get questions from workspace
+$questionmanager = $object->get_question_manager();
+
+$renderer = $object->renderer;
+$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $topomojo);
+
+// handle actions
+switch ($action) {
+
+    case 'addquestion':
+        // Add a single question to the current topomojo.
+        if ($topomojohasattempts) {
+            debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
+        } else {
+            $questionid = required_param('questionid', PARAM_INT);
+            $questionmanager->add_question($questionid);
+            //TODO check status and output message
+        }
+        break;
+    case 'deletequestion':
+        if ($topomojohasattempts) {
+            debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
+        } else {
+
+            $questionid = required_param('questionid', PARAM_INT);
+            if ($questionmanager->delete_question($questionid)) {
+                $type = 'success';
+                $message = get_string('qdeletesucess', 'topomojo');
+            } else {
+                $type = 'error';
+                $message = get_string('qdeleteerror', 'topomojo');
+            }
+
+            $renderer->setMessage($type, $message);
+            $renderer->print_header();
+            $questions = $questionmanager->get_questions();
+            $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
+            $renderer->footer();
+        }
+        break;
+    case 'dragdrop': // this is a javascript callack case for the drag and drop of questions using ajax.
+        if ($topomojohasattempts) {
+            debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
+        } else {
+           $jsonlib = new \mod_topomojo\utils\jsonlib();
+
+            $questionorder = optional_param('questionorder', '', PARAM_RAW);
+
+            if ($questionorder === '') {
+                $jsonlib->send_error('invalid request');
+            }
+
+            $questionorder = explode(',', $questionorder);
+
+            if ($questionmanager->set_full_order($questionorder) === true) {
+                $jsonlib->set('success', 'true');
+                $jsonlib->send_response();
+            } else {
+                $jsonlib->send_error('unable to re-sort questions');
+            }
+
+            break;
+        }
+    default:
+        $renderer->print_header();
+        $questions = $questionmanager->get_questions();
+        $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
+        $renderer->footer();
 }
-
-
-// get current state of workspace
-$all_events = $object->list_events();
-$moodle_events = $object->moodle_events($all_events);
-
-
-$renderer_subtype = 'edit';
-$renderer = $PAGE->get_renderer('mod_topomojo', $renderer_subtype);
-echo $renderer->header();
-//\core_question\local\bank\question_edit_contexts $contexts
-$questionbankview = new \core_question\local\bank\view($contexts, $pageurl, $course, $cm);
-
-// TODO get questions from db and make the right type of array
-$questions = $DB->get_records('topomojo_questions', array('topomojoid' => $topomojo->id));
-
-$renderer->listquestions($topomojo, $questions, $questionbankview, $cm, $pagevars);
-
-// TODO display questions
-
-echo $renderer->footer();
-
 
