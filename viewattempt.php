@@ -115,7 +115,7 @@ if ((int)$gradepass >0) {
 
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
-$renderer->display_detail($topomojo, $object->workspace->durationHours);
+$renderer->display_detail($topomojo, $topomojo->duration);
 
 
 $isinstructor = has_capability('mod/topomojo:manage', $context);
@@ -141,78 +141,6 @@ if ($isinstructor) {
         $renderer->display_score($attempt->id);
     }
 
-    // Get the editgrade form.
-    $mform = new \mod_topomojo\topomojo_editgrade_form();
-
-    // If the cancel button was pressed, we are out of here.
-    if ($mform->is_cancelled()) {
-        redirect($PAGE->url, get_string('cancelled'), 2);
-        exit;
-    }
-
-    // If we have data, then our job here is to save it and return.
-    if ($data = $mform->get_data()) {
-        $data->vmname = "SUMMARY";
-        debugging("updating topomojo_task_results", DEBUG_DEVELOPER);
-        $DB->update_record('topomojo_task_results', $data);
-        $attempt = $object->get_attempt($a);
-        $score = $grader->calculate_attempt_grade($attempt);
-        $response['score'] = get_string("attemptscore", "topomojo") . $score;
-        debugging("grade " . $score, DEBUG_DEVELOPER);
-
-        redirect($PAGE->url, get_string('updated', 'core', 'grade item; new grade ' . $score), 2);
-    }
-
-
-    // If the action is specified as "edit" then we show the edit form.
-    if ($action == "edit") {
-        // Create some data for our form and set it to the form.
-        $data = new stdClass();
-        // get task from db table
-        $data = $DB->get_record_sql('SELECT * from {topomojo_task_results} WHERE '
-                . 'taskid = ' . $actionitem . ' AND '
-                . 'attemptid = ' . $a . ' AND '
-                . $DB->sql_compare_text('vmname') . ' = '
-                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
-
-        if (!$data) { // In case there isn't any data in your chosen table.
-            print_error("this should not happen");
-        }
-
-        $mform->set_data($data);
-        // Header for the page.
-
-        echo $renderer->heading('Edit Task Grade', 3);
-
-        // Output page and form.
-        $mform->display();
-    }
-
-    echo "<br>Instructor view: displaying all gradable tasks";
-    $tasks = $DB->get_records('topomojo_tasks', array("topomojoid" => $topomojo->id, "gradable" => "1"));
-
-    $details = array();
-    foreach ($tasks as $task) {
-        $task_results = array();
-        $results = $DB->get_records('topomojo_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
-        foreach ($results as $result) {
-            $newtask = clone $task;
-            $newtask->vmname = $result->vmname;
-            $newtask->score = $result->score;
-            $newtask->result = $result->status;
-            if (isset($result->comment)) {
-                $newtask->comment = $result->comment;
-            }
-            if ($newtask->vmname === 'SUMMARY') {
-                array_unshift($task_results, $newtask);
-            } else {
-                $task_results[] = $newtask;
-            }
-	}
-        $details = array_merge($details, $task_results);
-    }
-
-    $renderer->display_results_detail($a, $details);
 
 } else {
 
@@ -221,26 +149,6 @@ if ($isinstructor) {
         $renderer->display_score($attempt->id);
     }
     echo "<br>Student view: displaying all visible and gradable tasks";
-    $tasks = $DB->get_records('topomojo_tasks', array("topomojoid" => $topomojo->id, "visible" => "1", "gradable" => "1"));
 
-    foreach ($tasks as $task) {
-        $results = $DB->get_records('topomojo_task_results', array("attemptid" => $a, "taskid" => $task->id), "timemodified ASC");
-        if ($results === false) {
-            continue;
-        }
-        // TODO handle multiple results
-        // TODO show vm summary task only
-        foreach ($results as $result) {
-            $task->score = $result->score;
-            $task->result = $result->status;
-            if (!is_null($result->comment)) {
-                $task->comment = $result->comment;
-            }
-        }
-    }
-
-    if ($tasks) {
-        $renderer->display_results($tasks, $review = true);
-    }
 }
 

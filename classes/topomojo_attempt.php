@@ -388,7 +388,7 @@ class topomojo_attempt {
                 }
             }
         } else {
-    // default options for during quiz
+            // default options for during quiz
             $options->rightanswer = \question_display_options::HIDDEN;
             $options->numpartscorrect = \question_display_options::HIDDEN;
             $options->manualcomment = \question_display_options::HIDDEN;
@@ -396,6 +396,35 @@ class topomojo_attempt {
         }
 
         return $options;
+    }
+
+    /**
+     * Saves a question attempt from the topomojo question
+     *
+     * @return bool
+     */
+    public function save_question() {
+        global $DB;
+
+        $timenow = time();
+        $transaction = $DB->start_delegated_transaction();
+        $this->quba->process_all_actions($timenow);
+        $this->attempt->timemodified = time();
+
+        $this->save();
+
+        $transaction->allow_commit();
+
+        return true; // return true if we get to here
+    }
+
+    /**
+     * Returns the class instance of the quba
+     *
+     * @return \question_usage_by_activity
+     */
+    public function get_quba() {
+        return $this->quba;
     }
 
 

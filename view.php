@@ -45,6 +45,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$attemptid = optional_param('attemptid', 0, PARAM_INT);
 
 try {
     if ($id) {
@@ -105,10 +106,10 @@ $history = $object->user_events($moodle_events);
 $object->event = get_active_event($history);
 
 // get active attempt for user: true/false
-$attempt = $object->get_open_attempt();
-if ($attempt == true) {
+$activeAttempt = $object->get_open_attempt();
+if ($activeAttempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
-} else if ($attempt == false) {
+} else if ($activeAttempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 }
 
@@ -128,9 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
             //$object->event = get_event($object->userauth, $eventid);
-            $attempt = $object->init_attempt();
-            debugging("init_attempt returned $attempt", DEBUG_DEVELOPER);
-            if (!$attempt) {
+            $activeAttempt = $object->init_attempt();
+            debugging("init_attempt returned $activeAttempt", DEBUG_DEVELOPER);
+            if (!$activeAttempt) {
                 debugging("init_attempt failed");
                 print_error('init_attempt failed');
             }
@@ -146,25 +147,26 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
-            if (!$attempt) {
+            if (!$activeAttempt) {
                 debugging('no attempt to close', DEBUG_DEVELOPER);
                 print_error('no attempt to close');
             }
 
+            $object->openAttempt->save_question();
+            $object->openAttempt->close_attempt();
             $grader = new \mod_topomojo\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
-            $object->openAttempt->close_attempt();
 
             stop_event($object->userauth, $object->event->id);
-            $object->event = get_event($object->userauth, $object->event->id); //why call this again? just to check that it is ending
-            debugging("stop_attempt called, get_event returned " . $object->event->isActive, DEBUG_DEVELOPER);
             topomojo_end($cm, $context, $topomojo);
-            redirect($url);
+            //TODO go to viewattempt page
+            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'attemptid' => $attemptid ) );
+            //redirect($viewattempturl);
         }
     }
 }
 
-if ((!$object->event) && ($attempt)) {
+if ((!$object->event) && ($activeAttempt)) {
     debugging("active attempt with no event", DEBUG_DEVELOPER);
     //print_error('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
@@ -173,12 +175,12 @@ if ((!$object->event) && ($attempt)) {
 }
 
 if ($object->event) {
-    if (($object->event->isActive) && (!$attempt)) {
+    if (($object->event->isActive) && (!$activeAttempt)) {
         // this should not happend because we create the attempt when we start it
         debugging("active event with no attempt", DEBUG_DEVELOPER);
         //print_error('eventwithoutattempt', 'topomojo');
         // TODO give user a popup to confirm they are starting an attempt
-        $attempt = $object->init_attempt();
+        $activeAttempt = $object->init_attempt();
     }
     // check age and get new link, chekcing for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
@@ -204,8 +206,8 @@ $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade to pass is $gradepass", DEBUG_DEVELOPER);
 
-// show grade only if a passing grade is set
-if ((int)$gradepass > 0) {
+// show grade only if a grade is set
+if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
@@ -286,7 +288,7 @@ switch($action) {
         debugging("stop request received", DEBUG_DEVELOPER);
         if ($object->event) {
             if ($object->event->isActive) {
-                if (!$attempt) {
+                if (!$activeAttempt) {
                     debugging('no attempt to close', DEBUG_DEVELOPER);
                     print_error('no attempt to close');
                 }
@@ -305,7 +307,7 @@ switch($action) {
     default:
         if ($object->openAttempt) {
             if (count($object->get_question_manager()->get_questions())) {
-                $renderer->render_quiz($object->openAttempt);
+                $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
         }
 }

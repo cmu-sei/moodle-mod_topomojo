@@ -210,25 +210,32 @@ class mod_topomojo_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders the quiz to the page
+     * Renders the topomojo to the page
      *
      * @param \mod_topomojo\topomojo_attempt $attempt
      */
 
-    public function render_quiz(\mod_topomojo\topomojo_attempt $attempt) {
+    public function render_quiz(\mod_topomojo\topomojo_attempt $attempt, $pageurl, $cmid) {
 
         $output = '';
 
 	    //$output .= html_writer::start_div();
-        //$output .= $this->quiz_intro();
+        //$output .= $this->topomojo_intro();
         //$output .= html_writer::end_div();
 
-        $output .= html_writer::start_div('', array('id'=>'quizview'));
+        $output .= html_writer::start_div('', array('id'=>'topomojoview'));
+        // Start the form.
+        $output .= html_writer::start_tag('form',
+                array('action' => new moodle_url($pageurl,
+                array('id' => $cmid)), 'method' => 'post',
+                'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
+                ));
+
 /*
         if ($this->topomojo->is_instructor()) {
-            $instructions = get_string('instructorquizinst', 'topomojo');
+            $instructions = get_string('instructortopomojoinst', 'topomojo');
         } else {
-            $instructions = get_string('studentquizinst', 'topomojo');
+            $instructions = get_string('studenttopomojoinst', 'topomojo');
         }
         $loadingpix = $this->output->pix_icon('i/loading', 'loading...');
         $output .= html_writer::start_div('topomojoloading', array('id' => 'loadingbox'));
@@ -236,7 +243,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $output .= $loadingpix;
         $output .= html_writer::end_div();
 
-	    // quiz instructions
+	    // topomojo instructions
         $output .= html_writer::start_div('topomojobox', array('id' => 'instructionsbox'));
 	    $output .= $instructions;
         $output .= html_writer::end_div();
@@ -249,12 +256,20 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         $params = array(
             'id' => $this->topomojo->getCM()->id,
-            //'attemptid' => $this->topomojo->openAttempt->id,
-            'action' => 'submitquiz'
+            'attemptid' => $this->topomojo->openAttempt->id,
+            'stop' => 'submittopomojo'
         );
+
+        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'slots',
+        'value' => implode(',', $attempt->getSlots())));
+
         $endurl = new moodle_url('/mod/topomojo/view.php', $params);
         //$output .= $this->output->single_button($endurl, 'Submit Quiz', 'get');
         $output .= $this->output->single_button($endurl, 'Submit Quiz');
+
+        // Finish the form.
+        $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('form');
 
         $output .= html_writer::end_div();
         echo $output;
@@ -277,7 +292,6 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         return $output;
     }
-
 
 }
 

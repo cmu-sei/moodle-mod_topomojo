@@ -150,50 +150,18 @@ class grade {
             return $totalslotpoints;
         }
 
-        //get tasks from db
-        $tasks = $DB->get_records('topomojo_tasks', array("topomojoid" => $this->topomojo->topomojo->id, "gradable" => "1"));
-        $values = array();
+        $quba = $attempt->get_quba();
 
-        if ($tasks === false) {
-            return $scaledpoints;
-        }
-	    debugging("checking " . count($tasks) . " tasks", DEBUG_DEVELOPER);
-
-        foreach ($tasks as $task) {
-            //$results = $DB->get_records('topomojo_task_results', array("attemptid" => $attempt->id, "taskid" => $task->id), $sort="timemodified ASC");
-            $result = $DB->get_record_sql('SELECT * from {topomojo_task_results} WHERE '
-                . 'taskid = ' . $task->id . ' AND '
-                . 'attemptid = ' . $attempt->id . ' AND '
-                . $DB->sql_compare_text('vmname') . ' = '
-                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
-            if ($result === false) {
-		        debugging("result is false", DEBUG_DEVELOPER);
-                continue;
-            } else if (is_null($result)) {
-		        debugging("result is null", DEBUG_DEVELOPER);
-                continue;
-	        }
-
-            $score = 0;
-            $points = 0;
-            $values[$task->id] = array();;
-            $vmresults = array();
-
-            $vmresults[$result->vmname] = $result->score;
-            $score = $result->score;
-            $points = $task->points;
-
-            $values[$task->id] = array($points, $score);
-        }
-
-        foreach ($values as $key => $vals) {
-            debugging("$key has points $vals[0] and score $vals[1]", DEBUG_DEVELOPER);
-            $totalpoints += $vals[0];
-            $totalslotpoints += $vals[1];
-        }
-
-        if ($totalpoints == 0) {
-            return 0;
+        $totalpoints = 0;
+        $totalslotpoints = 0;
+        foreach ($attempt->getSlots() as $slot) {
+            $totalpoints = $totalpoints + $quba->get_question_max_mark($slot);
+            $slotpoints = $quba->get_question_mark($slot);
+            echo "max for slot " . $totalpoints . "<br>";
+            echo "user for slot " . $slotpoints . "<br>";
+            if (!empty($slotpoints)) {
+                $totalslotpoints = $totalslotpoints + $slotpoints;
+            }
         }
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->topomojo->topomojo->grade;
 

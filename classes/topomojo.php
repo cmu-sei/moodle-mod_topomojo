@@ -205,6 +205,7 @@ class topomojo {
             //echo "<br>GET $url<br>";
 
             $count = 0;
+            $response = null;
             do {
                 $response = $this->userauth->get($url);
                 //print_r($response);
@@ -213,13 +214,13 @@ class topomojo {
                     $count++;
                     debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
                 }
-            } while (!$response && ($count < 10));
+            } while (!$response && ($count < 3));
         
             $r = json_decode($response, true);
 
             if (!$r) {
                 debugging("could not decode json $url", DEBUG_DEVELOPER);
-                print_error($response);
+                print_error("Error communicating with Topomojo after $count attempts: " . $response);
                 return;
             }
     
