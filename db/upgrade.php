@@ -243,8 +243,55 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-	// Topomojo savepoint reached.
+	    // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071805, 'topomojo');
+    }
+
+    if ($oldversion < 2022071901) {
+
+        // Define table topomojo_tasks to be dropped.
+        $table = new xmldb_table('topomojo_tasks');
+
+        // Conditionally launch drop table for topomojo_tasks.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        // Define table topomojo_tasks_results to be dropped.
+        $table = new xmldb_table('topomojo_tasks_results');
+
+        // Conditionally launch drop table for topomojo_tasks_results.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Rename field quesntionusageid on table topomojo_attempts to questionusageid.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('quesntionusageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'layout');
+
+        // Launch rename field uniqueid.
+        $dbman->rename_field($table, $field, 'questionusageid');
+
+        // Define field sumgrades to be dropped from topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('sumgrades');
+
+        // Conditionally launch drop field sumgrades.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+
+        // Rename field layout on table topomojo to questionorder.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('layout', XMLDB_TYPE_TEXT, '255', null, null, null, null, 'reviewmanualcomment');
+
+        // Launch rename field layout.
+        $dbman->rename_field($table, $field, 'questionorder');
+
+
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022071901, 'topomojo');
     }
 
     return true;

@@ -159,7 +159,7 @@ class questionmanager {
 
             $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
 
-            $this->update_layout('addquestion', $topomojoquestionid);
+            $this->update_questionorder('addquestion', $topomojoquestionid);
 
             // ensure there is no action or questionid in the baseurl
             $this->baseurl->remove_params('action', 'questionid');
@@ -250,7 +250,7 @@ class questionmanager {
 
         try {
             $DB->delete_records('topomojo_questions', array('id' => $questionid));
-            $this->update_layout('deletequestion', $questionid);
+            $this->update_questionorder('deletequestion', $questionid);
         } catch(\Exception $e) {
             return false; // return false on error
         }
@@ -274,7 +274,7 @@ class questionmanager {
             return false; // return false if the direction is not up or down
         }
 
-        return $this->update_layout('movequestion' . $direction, $questionid);
+        return $this->update_questionorder('movequestion' . $direction, $questionid);
     }
 
     /**
@@ -294,7 +294,7 @@ class questionmanager {
 
         $fullorder = array_values($fullorder);
 
-        return $this->update_layout('replaceorder', null, $fullorder);
+        return $this->update_questionorder('replaceorder', null, $fullorder);
     }
 
     /**
@@ -406,23 +406,23 @@ class questionmanager {
 
         // loop through the ordered question bank questions and add them to the quba
         // object
-        $attemptlayout = array();
+        $attemptquestionorder = array();
         foreach ($this->qbankOrderedQuestions as $qbankquestion) {
 
             $questionid = $qbankquestion->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
-            $attemptlayout[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
+            $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
         }
 
         // start the questions in the quba
         $quba->start_all_questions();
 
         /**
-         * return the attempt layout which is a set of ids that are the slot ids from the question engine usage by activity instance
+         * return the attempt questionorder which is a set of ids that are the slot ids from the question engine usage by activity instance
          * these are what are used during an actual attempt rather than the questionid themselves, since the question engine will handle
          * the translation
          */
-        return $attemptlayout;
+        return $attemptquestionorder;
     }
 
     /**
@@ -432,7 +432,7 @@ class questionmanager {
      */
     protected function get_question_order()
     {
-        return $this->object->topomojo->layout;
+        return $this->object->topomojo->questionorder;
     }
 
     /**
@@ -441,9 +441,9 @@ class questionmanager {
      * @param string
      * @return bool
      */
-    protected function set_question_order($layout)
+    protected function set_question_order($questionorder)
     {
-        $this->object->topomojo->layout = $layout;
+        $this->object->topomojo->questionorder = $questionorder;
         return $this->object->save();
 
     }
@@ -459,20 +459,20 @@ class questionmanager {
      *
      * @return bool true/false if it was successful
      */
-    protected function update_layout($action, $questionid, $fullorder = array())
+    protected function update_questionorder($action, $questionid, $fullorder = array())
     {
 
         switch ($action) {
             case 'addquestion':
 
-                $layout = $this->get_question_order();
-                if ( empty($layout) ) {
-                    $layout = $questionid;
+                $questionorder = $this->get_question_order();
+                if ( empty($questionorder) ) {
+                    $questionorder = $questionid;
                 } else {
-                    $layout .= ',' . $questionid;
+                    $questionorder .= ',' . $questionid;
                 }
 
-                $this->set_question_order($layout);
+                $this->set_question_order($questionorder);
 
                 // refresh question list
                 $this->refresh_questions();
@@ -481,20 +481,20 @@ class questionmanager {
                 break;
             case 'deletequestion':
 
-                $layout = $this->get_question_order();
-                $layout = explode(',', $layout);
+                $questionorder = $this->get_question_order();
+                $questionorder = explode(',', $questionorder);
 
-                foreach ($layout as $index => $qorder) {
+                foreach ($questionorder as $index => $qorder) {
 
                     if ( $qorder == $questionid ) {
-                        unset($layout[$index]);
+                        unset($questionorder[$index]);
                         break;
                     }
                 }
-                $newlayout = implode(',', $layout);
+                $newquestionorder = implode(',', $questionorder);
 
                 // set the question order and refresh the questions
-                $this->set_question_order($newlayout);
+                $this->set_question_order($newquestionorder);
                 $this->refresh_questions();
 
                 return true;
@@ -502,10 +502,10 @@ class questionmanager {
                 break;
             case 'movequestionup':
 
-                $layout = $this->get_question_order();
-                $layout = explode(',', $layout);
+                $questionorder = $this->get_question_order();
+                $questionorder = explode(',', $questionorder);
 
-                foreach ($layout as $index => $qorder) {
+                foreach ($questionorder as $index => $qorder) {
 
                     if ( $qorder == $questionid ) {
 
@@ -515,17 +515,17 @@ class questionmanager {
 
                         // if ids match replace the previous index with the current one
                         // and make the previous index qid the current index
-                        $prevqorder = $layout[$index - 1];
-                        $layout[$index - 1] = $questionid;
-                        $layout[$index] = $prevqorder;
+                        $prevqorder = $questionorder[$index - 1];
+                        $questionorder[$index - 1] = $questionid;
+                        $questionorder[$index] = $prevqorder;
                         break;
                     }
                 }
 
-                $newlayout = implode(',', $layout);
+                $newquestionorder = implode(',', $questionorder);
 
                 // set the question order and refresh the questions
-                $this->set_question_order($newlayout);
+                $this->set_question_order($newquestionorder);
                 $this->refresh_questions();
 
                 return true;
@@ -533,32 +533,32 @@ class questionmanager {
                 break;
             case 'movequestiondown':
 
-                $layout = $this->get_question_order();
-                $layout = explode(',', $layout);
+                $questionorder = $this->get_question_order();
+                $questionorder = explode(',', $questionorder);
 
-                $layoutcount = count($layout);
+                $questionordercount = count($questionorder);
 
-                foreach ($layout as $index => $qorder) {
+                foreach ($questionorder as $index => $qorder) {
 
                     if ( $qorder == $questionid ) {
 
-                        if ( $index == $layoutcount - 1 ) {
+                        if ( $index == $questionordercount - 1 ) {
                             return false; // can't move last question down
                         }
 
                         // if ids match replace the next index with the current one
                         // and make the next index qid the current index
-                        $nextqorder = $layout[$index + 1];
-                        $layout[$index + 1] = $questionid;
-                        $layout[$index] = $nextqorder;
+                        $nextqorder = $questionorder[$index + 1];
+                        $questionorder[$index + 1] = $questionid;
+                        $questionorder[$index] = $nextqorder;
                         break;
                     }
                 }
 
-                $newlayout = implode(',', $layout);
+                $newquestionorder = implode(',', $questionorder);
 
                 // set the question order and refresh the questions
-                $this->set_question_order($newlayout);
+                $this->set_question_order($newquestionorder);
                 $this->refresh_questions();
 
                 return true;
@@ -566,17 +566,17 @@ class questionmanager {
                 break;
             case 'replaceorder':
 
-                $layout = $this->get_question_order();
-                $layout = explode(',', $layout);
+                $questionorder = $this->get_question_order();
+                $questionorder = explode(',', $questionorder);
 
                 // if we don't have the same number of questions return error
-                if ( count($fullorder) !== count($layout) ) {
+                if ( count($fullorder) !== count($questionorder) ) {
                     return false;
                 }
 
                 // next validate that the questions sent all match to a question in the current order
                 $allmatch = true;
-                foreach ($layout as $qorder) {
+                foreach ($questionorder as $qorder) {
                     if ( !in_array($qorder, $fullorder) ) {
                         $allmatch = false;
                     }
@@ -584,8 +584,8 @@ class questionmanager {
 
                 if ( $allmatch ) {
 
-                    $newlayout = implode(',', $fullorder);
-                    $this->set_question_order($newlayout);
+                    $newquestionorder = implode(',', $fullorder);
+                    $this->set_question_order($newquestionorder);
                     $this->refresh_questions();
 
                     return true;
@@ -652,22 +652,22 @@ class questionmanager {
         global $DB;
 
         // start by ordering the topomojo question ids into an array
-        $layout = $this->object->topomojo->layout;
+        $questionorder = $this->object->topomojo->questionorder;
 
         // generate empty array for ordered questions for no question order
-        if ( empty($layout) ) {
+        if ( empty($questionorder) ) {
 
             $this->qbankOrderedQuestions = array();
 
             return;
 
         } else { // otherwise explode it and continue on
-            $layout = explode(',', $layout);
+            $questionorder = explode(',', $questionorder);
         }
 
         // using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
         $orderedquestionids = array();
-        foreach ($layout as $qorder) {
+        foreach ($questionorder as $qorder) {
             // store the topomojo question id as the key so that it can be used later when adding question time to
             // question bank question object
             $orderedquestionids[$qorder] = $this->topomojoQuestions[$qorder]->questionid;

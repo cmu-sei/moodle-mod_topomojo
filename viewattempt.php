@@ -79,7 +79,7 @@ $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
 // new topomojo class
-$pageurl = new moodle_url('/mod/topomojo/viewattempt.php', array('a' => $a));
+$pageurl = $url;
 $pagevars = array('a' => $a, 'pageurl' => $pageurl);
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 $attempt = $object->get_attempt($attemptid);

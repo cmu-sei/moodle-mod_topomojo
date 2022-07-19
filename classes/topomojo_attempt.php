@@ -93,7 +93,7 @@ class topomojo_attempt {
 
         } else { // else load it up in this class instance
             $this->attempt = $dbattempt;
-            $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
+            $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
         }
     }
 
@@ -176,7 +176,7 @@ class topomojo_attempt {
         \question_engine::save_questions_usage_by_activity($this->quba);
 
         // this is here because for new usages there is no id until we save it
-        $this->attempt->uniqueid = $this->quba->get_id();
+        $this->attempt->questionusageid = $this->quba->get_id();
 
         $this->attempt->timemodified = time();
 
@@ -469,7 +469,7 @@ class topomojo_attempt {
         // Process any data that was submitted.
         if (data_submitted() && confirm_sesskey()) {
             if (optional_param('submit', false, PARAM_BOOL) &&
-                \question_engine::is_manual_grade_in_range($this->attempt->uniqueid, $slot)
+                \question_engine::is_manual_grade_in_range($this->attempt->questionusageid, $slot)
             ) {
                 $transaction = $DB->start_delegated_transaction();
                 $this->quba->process_all_actions(time());
