@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
             //TODO go to viewattempt page
-            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $attemptid, 'action' => 'view' ) );
+            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $object->openAttempt->id, 'action' => 'view' ) );
             redirect($viewattempturl);
         }
     }
@@ -285,20 +285,18 @@ $action = optional_param('action', '', PARAM_ALPHA);
 
 switch($action) {
     case "submitquiz": 
-        debugging("stop request received", DEBUG_DEVELOPER);
+        debugging("submitquiz request received", DEBUG_DEVELOPER);
         if ($object->event) {
             if ($object->event->isActive) {
                 if (!$activeAttempt) {
-                    debugging('no attempt to close', DEBUG_DEVELOPER);
-                    print_error('no attempt to close');
+                    debugging('no active attempt', DEBUG_DEVELOPER);
+                    print_error('no active attempt');
                 }
-    
-                $grader = new \mod_topomojo\utils\grade($object);
-                $grader->process_attempt($object->openAttempt);
-                $object->openAttempt->close_attempt();
-    
-                stop_event($object->userauth, $object->event->id);
-                topomojo_end($cm, $context, $topomojo);
+
+                //TODO if we are submitting answers, dont close, just save
+                $object->openAttempt->save_questions();
+
+                //TODO maybe dont reload?
                 redirect($url);
             }
         }
