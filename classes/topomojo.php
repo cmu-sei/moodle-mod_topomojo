@@ -204,14 +204,17 @@ class topomojo {
             $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
             //echo "<br>GET $url<br>";
 
-            $response = $this->userauth->get($url);
-            //print_r($response);
-    
-            if (!$response) {
-                debugging("no response received by $url", DEBUG_DEVELOPER);
-                return;
-            }
-    
+            $count = 0;
+            do {
+                $response = $this->userauth->get($url);
+                //print_r($response);
+        
+                if (!$response) {
+                    $count++;
+                    debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
+                }
+            } while (!$response && ($count < 10));
+        
             $r = json_decode($response, true);
 
             if (!$r) {

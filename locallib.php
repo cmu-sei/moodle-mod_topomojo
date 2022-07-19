@@ -503,8 +503,8 @@ function topomojo_question_tostring($question, $showicon = false, $showquestiont
  */
 function topomojo_question_preview_url($topomojo, $question, $variant = null) {
     // Get the appropriate display options.
-    $displayoptions = mod_topomojo_display_options::make_from_topomojo($topomojo,
-            mod_topomojo_display_options::DURING);
+    $displayoptions = topomojo_display_options::make_from_topomojo($topomojo,
+            topomojo_display_options::DURING);
 
     $maxmark = null;
     if (isset($question->maxmark)) {

@@ -296,8 +296,6 @@ switch($action) {
                 $object->openAttempt->close_attempt();
     
                 stop_event($object->userauth, $object->event->id);
-                $object->event = get_event($object->userauth, $object->event->id); //why call this again? just to check that it is ending
-                debugging("stop_attempt called, get_event returned " . $object->event->isActive, DEBUG_DEVELOPER);
                 topomojo_end($cm, $context, $topomojo);
                 redirect($url);
             }
@@ -306,7 +304,9 @@ switch($action) {
         break;
     default:
         if ($object->openAttempt) {
-            $renderer->render_quiz($object->openAttempt);
+            if (count($object->get_question_manager()->get_questions())) {
+                $renderer->render_quiz($object->openAttempt);
+            }
         }
 }
 // attempts may differ from events pulled from history on server

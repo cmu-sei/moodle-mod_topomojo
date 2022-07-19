@@ -93,6 +93,10 @@ $string['overallfeedback_help'] = 'Overall feedback is text that is shown after 
 $string['everythingon'] = 'Everything on';
 $string['manualcomment'] = 'Manual Comment';
 $string['manualcomment_help'] = 'The comment that instructors can add when grading an attempt';
+$string['shufflewithin'] = 'Shuffle within questions';
+$string['shufflewithin_help'] = 'If enabled, the parts making up each question will be randomly shuffled each time a student attempts the quiz, provided the option is also enabled in the question settings. This setting only applies to questions that have multiple parts, such as multiple choice or matching questions.';
+$string['configshufflewithin'] = 'If you enable this option, then the parts making up the individual questions will be randomly shuffled each time a student starts an attempt at this quiz, provided the option is also enabled in the question settings.';
+$string['questionbehaviour'] = 'Question behaviour';
 
 // Time options
 $string['timing'] = 'Timing';

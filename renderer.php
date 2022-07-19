@@ -242,7 +242,6 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $output .= html_writer::end_div();
 */
 
-        debugging("we have counts of slots: " . count($attempt->getSlots()), DEBUG_DEVELOPER);
         foreach ($attempt->getSlots() as $slot) {;
             // render question form.
             $output .= $this->render_question_form($slot, $attempt);

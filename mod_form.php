@@ -46,6 +46,23 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
     private $auth;
 
+    protected static $reviewfields = array(); // Initialised in the constructor.
+
+    public function __construct($current, $section, $cm, $course) {
+        self::$reviewfields = array(
+            'attempt'          => array('theattempt', 'groupquiz'),
+            'correctness'      => array('whethercorrect', 'question'),
+            'marks'            => array('marks', 'groupquiz'),
+            'specificfeedback' => array('specificfeedback', 'question'),
+            'generalfeedback'  => array('generalfeedback', 'question'),
+            'rightanswer'      => array('rightanswer', 'question'),
+            'overallfeedback'  => array('reviewoverallfeedback', 'groupquiz'),
+            'manualcomment'    => array('manualcomment', 'groupquiz')
+        );
+        parent::__construct($current, $section, $cm, $course);
+    }
+
+
     function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
@@ -149,7 +166,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
         //TODO pull duration from topomojo workspace
-        // duration is referred to as timelimit in groupquiz plugin
+        // duration is referred to as timelimit in topomojo plugin
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
         $mform->setType('duration', PARAM_INT);
@@ -160,11 +177,11 @@ class mod_topomojo_mod_form extends moodleform_mod {
     
 
         // -------------------------------------------------------------------------------
-        $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'groupquiz'));
+        $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'topomojo'));
 
         // Shuffle within questions.
-        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'groupquiz'));
-        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'groupquiz');
+        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
+        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'topomojo');
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
@@ -179,12 +196,85 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
 
+        // -------------------------------------------------------------------------------
+        $mform->addElement('header', 'reviewoptionshdr',
+                get_string('reviewoptionsheading', 'topomojo'));
+        $mform->addHelpButton('reviewoptionshdr', 'reviewoptionsheading', 'topomojo');
+        // Review options.
+//        $this->add_review_options_group($mform, $config, 'during',
+//                question_display_options::DURING, true);
+//        $this->add_review_options_group($mform, $config, 'immediately',
+//                question_display_options::IMMEDIATELY_AFTER);
+        $this->add_review_options_group($mform, $config, 'open',
+                mod_topomojo\topomojo_display_options::LATER_WHILE_OPEN);
+        $this->add_review_options_group($mform, $config, 'closed',
+                mod_topomojo\topomojo_display_options::AFTER_CLOSE);
+
+
+	    foreach (self::$reviewfields as $field => $notused) {
+            $mform->disabledIf($field . 'closed', 'timeclose[enabled]');
+        }
+
+
+
         //-------------------------------------------------------
         $this->standard_coursemodule_elements();
 
         //-------------------------------------------------------
         $this->add_action_buttons();
 
+    }
+
+    /**
+     * Adapted from the  module's review options group function
+     *
+     * @param      $mform
+     * @param      $whenname
+     * @param bool $withhelp
+     */
+    protected function add_review_options_group($mform, $config, $whenname,
+            $when, $withhelp = false) {
+        global $OUTPUT;
+
+        $group = array();
+        foreach (self::$reviewfields as $field => $string) {
+            list($identifier, $component) = $string;
+
+            $label = get_string($identifier, $component);
+            if ($withhelp) {
+                $label .= ' ' . $OUTPUT->help_icon($identifier, $component);
+            }
+
+            $group[] = $mform->createElement('checkbox', $field . $whenname, '', $label);
+        }
+        $mform->addGroup($group, $whenname . 'optionsgrp',
+                get_string('review' . $whenname, 'topomojo'), null, false);
+
+        foreach (self::$reviewfields as $field => $notused) {
+            $cfgfield = 'review' . $field;
+            if ($config->$cfgfield & $when) {
+                $mform->setDefault($field . $whenname, 1);
+            } else {
+                $mform->setDefault($field . $whenname, 0);
+            }
+        }
+
+        if ($whenname != 'during') {
+            $mform->disabledIf('correctness' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('specificfeedback' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('generalfeedback' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('rightanswer' . $whenname, 'attempt' . $whenname);
+        }
+    }
+
+
+    protected function preprocessing_review_settings(&$toform, $whenname, $when) {
+        foreach (self::$reviewfields as $field => $notused) {
+            $fieldname = 'review' . $field;
+            if (array_key_exists($fieldname, $toform)) {
+                $toform[$field . $whenname] = $toform[$fieldname] & $when;
+            }
+        }
     }
 
     public function validation($data, $files) {
