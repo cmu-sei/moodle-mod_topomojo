@@ -59,6 +59,20 @@ class topomojo {
     public $cm;
 
     /**
+     * @var array $review fields Static review fields to add as options
+     */
+    public static $reviewfields = array(
+        'attempt'          => array('theattempt', 'topomojo'),
+        'correctness'      => array('whethercorrect', 'question'),
+        'marks'            => array('marks', 'topomojo'),
+        'specificfeedback' => array('specificfeedback', 'question'),
+        'generalfeedback'  => array('generalfeedback', 'question'),
+        'rightanswer'      => array('rightanswer', 'question'),
+    	'overallfeedback'  => array('overallfeedback', 'question'),
+        'manualcomment'    => array('manualcomment', 'topomojo')
+    );
+
+    /**
      * Construct class
      *
      * @param object $cm The course module instance
@@ -383,6 +397,68 @@ class topomojo {
         global $DB;
 
         return $DB->update_record('topomojo', $this->topomojo);
+    }
+
+    public function get_openclose_state() {
+        $state = 'open';
+        $timenow = time();
+        if ($this->topomojo->timeopen && ($timenow < $this->topomojo->timeopen)) {
+            $state = 'unopen';
+            } else if ($this->topomojo->timeclose && ($timenow > $this->topomojo->timeclose)) {
+            $state = 'closed';
+        }
+    
+        return $state;
+    }
+
+    /**
+     * Gets the review options for the specified time
+     *
+     * @param string $whenname The review options time that we want to get the options for
+     *
+     * @return \stdClass A class of the options
+     */
+    public function get_review_options() {
+
+        $reviewoptions = new \stdClass();
+	    $reviewoptions->reviewattempt = $this->topomojo->reviewattempt;
+        $reviewoptions->reviewcorrectness = $this->topomojo->reviewcorrectness;
+        $reviewoptions->reviewmarks = $this->topomojo->reviewmarks;
+        $reviewoptions->reviewspecificfeedback = $this->topomojo->reviewspecificfeedback;
+        $reviewoptions->reviewgeneralfeedback = $this->topomojo->reviewgeneralfeedback;
+        $reviewoptions->reviewrightanswer = $this->topomojo->reviewrightanswer;
+        $reviewoptions->reviewoverallfeedback = $this->topomojo->reviewoverallfeedback;
+        $reviewoptions->reviewmanualcomment = $this->topomojo->reviewmanualcomment;
+
+        return $reviewoptions;
+    }
+
+    public function canreviewmarks($reviewoptions, $state) {
+        $canreviewmarks = false;
+            if ($state == 'open') {
+                if ($reviewoptions->reviewmarks & topomojo_display_options::LATER_WHILE_OPEN) {
+                    $canreviewmarks = true;
+                }
+            } else if ($state == 'closed') {
+                if ($reviewoptions->reviewmarks & topomojo_display_options::AFTER_CLOSE) {
+                    $canreviewmarks = true;
+                }
+            }
+        return  $canreviewmarks;
+    }
+    
+    public function canreviewattempt($reviewoptions, $state) {
+        $canreviewattempt = false;
+        if ($state == 'open') {
+            if ($reviewoptions->reviewattempt & topomojo_display_options::LATER_WHILE_OPEN) {
+                $canreviewattempt = true;
+            }
+        } else if ($state == 'closed') {
+            if ($reviewoptions->reviewattempt & topomojo_display_options::AFTER_CLOSE) {
+                $canreviewattempt = true;
+            }
+        }
+        return  $canreviewattempt;
     }
 
 }

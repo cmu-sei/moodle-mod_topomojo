@@ -41,13 +41,14 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 
-$a = optional_param('a', '', PARAM_INT);  // attempt ID 
-$action = optional_param('action', 'list', PARAM_TEXT);
-$actionitem = optional_param('id', 0, PARAM_INT);
+$a = required_param('a', PARAM_INT);  // attempt ID 
+$action = optional_param('action', 'view', PARAM_TEXT);
+$slot = optional_param('slot', '', PARAM_INT);
 
 if (!$a) {
     $a = required_param('attemptid', PARAM_INT);  // attempt ID
 }
+$attemptid = $a;
 
 try {
         $attempt    = $DB->get_record('topomojo_attempts', array('id' => $a), '*', MUST_EXIST);
@@ -78,77 +79,58 @@ $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
 // new topomojo class
-$pageurl = null;
-$pagevars = array();
+$pageurl = new moodle_url('/mod/topomojo/viewattempt.php', array('a' => $a));
+$pagevars = array('a' => $a, 'pageurl' => $pageurl);
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
+$attempt = $object->get_attempt($attemptid);
+$cmid = $object->getCM()->id;
 
-// get workspace info
-$object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);
-
-// Update the database.
-if ($object->workspace) {
-    // Update the database.
-    $topomojo->name = $object->workspace->name;
-    $topomojo->intro = $object->workspace->description;
-    $DB->update_record('topomojo', $topomojo);
-    // this generates lots of hvp module errors
-    //rebuild_course_cache($topomojo->course);
-}
-
-//TODO send instructor to a different page where manual grading can occur
-
-$eventid = null;
-$viewid = null;
-$startime = null;
-$endtime = null;
-
-$grader = new \mod_topomojo\utils\grade($object);
-$gradepass = $grader->get_grade_item_passing_grade();
-debugging("grade pass is $gradepass", DEBUG_DEVELOPER);
-
-// show grade only if a passing grade is set
-if ((int)$gradepass >0) {
-    $showgrade = true;
-} else {
-    $showgrade = false;
-}
-
-$renderer = $PAGE->get_renderer('mod_topomojo');
-echo $renderer->header();
-$renderer->display_detail($topomojo, $topomojo->duration);
-
-
-$isinstructor = has_capability('mod/topomojo:manage', $context);
-
-if ($isinstructor) {
-    // TODO display attempt user with formatting
-    $user = $DB->get_record('user', array("id" => $attempt->userid));
-    echo "Username: " . fullname($user);
-}
-
-// TODO why should display attempt show the form to start the lab? shouldnt this be a return form instead?
-//$renderer->display_form($url, $object->topomojo->workspaceid);
-
-global $DB;
-
-
-
-//get tasks from db
-if ($isinstructor) {
-
-    if ($showgrade) {
-        $renderer->display_grade($topomojo, $attempt->userid);
-        $renderer->display_score($attempt->id);
-    }
-
-
+if (!$attempt) {
+    $object->renderer->base_header();
+    $object->renderer->render_quiz($attempt, $pageurl, $cmid);
+    $object->renderer->base_footer();
 } else {
 
-    if ($showgrade) {
-        $renderer->display_grade($topomojo);
-        $renderer->display_score($attempt->id);
-    }
-    echo "<br>Student view: displaying all visible and gradable tasks";
+    switch ($action) {
+        case 'savecomment':
 
+            $success = $attempt->process_comment($object->topomojo, $slot);
+            if ($success) {
+                // if successful recalculate the grade for the attempt's userid as the grader can update grades on the questions
+                $object->renderer->base_header();
+
+                $grader = new \mod_topomojo\utils\grade($object);
+                $grader->process_attempt($attempt);
+
+                $object->renderer->setMessage('success', 'Successfully saved comment/grade');
+                $object->renderer->render_attempt($attempt);
+            } else {
+                $object->renderer->setMessage('error', 'Couldn\'t save comment/grade');
+                $object->renderer->render_attempt($attempt);
+            }
+            $object->renderer->base_footer();
+
+            break;
+        default:
+
+            // TODO create attempt viewed event
+            $params = array(
+                'relateduserid' => $USER->id,
+                'objectid'      => $pagevars['a'],
+                'context'       => $context,
+                'other'         => array(
+                    'topomojoid'   => $object->topomojo->id
+                )
+            );
+            //$event = \mod_topomojo\event\attempt_viewed::create($params);
+            //$event->add_record_snapshot('topomojo_attempts', $attempt->get_attempt());
+            //$event->trigger();
+
+            $object->renderer->base_header();
+            $object->renderer->render_attempt($attempt, $pageurl, $cmid);
+            $object->renderer->base_footer();
+
+            break;
+    }
 }
 

@@ -69,7 +69,7 @@ class topomojo_display_options extends \question_display_options {
      * @param object $topomojo the quiz settings.
      * @param int $one of the {@link DURING}, {@link IMMEDIATELY_AFTER},
      * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
-     * @return mod_topomojo_display_options set up appropriately.
+     * @return topomojo_display_options set up appropriately.
      */
 	// TODO remove if not used
     public static function make_from_topomojo($topomojo, $when) {

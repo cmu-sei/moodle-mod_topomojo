@@ -358,24 +358,24 @@ class topomojo_attempt {
 		        foreach ($reviewoptions as $field => $data) {
 		            if ($when == 'closed') {
 			            if (($field == 'reviewmarks') && 
-			                    ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+			                    ($data == topomojo_display_options::AFTER_CLOSE)) {
 			                $options->marks = \question_display_options::MARK_AND_MAX;
 			            } else {
                             $options->$field = \question_display_options::VISIBLE;
 			            }
 			            if (($field == 'reviewrightanswer') &&
-                                ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+                                ($data == topomojo_display_options::AFTER_CLOSE)) {
                             $options->rightanswer = \question_display_options::VISIBLE;
                         }
                     }
 		        }
 		    }
 	
-            $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;	
+            $state = topomojo_display_options::LATER_WHILE_OPEN;	
             if ($when == 'closed') {
-                $state = \mod_topomojo_display_options::AFTER_CLOSE;
+                $state = topomojo_display_options::AFTER_CLOSE;
             }
-
+/*
             foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
 
                 $name = 'review' . $field;
@@ -387,7 +387,8 @@ class topomojo_attempt {
                     }
                 }
             }
-        } else {
+        */
+            } else {
             // default options for during quiz
             $options->rightanswer = \question_display_options::HIDDEN;
             $options->numpartscorrect = \question_display_options::HIDDEN;
@@ -427,5 +428,78 @@ class topomojo_attempt {
         return $this->quba;
     }
 
+    /**
+     * Gets the mark for a slot from the quba
+     *
+     * @param int $slot
+     * @return number|null
+     */
+    public function get_slot_mark($slot) {
+        return $this->quba->get_question_mark($slot);
+    }
+
+
+    /**
+     * Get the total points for this slot
+     *
+     * @param int $slot
+     * @return number
+     */
+    public function get_slot_max_mark($slot) {
+        return $this->quba->get_question_max_mark($slot);
+    }
+
+
+    /**
+     * Process a comment for a particular question on an attempt
+     *
+     * @param int                        $slot
+     * @param \mod_topomojo\topomojo $topomojo
+     *
+     * @return bool
+     */
+    public function process_comment($topomojo, $slot = null) {
+        global $DB;
+
+        // if there is no slot return false
+        if (empty($slot)) {
+            return false;
+        }
+
+        // Process any data that was submitted.
+        if (data_submitted() && confirm_sesskey()) {
+            if (optional_param('submit', false, PARAM_BOOL) &&
+                \question_engine::is_manual_grade_in_range($this->attempt->uniqueid, $slot)
+            ) {
+                $transaction = $DB->start_delegated_transaction();
+                $this->quba->process_all_actions(time());
+                $this->save();
+                $transaction->allow_commit();
+
+                // Trigger event for question manually graded
+                $params = array(
+                    'objectid' => $this->quba->get_question($slot)->id,
+                    //'courseid' => $topomojo->getCourse()->id,
+                    'context'  => $this->context,
+                    'other'    => array(
+                        'topomojoid'     => $topomojo->id,
+                        'attemptid' => $this->attempt->id,
+                        'slot'      => $slot,
+                    )
+                );
+                // TODO create event
+                //$event = \mod_topomojo\event\question_manually_graded::create($params);
+                //$event->trigger();
+
+                return true;
+            } else {
+		// TODO maybe add button to go back
+		echo "value entered is not in range";
+		exit;
+	    }
+        }
+
+        return false;
+    }
 
 }

@@ -132,7 +132,6 @@ $string['attemptalreadyexists'] = 'An open attempt already exists for this event
 $string['overallgrade'] = 'Overall Grade: ';
 $string['extendevent'] = 'Extend Lab';
 $string['reviewtext'] = 'Review Activity Attempts';
-$string['managetext'] = 'Review Course Attempts';
 $string['durationtext'] = 'Scheduled Duration';
 $string['attemptscore'] = 'Attempt Grade: ';
 $string['invitelink'] = 'Generate Invite';
@@ -142,6 +141,8 @@ $string['stoplab'] = 'End Lab';
 
 // review
 $string['returntext'] = 'Return to Lab';
+$string['savequestion'] = 'Save question';
+$string['noreview'] = 'You are not able to review the quiz attempt at this time.';
 
 // review options
 $string['review'] = 'Review';

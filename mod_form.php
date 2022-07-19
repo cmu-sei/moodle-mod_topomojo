@@ -50,14 +50,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
     public function __construct($current, $section, $cm, $course) {
         self::$reviewfields = array(
-            'attempt'          => array('theattempt', 'groupquiz'),
+            'attempt'          => array('theattempt', 'topomojo'),
             'correctness'      => array('whethercorrect', 'question'),
-            'marks'            => array('marks', 'groupquiz'),
+            'marks'            => array('marks', 'topomojo'),
             'specificfeedback' => array('specificfeedback', 'question'),
             'generalfeedback'  => array('generalfeedback', 'question'),
             'rightanswer'      => array('rightanswer', 'question'),
-            'overallfeedback'  => array('reviewoverallfeedback', 'groupquiz'),
-            'manualcomment'    => array('manualcomment', 'groupquiz')
+            'overallfeedback'  => array('reviewoverallfeedback', 'topomojo'),
+            'manualcomment'    => array('manualcomment', 'topomojo')
         );
         parent::__construct($current, $section, $cm, $course);
     }

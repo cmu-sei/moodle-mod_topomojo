@@ -33,8 +33,13 @@ DM20-0196
  */
 
 defined('MOODLE_INTERNAL') || die();
+use \mod_topomojo\traits\renderer_base;
 
-class mod_topomojo_renderer extends plugin_renderer_base {
+class mod_topomojo_renderer extends \plugin_renderer_base {
+
+    use renderer_base;
+
+//class mod_topomojo_renderer extends plugin_renderer_base {
 
 
     function display_detail ($topomojo, $duration, $code = false) {
@@ -219,7 +224,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         $output = '';
 
-	    //$output .= html_writer::start_div();
+            //$output .= html_writer::start_div();
         //$output .= $this->topomojo_intro();
         //$output .= html_writer::end_div();
 
@@ -243,9 +248,9 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $output .= $loadingpix;
         $output .= html_writer::end_div();
 
-	    // topomojo instructions
+            // topomojo instructions
         $output .= html_writer::start_div('topomojobox', array('id' => 'instructionsbox'));
-	    $output .= $instructions;
+            $output .= $instructions;
         $output .= html_writer::end_div();
 */
 
@@ -256,7 +261,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         $params = array(
             'id' => $this->topomojo->getCM()->id,
-            'attemptid' => $this->topomojo->openAttempt->id,
+            'a' => $attempt->id,
             'stop' => 'submittopomojo'
         );
 
@@ -293,6 +298,129 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         return $output;
     }
 
+    /**
+     * Render a specific attempt
+     *
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     */
+    public function render_attempt($attempt) {
+
+        $this->showMessage();
+
+        $timenow = time();
+        $timeopen = $this->topomojo->topomojo->timeopen;
+        $timeclose = $this->topomojo->topomojo->timeclose;
+        $timelimit = $this->topomojo->topomojo->duration;
+
+        $state = $this->topomojo->get_openclose_state();
+
+        if ($state == 'unopen') {
+            echo html_writer::start_div('topomojobox');
+            echo html_writer::tag('p', get_string('notopen', 'topomojo') . userdate($timeopen), array('id' => 'quiz_notavailable'));
+            echo html_writer::end_tag('div');
+
+        } else if ($state == 'closed') {
+            echo html_writer::start_div('topomojobox');
+            echo html_writer::tag('p', get_string('closed', 'topomojo'). userdate($timeclose), array('id' => 'quiz_notavailable'));
+            echo html_writer::end_tag('div');
+        }
+
+        $reviewoptions = $this->topomojo->get_review_options();
+        $canreviewattempt =  $this->topomojo->canreviewattempt($reviewoptions, $state);
+        $canreviewmarks = $this->topomojo->canreviewmarks($reviewoptions, $state);
+
+        // show overall grade
+        if ($canreviewmarks && (!$this->topomojo->is_instructor())) {
+            $this->render_grade();
+        }
+
+        if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
+            foreach ($attempt->getSlots() as $slot) {
+                if ($this->topomojo->is_instructor()) {
+                    echo $this->render_edit_review_question($slot, $attempt);
+                } else {
+                    echo $this->render_review_question($slot, $attempt);
+                }
+            }
+        } else if ($attempt && !$canreviewattempt) {
+            echo html_writer::tag('p', get_string('noreview', 'topomojo'), array('id' => 'review_notavailable'));
+        }
+
+        $this->render_return_button();
+    }
+
+    /**
+     * Renders an individual question review
+     *
+     * This is the "edit" version that are for instructors/users who have the control capability
+     *
+     * @param int                                $slot
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment
+     */
+    public function render_edit_review_question($slot, $attempt) {
+
+        $qnum = $attempt->get_question_number();
+        $output = '';
+
+        $output .= html_writer::start_div('topomojobox', array('id' => 'q' . $qnum . '_container'));
+
+
+        $action = clone($this->pageurl);
+
+        $output .= html_writer::start_tag('form',
+            array('action'  => '', 'method' => 'post',
+                  'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
+                  'id'      => 'q' . $qnum, 'class' => 'topomojo_question',
+                  'name'    => 'q' . $qnum));
+
+
+        $output .= $attempt->render_question($slot, true, 'edit');
+
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'slots',
+                                                         'value' => $slot));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'slot',
+                                                         'value' => $slot));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'action',
+                                                         'value' => 'savecomment'));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'sesskey',
+                                                         'value' => sesskey()));
+
+        $savebtn = html_writer::empty_tag('input', array('type'  => 'submit', 'name' => 'submit',
+                                                         'value' => get_string('savequestion', 'topomojo'), 'class' => 'btn btn-secondary'));
+
+
+        $mark = $attempt->get_slot_mark($slot);
+        $maxmark = $attempt->get_slot_max_mark($slot);
+
+        $output .= html_writer::start_tag('p');
+        $output .= 'Marked ' . $mark . ' / ' . $maxmark;
+        $output .= html_writer::end_tag('p');
+
+        // only add save button if attempt is finished
+        if ($attempt->getState() === 'finished') {
+            $output .= html_writer::div($savebtn, 'save_row');
+        }
+
+        // Finish the form.
+        $output .= html_writer::end_tag('form');
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+
+    public function render_return_button() {
+        $output = '';
+            $params = array(
+                'id' => $this->topomojo->getCM()->id//,
+                //'action' => ''
+            );
+            $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+            $output.= $this->output->single_button($starturl, 'Return', 'get');
+            echo $output;
+        }
+    
 }
 
 

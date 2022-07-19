@@ -160,8 +160,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
             //TODO go to viewattempt page
-            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'attemptid' => $attemptid ) );
-            //redirect($viewattempturl);
+            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $attemptid, 'action' => 'view' ) );
+            redirect($viewattempturl);
         }
     }
 }
