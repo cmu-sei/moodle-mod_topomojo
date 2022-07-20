@@ -331,7 +331,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         // show overall grade
         if ($canreviewmarks && (!$this->topomojo->is_instructor())) {
-            $this->render_grade();
+            $this->display_grade($this->topomojo->topomojo);
         }
 
         if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
@@ -409,6 +409,31 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         return $output;
     }
+    /**
+     * Render a review question with no editing capabilities.
+     *
+     * Reviewing will be based upon the after review options specified in module settings
+     *
+     * @param int                                $slot
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment for the question
+     */
+    public function render_review_question($slot, $attempt) {
+
+        $qnum = $attempt->get_question_number();
+        $when = $this->topomojo->get_openclose_state();
+
+        $output = '';
+
+        $output .= html_writer::start_div('topomojobox', array('id' => 'q' . $qnum . '_container'));
+
+        $output .= $attempt->render_question($slot, true, $this->topomojo->get_review_options(), $when);
+
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
 
     public function render_return_button() {
         $output = '';
@@ -420,7 +445,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $output.= $this->output->single_button($starturl, 'Return', 'get');
             echo $output;
         }
-    
+
 }
 
 

@@ -294,6 +294,85 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022071901, 'topomojo');
     }
 
+    if ($oldversion < 2022072000) {
+
+        // Define table topomojo_questions to be created.
+        $table = new xmldb_table('topomojo_questions');
+
+        // Adding fields to table topomojo_questions.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('topomojoid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('questionid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('points', XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table topomojo_questions.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('topomojoid', XMLDB_KEY_FOREIGN, ['id'], 'quiz', ['id']);
+        $table->add_key('questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']);
+
+        // Conditionally launch create table for topomojo_questions.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072000, 'topomojo');
+    }
+    if ($oldversion < 2022072001) {
+
+        // Define field duration to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'preferredbehaviour');
+
+        // Conditionally launch add field duration.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072001, 'topomojo');
+    }
+    if ($oldversion < 2022072002) {
+
+        // Rename field quesntionusageid on table topomojo_attempts to questionusageid.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('quesntionusageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'layout');
+
+        // Launch rename field quesntionusageid.
+        $dbman->rename_field($table, $field, 'questionusageid');
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072002, 'topomojo');
+    }
+    if ($oldversion < 2022072003) {
+
+        // Define field duration to be added to topomojo_grades.
+        $table = new xmldb_table('topomojo_grades');
+        $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'topomojoid');
+
+        // Conditionally launch add field duration.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072003, 'topomojo');
+    }
+    if ($oldversion < 2022072004) {
+
+        // Define field duration to be dropped from topomojo_grades.
+        $table = new xmldb_table('topomojo_grades');
+        $field = new xmldb_field('duration');
+
+        // Conditionally launch drop field duration.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072004, 'topomojo');
+    }
+
     return true;
 }
 

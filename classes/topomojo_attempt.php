@@ -303,7 +303,6 @@ class topomojo_attempt {
      */
     public function render_question($slotid, $review = false, $reviewoptions = '', $when = null) {
         $displayoptions = $this->get_display_options($review, $reviewoptions, $when);
-
         $questionnum = $this->get_question_number();
         $this->add_question_number();
 
@@ -357,27 +356,27 @@ class topomojo_attempt {
             } else if ($reviewoptions instanceof \stdClass) {
 		        foreach ($reviewoptions as $field => $data) {
 		            if ($when == 'closed') {
-			            if (($field == 'reviewmarks') && 
-			                    ($data == topomojo_display_options::AFTER_CLOSE)) {
+			            if (($field == 'reviewmarks') &&
+			                    ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
 			                $options->marks = \question_display_options::MARK_AND_MAX;
 			            } else {
                             $options->$field = \question_display_options::VISIBLE;
 			            }
 			            if (($field == 'reviewrightanswer') &&
-                                ($data == topomojo_display_options::AFTER_CLOSE)) {
+                                ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
                             $options->rightanswer = \question_display_options::VISIBLE;
                         }
                     }
 		        }
 		    }
-	
-            $state = topomojo_display_options::LATER_WHILE_OPEN;	
-            if ($when == 'closed') {
-                $state = topomojo_display_options::AFTER_CLOSE;
-            }
-/*
-            foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
 
+            $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
+            if ($when == 'closed') {
+                $state = \mod_topomojo_display_options::AFTER_CLOSE;
+            }
+
+
+            foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
                 $name = 'review' . $field;
                 if ($reviewoptions->{$name} & $state) {
                     if ($field == 'marks') {
@@ -387,8 +386,7 @@ class topomojo_attempt {
                     }
                 }
             }
-        */
-            } else {
+        } else {
             // default options for during quiz
             $options->rightanswer = \question_display_options::HIDDEN;
             $options->numpartscorrect = \question_display_options::HIDDEN;

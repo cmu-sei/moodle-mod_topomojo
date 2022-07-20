@@ -129,6 +129,7 @@ function topomojo_add_instance($topomojo, $mform) {
  * @return bool true
  */
 function topomojo_update_instance(stdClass $topomojo, $mform) {
+    echo "processing update to topoomojo $topomojo->instance<br>";
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
@@ -138,7 +139,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-   // $oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
+    //$oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
 
     // Update the database.
     $topomojo->id = $topomojo->instance;
@@ -173,9 +174,44 @@ function topomojo_after_add_or_update($topomojo) {
 
 function topomojo_process_options($topomojo) {
     global $CFG;
+    require_once($CFG->libdir . '/questionlib.php');
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
     $topomojo->timemodified = time();
+    // Combing the individual settings into the review columns.
+    $topomojo->reviewattempt = topomojo_review_option_form_to_db($topomojo, 'attempt');
+    $topomojo->reviewcorrectness = topomojo_review_option_form_to_db($topomojo, 'correctness');
+    $topomojo->reviewmarks = topomojo_review_option_form_to_db($topomojo, 'marks');
+    $topomojo->reviewspecificfeedback = topomojo_review_option_form_to_db($topomojo, 'specificfeedback');
+    $topomojo->reviewgeneralfeedback = topomojo_review_option_form_to_db($topomojo, 'generalfeedback');
+    $topomojo->reviewrightanswer = topomojo_review_option_form_to_db($topomojo, 'rightanswer');
+    $topomojo->reviewoverallfeedback = topomojo_review_option_form_to_db($topomojo, 'overallfeedback');
+    $topomojo->reviewattempt |= mod_topomojo_display_options::DURING;
+    $topomojo->reviewoverallfeedback &= ~mod_topomojo_display_options::DURING;
+    $topomojo->reviewmanualcomment = topomojo_review_option_form_to_db($topomojo, 'manualcomment');
+}
+/**
+ * Helper function for {@link topomojo_process_options()}.
+ * @param object $fromform the sumbitted form date.
+ * @param string $field one of the review option field names.
+ */
+function topomojo_review_option_form_to_db($fromform, $field) {
+    static $times = array(
+        'during' => mod_topomojo_display_options::DURING,
+        'immediately' => mod_topomojo_display_options::IMMEDIATELY_AFTER,
+        'open' => mod_topomojo_display_options::LATER_WHILE_OPEN,
+        'closed' => mod_topomojo_display_options::AFTER_CLOSE,
+    );
 
+    $review = 0;
+    foreach ($times as $whenname => $when) {
+        $fieldname = $field . $whenname;
+        if (isset($fromform->$fieldname)) {
+            $review |= $when;
+            unset($fromform->$fieldname);
+        }
+    }
+
+    return $review;
 }
 
 /**

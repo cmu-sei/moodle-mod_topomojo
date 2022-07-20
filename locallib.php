@@ -525,3 +525,76 @@ function topomojo_has_attempts($topomojoid) {
     return $DB->record_exists('topomojo_attempts', array('topomojoid' => $topomojoid));
 
 }
+/**
+ * An extension of question_display_options that includes the extra options used
+ * by the quiz.
+ *
+ * @copyright  2010 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mod_topomojo_display_options extends question_display_options {
+    /**#@+
+     * @var integer bits used to indicate various times in relation to a
+     * quiz attempt.
+     */
+    const DURING =            0x10000;
+    const IMMEDIATELY_AFTER = 0x01000;
+    const LATER_WHILE_OPEN =  0x00100;
+    const AFTER_CLOSE =       0x00010;
+    /**#@-*/
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $attempt = true;
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $overallfeedback = self::VISIBLE;
+
+    /**
+     * Set up the various options from the quiz settings, and a time constant.
+     * @param object $topomojo the quiz settings.
+     * @param int $one of the {@link DURING}, {@link IMMEDIATELY_AFTER},
+     * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
+     * @return mod_topomojo_display_options set up appropriately.
+     */
+    // TODO remove if not used
+    public static function make_from_topomojo($topomojo, $when) {
+        $options = new self();
+
+        $options->attempt = self::extract($topomojo->reviewattempt, $when, true, false);
+        $options->correctness = self::extract($topomojo->reviewcorrectness, $when);
+        $options->marks = self::extract($topomojo->reviewmarks, $when,
+                self::MARK_AND_MAX, self::MAX_ONLY);
+        $options->feedback = self::extract($topomojo->reviewspecificfeedback, $when);
+        $options->generalfeedback = self::extract($topomojo->reviewgeneralfeedback, $when);
+        $options->rightanswer = self::extract($topomojo->reviewrightanswer, $when);            $options->overallfeedback = self::extract($topomojo->reviewoverallfeedback, $when);
+        $options->numpartscorrect = $options->feedback;
+            $options->manualcomment = $options->feedback;
+            //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
+
+        if ($topomojo->questiondecimalpoints != -1) {
+            $options->markdp = $topomojo->questiondecimalpoints;
+        } else {
+            $options->markdp = $topomojo->decimalpoints;
+        }
+
+        return $options;
+    }
+
+    protected static function extract($bitmask, $bit,
+            $whenset = self::VISIBLE, $whennotset = self::HIDDEN) {
+        if ($bitmask & $bit) {
+            return $whenset;
+        } else {
+            return $whennotset;
+        }
+    }
+}
+
+
+

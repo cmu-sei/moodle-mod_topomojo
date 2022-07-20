@@ -193,7 +193,7 @@ class topomojo {
             if ($event['managerName'] == "Adam Welle") {
                 //echo "<br>got moodle user<br>";
                 array_push($moodle_events, $event);
-            }    
+            }
         }
         //debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
         return $moodle_events;
@@ -223,13 +223,13 @@ class topomojo {
             do {
                 $response = $this->userauth->get($url);
                 //print_r($response);
-        
+
                 if (!$response) {
                     $count++;
                     debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
                 }
             } while (!$response && ($count < 3));
-        
+
             $r = json_decode($response, true);
 
             if (!$r) {
@@ -237,7 +237,7 @@ class topomojo {
                 print_error("Error communicating with Topomojo after $count attempts: " . $response);
                 return;
             }
-    
+
             //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
             $players = $r['players'];
             //print_r($players);
@@ -248,7 +248,7 @@ class topomojo {
             if (!is_array($players)) {
                 debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
                 return;
-        
+
             }
             foreach ($players as $player) {
                 //print_r($player);
@@ -407,7 +407,7 @@ class topomojo {
             } else if ($this->topomojo->timeclose && ($timenow > $this->topomojo->timeclose)) {
             $state = 'closed';
         }
-    
+
         return $state;
     }
 
@@ -436,25 +436,25 @@ class topomojo {
     public function canreviewmarks($reviewoptions, $state) {
         $canreviewmarks = false;
             if ($state == 'open') {
-                if ($reviewoptions->reviewmarks & topomojo_display_options::LATER_WHILE_OPEN) {
+                if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
                     $canreviewmarks = true;
                 }
             } else if ($state == 'closed') {
-                if ($reviewoptions->reviewmarks & topomojo_display_options::AFTER_CLOSE) {
+                if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::AFTER_CLOSE) {
                     $canreviewmarks = true;
                 }
             }
         return  $canreviewmarks;
     }
-    
+
     public function canreviewattempt($reviewoptions, $state) {
         $canreviewattempt = false;
         if ($state == 'open') {
-            if ($reviewoptions->reviewattempt & topomojo_display_options::LATER_WHILE_OPEN) {
+            if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
                 $canreviewattempt = true;
             }
         } else if ($state == 'closed') {
-            if ($reviewoptions->reviewattempt & topomojo_display_options::AFTER_CLOSE) {
+            if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::AFTER_CLOSE) {
                 $canreviewattempt = true;
             }
         }

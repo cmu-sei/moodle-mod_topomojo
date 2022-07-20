@@ -157,8 +157,6 @@ class grade {
         foreach ($attempt->getSlots() as $slot) {
             $totalpoints = $totalpoints + $quba->get_question_max_mark($slot);
             $slotpoints = $quba->get_question_mark($slot);
-            echo "max for slot " . $totalpoints . "<br>";
-            echo "user for slot " . $slotpoints . "<br>";
             if (!empty($slotpoints)) {
                 $totalslotpoints = $totalslotpoints + $slotpoints;
             }

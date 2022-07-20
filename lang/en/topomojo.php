@@ -54,7 +54,6 @@ $string['displaylink'] = 'Display Link to Topomojo';
 $string['embedlab'] = 'Embed Lab inside Moodle';
 $string['theattempt'] = 'The attempt';
 $string['theattempt_help'] = 'Whether the student can review the attempt at all.';
-
 $string['configplayerappurl'] = 'Base URL for Topomojo trailing /.';
 $string['configissuerid'] = 'This is the integer value for the issuer.';
 $string['configembed'] = 'This determines whether the lab is emebedd or whether a link to Topomojo is displayed';
@@ -62,7 +61,6 @@ $string['configtopomojoapiurl'] = 'Base URL for Topomojo API instance without tr
 $string['configworkspace'] = 'Workspace GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
-
 $string['apikey'] = 'API Key';
 $string['configapikey'] = 'The value included with TopoMojo API requests under the x-api-key header. Assigned by the TopoMojo administrator.';
 
@@ -97,6 +95,8 @@ $string['shufflewithin'] = 'Shuffle within questions';
 $string['shufflewithin_help'] = 'If enabled, the parts making up each question will be randomly shuffled each time a student attempts the quiz, provided the option is also enabled in the question settings. This setting only applies to questions that have multiple parts, such as multiple choice or matching questions.';
 $string['configshufflewithin'] = 'If you enable this option, then the parts making up the individual questions will be randomly shuffled each time a student starts an attempt at this quiz, provided the option is also enabled in the question settings.';
 $string['questionbehaviour'] = 'Question behaviour';
+$string['marks'] = 'Marks';
+$string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
 
 // Time options
 $string['timing'] = 'Timing';
