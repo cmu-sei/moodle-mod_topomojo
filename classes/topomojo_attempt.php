@@ -314,6 +314,8 @@ class topomojo_attempt {
         $qoutput = $page->get_renderer('question');
         $qtoutput = $question->get_renderer($page);
         $behaviour = $qa->get_behaviour();
+        $displayoptions->context = $this->context;
+        $displayoptions->context = $this->questionmanager->gettopomojo()->getContext();
         return $behaviour->render($displayoptions, $questionnum, $qoutput, $qtoutput);
 
     }
@@ -368,24 +370,23 @@ class topomojo_attempt {
                         }
                     }
 		        }
-		    }
+                $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
+                if ($when == 'closed') {
+                    $state = \mod_topomojo_display_options::AFTER_CLOSE;
+                }
 
-            $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
-            if ($when == 'closed') {
-                $state = \mod_topomojo_display_options::AFTER_CLOSE;
-            }
-
-
-            foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
-                $name = 'review' . $field;
-                if ($reviewoptions->{$name} & $state) {
-                    if ($field == 'marks') {
-                        $options->$field = \question_display_options::MARK_AND_MAX;
-                    } else {
-                            $options->$field = \question_display_options::VISIBLE;
+                foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
+                    $name = 'review' . $field;
+                    if ($reviewoptions->{$name} & $state) {
+                        if ($field == 'marks') {
+                            $options->$field = \question_display_options::MARK_AND_MAX;
+                        } else {
+                                $options->$field = \question_display_options::VISIBLE;
+                        }
                     }
                 }
-            }
+
+		    }
         } else {
             // default options for during quiz
             $options->rightanswer = \question_display_options::HIDDEN;
