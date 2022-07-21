@@ -372,6 +372,29 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072004, 'topomojo');
     }
+    if ($oldversion < 2022072100) {
+
+        // Define field tasks to be dropped from topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('tasks');
+
+        // Conditionally launch drop field tasks.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Define field importchallenge to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('importchallenge', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'duration');
+
+        // Conditionally launch add field importchallenge.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072100, 'topomojo');
+    }
 
     return true;
 }

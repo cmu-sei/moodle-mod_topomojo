@@ -336,7 +336,6 @@ function mod_topomojo_core_calendar_provide_event_action(calendar_event $event,
 function topomojo_update_grades($topomojo, $userid = 0, $nullifnone = true) {
     global $CFG, $DB;
     require_once($CFG->libdir . '/gradelib.php');
-
     if ($topomojo->grade == 0) {
         topomojo_grade_item_update($topomojo);
 

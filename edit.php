@@ -107,8 +107,18 @@ switch ($action) {
             debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
         } else {
             $questionid = required_param('questionid', PARAM_INT);
-            $questionmanager->add_question($questionid);
-            //TODO check status and output message
+            if ($questionmanager->add_question($questionid)) {
+                $type = 'success';
+                $message = get_string('qaddsuccess', 'topomojo');
+            } else {
+                $type = 'error';
+                $message = get_string('qadderror', 'topomojo');
+            }
+            $renderer->setMessage($type, $message);
+            $renderer->print_header();
+            $questions = $questionmanager->get_questions();
+            $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
+            $renderer->footer();
         }
         break;
     case 'deletequestion':
@@ -153,8 +163,13 @@ switch ($action) {
                 $jsonlib->send_error('unable to re-sort questions');
             }
 
-            break;
         }
+        break;
+    case 'editquestion':
+        $questionid = required_param('topomojoquestionid', PARAM_INT);
+        $questionmanager->edit_question($questionid);
+
+        break;
     default:
         $renderer->print_header();
         $questions = $questionmanager->get_questions();

@@ -63,6 +63,8 @@ $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a s
 $string['configshowfailed'] = 'Show failed Events in the history table.';
 $string['apikey'] = 'API Key';
 $string['configapikey'] = 'The value included with TopoMojo API requests under the x-api-key header. Assigned by the TopoMojo administrator.';
+$string['importchallenge'] = 'Import Challenge';
+$string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
 
 // activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to Topomojo is displayed';
@@ -196,11 +198,12 @@ $string['question'] = 'Question ';
 $string['points'] = 'Question Points';
 $string['points_help'] = 'The number of points you\'d like this question to be worth';
 $string['addquestion'] = 'Add question';
-$string['cantaddquestiontwice'] = 'You can not add the same question more than once';
 $string['questiondelete'] = 'Delete question {$a}';
 $string['questionedit'] = 'Edit question';
 $string['qdeletesucess'] = 'Successfully deleted question';
 $string['qdeleteerror'] = 'Couldn\'t delete question';
+$string['qaddsucess'] = 'Successfully added question';
+$string['qadderror'] = 'Couldn\'t add question';
 
 
 

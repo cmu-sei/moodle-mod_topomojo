@@ -109,7 +109,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         if (is_null($user)) {
             $user = $USER->id;
         }
-
         $usergrades = \mod_topomojo\utils\grade::get_user_grade($topomojo, $user);
         // should only be 1 grade, but we'll always get end just in case
         $usergrade = end($usergrades);

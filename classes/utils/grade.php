@@ -276,4 +276,26 @@ class grade {
         return true;
 
     }
+
+
+    /**
+     * Save and (re)calculate grades for this lab
+     *
+     * @param bool $regrade_attempts Regrade the question attempts themselves through the question engine
+     * @return bool
+     */
+    public function save_all_grades($regrade_attempts = false) {
+
+
+        $attempts = $this->topomojo->getall_attempts($open = 'closed');
+
+        foreach ($attempts as $attempt) {
+            // If we're regrading attempts, send them off to be re-graded before processing all sessions.
+            if ($regrade_attempts) {
+                $this->process_attempt($attempt);
+            }
+        }
+        return true;
+    }
+
 }

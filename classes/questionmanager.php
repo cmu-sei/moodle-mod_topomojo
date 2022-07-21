@@ -116,6 +116,7 @@ class questionmanager {
      *
      * @return mixed
      */
+/*
     public function add_question($questionid)
     {
         global $DB;
@@ -123,7 +124,6 @@ class questionmanager {
         // first check to see if the question has already been added
         if ( $this->is_question_already_present($questionid) ) {
             $redurl = clone($this->pagevars['pageurl']);
-            /** @var \moodle_url $redurl */
             $redurl->remove_params('action'); // go back to base edit page
             redirect($redurl, get_string('cantaddquestiontwice', 'topomojo'));
         }
@@ -167,12 +167,12 @@ class questionmanager {
 
         } else {
             // display the form
-            $this->renderer->print_header();    
+            $this->renderer->print_header();
             $this->renderer->addquestionform($mform);
             $this->renderer->footer();
         }
     }
-
+*/
     /**
      * Edit a topomojo question
      *
@@ -193,9 +193,9 @@ class questionmanager {
 
         $mform = new add_question_form($actionurl,
             array(
-                'topomojo' => $this->object,
+                'topomojo' => $topomojoquestion->topomojoid,
                 'questionname' => $qrecord->name,
-                'defaultmark' => $qrecord->defaultmark,
+                'defaultmark' => $topomojoquestion->points,
                 'edit' => true));
 
         // form handling
@@ -217,7 +217,7 @@ class questionmanager {
 
             $question = new \stdClass();
             $question->id = $topomojoquestion->id;
-            $question->topomojoid = $this->object->id;
+            $question->topomojoid = $topomojoquestion->topomojoid;
             $question->questionid = $topomojoquestion->questionid;
             $question->points = number_format($data->points, 2);
 
@@ -254,6 +254,34 @@ class questionmanager {
         } catch(\Exception $e) {
             return false; // return false on error
         }
+
+        // if we get here return true
+        return true;
+    }
+    /**
+     * Add a question on the quiz
+     *
+     * @param int $questionid The topomojo questionid to delete
+     *
+     * @return bool
+     */
+    public function add_question($questionid)
+    {
+        global $DB;
+
+        if ($this->is_question_already_present($questionid)) {
+            return false;
+        }
+
+        $question = new \stdClass();
+        $question->topomojoid = $this->object->topomojo->id;
+        $question->questionid = $questionid;
+        $qrecord = $DB->get_record('question', array('id' => $questionid), '*', MUST_EXIST);
+        $question->points = number_format($qrecord->defaultmark, 2);
+
+        $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
+
+        $this->update_questionorder('addquestion', $topomojoquestionid);
 
         // if we get here return true
         return true;
@@ -726,8 +754,10 @@ class questionmanager {
             }
         }
 
+        $grader = new \mod_topomojo\utils\grade($this->object);
+
         // re-save all grades after regrading the question attempts for the slot.
-        if ( $this->object->get_grader()->save_all_grades(true) ) {
+        if ( $grader->save_all_grades(true) ) {
             return true;
         } else {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');

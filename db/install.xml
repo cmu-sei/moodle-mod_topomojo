@@ -33,6 +33,7 @@
         <FIELD NAME="shuffleanswers" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the parts of the question should be shuffled, in those question types that support it."/>
         <FIELD NAME="preferredbehaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="The behaviour to ask questions to use."/>
         <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time limit for lab attempts, in seconds."/>
+	<FIELD NAME="importchallenge" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether or not moodle should automatically pull challenge questions from topomojo and add them to the quiz inside of the lab"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -61,7 +62,6 @@
         <FIELD NAME="eventid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The gamespace guid for this attempt"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
         <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="The current state of the attempts. 'inprogress', 'overdue', 'finished' or 'abandoned'."/>
-        <FIELD NAME="tasks" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tasks for this attempt"/>
         <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The score for this attempt"/>
         <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The expirationDate of the event"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>

@@ -116,9 +116,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
-
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
@@ -176,6 +173,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'topomojo'));
+
+        $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
+        $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
 
         // Shuffle within questions.
         $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
@@ -373,17 +373,17 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
 
         if (is_array($this->workspaces)) {
-            $index = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
-            $data->name = $this->workspaces[$index]->name;
-            $data->intro = $this->workspaces[$index]->description;
+            $selectedworkspace = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
+            $data->name = $this->workspaces[$selectedworkspace]->name;
+            $description = $this->workspaces[$selectedworkspace]->description;
+            $markdowncutline = "<!-- cut -->";
+            $parts = preg_split($markdowncutline, $description);
+            $data->intro = $parts[0];
+            $data->introformat = FORMAT_MARKDOWN;
             // pull durationMinutes from topomojo
             if ($data->duration == 0) {
-                $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
-                $data->duration = $this->workspace->durationMinutes;
+                $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
-            $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
-
-            $data->introformat = FORMAT_MARKDOWN;
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);

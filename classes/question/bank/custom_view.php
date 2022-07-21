@@ -239,8 +239,11 @@ class custom_view extends \core_question\local\bank\view {
         static $choiceformprinted = false;
 
         $config = get_config('topomojo');
-        $enabledtypes = explode(',', $config->enabledqtypes);
-
+        if (property_exists($config, 'enabledqtypes')) {
+            $enabledtypes = explode(',', $config->enabledqtypes);
+        } else {
+            $enabledtypes = null;
+        }
         $params['category'] = $categoryid;
         $url = new \moodle_url('/question/addquestion.php', $params);
         echo $OUTPUT->single_button($url, $caption, 'get', array('disabled'=>$disabled, 'title'=>$tooltip));

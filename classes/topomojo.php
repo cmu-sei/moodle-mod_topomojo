@@ -229,6 +229,10 @@ class topomojo {
                     debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
                 }
             } while (!$response && ($count < 3));
+            if (!$response) {
+                print_error("Error communicating with Topomojo after $count attempts: " . $response);
+                return;
+            }
 
             $r = json_decode($response, true);
 

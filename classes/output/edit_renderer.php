@@ -72,7 +72,7 @@ class edit_renderer extends \plugin_renderer_base {
             echo \html_writer::start_div('inline-block col-sm-6');
             echo $questionbankview->display($pagevars, 'editq');
             echo \html_writer::end_div(); // inline-block-span6 questionbank
-            
+
             echo \html_writer::end_div(); // questionrow
 
             // TODO update to amd
@@ -146,7 +146,7 @@ class edit_renderer extends \plugin_renderer_base {
         $namehtml = \html_writer::start_tag('p');
 
         $namehtml .= $question->getQuestion()->name . '<br />';
-        $namehtml .= get_string('points', 'topomojo') . ': ' . $question->getPoints();
+        $namehtml .= get_string('points', 'topomojo') . ': ' . number_format($question->getPoints(), 2);
         $namehtml .= \html_writer::end_tag('p');
 
         $return .= \html_writer::div($namehtml, 'name');
@@ -201,12 +201,13 @@ class edit_renderer extends \plugin_renderer_base {
             $controlHTML .= \html_writer::link($deleteurl, $this->output->render($deleteicon));
         }
         $previewurl = \qbank_previewquestion\helper::question_preview_url($question->getQuestion()->id);
-        //$previewurl = question_preview_url($question->getQuestion()->id);
         $previewicon = new \pix_icon('t/preview', get_string('preview'));
         $options = ['height' => 800, 'width' => 900];
         $popup = new \popup_action('click', $previewurl, 'preview', $options);
         $actionlink = new \action_link($previewurl, '', $popup, array('target' => '_blank'), $previewicon);
         $controlHTML .= $this->output->render($actionlink);
+
+
         $return .= \html_writer::div($controlHTML, 'controls');
 
         return $return;
