@@ -80,6 +80,7 @@ $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
 $action = optional_param('action', '', PARAM_ALPHA);
+$addquestionlist = optional_param('addquestionlist', '', PARAM_ALPHA);
 
 // new topomojo class
 $pageurl = $url;
@@ -98,11 +99,38 @@ $questionmanager = $object->get_question_manager();
 $renderer = $object->renderer;
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $topomojo);
 
+if ($addquestionlist) {
+    $action = 'addquestionlist';
+}
+
 // handle actions
 switch ($action) {
-
+    case 'addquestionlist':
+        $rawdata = (array) data_submitted();
+        foreach ($rawdata as $key => $value) { // Parse input for question ids.
+            if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
+                $key = $matches[1];
+                $questionid = $key;
+                if (!$questionmanager->add_question($questionid)) {
+                    $type = 'error';
+                    $message = get_string('qadderror', 'topomojo');
+                    $renderer->setMessage($type, $message);
+                    break;
+                } else {
+                    $type = 'success';
+                    $message = get_string('qaddsuccess', 'topomojo');
+                    $renderer->setMessage($type, $message);
+                }
+            }
+        }
+        $renderer->setMessage($type, $message);
+        $renderer->print_header();
+        $questions = $questionmanager->get_questions();
+        $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
+        $renderer->footer();
+        break;
     case 'addquestion':
-        // Add a single question to the current topomojo.
+            // Add a single question to the current topomojo.
         if ($topomojohasattempts) {
             debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
         } else {

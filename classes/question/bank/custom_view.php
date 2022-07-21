@@ -267,7 +267,7 @@ class custom_view extends \core_question\local\bank\view {
             // Add selected questions to the lab.
             $params = array(
                 'type' => 'submit',
-                'name' => 'add',
+                'name' => 'addquestionlist',
                 'class' => 'btn btn-primary',
                 'value' => get_string('addselectedquestionstotopomojo', 'topomojo'),
                 'data-action' => 'toggle',
