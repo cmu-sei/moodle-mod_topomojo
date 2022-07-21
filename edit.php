@@ -209,7 +209,7 @@ switch ($action) {
 if ($object->topomojo->importchallenge) {
     $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
     // TODO get variant from topomojo object
-    $variant = 0;
+    $variant = $object->topomojo->variant;
     foreach ($challenge->variants[$variant]->sections as $section) {
         $count = count($section->questions);
         //TODO maybe we track the number of questions and make sure that it matches?

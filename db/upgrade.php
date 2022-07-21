@@ -395,6 +395,27 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072100, 'topomojo');
     }
+    if ($oldversion < 2022072101) {
+
+        // Define field variant to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('variant', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'importchallenge');
+
+        // Conditionally launch add field variant.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field variant to be added to topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('variant', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'questionusageid');
+
+        // Conditionally launch add field variant.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2022072101, 'topomojo');
+    }
 
     return true;
 }

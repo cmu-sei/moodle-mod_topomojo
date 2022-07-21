@@ -116,6 +116,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
+        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'), '0');
+        $mform->setType('variant', PARAM_INT);
+        $mform->addHelpButton('variant', 'variant', 'topomojo');
+
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 

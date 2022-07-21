@@ -99,6 +99,8 @@ $string['configshufflewithin'] = 'If you enable this option, then the parts maki
 $string['questionbehaviour'] = 'Question behaviour';
 $string['marks'] = 'Marks';
 $string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
+$string['variant'] = 'Variant';
+$string['variant_help'] = 'The variant of the lab deployment on Topomojo.';
 
 // Time options
 $string['timing'] = 'Timing';
