@@ -65,6 +65,7 @@ class custom_view extends \core_question\local\bank\view {
             'checkbox_column',
             'question_type_column',
             'question_name_text_column',
+            'delete_action_column',
             'preview_action_column'
         ];
 

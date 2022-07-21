@@ -204,6 +204,7 @@ $string['qdeletesucess'] = 'Successfully deleted question';
 $string['qdeleteerror'] = 'Couldn\'t delete question';
 $string['qaddsucess'] = 'Successfully added question';
 $string['qadderror'] = 'Couldn\'t add question';
+$string['importtopo'] = 'Questions synced from Topomojo lab cannot be removed';
 
 
 

@@ -71,6 +71,7 @@ window.addEventListener('load', function () {
                 } else {
 
                     editStatus.classList.remove('topomojohiddenstatus');
+                    editStatus.classList.add('alert-success');
                     editStatus.classList.add('topomojosuccessstatus');
                     editStatus.innerHTML = M.util.get_string('success', 'core');
 

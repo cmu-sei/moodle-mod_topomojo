@@ -100,13 +100,16 @@ trait renderer_base {
 
         switch ($this->pageMessage[0]) {
             case 'error':
-                echo $this->output->notification($this->pageMessage[1], 'notifiyproblem');
+                echo $this->output->notification($this->pageMessage[1], 'error');
                 break;
             case 'success':
-                echo $this->output->notification($this->pageMessage[1], 'notifysuccess');
+                echo $this->output->notification($this->pageMessage[1], 'success');
                 break;
             case 'info':
-                echo $this->output->notification($this->pageMessage[1], 'notifyinfo');
+                echo $this->output->notification($this->pageMessage[1], 'info');
+                break;
+            case 'warning':
+                echo $this->output->notification($this->pageMessage[1], 'warning');
                 break;
             default:
                 // unrecognized notification type

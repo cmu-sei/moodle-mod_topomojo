@@ -372,40 +372,38 @@ function topomojo_start($cm, $context, $topomojo) {
     $event->trigger();
 }
 
-// this functions returns all the vms in a view
-function get_allvms($auth, $id) {
-    if ($auth == null) {
-        print_error('error with auth');
-        return;
-    }
-
-    if ($id == null) {
-        print_error('error with id');
-        return;
+function get_challenge($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
     }
 
     // web request
-    $url = "https://s3vm.cyberforce.site/api/views/" . $id . "/vms";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/challenge/" . $id;
     //echo "GET $url<br>";
 
-    $response = $auth->get($url);
-    if (!$response) {
-        debugging("no response received by get_allvms $url", DEBUG_DEVELOPER);
-        return;
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
     }
-    if ($auth->info['http_code']  !== 200) {
-        debugging('response code ' . $auth->info['http_code'], DEBUG_DEVELOPER);
+
+    if (!$response) {
+        debugging('no response received by get_workspace', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
-    if ($response === "[]") {
+    $r = json_decode($response);
+
+    if (!$r) {
+        debugging("could not find item by id", DEBUG_DEVELOPER);
         return;
     }
 
-    $r = json_decode($response);
-    if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
-        return;
-    }
     return $r;
 }
 
