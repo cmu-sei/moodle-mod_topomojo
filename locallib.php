@@ -134,7 +134,7 @@ function start_event($client, $id, $topomojo) {
     $payload->maxAttempts = 1; // TODO get this from settings
     $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
-    $payload->variant = 0; // TODO get this from settings
+    $payload->variant = $topomojo->variant;
     $payload->players = array();
     $payload->players[0] = new stdClass();
     $payload->players[0]->subjectId = explode( "@", $USER->email )[0];
@@ -298,31 +298,6 @@ function get_active_event($history) {
         }
     }
     debugging("there are no active events in the history pulled from topomojo", DEBUG_DEVELOPER);
-}
-
-function get_token($client) {
-    $access_token = $client->get_accesstoken();
-    return $access_token->token;
-}
-
-function get_refresh_token($client) {
-    $refresh_token = $client->get_refresh_token();
-    return $refresh_token->token;
-}
-
-function get_scopes($client) {
-    $access_token = $client->get_accesstoken();
-    return $access_token->scope;
-}
-
-function get_clientid($client) {
-    $issuer = $client->get_issuer();
-    return $issuer->get('clientid');
-}
-
-function get_clientsecret($client) {
-    $issuer = $client->get_issuer();
-    return $issuer->get('clientsecret');
 }
 
 /**

@@ -100,7 +100,7 @@ $string['questionbehaviour'] = 'Question behaviour';
 $string['marks'] = 'Marks';
 $string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
 $string['variant'] = 'Variant';
-$string['variant_help'] = 'The variant of the lab deployment on Topomojo.';
+$string['variant_help'] = 'The variant of the lab deployment on Topomojo. WARNING: If set to 0 it will be randomized!';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -204,9 +204,10 @@ $string['questiondelete'] = 'Delete question {$a}';
 $string['questionedit'] = 'Edit question';
 $string['qdeletesucess'] = 'Successfully deleted question';
 $string['qdeleteerror'] = 'Couldn\'t delete question';
-$string['qaddsucess'] = 'Successfully added question';
+$string['qaddsuccess'] = 'Successfully added question';
 $string['qadderror'] = 'Couldn\'t add question';
 $string['importtopo'] = 'Questions synced from Topomojo lab cannot be removed';
+$string['qimportsuccess'] = 'Successfully imported questions from Topomojo';
 
 
 

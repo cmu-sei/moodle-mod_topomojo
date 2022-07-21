@@ -108,6 +108,121 @@ if ($object->topomojo->importchallenge) {
     $renderer->setMessage($type, $message);
 }
 
+if ($object->topomojo->importchallenge) {
+    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+    // TODO get variant from topomojo object
+    if ($object->topomojo->variant > 0) {
+        $variant = $object->topomojo->variant - 1;
+    } else {
+        // TODO WARNIGN if variant is 0 we dont know what variant it will be!!!
+        $variant = 0;
+    }
+    foreach ($challenge->variants[$variant]->sections as $section) {
+        $count = count($section->questions);
+        //TODO maybe we track the number of questions and make sure that it matches?
+        $key = 1;
+        //$type = 'success';
+        //$message = get_string('qimportsuccess', 'topomojo');
+        foreach ($section->questions as $question) {
+            //print_r($question);
+            //echo "<br>";
+            //echo "grader $question->grader <br>";
+            //echo "answer $question->answer <br>";
+            //echo "weight $question->weight %<br>";
+            // TODO  could hint be feedback for wrong answer?
+            if ($question->grader == 'matchAll') {
+                $type = 'warning';
+                $message = "we need to handle $question->grader";
+/*
+                question.IsCorrect = a.Intersect(
+                    b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
+                ).ToArray().Length == a.Length;
+*/
+            } else if ($question->grader == 'matchAny') {
+                $type = 'warning';
+                $message = "we need to handle $question->grader";
+/*
+                question.IsCorrect = a.Contains(c);
+*/
+            } else if ($question->grader == 'matchAlpha') {
+                $type = 'warning';
+                $message = "we need to handle $question->grader";
+
+/*
+                question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
+*/
+            } else if ($question->grader == 'match') {
+/*
+                question.IsCorrect = a.First().Equals(c);
+*/
+                //echo "this is a shortanswer question - we can handle this<br>";
+
+                // make sure question doesnt exist
+                $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
+                $record = $DB->get_record_sql($sql, array($question->text));
+                if ($record) {
+                    //echo "<br>question $record->id exists with text: $question->text <br>";
+                    $questionid = $record->id;
+                } else {
+                    require_once($CFG->dirroot . '/question/type/shortanswer/questiontype.php');
+
+                    echo "<br>adding new question<br>";
+                    $q = new stdClass();
+                    $saq = new qtype_shortanswer();
+                    $form = new stdClass();
+                    $cat = question_get_default_category($context->id);
+
+                    //$q->answer = array();
+                    //$answer = new stdClass();
+                    //$answer->answer = $question->answer;
+                    //$answer->fraction = '1';
+                    //array_push($q->answer, $answer);
+                    $q->qtype = 'shortanswer';
+                    //$q->questiontext = $question->text;
+                    //$q->feedback = '';
+
+
+                    $form->category = $cat->id;
+                    $form->name = $object->topomojo->name . " - $key";
+                    $form->questiontext['text'] = $question->text;
+                    $form->questiontext['format'] = '0'; //TODO fund out nonhtml
+                    $form->defaultmark = $question->weight;
+                    $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
+                    $form->answer = array($question->answer);
+                    $form->fraction = array('1');
+                    $form->feedback[0] = array('text' => '', 'format' => '1');
+                    $saq->save_defaults_for_new_questions($form);
+
+                    $newq = $saq->save_question($q, $form);
+                    $questionid = $newq->id;
+                    //echo "added question $questionid<br>";
+
+                    // TODO if the question changes and we can detect it, then we may need to call this
+                    // Purge this question from the cache.
+                    //question_bank::notify_question_edited($newq->id);
+
+                    // TODO add question to this lab quiz
+                    // TODO get them to show in the bank
+                }
+                // attempt to add question to topomojo quiz
+                if (!$questionmanager->add_question($questionid)) {
+                    //echo "<br>could not add question $questionid - is it already present?<br>";
+                    //$type = 'warning';0
+                    //$message = "could not add question $questionid - is it already present?";
+                    //$renderer->setMessage($type, $message);
+                }
+                $key++;
+            } else {
+                $type = 'warning';
+                $message = "we need to handle $question->grader";
+            }
+        }
+        //echo "done listing questions in section<br>";
+        $renderer->setMessage($type, $message);
+
+    }
+}
+
 // handle actions
 switch ($action) {
     case 'addquestionlist':
@@ -206,103 +321,5 @@ switch ($action) {
         $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
 }
 
-if ($object->topomojo->importchallenge) {
-    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-    // TODO get variant from topomojo object
-    $variant = $object->topomojo->variant;
-    foreach ($challenge->variants[$variant]->sections as $section) {
-        $count = count($section->questions);
-        //TODO maybe we track the number of questions and make sure that it matches?
-        $key = 1;
-        $type = 'success';
-        $message = get_string('qimportsuccess', 'topomojo');
-        foreach ($section->questions as $question) {
-            //print_r($question);
-            //echo "<br>";
-            //echo "grader $question->grader <br>";
-            //echo "answer $question->answer <br>";
-            //echo "weight $question->weight %<br>";
-            // TODO  could hint be feedback for wrong answer?
-            if ($question->grader == 'matchall') {
-/*
-                question.IsCorrect = a.Intersect(
-                    b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
-                ).ToArray().Length == a.Length;
-*/
-            } else if ($question->grader == 'matchany') {
-/*
-                question.IsCorrect = a.Contains(c);
-*/
-            } else if ($question->grader == 'matchalpha') {
-/*
-                question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
-*/
-            } else if ($question->grader == 'match') {
-/*
-                question.IsCorrect = a.First().Equals(c);
-*/
-                    echo "this is a shortanswer question - we can handle this<br>";
-
-                // make sure question doesnt exist
-                $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
-                $record = $DB->get_record_sql($sql, array($question->text));
-                if ($record) {
-                    echo "<br>question $record->id exists with text: $question->text <br>";
-                    $questionid = $record->id;
-                } else {
-                    echo "<br>adding new question<br>";
-                    $q = new stdClass();
-                    $saq = new \qtype_shortanswer();
-                    $form = new stdClass();
-                    $cat = question_get_default_category($context->id);
-
-                    //$q->answer = array();
-                    //$answer = new stdClass();
-                    //$answer->answer = $question->answer;
-                    //$answer->fraction = '1';
-                    //array_push($q->answer, $answer);
-                    $q->qtype = 'shortanswer';
-                    //$q->questiontext = $question->text;
-                    //$q->feedback = '';
-
-
-                    $form->category = $cat->id;
-                    $form->name = $object->topomojo->name . " - $key";
-                    $form->questiontext['text'] = $question->text;
-                    $form->questiontext['format'] = '0'; //TODO fund out nonhtml
-                    $form->defaultmark = $question->weight;
-                    $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
-                    $form->answer = array($question->answer);
-                    $form->fraction = array('1');
-                    $form->feedback[0] = array('text' => '', 'format' => '1');
-                    $saq->save_defaults_for_new_questions($form);
-
-                    $newq = $saq->save_question($q, $form);
-                    $questionid = $newq->id;
-                    echo "added question $questionid<br>";
-
-                    // TODO if the question changes and we can detect it, then we may need to call this
-                    // Purge this question from the cache.
-                    //question_bank::notify_question_edited($newq->id);
-
-                    // TODO add question to this lab quiz
-                    // TODO get them to show in the bank
-                }
-                // attempt to add question to topomojo quiz
-                if (!$questionmanager->add_question($questionid)) {
-                    echo "<br>could not add question $questionid - is it already present?<br>";
-                    $key++;
-                }
-            } else {
-                echo "we need a preg match question type to handle $question->grader<br>";
-            }
-            echo "<br>";
-        }
-        echo "done listing questions in section<br>";
-        // TODO setmessage not working. does it need to be set before the header is called?
-        $renderer->setMessage($type, $message);
-
-    }
-}
 
 $renderer->footer();

@@ -116,8 +116,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
-        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'), '0');
+        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
         $mform->setType('variant', PARAM_INT);
+        $mform->setDefault('variant', '1');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
         //-------------------------------------------------------
@@ -169,6 +170,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
         $mform->setType('duration', PARAM_INT);
+        $mform->setDefault('duration', '3600');
         $mform->addHelpButton('duration', 'duration', 'topomojo');
 
         $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
@@ -191,7 +193,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
         } else {
-            $currentbehaviour = '';
+            $currentbehaviour = 'deferredfeedback';
         }
         $behaviours = question_engine::get_behaviour_options($currentbehaviour);
         $mform->addElement('select', 'preferredbehaviour',
