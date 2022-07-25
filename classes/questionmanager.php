@@ -19,6 +19,7 @@ namespace mod_topomojo;
 defined('MOODLE_INTERNAL') || die();
 
 use \mod_topomojo\form\edit\add_question_form;
+use stdClass;
 
 /**
  * Question manager class
@@ -342,6 +343,69 @@ class questionmanager {
         return null;
     }
 
+    public function update_answers($quba, $gamespaceid) {
+        global $DB;
+
+            // TODO use the right variant
+            $variant = 1;
+            $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
+            foreach ($challenge->challenge->sections as $section) {
+                foreach ($section->questions as $question) {
+                    $questionid = 0;
+                    echo "check question with variant $variant<br>";
+                    $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
+                    $records = $DB->get_records_sql($sql, array($question->text));
+                    if (count($records)) {
+                        echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
+                        foreach ($records as $record) {
+                            $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
+                            if ($options) {
+                                if ($variant == $options->variant) {
+                                    echo "<br>question exists for this variant<Br>";
+                                    $questionid = $record->id;
+                                    break;
+                                } else {
+                                    echo "$variant not a match to $record->variant";
+                                }
+                            } else {
+                                echo "no options found<br>";
+
+                            }
+                        }
+                    }
+
+                    if ($questionid) {
+                        echo "question found with id $questionid<br>";
+                        $table = 'question_attempts';
+                        $questionusageid = $quba->get_id();
+                        $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
+
+                        // TODO check the variant and the number
+                        $dataobject->rightanswer = $question->answer;
+                        // TODO update quba with the correct answer
+                        $DB->update_record($table, $dataobject);
+
+                    } else {
+                        echo "not found<br>";
+                    }
+                }
+            }
+
+/*
+        $attemptquestionorder = $quba->get_slots();
+        foreach ($attemptquestionorder as $key => $slot) {
+            //$quba->set_question_attempt_metadata($slot, 'rightanswer', 'testdata');
+            // nope, that just logs metadata to the attempt_steps table
+            global $DB;
+            $table = 'question_attempts';
+            $questionusageid = $quba->get_id();
+            $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'slot' => $slot));
+
+            $dataobject->rightanswer = 'testdata';
+            $DB->update_record($table, $dataobject);
+        }
+*/
+    }
 
     /**
      * add the questions to the question usage
@@ -366,7 +430,7 @@ class questionmanager {
         $questions = question_load_questions($questionids);
 
         // TODO can i update the answers for the attempt here?
-        print_r(questions);
+        //print_r($questions);
 
         // loop through the ordered question bank questions and add them to the quba
         // object
@@ -375,21 +439,33 @@ class questionmanager {
 
             $questionid = $qbankquestion->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
+            //print_r($q);
             $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
 //TODO now that we have a question attempt, can we udpate it?
 /*
 | id  | questionusageid | slot | behaviour         | questionid | variant | maxmark    | minfraction | maxfraction | flagged | questionsummary                                                                                                                                  | rightanswer                    | responsesummary                | timemodified |
 */
-//        $oldqa = $quba->get_question_attempt($slot);
-//TODO maye call set_question_attempt_metadata
-//question_start has         $this->rightanswer = $this->behaviour->get_right_answer_summary();
-// TODO maybe we create a behaviour to handle it
+//          $oldqa = $quba->get_question_attempt($slot);
+            //TODO maye call set_question_attempt_metadata
+            //$slot = $attemptquestionorder[$qbankquestion->getId()];
+            //$quba->set_question_attempt_metadata($slot, 'rightanswer', 'testdata');
+            // nope, that just logs metadata to the attempt_steps table
+            //global $DB;
+            //$table = 'question_attempts';
+            //$dataobject = $DB->get_record($table, array('questionusageid' => $quba->get_id()), 'slot', $slot);
+            //$dataobject->rightanswer = 'testdata';
+            //$DB->update_record($table, $dataobject);
+
+            // maybe look at grading strategy question_first_matching_answer_grading_strategy
+
+//question_start hasengine/questionusage.phpe a behaviour to handle it
 // the behaviour would be set on the whole quiz. how would non mojo questions handle that?
 //TODO look into question_variant_selection_strategy to handle the loading of the variant
         }
 
         // start the questions in the quba
         $quba->start_all_questions();
+
 
         /**
          * return the attempt questionorder which is a set of ids that are the slot ids from the question engine usage by activity instance

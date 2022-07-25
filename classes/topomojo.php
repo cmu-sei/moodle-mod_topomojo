@@ -248,6 +248,8 @@ class topomojo {
         } else {
             return false;
         }
+
+
         $attempt->setState('inprogress');
 
         //TODO call start attempt event class from here

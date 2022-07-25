@@ -141,6 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             print_error("start_event failed");
         }
+        // contact topomojo and pull the correct answers for this attempt
+        // TODO verify is this works for random attempts
+        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
+
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
@@ -221,7 +225,6 @@ echo $renderer->header();
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
     $renderer->display_detail($topomojo, $topomojo->duration, $code);
-
 
     $jsoptions = ['keepaliveinterval' => 1];
 

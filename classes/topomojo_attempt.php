@@ -91,6 +91,8 @@ class topomojo_attempt {
             // add the attempt layout to this instance
             $this->attempt->layout = implode(',', $attemptlayout);
 
+            \question_engine::save_questions_usage_by_activity($this->quba);
+
         } else { // else load it up in this class instance
             $this->attempt = $dbattempt;
             $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
@@ -144,6 +146,7 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
+                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;
