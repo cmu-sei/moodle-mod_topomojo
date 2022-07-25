@@ -100,14 +100,15 @@ if ($object->workspace) {
 }
 
 // get current state of workspace
-$all_events = $object->list_events();
-$moodle_events = $object->moodle_events($all_events);
-$history = $object->user_events($moodle_events);
+$all_events = list_events($object->userauth, $object->topomojo->name);
+$moodle_events = moodle_events($all_events);
+$history = user_events($object->userauth, $moodle_events);
 $object->event = get_active_event($history);
 
 // get active attempt for user: true/false
 $activeAttempt = $object->get_open_attempt();
 if ($activeAttempt == true) {
+    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 } else if ($activeAttempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
@@ -220,8 +221,8 @@ echo $renderer->header();
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
     $renderer->display_detail($topomojo, $topomojo->duration, $code);
-    
-    
+
+
     $jsoptions = ['keepaliveinterval' => 1];
 
     $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
@@ -244,7 +245,7 @@ if ($object->event) {
     $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
 
     if ($embed == 1) {
-  
+
         $vmlist = array();
         if (!is_array($object->event->vms)) {
             print_error("No VMs visible to user");
@@ -266,11 +267,11 @@ if ($object->event) {
 
         }
 
-        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist); 
+        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist);
     } else {
         $renderer->display_link_page($object->openAttempt->launchpointurl);
     }
-    
+
 } else {
     $renderer->display_detail($topomojo, $topomojo->duration);
 
@@ -284,7 +285,7 @@ if ($object->event) {
 $action = optional_param('action', '', PARAM_ALPHA);
 
 switch($action) {
-    case "submitquiz": 
+    case "submitquiz":
         debugging("submitquiz request received", DEBUG_DEVELOPER);
         if ($object->event) {
             if ($object->event->isActive) {
@@ -300,7 +301,7 @@ switch($action) {
                 redirect($url);
             }
         }
-    
+
         break;
     default:
         if ($object->openAttempt) {

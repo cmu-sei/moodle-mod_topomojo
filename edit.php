@@ -105,121 +105,127 @@ if ($addquestionlist) {
 if ($object->topomojo->importchallenge) {
     $type = 'info';
     $message = get_string('importtopo', 'topomojo');
-    $renderer->setMessage($type, $message);
+    //$renderer->setMessage($type, $message);
 }
 
+
 if ($object->topomojo->importchallenge) {
-    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-    // TODO get variant from topomojo object
-    if ($object->topomojo->variant > 0) {
+    // get variant from topomojo object
+    if ($object->topomojo->variant == 0) {
+        // WARNING if variant is 0 we dont know which questions it will have!
+        print_error("cannot import questions from unknown variant");
+    } else if ($object->topomojo->variant > 0) {
         $variant = $object->topomojo->variant - 1;
-    } else {
-        // TODO WARNIGN if variant is 0 we dont know what variant it will be!!!
-        $variant = 0;
     }
+
+    require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
+    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+    if (!$challenge) {
+        print_error("this lab has no challenge");
+    }
+
+    $questionnumber = 0;
     foreach ($challenge->variants[$variant]->sections as $section) {
         $count = count($section->questions);
         //TODO maybe we track the number of questions and make sure that it matches?
-        $key = 1;
         //$type = 'success';
         //$message = get_string('qimportsuccess', 'topomojo');
         foreach ($section->questions as $question) {
+            $questionnumber++;
             //print_r($question);
             //echo "<br>";
             //echo "grader $question->grader <br>";
             //echo "answer $question->answer <br>";
             //echo "weight $question->weight %<br>";
             // TODO  could hint be feedback for wrong answer?
-            if ($question->grader == 'matchAll') {
-                $type = 'warning';
-                $message = "we need to handle $question->grader";
-/*
-                question.IsCorrect = a.Intersect(
-                    b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
-                ).ToArray().Length == a.Length;
-*/
-            } else if ($question->grader == 'matchAny') {
-                $type = 'warning';
-                $message = "we need to handle $question->grader";
-/*
-                question.IsCorrect = a.Contains(c);
-*/
-            } else if ($question->grader == 'matchAlpha') {
-                $type = 'warning';
-                $message = "we need to handle $question->grader";
 
-/*
-                question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
-*/
-            } else if ($question->grader == 'match') {
-/*
-                question.IsCorrect = a.First().Equals(c);
-*/
-                //echo "this is a shortanswer question - we can handle this<br>";
-
-                // make sure question doesnt exist
-                $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
-                $record = $DB->get_record_sql($sql, array($question->text));
-                if ($record) {
-                    //echo "<br>question $record->id exists with text: $question->text <br>";
-                    $questionid = $record->id;
-                } else {
-                    require_once($CFG->dirroot . '/question/type/shortanswer/questiontype.php');
-
-                    echo "<br>adding new question<br>";
-                    $q = new stdClass();
-                    $saq = new qtype_shortanswer();
-                    $form = new stdClass();
-                    $cat = question_get_default_category($context->id);
-
-                    //$q->answer = array();
-                    //$answer = new stdClass();
-                    //$answer->answer = $question->answer;
-                    //$answer->fraction = '1';
-                    //array_push($q->answer, $answer);
-                    $q->qtype = 'shortanswer';
-                    //$q->questiontext = $question->text;
-                    //$q->feedback = '';
-
-
-                    $form->category = $cat->id;
-                    $form->name = $object->topomojo->name . " - $key";
-                    $form->questiontext['text'] = $question->text;
-                    $form->questiontext['format'] = '0'; //TODO fund out nonhtml
-                    $form->defaultmark = $question->weight;
-                    $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
-                    $form->answer = array($question->answer);
-                    $form->fraction = array('1');
-                    $form->feedback[0] = array('text' => '', 'format' => '1');
-                    $saq->save_defaults_for_new_questions($form);
-
-                    $newq = $saq->save_question($q, $form);
-                    $questionid = $newq->id;
-                    //echo "added question $questionid<br>";
-
-                    // TODO if the question changes and we can detect it, then we may need to call this
-                    // Purge this question from the cache.
-                    //question_bank::notify_question_edited($newq->id);
-
-                    // TODO add question to this lab quiz
-                    // TODO get them to show in the bank
+            $questionid = 0;
+            $qexists = 0;
+            // TODO match on name too
+            $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
+            $records = $DB->get_records_sql($sql, array($question->text));
+            if (count($records)) {
+                //echo "<br>question $record->id exists with text: $question->text <br>";
+                foreach ($records as $record) {
+                    $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $questionid));
+                    if ($options) {
+                        if ($variant == $options->variant) {
+                            echo "<br>question exists for this variant<Br>";
+                            $questionid = $record->id;
+                            $exists = 1;
+                        }
+                    }
                 }
+            } else if (!$qexists) {
+                // echo "<br>adding new question<br>";
+                $form = new stdClass();
+                if ($question->grader == 'matchAll') {
+                    /*
+                    question.IsCorrect = a.Intersect(
+                        b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
+                    ).ToArray().Length == a.Length;
+                    */
+                    $form->matchtype = '1'; // matchall
+                } else if ($question->grader == 'matchAny') {
+                    /*
+                    question.IsCorrect = a.Contains(c);
+                    */
+                    $form->matchtype = '2'; // matchany
+                } else if ($question->grader == 'matchAlpha') {
+                    /*
+                    question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
+                    */
+                    $form->matchtype = '0'; // matchalpha
+                } else if ($question->grader == 'match') {
+                    /*
+                     question.IsCorrect = a.First().Equals(c);
+                    */
+                    $form->matchtype = '3'; // match
+                } else {
+                    $type = 'warning';
+                    $message .= "<br>we need to handle $question->grader";
+                    break;
+                }
+                $q = new stdClass();
+                $saq = new qtype_mojomatch();
+                $cat = question_get_default_category($context->id);
+                $q->qtype = 'mojomatch';
+                $form->category = $cat->id;
+                $form->name = $object->topomojo->name . " - $questionnumber";
+                $form->questiontext['text'] = $question->text;
+                $form->questiontext['format'] = '0'; //TODO fund out nonhtml
+                $form->defaultmark = $question->weight;
+                $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
+                $form->answer = array($question->answer);
+                $form->fraction = array('1');
+                $form->feedback[0] = array('text' => '', 'format' => '1');
+                $form->variant = $variant + 1; // adjust for array offset
+                $form->workspaceid = $object->topomojo->workspaceid;
+                $form->transforms = 0;
+
+                if (preg_match('/##.*##/', $question->answer)) {
+                    $message .= "<br>uh oh we cant fully handle this yet: $question->answer";
+                    $form->transforms = 1;
+                    $form->feedback[0] = array('text' => 'This answer is randomly generated at runtime.', 'format' => '1');
+                }
+
+                $saq->save_defaults_for_new_questions($form);
+                $newq = $saq->save_question($q, $form);
+                $questionid = $newq->id;
+
+            }
+            if ($questionid) {
                 // attempt to add question to topomojo quiz
                 if (!$questionmanager->add_question($questionid)) {
                     //echo "<br>could not add question $questionid - is it already present?<br>";
                     //$type = 'warning';0
-                    //$message = "could not add question $questionid - is it already present?";
+                    $message .= "<br>could not add question $questionid - is it already present?";
                     //$renderer->setMessage($type, $message);
                 }
-                $key++;
-            } else {
-                $type = 'warning';
-                $message = "we need to handle $question->grader";
             }
         }
         //echo "done listing questions in section<br>";
         $renderer->setMessage($type, $message);
-
     }
 }
 

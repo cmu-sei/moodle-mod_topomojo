@@ -129,7 +129,6 @@ function topomojo_add_instance($topomojo, $mform) {
  * @return bool true
  */
 function topomojo_update_instance(stdClass $topomojo, $mform) {
-    echo "processing update to topoomojo $topomojo->instance<br>";
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 

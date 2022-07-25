@@ -48,6 +48,128 @@ function setup() {
         return $client;
 }
 
+/* this function currently returns all gamespaces deployed from a workspace with the same name.
+ * this list is not specific to moodle-deployed labs or labs for the current user.
+ * filter on the managerName to make it moodle-specifc or remove the Filter=All string.
+ * removing the filter=all prevents the term= from working.
+ * the records returned do not listed players.
+ */
+function list_events($client, $name) {
+	//debugging("listing events", DEBUG_DEVELOPER);
+    if ($client == null) {
+        print_error('error with userauth');
+        return;
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&Filter=all";
+    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name);
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
+        return;
+    }
+    if (!$response) {
+        debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response, true);
+
+    if (!$r) {
+        debugging("could not decode json $url", DEBUG_DEVELOPER);
+        return;
+    }
+    usort($r, 'whenCreated');
+    return $r;
+}
+
+function moodle_events($events) {
+    $moodle_events = array();
+    if (!is_array($events)) {
+        debugging("no events to parse in moodle_events", DEBUG_DEVELOPER);
+        return;
+    }
+    foreach ($events as $event) {
+        if ($event['managerName'] == "Adam Welle") {
+            //echo "<br>got moodle user<br>";
+            array_push($moodle_events, $event);
+        }
+    }
+    //debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
+    return $moodle_events;
+}
+
+function user_events($client, $events) {
+    global $USER;
+    //debugging("filtering events for user", DEBUG_DEVELOPER);
+    if ($client == null) {
+        print_error('error with userauth');
+        return;
+    }
+    $user_events = array();
+
+    if (!is_array($events)) {
+        debugging("cannot parse for user_events if events is not an array", DEBUG_DEVELOPER);
+        return;
+    }
+
+    foreach ($events as $event) {
+        // web request
+        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
+        //echo "<br>GET $url<br>";
+
+        $count = 0;
+        $response = null;
+        do {
+            $response = $client->get($url);
+            //print_r($response);
+
+            if (!$response) {
+                $count++;
+                debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
+            }
+        } while (!$response && ($count < 3));
+        if (!$response) {
+            print_error("Error communicating with Topomojo after $count attempts: " . $response);
+            return;
+        }
+
+        $r = json_decode($response, true);
+
+        if (!$r) {
+            debugging("could not decode json $url", DEBUG_DEVELOPER);
+            print_error("Error communicating with Topomojo after $count attempts: " . $response);
+            return;
+        }
+
+        //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
+        $players = $r['players'];
+        //print_r($players);
+
+        $subjectid = explode( "@", $USER->email )[0];
+        //echo "<br>subjectid $subjectid<br>";
+
+        if (!is_array($players)) {
+            debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
+            return;
+
+        }
+        foreach ($players as $player) {
+            //print_r($player);
+            if ($player['subjectId'] == $subjectid) {
+                //echo "found user";
+                array_push($user_events, $r);
+            }
+        }
+    }
+    //debugging("found " . count($user_events) . " events for this user", DEBUG_DEVELOPER);
+    return $user_events;
+}
+
 function get_workspace($client, $id) {
     global $USER;
     if ($client == null) {
@@ -112,6 +234,42 @@ function get_workspaces($client) {
     return $r;
 }
 
+
+function get_gamespace_challenge($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/challenge";
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
+    }
+
+    if (!$response) {
+        debugging('no response received by get_workspace', DEBUG_DEVELOPER);
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+
+    if (!$r) {
+        debugging("could not find item by id", DEBUG_DEVELOPER);
+        return;
+    }
+
+    return $r;
+}
+
 function start_event($client, $id, $topomojo) {
     global $USER;
     debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
@@ -146,6 +304,7 @@ function start_event($client, $id, $topomojo) {
     $client->setopt( array( 'CURLOPT_POSTFIELDS' => $json) );
 
     $response = $client->post($url, $json);
+
     if (!$response) {
         debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;

@@ -390,6 +390,19 @@ class mod_topomojo_mod_form extends moodleform_mod {
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
+            // check that variant is valid
+            if (property_exists($this->workspaces[$selectedworkspace], 'challenge')) {
+                $variants = count($this->workspaces[$selectedworkspace]->challenge->variants);
+            } else {
+                $variants = 1;
+            }
+            if ($data->variant > $variants) {
+                //$data->variant = 1;
+                print_error("lab does not have " . $data->variant . " or more variants");
+            }
+            if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
+                print_error("cannot import challenge when variant is random");
+            }
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);

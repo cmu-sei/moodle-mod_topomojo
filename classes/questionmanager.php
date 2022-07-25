@@ -365,6 +365,9 @@ class questionmanager {
         }
         $questions = question_load_questions($questionids);
 
+        // TODO can i update the answers for the attempt here?
+        print_r(questions);
+
         // loop through the ordered question bank questions and add them to the quba
         // object
         $attemptquestionorder = array();
@@ -373,6 +376,16 @@ class questionmanager {
             $questionid = $qbankquestion->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
             $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
+//TODO now that we have a question attempt, can we udpate it?
+/*
+| id  | questionusageid | slot | behaviour         | questionid | variant | maxmark    | minfraction | maxfraction | flagged | questionsummary                                                                                                                                  | rightanswer                    | responsesummary                | timemodified |
+*/
+//        $oldqa = $quba->get_question_attempt($slot);
+//TODO maye call set_question_attempt_metadata
+//question_start has         $this->rightanswer = $this->behaviour->get_right_answer_summary();
+// TODO maybe we create a behaviour to handle it
+// the behaviour would be set on the whole quiz. how would non mojo questions handle that?
+//TODO look into question_variant_selection_strategy to handle the loading of the variant
         }
 
         // start the questions in the quba
