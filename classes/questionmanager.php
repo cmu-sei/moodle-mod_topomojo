@@ -383,8 +383,19 @@ class questionmanager {
                         // TODO check the variant and the number
                         $dataobject->rightanswer = $question->answer;
                         // TODO update quba with the correct answer
-                        $DB->update_record($table, $dataobject);
+                        //$DB->update_record($table, $dataobject);
+/*
+                        $slots = $quba->get_slots();
+                        foreach ($slots as $slot) {
+                            $qa = $quba->get_question_attempt($slot);
+                            if ($qa->get_question_id() == $questionid) {
+                                echo "we found the qa in the quba<br>";
+                                $quba->set_question_attempt_metadata($slot, 'rightanswer', $question->answer);
+                                $qa->save();
 
+                            }
+                        }
+*/
                     } else {
                         echo "not found<br>";
                     }

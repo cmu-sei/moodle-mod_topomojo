@@ -122,17 +122,17 @@ function user_events($client, $events) {
         $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
         //echo "<br>GET $url<br>";
 
-        $count = 0;
+        $count = 1;
         $response = null;
         do {
             $response = $client->get($url);
             //print_r($response);
 
             if (!$response) {
-                $count++;
                 debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
+                $count++;
             }
-        } while (!$response && ($count < 3));
+        } while (!$response && ($count < 4));
         if (!$response) {
             print_error("Error communicating with Topomojo after $count attempts: " . $response);
             return;
