@@ -375,47 +375,21 @@ class questionmanager {
                     }
 
                     if ($questionid) {
-                        echo "question found with id $questionid<br>";
-                        $table = 'question_attempts';
-                        $questionusageid = $quba->get_id();
-                        $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
+                        debugging("question found with id $questionid", DEBUG_DEVELOPER);
+                        //$table = 'question_attempts';
+                        //$questionusageid = $quba->get_id();
+                        //$dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
 
                         // TODO check the variant and the number
-                        $dataobject->rightanswer = $question->answer;
-                        // TODO update quba with the correct answer
+                        //$dataobject->rightanswer = $question->answer;
+                        //  update quba with the correct answer
                         //$DB->update_record($table, $dataobject);
-/*
-                        $slots = $quba->get_slots();
-                        foreach ($slots as $slot) {
-                            $qa = $quba->get_question_attempt($slot);
-                            if ($qa->get_question_id() == $questionid) {
-                                echo "we found the qa in the quba<br>";
-                                $quba->set_question_attempt_metadata($slot, 'rightanswer', $question->answer);
-                                $qa->save();
 
-                            }
-                        }
-*/
                     } else {
-                        echo "not found<br>";
+                        debugging("question was not found on moodle", DEBUG_DEVELOPER);
                     }
                 }
             }
-
-/*
-        $attemptquestionorder = $quba->get_slots();
-        foreach ($attemptquestionorder as $key => $slot) {
-            //$quba->set_question_attempt_metadata($slot, 'rightanswer', 'testdata');
-            // nope, that just logs metadata to the attempt_steps table
-            global $DB;
-            $table = 'question_attempts';
-            $questionusageid = $quba->get_id();
-            $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'slot' => $slot));
-
-            $dataobject->rightanswer = 'testdata';
-            $DB->update_record($table, $dataobject);
-        }
-*/
     }
 
     /**
@@ -447,36 +421,13 @@ class questionmanager {
         // object
         $attemptquestionorder = array();
         foreach ($this->qbankOrderedQuestions as $qbankquestion) {
-
             $questionid = $qbankquestion->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
-            //print_r($q);
             $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
-//TODO now that we have a question attempt, can we udpate it?
-/*
-| id  | questionusageid | slot | behaviour         | questionid | variant | maxmark    | minfraction | maxfraction | flagged | questionsummary                                                                                                                                  | rightanswer                    | responsesummary                | timemodified |
-*/
-//          $oldqa = $quba->get_question_attempt($slot);
-            //TODO maye call set_question_attempt_metadata
-            //$slot = $attemptquestionorder[$qbankquestion->getId()];
-            //$quba->set_question_attempt_metadata($slot, 'rightanswer', 'testdata');
-            // nope, that just logs metadata to the attempt_steps table
-            //global $DB;
-            //$table = 'question_attempts';
-            //$dataobject = $DB->get_record($table, array('questionusageid' => $quba->get_id()), 'slot', $slot);
-            //$dataobject->rightanswer = 'testdata';
-            //$DB->update_record($table, $dataobject);
-
-            // maybe look at grading strategy question_first_matching_answer_grading_strategy
-
-//question_start hasengine/questionusage.phpe a behaviour to handle it
-// the behaviour would be set on the whole quiz. how would non mojo questions handle that?
-//TODO look into question_variant_selection_strategy to handle the loading of the variant
         }
 
         // start the questions in the quba
         $quba->start_all_questions();
-
 
         /**
          * return the attempt questionorder which is a set of ids that are the slot ids from the question engine usage by activity instance
