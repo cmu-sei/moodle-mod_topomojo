@@ -94,7 +94,6 @@ $object->event = get_active_event($history);
 // get active attempt for user: true/false
 $activeAttempt = $object->get_open_attempt();
 if ($activeAttempt == true) {
-    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 } else if ($activeAttempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
@@ -124,6 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         } else {
             debugging("start_event failed", DEBUG_DEVELOPER);
             print_error("start_event failed");
+        }
+        if ($object->topomojo->importchallenge) {
+            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+            //$object->get_question_manager()->create_questions_from_challenge($challenge);
         }
         // contact topomojo and pull the correct answers for this attempt
         // TODO verify is this works for random attempts
