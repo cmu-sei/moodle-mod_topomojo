@@ -82,16 +82,12 @@ $pageurl = $url;
 $pagevars = array();
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-// get workspace info
-$object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);
-
 if (!$object->is_instructor()) {
     redirect($returnurl);
 }
 
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
-$renderer->display_detail($topomojo, $object->workspace->durationMinutes);
 $renderer->display_return_form($returnurl, $id);
 
 $attempts = $object->getall_attempts('all', $review = true);
