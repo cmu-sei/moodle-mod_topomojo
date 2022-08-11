@@ -173,8 +173,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('duration', '3600');
         $mform->addHelpButton('duration', 'duration', 'topomojo');
 
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
+        $mform->addElement('checkbox', 'extendevent', get_string('extendevent', 'topomojo'));
+        $mform->addHelpButton('extendevent', 'extendevent', 'topomojo');
 
 
         // -------------------------------------------------------------------------------
@@ -245,6 +245,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
             $label = get_string($identifier, $component);
             if ($withhelp) {
+                // TODO this displays a placeholder not an acutal help message
                 $label .= ' ' . $OUTPUT->help_icon($identifier, $component);
             }
 
@@ -362,6 +363,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
 
     function data_postprocessing($data) {
+        $usetopomojointro = false;
+
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
             // Turn off completion settings if the checkboxes aren't ticked.
@@ -381,11 +384,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
         if (is_array($this->workspaces)) {
             $selectedworkspace = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
             $data->name = $this->workspaces[$selectedworkspace]->name;
-            $description = $this->workspaces[$selectedworkspace]->description;
-            $markdowncutline = "<!-- cut -->";
-            $parts = preg_split($markdowncutline, $description);
-            $data->intro = $parts[0];
-            $data->introformat = FORMAT_MARKDOWN;
+            // TODO make a setting to determine whether we pull this from topomojo or set it in moodle
+            if ($usetopomojointro) {
+                $description = $this->workspaces[$selectedworkspace]->description;
+                $markdowncutline = "<!-- cut -->";
+                $parts = preg_split($markdowncutline, $description);
+                $data->intro = $parts[0];
+                $data->introformat = FORMAT_MARKDOWN;
+            }
             // pull durationMinutes from topomojo
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
@@ -407,9 +413,11 @@ class mod_topomojo_mod_form extends moodleform_mod {
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
             $data->name = "Unknown lab";
-            $data->intro = "No description available";
+            if ($usetopomojointro) {
+                $data->intro = "No description available";
+                $data->introeditor['format'] = FORMAT_PLAIN;
+            }
         }
-        $data->introeditor['format'] = FORMAT_PLAIN;
 
         // TODO if grade method changed, update all grades
     }

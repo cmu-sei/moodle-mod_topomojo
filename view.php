@@ -85,20 +85,6 @@ $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 
-// get workspace info
-$object->workspace = get_workspace($object->userauth, $topomojo->workspaceid);
-#print_r($object->workspace);
-
-// Update the database.
-if ($object->workspace) {
-    // Update the database.
-    $topomojo->name = $object->workspace->name;
-    $topomojo->intro = $object->workspace->description;
-    $DB->update_record('topomojo', $topomojo);
-    // this next line nay generate lots of hvp module errors
-    rebuild_course_cache($topomojo->course);
-}
-
 // get current state of workspace
 $all_events = list_events($object->userauth, $object->topomojo->name);
 $moodle_events = moodle_events($all_events);
@@ -113,8 +99,6 @@ if ($activeAttempt == true) {
 } else if ($activeAttempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 }
-
-//TODO send instructor to a different page
 
 // handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
