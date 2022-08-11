@@ -140,14 +140,10 @@ class questionmanager {
 
         } else if ( $data = $mform->get_data() ) {
             // process data from the form
-
             if ( number_format($data->points, 2) != $topomojoquestion->points ) {
                 // if we have a different points, update any existing sessions/attempts max points and regrade.
-
                 $this->update_points(number_format($data->points, 2), $topomojoquestion, $qrecord);
-
             }
-
 
             $question = new \stdClass();
             $question->id = $topomojoquestion->id;
@@ -164,9 +160,7 @@ class questionmanager {
         } else {
             // display the form
             $mform->set_data(array('points' => number_format($topomojoquestion->points, 2)));
-            $this->renderer->print_header();
             $this->renderer->addquestionform($mform);
-            $this->renderer->footer();
         }
     }
 

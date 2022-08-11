@@ -113,8 +113,9 @@ if ($object->topomojo->importchallenge) {
     // get variant from topomojo object
     if ($object->topomojo->variant == 0) {
         // WARNING if variant is 0 we dont know which questions it will have!
-        print_error("cannot import questions from unknown variant");
+        print_error("cannot import questions from unknown variant at this time");
     } else if ($object->topomojo->variant > 0) {
+	//adjust for offset
         $variant = $object->topomojo->variant - 1;
     }
 
@@ -142,20 +143,23 @@ if ($object->topomojo->importchallenge) {
             $questionid = 0;
             $qexists = 0;
             // TODO match on name too
-            $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
+            $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? and qtype = 'mojomatch'";
             $records = $DB->get_records_sql($sql, array($question->text));
             if (count($records)) {
-                //echo "<br>question $record->id exists with text: $question->text <br>";
-                foreach ($records as $record) {
-                    $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $questionid));
-                    if ($options) {
-                        if ($variant == $options->variant) {
-                            echo "<br>question exists for this variant<Br>";
+                //echo "<br><br><br>" . count($records) . " question(s) exists with text: $question->text <br>";
+		foreach ($records as $record) {
+		    //print_r($record);
+		    $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
+		    if ($options) {
+			//print_r($options);
+			if (($object->topomojo->variant == $options->variant) &&
+				    ($object->topomojo->workspaceid === $options->workspaceid)) {
+                            //echo "<br>question exists for this variant<Br>";
                             $questionid = $record->id;
                             $exists = 1;
-                        }
+			}
                     }
-                }
+		}
             } else if (!$qexists) {
                 // echo "<br>adding new question<br>";
                 $form = new stdClass();
@@ -317,9 +321,9 @@ switch ($action) {
         }
         break;
     case 'editquestion':
+        $this->renderer->print_header();
         $questionid = required_param('topomojoquestionid', PARAM_INT);
         $questionmanager->edit_question($questionid);
-
         break;
     default:
         $renderer->print_header();
