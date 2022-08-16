@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             print_error("start_event failed");
         }
-        if ($object->topomojo->importchallenge) {
+        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
             $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
             //$object->get_question_manager()->create_questions_from_challenge($challenge);
         }

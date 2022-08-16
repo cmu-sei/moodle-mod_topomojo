@@ -741,6 +741,103 @@ class questionmanager {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');
         }
     }
+
+    public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
+        $questionnumber = 0;
+        $type = 'info';
+        $message = '';
+        foreach ($challenge->variants[$variant]->sections as $section) {
+            $count = count($section->questions);
+            debugging("Adding $count question for variant $variant", DEBUG_DEVELOPER);
+            //TODO maybe we track the number of questions and make sure that it matches?
+            //$type = 'success';
+            //$message = get_string('importsuccess', 'topomojo');
+            foreach ($section->questions as $question) {
+                $questionnumber++;
+                $questionid = 0;
+                $qexists = 0;
+                // match on name too
+                $sql = "select * from {qtype_mojomatch_options} where " . $DB->sql_compare_text('workspaceid') . " = ? and variant = ? and qorder = ?";
+                $rec = $DB->get_record_sql($sql, array($object->topomojo->workspaceid, $variant, $questionnumber));
+                if ($rec) {
+                    $qexists = 1;
+                    $questionid = $rec->questionid;
+                }
+                if (!$qexists) {
+                    //echo "<br>adding new question<br>";
+                    $form = new stdClass();
+                    if ($question->grader == 'matchAll') {
+                        /*
+                        question.IsCorrect = a.Intersect(
+                            b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
+                        ).ToArray().Length == a.Length;
+                        */
+                        $form->matchtype = '1'; // matchall
+                    } else if ($question->grader == 'matchAny') {
+                        /*
+                        question.IsCorrect = a.Contains(c);
+                        */
+                        $form->matchtype = '2'; // matchany
+                    } else if ($question->grader == 'matchAlpha') {
+                        /*
+                        question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
+                        */
+                        $form->matchtype = '0'; // matchalpha
+                    } else if ($question->grader == 'match') {
+                        /*
+                         question.IsCorrect = a.First().Equals(c);
+                        */
+                        $form->matchtype = '3'; // match
+                    } else {
+                        $type = 'warning';
+                        $message .= "<br>we need to handle $question->grader";
+                        break;
+                    }
+                    $q = new stdClass();
+                    $saq = new \qtype_mojomatch();
+                    $cat = question_get_default_category($context->id);
+                    $q->qtype = 'mojomatch';
+                    $form->category = $cat->id;
+                    $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
+                    $form->questiontext['text'] = $question->text;
+                    $form->questiontext['format'] = '0'; //TODO fund out nonhtml
+                    $form->defaultmark = $question->weight;
+                    $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
+                    $form->answer = array($question->answer);
+                    $form->fraction = array('1');
+                    $form->feedback[0] = array('text' => '', 'format' => '1');
+                    $form->variant = $variant;
+                    $form->workspaceid = $object->topomojo->workspaceid;
+                    $form->transforms = 0;
+                    $form->qorder = $questionnumber;
+
+                    if (preg_match('/##.*##/', $question->answer)) {
+                        $form->transforms = 1;
+                        $form->feedback[0] = array('text' => 'This answer is randomly generated at runtime.', 'format' => '1');
+                    }
+
+                    $saq->save_defaults_for_new_questions($form);
+                    $newq = $saq->save_question($q, $form);
+                    $questionid = $newq->id;
+                }
+                if ($questionid && $addtoquiz) {
+                    // attempt to add question to topomojo quiz
+                    if (!$this->add_question($questionid)) {
+                        debugging("could not add question $questionid - it may be present already", DEBUG_DEVELOPER);
+                        //$type = 'warning';0
+                        $message .= "<br>could not add question $questionid - is it already present?";
+                        //$renderer->setMessage($type, $message);
+                    }
+                }
+            }
+            //echo "done listing questions in section<br>";
+            if ($message) {
+                $this->renderer->setMessage($type, $message);
+            }
+        }
+    }
 }
 
 

@@ -406,9 +406,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 //$data->variant = 1;
                 print_error("lab does not have " . $data->variant . " or more variants");
             }
-            if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
-                print_error("cannot import challenge when variant is random");
-            }
+            //if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
+            //    print_error("cannot import challenge when variant is random");
+            //}
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
