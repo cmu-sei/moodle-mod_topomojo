@@ -218,7 +218,7 @@ switch ($action) {
         }
         break;
     case 'editquestion':
-        $this->renderer->print_header();
+        $renderer->print_header();
         $questionid = required_param('topomojoquestionid', PARAM_INT);
         $questionmanager->edit_question($questionid);
         break;

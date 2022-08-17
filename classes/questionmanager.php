@@ -173,7 +173,7 @@ class questionmanager {
      */
     public function delete_question($questionid)
     {
-	// TODO disable this if attempts exist
+        // TODO disable this if attempts exist
         global $DB;
 
         try {
@@ -802,8 +802,18 @@ class questionmanager {
                     $form->category = $cat->id;
                     $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
                     $form->questiontext['text'] = $question->text;
-                    $form->questiontext['format'] = '0'; //TODO fund out nonhtml
-                    $form->defaultmark = $question->weight;
+                    $form->questiontext['format'] = '0'; //TODO find out nonhtml
+                    $form->defaultmark = 1;
+                    if (is_numeric($question->weight)) {
+                        if (floor($question->weight) != $question->weight) {
+                            $form->defaultmark = $question->weight * 10;
+                        } else  {
+                            $form->defaultmark = $question->weight;
+                        }
+                    }
+                    if ($form->defaultmark == 0) {
+                        $form->defaultmark = 1;
+                    }
                     $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
                     $form->answer = array($question->answer);
                     $form->fraction = array('1');

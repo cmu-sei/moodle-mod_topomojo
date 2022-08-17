@@ -209,6 +209,9 @@ $string['qadderror'] = 'Couldn\'t add question';
 $string['importtopo'] = 'Questions synced from Topomojo lab cannot be removed';
 $string['importtoporandom'] = 'Questions from random variants will be synced at runtime';
 $string['importsuccess'] = 'Successfully imported questions from Topomojo';
+$string['invalid_point'] = 'Invalid point value entered for question';
+$string['questionmovedown'] = 'Move question {$a} down';
+$string['questionmoveup'] = 'Move question {$a} up';
 
 
 
