@@ -47,7 +47,7 @@ $plugin->component = 'mod_topomojo';
 
 // This is a list of plugins, this plugin depends on (and their versions).
 $plugin->dependencies = [
-	'qtype_mojomatch' => 2022081701,
+	'qtype_mojomatch' => 2022081602,
 ];
 
 // This is a stable release.

@@ -528,7 +528,7 @@ function get_challenge($client, $id) {
     }
 
     if (!$response) {
-        debugging('no response received by get_workspace', DEBUG_DEVELOPER);
+        debugging('no response received by get_challenge', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);

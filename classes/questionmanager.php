@@ -408,7 +408,6 @@ class questionmanager {
         }
         $questions = question_load_questions($questionids);
 
-        // TODO can i update the answers for the attempt here?
         //print_r($questions);
 
         // loop through the ordered question bank questions and add them to the quba
@@ -744,13 +743,16 @@ class questionmanager {
 
     public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
         global $DB, $CFG;
-        require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
+	require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
+
+	// TODO remove mojomatch questions from other variants from the quiz
+
         $questionnumber = 0;
         $type = 'info';
         $message = '';
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
-            debugging("Adding $count question for variant $variant", DEBUG_DEVELOPER);
+            debugging("Adding $count question(s) for variant $variant", DEBUG_DEVELOPER);
             //TODO maybe we track the number of questions and make sure that it matches?
             //$type = 'success';
             //$message = get_string('importsuccess', 'topomojo');
