@@ -743,10 +743,21 @@ class questionmanager {
 
     public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
         global $DB, $CFG;
-	require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
+        require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
 
-	// TODO remove mojomatch questions from other variants from the quiz
-
+        // remove mojomatch questions from other variants from the quiz
+        $currentquestions = $this->get_questions();
+        foreach ($currentquestions as $tq) {
+            $q = $tq->getQuestion();
+            if ($q->qtype == "mojomatch") {
+                $qoptions = $DB->get_record('qtype_mojomatch_options',
+                        array('questionid' => $q->id));
+                if (($qoptions->variant != $variant) ||
+                            ($qoptions->workspaceid != $object->topomojo->workspaceid)) {
+                        $this->delete_question($tq->getId());
+                }
+            }
+        }
         $questionnumber = 0;
         $type = 'info';
         $message = '';
