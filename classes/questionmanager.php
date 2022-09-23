@@ -346,20 +346,20 @@ class questionmanager {
             foreach ($challenge->challenge->sections as $section) {
                 foreach ($section->questions as $question) {
                     $questionid = 0;
-                    echo "check question with variant $variant<br>";
+		    debugging("checking question with variant $variant", DEBUG_DEVELOPER);
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, array($question->text));
                     if (count($records)) {
-                        echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
+                        //echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
                         foreach ($records as $record) {
                             $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
                             if ($options) {
                                 if ($variant == $options->variant) {
-                                    echo "<br>question exists for this variant<Br>";
+                                    debugging("question exists for variant $record->variant", DEBUG_DEVELOPER);
                                     $questionid = $record->id;
                                     break;
                                 } else {
-                                    echo "$variant not a match to $record->variant";
+                                    debugging("$variant not a match to variant $record->variant", DEBUG_DEVELOPER);
                                 }
                             } else {
                                 echo "no options found<br>";
