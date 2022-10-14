@@ -58,6 +58,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/apikey',
         get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
 
+    $settings->add(new admin_setting_configtext('topomojo/managername',
+        get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+
         
     // Review options.
     $settings->add(new admin_setting_heading('reviewheading',
