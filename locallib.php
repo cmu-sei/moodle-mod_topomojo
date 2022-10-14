@@ -53,9 +53,10 @@ function setup() {
  * filter on the managerName to make it moodle-specifc or remove the Filter=All string.
  * removing the filter=all prevents the term= from working.
  * the records returned do not listed players.
+ * filter=active works to recude the number of labs returned but does not match the term
  */
 function list_events($client, $name) {
-	//debugging("listing events", DEBUG_DEVELOPER);
+    debugging("listing events", DEBUG_DEVELOPER);
     if ($client == null) {
         print_error('error with userauth');
         return;
@@ -63,17 +64,13 @@ function list_events($client, $name) {
 
     // web request
     $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&Filter=all";
-    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name);
     //echo "GET $url<br>";
 
     $response = $client->get($url);
 
-    if ($client->info['http_code']  !== 200) {
-        debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
-        return;
-    }
     if (!$response) {
-        debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+	debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+	debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
         return;
     }
 
@@ -81,8 +78,16 @@ function list_events($client, $name) {
 
     if (!$r) {
         debugging("could not decode json $url", DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
+	return;
+    }
+
+    if ($client->info['http_code']  !== 200) {
+	debugging("command failed $r->message", DEBUG_DEVELOPER);
+        debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
         return;
     }
+    //echo count($r) . "<br>";
     usort($r, 'whenCreated');
     return $r;
 }
@@ -93,8 +98,9 @@ function moodle_events($events) {
         debugging("no events to parse in moodle_events", DEBUG_DEVELOPER);
         return;
     }
+    $manager = get_config('topomojo', 'managername');
     foreach ($events as $event) {
-        if ($event['managerName'] == "Adam Welle") {
+        if ($event['managerName'] == $manager) {
             //echo "<br>got moodle user<br>";
             array_push($moodle_events, $event);
         }
@@ -118,7 +124,8 @@ function user_events($client, $events) {
     }
 
     foreach ($events as $event) {
-        // web request
+	// web request
+	// players endpoint not shown in swagger
         $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
         //echo "<br>GET $url<br>";
 
@@ -145,7 +152,6 @@ function user_events($client, $events) {
             print_error("Error communicating with Topomojo after $count attempts: " . $response);
             return;
         }
-
         //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
         $players = $r['players'];
         //print_r($players);
@@ -154,7 +160,7 @@ function user_events($client, $events) {
         //echo "<br>subjectid $subjectid<br>";
 
         if (!is_array($players)) {
-            debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
+            debugging("no players for this event " . $event->id, DEBUG_DEVELOPER);
             return;
 
         }
@@ -350,6 +356,37 @@ function stop_event($client, $id) {
         return;
     }
     //echo "response:<br><pre>$response</pre>";
+    return;
+}
+
+function get_vm_console($client, $id) {
+
+    if ($client == null) {
+        debugging('error with client in get_vm_console', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/vm-console/" . $id;
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        //echo "could not decode json<br>";
+        return;
+    }
+
+    // success
+    if ($client->info['http_code']  === 200) {
+        return $r;
+    }
+    if ($client->info['http_code']  === 500) {
+        //echo "response code ". $client->info['http_code'] . "<br>";
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
     return;
 }
 

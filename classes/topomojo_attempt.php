@@ -146,7 +146,7 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
-                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
+                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid, $this->attempt->variant);
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;

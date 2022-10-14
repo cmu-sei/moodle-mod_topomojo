@@ -392,13 +392,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $data->intro = $parts[0];
                 $data->introformat = FORMAT_MARKDOWN;
             }
-            // pull durationMinutes from topomojo
+            // TODO pull durationMinutes from topomojo workspace
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
-            // check that variant is valid
-            if (property_exists($this->workspaces[$selectedworkspace], 'challenge')) {
-                $variants = count($this->workspaces[$selectedworkspace]->challenge->variants);
+	    // check that variant is valid
+	    $challenge = get_challenge($this->auth, $this->workspaces[$selectedworkspace]->id);
+	    if ($challenge) {
+                $variants = count($challenge->variants);
             } else {
                 $variants = 1;
             }

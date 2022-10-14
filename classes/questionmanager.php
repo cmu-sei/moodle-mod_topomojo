@@ -350,19 +350,21 @@ class questionmanager {
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, array($question->text));
                     if (count($records)) {
-                        //echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
-                        foreach ($records as $record) {
+			//echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
+			//search for the question
+			foreach ($records as $record) {
+			    //print_r($record); echo "<br>";
                             $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
                             if ($options) {
                                 if ($variant == $options->variant) {
-                                    debugging("question exists for variant $record->variant", DEBUG_DEVELOPER);
+                                    debugging("question exists for variant $options->variant", DEBUG_DEVELOPER);
                                     $questionid = $record->id;
                                     break;
                                 } else {
-                                    debugging("$variant not a match to variant $record->variant", DEBUG_DEVELOPER);
+                                    debugging("$variant not a match to variant $options->variant", DEBUG_DEVELOPER);
                                 }
                             } else {
-                                echo "no options found<br>";
+                                debugging("no options found for question", DEBUG_DEVELOPER);
 
                             }
                         }

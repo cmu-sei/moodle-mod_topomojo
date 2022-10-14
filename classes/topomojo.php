@@ -240,7 +240,13 @@ class topomojo {
         $attempt->topomojoid = $this->topomojo->id;
         $attempt->score = 0;
         $attempt->endtime = strtotime($this->event->expirationTime);
-        $attempt->eventid = $this->event->id;
+	$attempt->eventid = $this->event->id;
+	// TODO test this assignment when it exists
+	if ($this->event->variant) {
+	    $attempt->variant = $this->event->variant;
+	} else {
+	    $attempt->variant = $this->topomojo->variant;
+	}
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
 
         if ($attempt->save()) {

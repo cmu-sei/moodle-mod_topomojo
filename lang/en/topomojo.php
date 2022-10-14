@@ -63,6 +63,8 @@ $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a s
 $string['configshowfailed'] = 'Show failed Events in the history table.';
 $string['apikey'] = 'API Key';
 $string['configapikey'] = 'The value included with TopoMojo API requests under the x-api-key header. Assigned by the TopoMojo administrator.';
+$string['managername'] = 'Manager Name';
+$string['configmanagername'] = 'The Manager Name associated with the API key. Used to filter gamespaces.';
 $string['importchallenge'] = 'Import Challenge';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
 
