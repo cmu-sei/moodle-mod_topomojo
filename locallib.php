@@ -240,7 +240,6 @@ function get_workspaces($client) {
     return $r;
 }
 
-
 function get_gamespace_challenge($client, $id) {
     global $USER;
     if ($client == null) {
@@ -293,7 +292,7 @@ function start_event($client, $id, $topomojo) {
     $payload = new stdClass();
     $payload->resourceId = $id;
     $payload->startGamespace = true;
-    $payload->allowPreview = false;
+    $payload->allowPreview = true;
     $payload->allowReset = false;
     $payload->maxAttempts = 1; // TODO get this from settings
     $payload->maxMinutes = $topomojo->duration / 60;
