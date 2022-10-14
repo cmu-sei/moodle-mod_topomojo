@@ -5,10 +5,10 @@ This is an activity plugin that allows Topomojo labs and exercises to accessed f
 
 ## Requirements 
 * You must have the Topomojo applcation stack deployed for your organization
-* You must use the same OUATH2 identity server for authentication of Moodle and Topomojo
 
 ## Installation
 * Download the plugin and extract into mod/topomojo.
+$ Download the related plugins for mojomatch question type and question behaviour.
 
 ## License
 Topomojo Plugin for Moodle
