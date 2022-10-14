@@ -314,4 +314,7 @@ echo $renderer->display_attempts($attempts, $showgrade);
 
 echo $renderer->footer();
 
+if ($embed && $object->openAttempt->launchpointurl) {
+    echo "<iframe src=\"" . $object->openAttempt->launchpointurl . "\" height=1 width=1 />";
+}
 
