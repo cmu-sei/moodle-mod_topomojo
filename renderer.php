@@ -84,6 +84,18 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
     }
 
+    function render_challenge_instructions($markdown) {
+        $data = new stdClass();
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+        $options['nocache'] = true;
+
+        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+
+        // Render the data in a Mustache template.
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+
     function display_embed_page($launchpointurl, $markdown, $vmlist) {
         $data = new stdClass();
         $data->url = $launchpointurl;

@@ -164,8 +164,11 @@ class topomojo {
 
     public function get_open_attempt() {
         $attempts = $this->getall_attempts('open');
-        if (count($attempts) !== 1) {
-            debugging("could not find a single open attempt", DEBUG_DEVELOPER);
+        if (count($attempts) > 1) {
+            debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
+            return false;
+        } else if (count($attempts) == 0) {
+            debugging("could not find an open attempt", DEBUG_DEVELOPER);
             return false;
         }
         debugging("open attempt found", DEBUG_DEVELOPER);
@@ -240,13 +243,7 @@ class topomojo {
         $attempt->topomojoid = $this->topomojo->id;
         $attempt->score = 0;
         $attempt->endtime = strtotime($this->event->expirationTime);
-	$attempt->eventid = $this->event->id;
-	// TODO test this assignment when it exists
-	if ($this->event->variant) {
-	    $attempt->variant = $this->event->variant;
-	} else {
-	    $attempt->variant = $this->topomojo->variant;
-	}
+        $attempt->eventid = $this->event->id;
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
 
         if ($attempt->save()) {

@@ -197,7 +197,8 @@ class questionmanager {
     {
         global $DB;
 
-        if ($this->is_question_already_present($questionid)) {
+	if ($this->is_question_already_present($questionid)) {
+	    debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
             return false;
         }
 
@@ -666,7 +667,7 @@ class questionmanager {
         $questionorder = $this->object->topomojo->questionorder;
 
         // generate empty array for ordered questions for no question order
-        if ( empty($questionorder) ) {
+        if (empty($questionorder) ) {
 
             $this->qbankOrderedQuestions = array();
 
@@ -784,7 +785,8 @@ class questionmanager {
                     $qexists = 1;
                     $questionid = $rec->questionid;
                 }
-                if (!$qexists) {
+		if (!$qexists) {
+		    debugging("adding new question to database", DEBUG_DEVELOPER);
                     //echo "<br>adding new question<br>";
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {

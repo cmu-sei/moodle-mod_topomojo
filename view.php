@@ -105,15 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
 
     // check not started already
     if (!$object->event) {
-        debugging("no active event for this user", DEBUG_DEVELOPER);
 
         //TODO check for open attempt and check for status of its event
 
+
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
-	if ($object->event) {
-	    debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
-	    //print_r($object->event);
-	    //echo "<br>";
+        if ($object->event) {
+            debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
+            //$object->event = get_event($object->userauth, $eventid);
             $activeAttempt = $object->init_attempt();
             debugging("init_attempt returned $activeAttempt", DEBUG_DEVELOPER);
             if (!$activeAttempt) {
@@ -125,15 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             print_error("start_event failed");
         }
-	if ($object->topomojo->importchallenge && ($object->topomojo->variant == 0)) {
-	    debugging("random variant detected and we need to pull questions from gamespace at runtime");
-	    debugging("the new event gamespace was created with variant " .$object->event->variant, DEBUG_DEVELOPER);
+        debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
+        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
             $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
             //$object->get_question_manager()->create_questions_from_challenge($challenge);
-	}
+        }
         // contact topomojo and pull the correct answers for this attempt
-        // TODO verify is this works for random attempts of if we should set variantin the openattempt now that we know it
-        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid, $object->openAttempt->variant);
+        // TODO verify is this works for random attempts
+        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
 
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
@@ -177,11 +175,10 @@ if ($object->event) {
         // TODO give user a popup to confirm they are starting an attempt
         $activeAttempt = $object->init_attempt();
     }
-    // check age and get new link, checking for 30 minute timeout of the url
+    // check age and get new link, chekcing for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
-            ((time() - $object->openAttempt->timemodified) > 3600 )) {
-	debugging("getting new launchpointurl", DEBUG_DEVELOPER);
-	//TODO is this really needed? is that correct way to keep lab open?
+                ((time() - $object->openAttempt->timemodified) > 3600 )) {
+        debugging("getting new launchpointurl", DEBUG_DEVELOPER);
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
         $object->openAttempt->save();
@@ -242,21 +239,17 @@ if ($object->event) {
 
         $vmlist = array();
         if (!is_array($object->event->vms)) {
-            print_error("No VMs exist");
+            print_error("No VMs visible to user");
         }
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
-		if ($vm['isVisible']) {
-		    // get ticket
-		    get_vm_console($object->userauth, $vm['id']);
+                if ($vm['isVisible']) {
                     $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
                     $vmdata['name'] = $vm['name'];
                     array_push($vmlist, $vmdata);
                 }
             } else {
-		if ($vm->isVisible) {
-		    // get ticket
-                    get_vm_console($object->userauth, $vm->id);
+                if ($vm->isVisible) {
                     $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
                     $vmdata['name'] = $vm->name;
                     array_push($vmlist, $vmdata);
@@ -304,6 +297,10 @@ switch($action) {
     default:
         if ($object->openAttempt) {
             if (count($object->get_question_manager()->get_questions())) {
+                $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+                if ($challenge->text) {
+                    $renderer->render_challenge_instructions($challenge->text);
+                }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
         }
@@ -315,7 +312,4 @@ echo $renderer->display_attempts($attempts, $showgrade);
 
 echo $renderer->footer();
 
-if ($embed && $object->openAttempt->launchpointurl) {
-    echo "<iframe src=\"" . $object->openAttempt->launchpointurl . "\" height=1 width=1 />";
-}
 

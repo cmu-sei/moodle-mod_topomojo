@@ -146,7 +146,7 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
-                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid, $this->attempt->variant);
+                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;
@@ -306,8 +306,8 @@ class topomojo_attempt {
      */
     public function render_question($slotid, $review = false, $reviewoptions = '', $when = null) {
         $displayoptions = $this->get_display_options($review, $reviewoptions, $when);
-        $questionnum = $this->get_question_number();
-        $this->add_question_number();
+        $questionnum = $this->get_question_number(); // set to 1 if it doesnt exist
+        $this->add_question_number(); // increment qnum
 
         $qa = $this->quba->get_question_attempt($slotid);
 
