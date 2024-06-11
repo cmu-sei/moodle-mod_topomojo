@@ -325,10 +325,11 @@ function start_event($client, $id, $topomojo) {
     if ($client->info['http_code']  === 200) {
         return $r;
     }
-    if ($client->info['http_code']  === 500) {
-        //echo "response code ". $client->info['http_code'] . "<br>";
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
+
+    //echo "response code ". $client->info['http_code'] . "<br>";
+    debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    //print_r($r);
+
     return;
 }
 
@@ -493,6 +494,7 @@ function get_active_event($history) {
         }
     }
     debugging("there are no active events in the history pulled from topomojo", DEBUG_DEVELOPER);
+    return null;
 }
 
 /**

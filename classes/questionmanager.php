@@ -341,12 +341,17 @@ class questionmanager {
         global $DB;
 
             // TODO use the right variant
-            $variant = 1;
+            //$variant = 1;
+            $variant = get_event($this->gettopomojo()->userauth, $gamespaceid);
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
+            if (!isset($challenge->challenge->sections)) {
+                debugging("no sections set!", DEBUG_DEVELOPER);
+                return;
+            }
             foreach ($challenge->challenge->sections as $section) {
                 foreach ($section->questions as $question) {
                     $questionid = 0;
-		    debugging("checking question with variant $variant", DEBUG_DEVELOPER);
+                    debugging("checking question with variant $variant", DEBUG_DEVELOPER);
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, array($question->text));
                     if (count($records)) {
@@ -385,7 +390,7 @@ class questionmanager {
                         debugging("question was not found on moodle", DEBUG_DEVELOPER);
                     }
                 }
-            }
+          }
     }
 
     /**

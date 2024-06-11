@@ -79,8 +79,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-	    if ($topomojoconfig->autocomplete < 2) {
-	        #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
+            if ($topomojoconfig->autocomplete < 2) {
+                #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
 
             // pull list from topomojo
             $this->auth = setup();
@@ -103,10 +103,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $mform->addElement('autocomplete', 'workspaceid', get_string('workspace', 'topomojo'), $labs, $options);
             } else {
                 $mform->addElement('select', 'workspaceid', get_string('workspace', 'topomojo'), $labs);
-	        }
+                }
         } else {
-	        debugging('need to manually select id', DEBUG_DEVELOPER);
-	        $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
+                debugging('need to manually select id', DEBUG_DEVELOPER);
+                $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
             $mform->setType('workspaceid', PARAM_ALPHANUMEXT);
         }
 
@@ -137,7 +137,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 
-	    $mform->removeElement('grade');
+        $mform->removeElement('grade');
         $currentgrade = 0;
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
@@ -148,8 +148,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
         $mform->addElement('select', 'grademethod',
-            get_string('grademethod', 'topomojo'),
-            \mod_topomojo\utils\scaletypes::get_display_types());
+                get_string('grademethod', 'topomojo'),
+                \mod_topomojo\utils\scaletypes::get_display_types());
         $mform->setType('grademethod', PARAM_INT);
         $mform->addHelpButton('grademethod', 'grademethod', 'topomojo');
         //$mform->hideIf('grademethod', 'grade', 'eq', '0');

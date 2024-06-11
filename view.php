@@ -127,11 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         }
 	if ($object->topomojo->importchallenge && ($object->topomojo->variant == 0)) {
 	    debugging("random variant detected and we need to pull questions from gamespace at runtime");
-	    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+	    debugging("the new event gamespace was created with variant " .$object->event->variant, DEBUG_DEVELOPER);
+            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
             //$object->get_question_manager()->create_questions_from_challenge($challenge);
 	}
         // contact topomojo and pull the correct answers for this attempt
-        // TODO verify is this works for random attempts
+        // TODO verify is this works for random attempts of if we should set variantin the openattempt now that we know it
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid, $object->openAttempt->variant);
 
     } else {
