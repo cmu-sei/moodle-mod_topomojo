@@ -342,7 +342,9 @@ class questionmanager {
 
             // TODO use the right variant
             //$variant = 1;
-            $variant = get_event($this->gettopomojo()->userauth, $gamespaceid);
+            $event = get_event($this->gettopomojo()->userauth, $gamespaceid);
+            $variant = $event->variant;
+            debugging("this event has variant $variant", DEBUG_DEVELOPER);
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
             if (!isset($challenge->challenge->sections)) {
                 debugging("no sections set!", DEBUG_DEVELOPER);
@@ -351,26 +353,23 @@ class questionmanager {
             foreach ($challenge->challenge->sections as $section) {
                 foreach ($section->questions as $question) {
                     $questionid = 0;
-                    debugging("checking question with variant $variant", DEBUG_DEVELOPER);
+                    debugging("checking for question with variant $variant", DEBUG_DEVELOPER);
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, array($question->text));
                     if (count($records)) {
-			//echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
-			//search for the question
-			foreach ($records as $record) {
-			    //print_r($record); echo "<br>";
+                        //echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
+                        foreach ($records as $record) {
                             $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
                             if ($options) {
                                 if ($variant == $options->variant) {
-                                    debugging("question exists for variant $options->variant", DEBUG_DEVELOPER);
+                                    debugging("question exists for variant " . $options->variant, DEBUG_DEVELOPER);
                                     $questionid = $record->id;
                                     break;
                                 } else {
-                                    debugging("$variant not a match to variant $options->variant", DEBUG_DEVELOPER);
+                                    debugging("event $variant not a match to question variant $record->variant", DEBUG_DEVELOPER);
                                 }
                             } else {
                                 debugging("no options found for question", DEBUG_DEVELOPER);
-
                             }
                         }
                     }
