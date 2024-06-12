@@ -148,7 +148,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         global $DB;
         $data = new stdClass();
         $data->tableheaders = new stdClass();
-        $data->tabledata[] = array();
+        $data->tabledata = array();
 
         if ($showuser) {
             $data->tableheaders->username = get_string('username', 'mod_topomojo');
