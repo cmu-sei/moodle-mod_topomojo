@@ -29,13 +29,34 @@ define(['jquery', 'core/config', 'core/log', 'core/modal_factory'], function($, 
 
             var copyButton = document.getElementById('copy_invite');
             if (copyButton) {
-                copyButton.onclick = function() {
-
-                    var text = document.getElementById("invitationlinkurl").textContent;
-                    navigator.clipboard.writeText(text).then(function() {
+                var text = document.getElementById("invitationlinkurl").textContent;
+                if (window.isSecureContext) {
+                    copyButton.onclick = function() {
+                        navigator.clipboard.writeText(text).then(function() {
+                            ModalFactory.create({
+                                type: ModalFactory.types.ALERT,
+                                title: 'Invitation Link Copied to Clipboard',
+                                body: text,
+                                removeOnClose: true,
+                            })
+                            .then(function(modal) {
+                                modal.show();
+                                return modal;
+                            })
+                            .fail(function(err) {
+                                log.debug(err);
+                            });
+                            return;
+                        })
+                        .catch(function(err) {
+                            log.debug('Could not copy text: ', err);
+                        });
+                    };
+                } else {
+                    copyButton.onclick = function() {
                         ModalFactory.create({
                             type: ModalFactory.types.ALERT,
-                            title: 'Invitation Link Copied',
+                            title: 'Please Copy Invitation Link',
                             body: text,
                             removeOnClose: true,
                         })
@@ -47,11 +68,8 @@ define(['jquery', 'core/config', 'core/log', 'core/modal_factory'], function($, 
                             log.debug(err);
                         });
                         return;
-                    })
-                    .catch(function(err) {
-                        log.debug('Could not copy text: ', err);
-                    });
-                };
+                    };
+                }
             }
 
             var generateButton = document.getElementById('generate_invite');
