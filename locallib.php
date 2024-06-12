@@ -355,6 +355,37 @@ function stop_event($client, $id) {
     return;
 }
 
+function get_ticket($client) {
+
+    if ($client == null) {
+        debugging('error with client in get_ticket', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/user/ticket";
+    //echo "POST $url<br>";
+
+    $response = $client->get($url);
+
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        //echo "could not decode json<br>";
+        return;
+    }
+
+    // success
+    if ($client->info['http_code']  === 200) {
+        return $r->ticket;
+    }
+    if ($client->info['http_code']  === 500) {
+        //echo "response code ". $client->info['http_code'] . "<br>";
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
+    return;
+}
+
 function get_invite($client, $id) {
 
     if ($client == null) {
