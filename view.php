@@ -241,10 +241,10 @@ if ($object->event) {
         $vmlist = array();
         if (!is_array($object->event->vms)) {
             print_error("No VMs visible to user");
-	}
-	if (!$ticket) {
+        }
+        if (!$ticket) {
             print_error("Could not generate ticket");
-	}
+        }
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
                 if ($vm['isVisible']) {
@@ -309,9 +309,11 @@ switch($action) {
     default:
         if ($object->openAttempt) {
             if (count($object->get_question_manager()->get_questions())) {
-                $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-                if ($challenge->text) {
-                    $renderer->render_challenge_instructions($challenge->text);
+                if ($object->event->id) {
+                    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+                    if ($challenge->text) {
+                        $renderer->render_challenge_instructions($challenge->text);
+                    }
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
