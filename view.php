@@ -234,7 +234,6 @@ if ($object->event) {
 
     $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
     $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
-    $ticket = get_ticket($object->userauth);
 
     if ($embed == 1) {
 
@@ -242,27 +241,19 @@ if ($object->event) {
         if (!is_array($object->event->vms)) {
             print_error("No VMs visible to user");
         }
-        if (!$ticket) {
-            print_error("Could not generate ticket");
-        }
+        $jsoptions = ['id' => $object->event->id];
+        $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
+
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
                 if ($vm['isVisible']) {
-                        if ($ticket) {
-                            $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?t=$ticket&f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
-                        } else {
-                            $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
-                        }
+                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
                     $vmdata['name'] = $vm['name'];
                     array_push($vmlist, $vmdata);
                 }
             } else {
-                    if ($vm->isVisible) {
-                        if ($ticket) {
-                            $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?t=$ticket&f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
-                        } else {
-                            $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
-                        }
+                if ($vm->isVisible) {
+                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
                     $vmdata['name'] = $vm->name;
                     array_push($vmlist, $vmdata);
                 }
