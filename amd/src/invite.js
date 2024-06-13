@@ -29,9 +29,9 @@ define(['jquery', 'core/config', 'core/log', 'core/modal_factory'], function($, 
 
             var copyButton = document.getElementById('copy_invite');
             if (copyButton) {
-                var text = document.getElementById("invitationlinkurl").textContent;
                 if (window.isSecureContext) {
                     copyButton.onclick = function() {
+                        var text = document.getElementById("invitationlinkurl").textContent;
                         navigator.clipboard.writeText(text).then(function() {
                             ModalFactory.create({
                                 type: ModalFactory.types.ALERT,
@@ -54,6 +54,7 @@ define(['jquery', 'core/config', 'core/log', 'core/modal_factory'], function($, 
                     };
                 } else {
                     copyButton.onclick = function() {
+                        var text = document.getElementById("invitationlinkurl").textContent;
                         ModalFactory.create({
                             type: ModalFactory.types.ALERT,
                             title: 'Please Copy Invitation Link',
