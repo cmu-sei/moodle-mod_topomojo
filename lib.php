@@ -443,6 +443,11 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
+    $url = new moodle_url('/mod/topomojo/challenge.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('challengetext', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_topomojo_challenge', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
     
     $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
     $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),

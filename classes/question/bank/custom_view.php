@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Group Quiz Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -137,47 +137,12 @@ class custom_view extends \core_question\local\bank\view {
      */
 //    public function display($tabname, $page, $perpage, $cat,
 //                            $recurse, $showhidden, $showquestiontext, $tagids = array()) {
-    public function display($pagevars, $tabname): void {
-//      global $PAGE, $OUTPUT;
-        global $OUTPUT;
-        $page = $pagevars['qpage'];
-        $perpage = $pagevars['qperpage'];
-        $cat = $pagevars['cat'];
-        $recurse = $pagevars['recurse'];
-        $showhidden = $pagevars['showhidden'];
-        $showquestiontext = $pagevars['qbshowtext'];
-        $tagids = [];
-        if (!empty($pagevars['qtagids'])) {
-            $tagids = $pagevars['qtagids'];
-        }
-
-
-
-        $editcontexts = $this->contexts->having_one_edit_tab_cap($tabname);
-        // Category selection form.
-        echo $OUTPUT->heading(get_string('questionbank', 'question'), 2);
-
-        array_unshift($this->searchconditions, new \core_question\bank\search\hidden_condition(!$showhidden));
-        array_unshift($this->searchconditions, new \core_question\bank\search\category_condition(
-            $cat, $recurse, $editcontexts, $this->baseurl, $this->course));
-        //array_unshift($this->searchconditions, new topomojo_disabled_condition());
-        $this->display_options_form($showquestiontext, '/mod/topomojo/edit.php');
-
-        // Continues with list of questions.
-        /*
-        $this->display_question_list($this->contexts->having_one_edit_tab_cap($tabname),
-            $this->baseurl, $cat, $this->cm,
-            null, $page, $perpage, $showhidden, $showquestiontext,
-            $this->contexts->having_cap('moodle/question:add'));
-        */
-
-        $params['category'] = $cat;
-        $pageurl = new \moodle_url('/mod/topomojo/edit.php', $params);
-
-
-
-        $this->display_question_list($pageurl, $cat, $recurse, $page,
-                $perpage, $this->contexts->having_cap('moodle/question:add'));
+    public function render($pagevars, $tabname): string {
+        ob_start();
+        $this->display();
+        $out = ob_get_contents();
+        ob_end_clean();
+        return $out;
     }
 
 

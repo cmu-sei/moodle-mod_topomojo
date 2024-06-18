@@ -139,6 +139,7 @@ $string['overallgrade'] = 'Overall Grade: ';
 $string['extendevent'] = 'Extend Lab';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['durationtext'] = 'Scheduled Duration';
+$string['challengetext'] = 'Challenges';
 $string['attemptscore'] = 'Attempt Grade: ';
 $string['invitelink'] = 'Generate Invite';
 $string['supportcode'] = 'Support Code: ';

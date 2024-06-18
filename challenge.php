@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/*
+/**
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -46,6 +46,10 @@ require_once($CFG->libdir . '/completionlib.php');
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
+
+// if (empty($attemptid)) {
+//     redirect('view.php?id=' . $cm->id);
+// }
 
 try {
     if ($id) {
@@ -72,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
 // Print the page header.
 $url = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
+$returnurl = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -97,6 +102,7 @@ if ($activeAttempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 } else if ($activeAttempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
+    redirect($returnurl);
 }
 
 // handle start/stop form action
@@ -167,34 +173,6 @@ if ((!$object->event) && ($activeAttempt)) {
     $object->openAttempt->close_attempt();
 }
 
-if ($object->event) {
-    if (($object->event->isActive) && (!$activeAttempt)) {
-        // this should not happend because we create the attempt when we start it
-        debugging("active event with no attempt", DEBUG_DEVELOPER);
-        //print_error('eventwithoutattempt', 'topomojo');
-        // TODO give user a popup to confirm they are starting an attempt
-        $activeAttempt = $object->init_attempt();
-    }
-    // check age and get new link, chekcing for 30 minute timeout of the url
-    if (($object->openAttempt->state == 10) &&
-                ((time() - $object->openAttempt->timemodified) > 3600 )) {
-        debugging("getting new launchpointurl", DEBUG_DEVELOPER);
-        $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
-        $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
-        $object->openAttempt->save();
-    }
-    $eventid = $object->event->id;
-    $starttime = strtotime($object->event->startTime);
-    $endtime = strtotime($object->event->expirationTime);
-} else {
-    $eventid = null;
-    $startime = null;
-    $endtime = null;
-}
-
-// pull values from the settings
-$embed = $topomojo->embed;
-
 $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade to pass is $gradepass", DEBUG_DEVELOPER);
@@ -206,77 +184,43 @@ if ((int)$object->topomojo->grade > 0) {
     $showgrade = false;
 }
 
-//$renderer = $PAGE->get_renderer('mod_topomojo');
 $renderer = $object->renderer;
 echo $renderer->header();
 
-if ($object->event) {
-    $code = substr($object->event->id, 0, 8);
-    $renderer->display_detail($topomojo, $topomojo->duration, $code);
+$action = optional_param('action', '', PARAM_ALPHA);
 
-    $jsoptions = ['keepaliveinterval' => 1];
-
-    $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
-
-    $extend = false;
-    if ($object->userauth && $topomojo->extendevent) {
-        $extend = true;
-    }
-
-    $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
-    // no matter what, start our session timer
-    $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init', array('starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id));
-    if ($topomojo->clock == 1) {
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
-    } else if ($topomojo->clock == 2) {
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup');
-    }
-
-    $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
-    $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
-
-    if ($embed == 1) {
-
-        $vmlist = array();
-        if (!is_array($object->event->vms)) {
-            print_error("No VMs visible to user");
-        }
-        $jsoptions = ['id' => $object->event->id];
-        $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
-
-        foreach ($object->event->vms as $vm) {
-            if (is_array($vm)) {
-                if ($vm['isVisible']) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
-                    $vmdata['name'] = $vm['name'];
-                    array_push($vmlist, $vmdata);
+switch($action) {
+    case "submitquiz":
+        debugging("submitquiz request received", DEBUG_DEVELOPER);
+        if ($object->event) {
+            if ($object->event->isActive) {
+                if (!$activeAttempt) {
+                    debugging('no active attempt', DEBUG_DEVELOPER);
+                    print_error('no active attempt');
                 }
-            } else {
-                if ($vm->isVisible) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
-                    $vmdata['name'] = $vm->name;
-                    array_push($vmlist, $vmdata);
-                }
+
+                //TODO if we are submitting answers, dont close, just save
+                $object->openAttempt->save_questions();
+
+                //TODO maybe dont reload?
+                redirect($url);
             }
-
         }
 
-        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist);
-    } else {
-        $renderer->display_link_page($object->openAttempt->launchpointurl);
-    }
-
-} else {
-    $renderer->display_detail($topomojo, $topomojo->duration);
-
-    if ($showgrade) {
-        $renderer->display_grade($topomojo);
-    }
-    // display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid);
+        break;
+    default:
+        if ($object->openAttempt) {
+            if (count($object->get_question_manager()->get_questions())) {
+                if ($object->event->id) {
+                    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+                    if ($challenge->text) {
+                        $renderer->render_challenge_instructions($challenge->text);
+                    }
+                }
+                $renderer->render_quiz($object->openAttempt, $pageurl, $id);
+            }
+        }
 }
-
 // attempts may differ from events pulled from history on server
 
 echo $renderer->footer();
-
