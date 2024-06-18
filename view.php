@@ -234,6 +234,7 @@ if ($object->event) {
 
     $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
     $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
+    $ticket = get_ticket($object->userauth);
 
     if ($embed == 1) {
 
@@ -241,19 +242,27 @@ if ($object->event) {
         if (!is_array($object->event->vms)) {
             print_error("No VMs visible to user");
         }
-        $jsoptions = ['id' => $object->event->id];
-        $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
-
+        if (!$ticket) {
+            print_error("Could not generate ticket");
+        }
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
                 if ($vm['isVisible']) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                        if ($ticket) {
+                            $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?t=$ticket&f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                        } else {
+                            $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                        }
                     $vmdata['name'] = $vm['name'];
                     array_push($vmlist, $vmdata);
                 }
             } else {
-                if ($vm->isVisible) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                    if ($vm->isVisible) {
+                        if ($ticket) {
+                            $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?t=$ticket&f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                        } else {
+                            $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                        }
                     $vmdata['name'] = $vm->name;
                     array_push($vmlist, $vmdata);
                 }
@@ -310,9 +319,5 @@ switch($action) {
             }
         }
 }
-// attempts may differ from events pulled from history on server
-$attempts = $object->getall_attempts('closed', $review = false);
-echo $renderer->display_attempts($attempts, $showgrade);
 
 echo $renderer->footer();
-

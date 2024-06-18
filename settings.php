@@ -52,8 +52,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/topomojoapiurl',
         get_string('topomojoapiurl', 'topomojo'), get_string('configtopomojoapiurl', 'topomojo'), "", PARAM_URL, 60));
 
-    $settings->add(new admin_setting_configtext('topomojo/playerappurl',
-        get_string('playerappurl', 'topomojo'), get_string('configplayerappurl', 'topomojo'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext('topomojo/topomojobaseurl',
+        get_string('topomojobaseurl', 'topomojo'), get_string('configtopomojobaseurl', 'topomojo'), "", PARAM_URL, 60));
 
     $settings->add(new admin_setting_configtext('topomojo/apikey',
         get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
@@ -79,4 +79,3 @@ if ($ADMIN->fulltree) {
     }
 
 }
-

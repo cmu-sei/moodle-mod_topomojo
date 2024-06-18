@@ -44,6 +44,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+global $USER;
 
 try {
     if ($id) {
@@ -82,17 +83,17 @@ $pageurl = $url;
 $pagevars = array();
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-if (!$object->is_instructor()) {
-    redirect($returnurl);
-}
-
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
-$renderer->display_return_form($returnurl, $id);
+// $renderer->display_return_form($returnurl, $id);
 
-$attempts = $object->getall_attempts('all', $review = true);
-echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+if ($object->is_instructor()) {
+    $attempts = $object->getall_attempts('all', $review = true);
+    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+} else {
+    $userid = $USER->id;
+    $attempts = $object->get_attempts_by_user($userid, 'all');
+    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
+}
 
 echo $renderer->footer();
-
-

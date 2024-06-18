@@ -45,7 +45,7 @@ $string['pluginname'] = 'Topomojo';
 // plugin settings
 $string['topomojoapiurl'] = 'Topomojo API Base URL';
 $string['embed'] = 'Display Mode';
-$string['playerappurl'] = 'Topomojo Base URL';
+$string['topomojobaseurl'] = 'Topomojo Base URL';
 $string['autocomplete'] = 'Workspace Selection Method';
 $string['workspace'] = 'Workspace';
 $string['selectname'] = 'Search for an Workspace by name';
@@ -54,7 +54,7 @@ $string['displaylink'] = 'Display Link to Topomojo';
 $string['embedlab'] = 'Embed Lab inside Moodle';
 $string['theattempt'] = 'The attempt';
 $string['theattempt_help'] = 'Whether the student can review the attempt at all.';
-$string['configplayerappurl'] = 'Base URL for Topomojo trailing /.';
+$string['configtopomojobaseurl'] = 'Base URL for Topomojo trailing /.';
 $string['configissuerid'] = 'This is the integer value for the issuer.';
 $string['configembed'] = 'This determines whether the lab is embedded or whether a link to Topomojo is displayed';
 $string['configtopomojoapiurl'] = 'Base URL for Topomojo API instance without trailing /.';
@@ -214,7 +214,3 @@ $string['importsuccess'] = 'Successfully imported questions from Topomojo';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
-
-
-
-

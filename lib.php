@@ -443,13 +443,12 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
-    if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
-        $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
-        $context->add_node($node, $beforekey);
-    }
+    
+    $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
 
     if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
         $url = new moodle_url('/mod/topomojo/edit.php', array('cmid' => $PAGE->cm->id));
@@ -458,6 +457,4 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
                 navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));
         $context->add_node($node, $beforekey);
     }
-
 }
-
