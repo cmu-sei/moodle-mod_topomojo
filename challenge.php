@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/topomojo/challenge.php', array ( 'id' => $cm->id ) );
 $returnurl = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
 
 $PAGE->set_url($url);
