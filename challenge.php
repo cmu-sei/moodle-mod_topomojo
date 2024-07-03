@@ -156,9 +156,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             $grader = new \mod_topomojo\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
 
+            if ($object->topomojo->endlab) {
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
-            //TODO go to viewattempt page
+            }
+
             $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $object->openAttempt->id, 'action' => 'view' ) );
             redirect($viewattempturl);
         }

@@ -146,27 +146,22 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
                 print_error('no attempt to close');
             }
 
-            $object->openAttempt->save_question();
-            $object->openAttempt->close_attempt();
-            $grader = new \mod_topomojo\utils\grade($object);
-            $grader->process_attempt($object->openAttempt);
-
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
             //TODO go to viewattempt page
-            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $object->openAttempt->id, 'action' => 'view' ) );
-            redirect($viewattempturl);
+            $reviewattempturl = new moodle_url ( '/mod/topomojo/review.php', array ( 'id' => $cm->id ) );
+            redirect($reviewattempturl);
         }
     }
 }
 
-if ((!$object->event) && ($activeAttempt)) {
-    debugging("active attempt with no event", DEBUG_DEVELOPER);
-    //print_error('attemptalreadyexists', 'topomojo');
-    $grader = new \mod_topomojo\utils\grade($object);
-    $grader->process_attempt($object->openAttempt);
-    $object->openAttempt->close_attempt();
-}
+// if ((!$object->event) && ($activeAttempt)) {
+//     debugging("active attempt with no event", DEBUG_DEVELOPER);
+//     //print_error('attemptalreadyexists', 'topomojo');
+//     $grader = new \mod_topomojo\utils\grade($object);
+//     $grader->process_attempt($object->openAttempt);
+//     $object->openAttempt->close_attempt();
+// }
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeAttempt)) {
@@ -248,13 +243,13 @@ if ($object->event) {
         foreach ($object->event->vms as $vm) {
             if (is_array($vm)) {
                 if ($vm['isVisible']) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                    $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
                     $vmdata['name'] = $vm['name'];
                     array_push($vmlist, $vmdata);
                 }
             } else {
                 if ($vm->isVisible) {
-                    $vmdata['url'] = get_config('topomojo', 'playerappurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                    $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') . "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
                     $vmdata['name'] = $vm->name;
                     array_push($vmlist, $vmdata);
                 }

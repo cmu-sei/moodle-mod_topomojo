@@ -108,7 +108,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $options['nocache'] = true;
 
         $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        $url = get_config('topomojo', 'playerappurl');
+        $url = get_config('topomojo', 'topomojobaseurl');
         $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
 
         // Render the data in a Mustache template.

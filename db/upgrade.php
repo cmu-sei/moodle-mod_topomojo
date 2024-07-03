@@ -413,8 +413,30 @@ function xmldb_topomojo_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+
+        // Define field endlab to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('endlab', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'duration');
+
+        // Conditionally launch add field endlab.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072101, 'topomojo');
+    }
+    if ($oldversion < 2024070304) {
+        // Define field endlab to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('endlab', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'duration');
+
+        // Conditionally launch add field endlab.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
 
     return true;

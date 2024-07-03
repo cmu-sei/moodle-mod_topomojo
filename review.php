@@ -88,11 +88,11 @@ echo $renderer->header();
 // $renderer->display_return_form($returnurl, $id);
 
 if ($object->is_instructor()) {
-    $attempts = $object->getall_attempts('all', $review = true);
+    $attempts = $object->getall_attempts('closed', $review = true);
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
 } else {
     $userid = $USER->id;
-    $attempts = $object->get_attempts_by_user($userid, 'all');
+    $attempts = $object->get_attempts_by_user($userid, 'closed');
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
 }
 

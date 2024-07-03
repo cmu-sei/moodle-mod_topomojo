@@ -66,7 +66,9 @@ $string['configapikey'] = 'The value included with TopoMojo API requests under t
 $string['managername'] = 'Manager Name';
 $string['configmanagername'] = 'The Manager Name associated with the API key. Used to filter gamespaces.';
 $string['importchallenge'] = 'Import Challenge';
+$string['endlab'] = 'End Lab';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
+$string['endlab_help'] = 'Whether quiz submission should end Topomojo lab.';
 
 // activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to Topomojo is displayed';

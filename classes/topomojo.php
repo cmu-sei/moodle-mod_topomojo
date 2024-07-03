@@ -227,6 +227,48 @@ class topomojo {
 
     }
 
+    public function get_attempts_by_user($userid, $state = 'all', $review = false) {
+        global $DB;
+    
+        $sqlparams = array();
+        $where = array();
+    
+        $where[] = 'topomojoid = ?';
+        $sqlparams[] = $this->topomojo->id;
+    
+        switch ($state) {
+            case 'open':
+                $where[] = 'state = ?';
+                $sqlparams[] = topomojo_attempt::INPROGRESS;
+                break;
+            case 'closed':
+                $where[] = 'state = ?';
+                $sqlparams[] = topomojo_attempt::FINISHED;
+                break;
+            default:
+                // add no condition for state when 'all' or something other than open/closed
+        }
+    
+        if ((!$review) || (!$this->is_instructor())) {
+            //debugging("get_attempts_by_user for user", DEBUG_DEVELOPER);
+            $where[] = 'userid = ?';
+            $sqlparams[] = $userid;
+        }
+    
+        $wherestring = implode(' AND ', $where);
+    
+        $sql = "SELECT * FROM {topomojo_attempts} WHERE $wherestring ORDER BY timemodified DESC";
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+    
+        $attempts = array();
+        // create array of class attempts from the db entry
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
+        }
+        return $attempts;
+    }
+    
+
     public function init_attempt() {
         global $DB, $USER;
 

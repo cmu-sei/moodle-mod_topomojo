@@ -41,6 +41,7 @@ require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
 
 class mod_topomojo_mod_form extends moodleform_mod {
     private $auth;
+    private $workspaces;
 
     /** @var array options to be used with date_time_selector fields in the quiz. */
     public static $datefieldoptions = array('optional' => true);
@@ -182,6 +183,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
         $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
+
+        $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
+        $mform->addHelpButton('endlab', 'endlab', 'topomojo');
 
         // Shuffle within questions.
         $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
