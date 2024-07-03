@@ -63,8 +63,8 @@ function list_events($client, $name) {
 
     // web request
     //echo $name . "<br>";
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode("Wireless") . "&Filter=all";
-    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&WantsActive=true";
+    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode("Wireless") . "&Filter=all";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&WantsActive=true";
     //echo "GET $url<br>";
 
     $response = $client->get($url);

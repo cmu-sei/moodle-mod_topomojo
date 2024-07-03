@@ -112,7 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
-            //$object->event = get_event($object->userauth, $eventid);
+            $eventid = $object->event->id;
+            //f$object->event = get_event($object->userauth, $eventid);
             $activeAttempt = $object->init_attempt();
             debugging("init_attempt returned $activeAttempt", DEBUG_DEVELOPER);
             if (!$activeAttempt) {

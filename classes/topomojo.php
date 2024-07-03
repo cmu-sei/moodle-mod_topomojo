@@ -58,6 +58,12 @@ class topomojo {
 
     public $cm;
 
+    public $pagevars;
+
+    public $renderer;
+
+    public $course;
+
     /**
      * @var array $review fields Static review fields to add as options
      */
