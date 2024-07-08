@@ -84,7 +84,6 @@ $pagevars = array();
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-
 // get current state of workspace
 $all_events = list_events($object->userauth, $object->topomojo->name);
 $moodle_events = moodle_events($all_events);
@@ -209,7 +208,7 @@ echo $renderer->header();
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
     $renderer->display_detail($topomojo, $topomojo->duration, $code);
-
+    
     $jsoptions = ['keepaliveinterval' => 1];
 
     $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
@@ -263,13 +262,15 @@ if ($object->event) {
     }
 
 } else {
+    $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
     $renderer->display_detail($topomojo, $topomojo->duration);
 
     if ($showgrade) {
         $renderer->display_grade($topomojo);
     }
+
     // display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $markdown);
 }
 
 // attempts may differ from events pulled from history on server

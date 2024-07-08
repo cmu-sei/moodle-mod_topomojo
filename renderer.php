@@ -53,10 +53,19 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
-    function display_startform($url, $workspace) {
+    function display_startform($url, $workspace, $markdown) {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+        $options['nocache'] = true;
+
+        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        $url = get_config('topomojo', 'topomojobaseurl');
+        $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
+
+        // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/startform', $data);
     }
 
@@ -115,6 +124,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/embed', $data);
 
     }
+
 
     function display_grade($topomojo, $user = null) {
         global $USER;

@@ -271,6 +271,34 @@ function get_gamespace_challenge($client, $id) {
     return $r;
 }
 
+function get_markdown($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
+    }
+
+    if (!$response) {
+        debugging('no response received by get_document', DEBUG_DEVELOPER);
+    }
+
+    return $response;
+}
+
 function start_event($client, $id, $topomojo) {
     global $USER;
     debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
