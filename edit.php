@@ -97,7 +97,8 @@ $topomojohasattempts = topomojo_has_attempts($topomojo->id);
 $questionmanager = $object->get_question_manager();
 
 $renderer = $object->renderer;
-$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
+//$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
+$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 
 if ($addquestionlist) {
     $action = 'addquestionlist';

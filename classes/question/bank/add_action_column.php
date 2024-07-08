@@ -25,7 +25,7 @@ namespace mod_topomojo\question\bank;
  * @author     2021 Safat Shahin <safatshahin@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class add_action_column extends \core_question\local\bank\action_column_base {
+class add_action_column extends \core_question\local\bank\question_action_base {
 
     /** @var string caches a lang string used repeatedly. */
     protected $stradd;
