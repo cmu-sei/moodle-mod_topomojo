@@ -204,10 +204,19 @@ if ((int)$object->topomojo->grade > 0) {
 //$renderer = $PAGE->get_renderer('mod_topomojo');
 $renderer = $object->renderer;
 echo $renderer->header();
+$workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
+$tags = $workspaces->tags;
+// Split the string into an array by spaces
+$tags = explode(' ', $tags);
+
+// Capitalize the first letter of each word in each tag
+$tags = str_replace('-', ' ', $tags);
+$tags = array_map('ucwords', $tags);
 
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
-    $renderer->display_detail($topomojo, $topomojo->duration, $code);
+
+    $renderer->display_detail($topomojo, $topomojo->duration, $tags, $code);
     
     $jsoptions = ['keepaliveinterval' => 1];
 
@@ -263,7 +272,7 @@ if ($object->event) {
 
 } else {
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $renderer->display_detail($topomojo, $topomojo->duration);
+    $renderer->display_detail($topomojo, $topomojo->duration, $tags);
 
     if ($showgrade) {
         $renderer->display_grade($topomojo);

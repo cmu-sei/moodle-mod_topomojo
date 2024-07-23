@@ -42,7 +42,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 //class mod_topomojo_renderer extends plugin_renderer_base {
 
 
-    function display_detail ($topomojo, $duration, $code = false) {
+    function display_detail ($topomojo, $duration, $tags, $code = false) {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
@@ -50,6 +50,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
         $data->duration = $duration / 60;
+        $data->tags = $tags;
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
