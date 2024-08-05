@@ -217,3 +217,7 @@ $string['importsuccess'] = 'Successfully imported questions from Topomojo';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
+
+// privacy
+$string['privacy:metadata'] = 'The Topomojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
+
