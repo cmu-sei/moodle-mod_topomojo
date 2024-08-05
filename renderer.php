@@ -33,24 +33,40 @@ DM20-0196
  */
 
 defined('MOODLE_INTERNAL') || die();
+use \mod_topomojo\traits\renderer_base;
 
-class mod_topomojo_renderer extends plugin_renderer_base {
+class mod_topomojo_renderer extends \plugin_renderer_base {
 
-    function display_detail ($topomojo, $duration, $code = false) {
+    use renderer_base;
+
+//class mod_topomojo_renderer extends plugin_renderer_base {
+
+
+    function display_detail ($topomojo, $duration, $tags, $code = false) {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
         $data->code = $code;
 
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
-        $data->duration = $duration;
+        $data->duration = $duration / 60;
+        $data->tags = $tags;
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
-    function display_startform($url, $workspace) {
+    function display_startform($url, $workspace, $markdown) {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+        $options['nocache'] = true;
+
+        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        $url = get_config('topomojo', 'topomojobaseurl');
+        $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
+
+        // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/startform', $data);
     }
 
@@ -78,6 +94,18 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
     }
 
+    function render_challenge_instructions($markdown) {
+        $data = new stdClass();
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+        $options['nocache'] = true;
+
+        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+
+        // Render the data in a Mustache template.
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+
     function display_embed_page($launchpointurl, $markdown, $vmlist) {
         $data = new stdClass();
         $data->url = $launchpointurl;
@@ -90,12 +118,14 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         $options['nocache'] = true;
 
         $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        $data->markdown = str_replace("/docs/", "https://topomojo.cyberforce.site/docs/", $data->markdown, $i);
+        $url = get_config('topomojo', 'topomojobaseurl');
+        $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/embed', $data);
 
     }
+
 
     function display_grade($topomojo, $user = null) {
         global $USER;
@@ -103,12 +133,11 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         if (is_null($user)) {
             $user = $USER->id;
         }
-
         $usergrades = \mod_topomojo\utils\grade::get_user_grade($topomojo, $user);
         // should only be 1 grade, but we'll always get end just in case
         $usergrade = end($usergrades);
         $data = new stdClass();
-        $data->overallgrade = get_string('overallgrade', 'groupquiz');
+        $data->overallgrade = get_string('overallgrade', 'topomojo');
         $data->grade = number_format($usergrade, 2);
         $data->maxgrade = $topomojo->grade;
         echo $this->render_from_template('mod_topomojo/grade', $data);
@@ -130,7 +159,7 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         global $DB;
         $data = new stdClass();
         $data->tableheaders = new stdClass();
-        $data->tabledata[] = array();
+        $data->tabledata = array();
 
         if ($showuser) {
             $data->tableheaders->username = get_string('username', 'mod_topomojo');
@@ -183,192 +212,6 @@ class mod_topomojo_renderer extends plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/history', $data);
     }
 
-    function display_tasks($tasks) {
-        if (is_null($tasks)) {
-            return;
-        }
-        $data = new stdClass();
-        $data->tableheaders = [
-            //get_string('taskid', 'mod_topomojo'),
-            get_string('taskname', 'mod_topomojo'),
-            get_string('taskdesc', 'mod_topomojo'),
-            get_string('points', 'mod_topomojo'),
-        ];
-
-        foreach ($tasks as $task) {
-            //var_dump($task);
-            $rowdata = array();
-            //$rowdata[] = $task->id;
-            $rowdata[] = $task->name;
-            $rowdata[] = $task->description;
-            $rowdata[] = $task->points;
-            $data->tabledata[] = $rowdata;
-        }
-
-        echo $this->render_from_template('mod_topomojo/tasks', $data);
-
-    }
-
-    function display_tasks_form($tasks) {
-        global $DB;
-        if (is_null($tasks)) {
-            return;
-        }
-        $data = new stdClass();
-        $data->tableheaders = [
-            get_string('taskid', 'mod_topomojo'),
-            get_string('taskname', 'mod_topomojo'),
-            get_string('taskdesc', 'mod_topomojo'),
-            'vm mask',
-            'inputString',
-            'expectedOutput',
-            'gradable',
-            'visible',
-            'muliple',
-            'points'
-        ];
-
-        foreach ($tasks as $task) {
-            //var_dump($task);
-            $rowdata = array();
-            $rowdata[] = $task->id;
-            $rowdata[] = $task->name;
-            $rowdata[] = $task->description;
-            $rowdata[] = $task->vmMask ;
-            $rowdata[] = $task->inputString;
-            $rowdata[] = $task->expectedOutput;
-            // get task from db table
-            $rec = $DB->get_record_sql('SELECT * from {topomojo_tasks} WHERE '
-                    . $DB->sql_compare_text('dispatchtaskid') . ' = '
-                    . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
-            $rowdata[] = $rec->gradable;
-            $rowdata[] = $rec->visible;
-            $rowdata[] = $rec->multiple;
-            $rowdata[] = $rec->points;
-            $data->tabledata[] = $rowdata;
-
-        }
-
-        echo $this->render_from_template('mod_topomojo/tasks_form', $data);
-
-    }
-
-    function display_results($tasks, $review = false) {
-        if (is_null($tasks)) {
-            return;
-        }
-        $data = new stdClass();
-        if ($review) {
-            $data->tableheaders = [
-                //get_string('taskid', 'mod_topomojo'),
-                get_string('taskname', 'mod_topomojo'),
-                get_string('taskdesc', 'mod_topomojo'),
-                get_string('taskaction', 'mod_topomojo'),
-                get_string('taskcomment', 'mod_topomojo'),
-                get_string('taskresult', 'mod_topomojo'),
-                get_string('points', 'mod_topomojo'),
-                get_string('score', 'mod_topomojo')
-            ];
-        } else {
-            $data->tableheaders = [
-                //get_string('taskid', 'mod_topomojo'),
-                get_string('taskname', 'mod_topomojo'),
-                get_string('taskdesc', 'mod_topomojo'),
-                get_string('taskaction', 'mod_topomojo'),
-                get_string('taskresult', 'mod_topomojo'),
-                get_string('points', 'mod_topomojo'),
-                get_string('score', 'mod_topomojo')
-            ];
-        }
-
-        if ($tasks) {
-
-            foreach ($tasks as $task) {
-                $rowdata = new stdClass();
-                $rowdata->id = $task->id;
-                $rowdata->name = $task->name;
-                $rowdata->desc = $task->description;
-                if (isset($task->result)) {
-                    $rowdata->result = $task->result;
-                }
-                // check whether we can execute the task
-                if ((isset($task->triggerCondition)) && ($task->triggerCondition === "Manual")) {
-                    $rowdata->action = get_string('taskexecute', 'mod_topomojo');
-                } else {
-                    $rowdata->action = get_string('tasknoexecute', 'mod_topomojo');
-                }
-                if ($review) {
-                    if ($task->comment) {
-                        $rowdata->comment = $task->comment;
-                    } else {
-                        $rowdata->comment = "-";
-                    }
-                }
-                if (isset($task->score)) {
-                    $rowdata->score = $task->score;
-                }
-                $rowdata->points = $task->points;
-                $data->tabledata[] = $rowdata;
-            }
-
-            echo $this->render_from_template('mod_topomojo/results', $data);
-        }
-    }
-
-    function display_results_detail($a, $tasks) {
-        if (is_null($tasks)) {
-            return;
-        }
-        $data = new stdClass();
-        $data->tableheaders = [
-            //get_string('taskid', 'mod_topomojo'),
-            get_string('taskname', 'mod_topomojo'),
-            get_string('taskdesc', 'mod_topomojo'),
-            get_string('taskregrade', 'mod_topomojo'),
-            get_string('vmname', 'mod_topomojo'),
-            get_string('taskcomment', 'mod_topomojo'),
-            get_string('taskresult', 'mod_topomojo'),
-            get_string('points', 'mod_topomojo'),
-            get_string('score', 'mod_topomojo')
-        ];
-
-        if ($tasks) {
-
-            foreach ($tasks as $task) {
-                $rowdata = new stdClass();
-                $rowdata->id = $task->id;
-                $rowdata->name = $task->name;
-                $rowdata->desc = $task->description;
-                if (isset($task->result)) {
-                    $rowdata->result = $task->result;
-                }
-                if ($task->vmname == NULL) {
-                    $rowdata->action = get_string('taskregrade', 'mod_topomojo');
-                    $rowdata->url = new moodle_url('/mod/topomojo/viewattempt.php', array("a" => $a, "id" => $task->id, "action" => "edit"));
-                    $rowdata->vmname = "-";
-                } else if ($task->vmname === "SUMMARY") {
-                    $rowdata->action = get_string('taskregrade', 'mod_topomojo');
-                    $rowdata->url = new moodle_url('/mod/topomojo/viewattempt.php', array("a" => $a, "id" => $task->id, "action" => "edit"));
-                    $rowdata->vmname = $task->vmname;
-                } else {
-                    $rowdata->vmname = $task->vmname;
-		}
-                if (isset($task->comment)) {
-                    $rowdata->comment = $task->comment;
-                } else {
-                     $rowdata->comment = "-";
-                }
-                if (isset($task->score)) {
-                    $rowdata->score = $task->score;
-                }
-                $rowdata->points = $task->points;
-                $data->tabledata[] = $rowdata;
-            }
-
-            echo $this->render_from_template('mod_topomojo/resultsdetail', $data);
-        }
-    }
-
     function display_controls($starttime, $endtime, $extend = false) {
 
         $data = new stdClass();
@@ -380,6 +223,252 @@ class mod_topomojo_renderer extends plugin_renderer_base {
 
         echo $this->render_from_template('mod_topomojo/controls', $data);
     }
+
+    /**
+     * Initialize the renderer with some variables
+     *
+     * @param \mod_topomojo\topomojo $topomojo
+     * @param moodle_url                 $pageurl Always require the page url
+     * @param array                      $pagevars (optional)
+     */
+    public function init($topomojo, $pageurl, $pagevars = array()) {
+        $this->pagevars = $pagevars;
+        $this->pageurl = $pageurl;
+        $this->topomojo = $topomojo;
+    }
+
+    /**
+     * Renders the topomojo to the page
+     *
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     */
+
+    public function render_quiz(\mod_topomojo\topomojo_attempt $attempt, $pageurl, $cmid) {
+
+        $output = '';
+
+            //$output .= html_writer::start_div();
+        //$output .= $this->topomojo_intro();
+        //$output .= html_writer::end_div();
+
+        $output .= html_writer::start_div('', array('id'=>'topomojoview'));
+        // Start the form.
+        $output .= html_writer::start_tag('form',
+                array('action' => new moodle_url($pageurl,
+                array('id' => $cmid)), 'method' => 'post',
+                'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
+                ));
+
+/*
+        if ($this->topomojo->is_instructor()) {
+            $instructions = get_string('instructortopomojoinst', 'topomojo');
+        } else {
+            $instructions = get_string('studenttopomojoinst', 'topomojo');
+        }
+        $loadingpix = $this->output->pix_icon('i/loading', 'loading...');
+        $output .= html_writer::start_div('topomojoloading', array('id' => 'loadingbox'));
+        $output .= html_writer::tag('p', get_string('loading', 'topomojo'), array('id' => 'loadingtext'));
+        $output .= $loadingpix;
+        $output .= html_writer::end_div();
+
+            // topomojo instructions
+        $output .= html_writer::start_div('topomojobox', array('id' => 'instructionsbox'));
+            $output .= $instructions;
+        $output .= html_writer::end_div();
+*/
+
+        foreach ($attempt->getSlots() as $slot) {;
+            // render question form.
+            $output .= $this->render_question_form($slot, $attempt);
+        }
+
+        $params = array(
+            'id' => $this->topomojo->getCM()->id,
+            'a' => $attempt->id,
+            'stop' => 'submittopomojo'
+        );
+
+        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'slots',
+        'value' => implode(',', $attempt->getSlots())));
+
+        $endurl = new moodle_url('/mod/topomojo/view.php', $params);
+        //$output .= $this->output->single_button($endurl, 'Submit Quiz', 'get');
+        $output .= $this->output->single_button($endurl, 'Submit Quiz');
+
+        // Finish the form.
+        $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('form');
+
+        $output .= html_writer::end_div();
+        echo $output;
+    }
+
+
+    /**
+     * Render a specific question in its own form so it can be submitted
+     * independently of the rest of the questions
+     *
+     * @param int                                $slot the id of the question we're rendering
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment of the question
+     */
+    public function render_question_form($slot, $attempt) {
+
+        $output = '';
+        $output .= $attempt->render_question($slot);
+
+        return $output;
+    }
+
+    /**
+     * Render a specific attempt
+     *
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     */
+    public function render_attempt($attempt) {
+
+        $this->showMessage();
+
+        $timenow = time();
+        $timeopen = $this->topomojo->topomojo->timeopen;
+        $timeclose = $this->topomojo->topomojo->timeclose;
+        $timelimit = $this->topomojo->topomojo->duration;
+
+        $state = $this->topomojo->get_openclose_state();
+
+        if ($state == 'unopen') {
+            echo html_writer::start_div('topomojobox');
+            echo html_writer::tag('p', get_string('notopen', 'topomojo') . userdate($timeopen), array('id' => 'quiz_notavailable'));
+            echo html_writer::end_tag('div');
+
+        } else if ($state == 'closed') {
+            echo html_writer::start_div('topomojobox');
+            echo html_writer::tag('p', get_string('closed', 'topomojo'). userdate($timeclose), array('id' => 'quiz_notavailable'));
+            echo html_writer::end_tag('div');
+        }
+
+        $reviewoptions = $this->topomojo->get_review_options();
+        $canreviewattempt =  $this->topomojo->canreviewattempt($reviewoptions, $state);
+        $canreviewmarks = $this->topomojo->canreviewmarks($reviewoptions, $state);
+
+        // show overall grade
+        if ($canreviewmarks && (!$this->topomojo->is_instructor())) {
+            $this->display_grade($this->topomojo->topomojo);
+        }
+
+        if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
+            foreach ($attempt->getSlots() as $slot) {
+                if ($this->topomojo->is_instructor()) {
+                    echo $this->render_edit_review_question($slot, $attempt);
+                } else {
+                    echo $this->render_review_question($slot, $attempt);
+                }
+            }
+        } else if ($attempt && !$canreviewattempt) {
+            echo html_writer::tag('p', get_string('noreview', 'topomojo'), array('id' => 'review_notavailable'));
+        }
+
+        $this->render_return_button();
+    }
+
+    /**
+     * Renders an individual question review
+     *
+     * This is the "edit" version that are for instructors/users who have the control capability
+     *
+     * @param int                                $slot
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment
+     */
+    public function render_edit_review_question($slot, $attempt) {
+
+        $qnum = $attempt->get_question_number();
+        $output = '';
+
+        $output .= html_writer::start_div('topomojobox', array('id' => 'q' . $qnum . '_container'));
+
+
+        $action = clone($this->pageurl);
+
+        $output .= html_writer::start_tag('form',
+            array('action'  => '', 'method' => 'post',
+                  'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
+                  'id'      => 'q' . $qnum, 'class' => 'topomojo_question',
+                  'name'    => 'q' . $qnum));
+
+
+        $output .= $attempt->render_question($slot, true, 'edit');
+
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'slots',
+                                                         'value' => $slot));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'slot',
+                                                         'value' => $slot));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'action',
+                                                         'value' => 'savecomment'));
+        $output .= html_writer::empty_tag('input', array('type'  => 'hidden', 'name' => 'sesskey',
+                                                         'value' => sesskey()));
+
+        $savebtn = html_writer::empty_tag('input', array('type'  => 'submit', 'name' => 'submit',
+                                                         'value' => get_string('savequestion', 'topomojo'), 'class' => 'btn btn-secondary'));
+
+
+        $mark = $attempt->get_slot_mark($slot);
+        $maxmark = $attempt->get_slot_max_mark($slot);
+
+        $output .= html_writer::start_tag('p');
+        $output .= 'Marked ' . $mark . ' / ' . $maxmark;
+        $output .= html_writer::end_tag('p');
+
+        // only add save button if attempt is finished
+        if ($attempt->getState() === 'finished') {
+            $output .= html_writer::div($savebtn, 'save_row');
+        }
+
+        // Finish the form.
+        $output .= html_writer::end_tag('form');
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+    /**
+     * Render a review question with no editing capabilities.
+     *
+     * Reviewing will be based upon the after review options specified in module settings
+     *
+     * @param int                                $slot
+     * @param \mod_topomojo\topomojo_attempt $attempt
+     *
+     * @return string HTML fragment for the question
+     */
+    public function render_review_question($slot, $attempt) {
+
+        $qnum = $attempt->get_question_number();
+        $when = $this->topomojo->get_openclose_state();
+
+        $output = '';
+
+        $output .= html_writer::start_div('topomojobox', array('id' => 'q' . $qnum . '_container'));
+
+        $output .= $attempt->render_question($slot, true, $this->topomojo->get_review_options(), $when);
+
+        $output .= html_writer::end_div();
+
+        return $output;
+    }
+
+    public function render_return_button() {
+        $output = '';
+            $params = array(
+                'id' => $this->topomojo->getCM()->id//,
+                //'action' => ''
+            );
+            $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+            $output.= $this->output->single_button($starturl, 'Return', 'get');
+            echo $output;
+        }
+
 }
 
 

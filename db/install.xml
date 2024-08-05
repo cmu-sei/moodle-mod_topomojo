@@ -11,8 +11,8 @@
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="intro text format."/>
-        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The is the gui"/>
-        <FIELD NAME="vmapp" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The is the guid"/>
+        <FIELD NAME="embed" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
@@ -21,6 +21,21 @@
         <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This applies to grading multiple attempts"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="reviewattempt" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. This is a bit field, decoded by the mod_topomojo_display_options class. It is formed by ORing together the constants defined there."/>
+        <FIELD NAME="reviewcorrectness" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewmarks" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewspecificfeedback" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewgeneralfeedback" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewrightanswer" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewoverallfeedback" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
+        <FIELD NAME="reviewmanualcomment" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The comment that instructors can add when grading an attempt"/>
+        <FIELD NAME="questionorder" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The question order for the quiz"/>
+        <FIELD NAME="shuffleanswers" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the parts of the question should be shuffled, in those question types that support it."/>
+        <FIELD NAME="preferredbehaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="The behaviour to ask questions to use."/>
+        <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time limit for lab attempts, in seconds."/>
+	<FIELD NAME="importchallenge" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether or not moodle should automatically pull challenge questions from topomojo and add them to the quiz inside of the lab"/>
+  <FIELD NAME="endlab" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether quiz submission should end Topomojo lab."/>
+        <FIELD NAME="variant" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The variant of the lab. Defaults to 0."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -33,7 +48,6 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo id"/>
-        <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo duration"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid that this grade is for"/>
         <FIELD NAME="grade" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The grade for this user, for this topomojo lab"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time created/modified for this grade"/>
@@ -50,49 +64,32 @@
         <FIELD NAME="eventid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The gamespace guid for this attempt"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid for this attempt"/>
         <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="inprogress" SEQUENCE="false" COMMENT="The current state of the attempts. 'inprogress', 'overdue', 'finished' or 'abandoned'."/>
-        <FIELD NAME="tasks" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tasks for this attempt"/>
         <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The score for this attempt"/>
         <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The expirationDate of the event"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt began"/>
         <FIELD NAME="timefinish" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this attempt ended"/>
-	<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
-	<FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
-</FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-    </TABLE>
-    <TABLE NAME="topomojo_tasks" COMMENT="The table to hold steamfitter tasks">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo id"/>
-        <FIELD NAME="scenariotemplateid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter scenario template guid for this attempt"/>
-        <FIELD NAME="dispatchtaskid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter guid for this task"/>
-        <FIELD NAME="name" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task name"/>
-        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task description"/>
-        <FIELD NAME="gradable" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is gradable"/>
-        <FIELD NAME="visible" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the task is visible"/>
-        <FIELD NAME="points" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The max points for this task"/>
-        <FIELD NAME="multiple" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Process multiple vms as separate tasks"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
+        <FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
+        <FIELD NAME="layout" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="the layout for this particular attempt"/>
+        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key reference to the question_usage that holds the details of the the question_attempts that make up this quiz attempt."/>
+        <FIELD NAME="variant" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The variant of the lab. Defaults to 0."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="questionusageid" TYPE="foreign-unique" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="topomojo_task_results" COMMENT="The table to hold attempt task results for students">
+    <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for group quizzes">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="taskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the task"/>
-        <FIELD NAME="dispatchtaskid" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The scenario task guid for this result"/>
-        <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The id of the topomojo attempt"/>
-        <FIELD NAME="vmname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The vm name for this result"/>
-        <FIELD NAME="status" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The steamfitter task status"/>
-        <FIELD NAME="score" TYPE="number" LENGTH="6" NOTNULL="false" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="Score given to the student"/>
-        <FIELD NAME="comment" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A comment added by a teacher"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time this result was modified"/>
+        <FIELD NAME="topomojoid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The topomojo this question instance is associated with"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The question id for the question in the question engine"/>
+        <FIELD NAME="points" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="7" COMMENT="How many points this question contributes to quiz.sumgrades."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="topomojoid" TYPE="foreign" FIELDS="id" REFTABLE="quiz" REFFIELDS="id"/>
+        <KEY NAME="questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

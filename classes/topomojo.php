@@ -54,6 +54,29 @@ class topomojo {
 
     public $userauth;
 
+    private $questionmanager;
+
+    public $cm;
+
+    public $pagevars;
+
+    public $renderer;
+
+    public $course;
+
+    /**
+     * @var array $review fields Static review fields to add as options
+     */
+    public static $reviewfields = array(
+        'attempt'          => array('theattempt', 'topomojo'),
+        'correctness'      => array('whethercorrect', 'question'),
+        'marks'            => array('marks', 'topomojo'),
+        'specificfeedback' => array('specificfeedback', 'question'),
+        'generalfeedback'  => array('generalfeedback', 'question'),
+        'rightanswer'      => array('rightanswer', 'question'),
+    	'overallfeedback'  => array('overallfeedback', 'question'),
+        'manualcomment'    => array('manualcomment', 'topomojo')
+    );
 
     /**
      * Construct class
@@ -77,11 +100,12 @@ class topomojo {
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
 
-        $this->is_instructor();
-
         $this->userauth = setup(); //fails when called by runtask
 
         $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderer_subtype);
+        $this->renderer->init($this, $pageurl, $pagevars);
+
+        $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
     }
 
 
@@ -118,141 +142,39 @@ class topomojo {
         }
     }
 
-    /* this function currently returns all gamespaces deployed from a workspace with the same name.
-     * this list is not specific to moodle-deployed labs or labs for the current user.
-     * filter on the managerName to make it moodle-specifc or remove the Filter=All string.
-     * removing the filter=all prevents the term= from working.
-     * the records returned do not listed players.
-     */
-    function list_events() {
-	    debugging("listing events", DEBUG_DEVELOPER);
-        if ($this->userauth == null) {
-            print_error('error with userauth');
-            return;
-        }
-
-        // web request
-        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name) . "&Filter=all";
-        //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($this->topomojo->name);
-        //echo "GET $url<br>";
-
-        $response = $this->userauth->get($url);
-
-        if ($this->userauth->info['http_code']  !== 200) {
-            debugging('response code ' . $this->userauth->info['http_code'] . " $url", DEBUG_DEVELOPER);
-            return;
-        }
-
-        //echo "response:<br><pre>";
-        //print_r($response);
-        //echo "</pre>";
-
-        if (!$response) {
-            debugging("no response received by list_events $url", DEBUG_DEVELOPER);
-            return;
-        }
-
-        $r = json_decode($response, true);
-
-        if (!$r) {
-            debugging("could not decode json $url", DEBUG_DEVELOPER);
-            return;
-        }
-
-        debugging("returned " . count($r) . " events with same name", DEBUG_DEVELOPER);
-
-        usort($r, 'whenCreated');
-        return $r;
-    }
-
-    public function moodle_events($events) {
-        $moodle_events = array();
-        if (!is_array($events)) {
-            debugging("no events to parse in moodle_events", DEBUG_DEVELOPER);
-            return;
-        }
-        foreach ($events as $event) {
-            if ($event['managerName'] == "Adam Welle") {
-                //echo "<br>got moodle user<br>";
-                array_push($moodle_events, $event);
-            }    
-        }
-        debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
-        return $moodle_events;
-    }
-
-    public function user_events($events) {
-        global $USER;
-	    //debugging("filtering events for user", DEBUG_DEVELOPER);
-        if ($this->userauth == null) {
-            print_error('error with userauth');
-            return;
-        }
-        $user_events = array();
-
-        if (!is_array($events)) {
-            debugging("cannot parse for user_events if events is not an array", DEBUG_DEVELOPER);
-            return;
-        }
-
-        foreach ($events as $event) {
-            // web request
-            $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
-            //echo "<br>GET $url<br>";
-
-            $response = $this->userauth->get($url);
-            //print_r($response);
-    
-            if (!$response) {
-                debugging("no response received by $url", DEBUG_DEVELOPER);
-                return;
-            }
-    
-            $r = json_decode($response, true);
-
-            if (!$r) {
-                debugging("could not decode json $url", DEBUG_DEVELOPER);
-                print_error($response);
-                return;
-            }
-    
-            //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
-            $players = $r['players'];
-            //print_r($players);
-
-            $subjectid = explode( "@", $USER->email )[0];
-            //echo "<br>subjectid $subjectid<br>";
-
-            if (!is_array($players)) {
-                debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
-                return;
-        
-            }
-            foreach ($players as $player) {
-                //print_r($player);
-                if ($player['subjectId'] == $subjectid) {
-                    //echo "found user";
-                    array_push($user_events, $r);
-                }
-            }
-        }
-        debugging("found " . count($user_events) . " events for this user", DEBUG_DEVELOPER);
-        return $user_events;
-    }
-
     public function get_attempt($attemptid) {
         global $DB;
 
         $dbattempt = $DB->get_record('topomojo_attempts', array("id" => $attemptid));
 
-        return new topomojo_attempt($dbattempt);
+        return new topomojo_attempt($this->questionmanager, $dbattempt);
     }
 
+    /**
+     * Get the course module isntance
+     *
+     * @return object
+     */
+    public function getCM() {
+        return $this->cm;
+    }
+
+    /**
+     * Gets the context for this instance
+     *
+     * @return \context_module
+     */
+    public function getContext() {
+        return $this->context;
+    }
 
     public function get_open_attempt() {
         $attempts = $this->getall_attempts('open');
-        if (count($attempts) !== 1) {
-            debugging("could not find a single open attempt", DEBUG_DEVELOPER);
+        if (count($attempts) > 1) {
+            debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
+            return false;
+        } else if (count($attempts) == 0) {
+            debugging("could not find an open attempt", DEBUG_DEVELOPER);
             return false;
         }
         debugging("open attempt found", DEBUG_DEVELOPER);
@@ -299,11 +221,53 @@ class topomojo {
         $attempts = array();
         // create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
-            $attempts[] = new topomojo_attempt($dbattempt);
+            $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
         }
         return $attempts;
 
     }
+
+    public function get_attempts_by_user($userid, $state = 'all', $review = false) {
+        global $DB;
+    
+        $sqlparams = array();
+        $where = array();
+    
+        $where[] = 'topomojoid = ?';
+        $sqlparams[] = $this->topomojo->id;
+    
+        switch ($state) {
+            case 'open':
+                $where[] = 'state = ?';
+                $sqlparams[] = topomojo_attempt::INPROGRESS;
+                break;
+            case 'closed':
+                $where[] = 'state = ?';
+                $sqlparams[] = topomojo_attempt::FINISHED;
+                break;
+            default:
+                // add no condition for state when 'all' or something other than open/closed
+        }
+    
+        if ((!$review) || (!$this->is_instructor())) {
+            //debugging("get_attempts_by_user for user", DEBUG_DEVELOPER);
+            $where[] = 'userid = ?';
+            $sqlparams[] = $userid;
+        }
+    
+        $wherestring = implode(' AND ', $where);
+    
+        $sql = "SELECT * FROM {topomojo_attempts} WHERE $wherestring ORDER BY timemodified DESC";
+        $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+    
+        $attempts = array();
+        // create array of class attempts from the db entry
+        foreach ($dbattempts as $dbattempt) {
+            $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
+        }
+        return $attempts;
+    }
+    
 
     public function init_attempt() {
         global $DB, $USER;
@@ -316,7 +280,7 @@ class topomojo {
         debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
 
         // create a new attempt
-        $attempt = new \mod_topomojo\topomojo_attempt();
+        $attempt = new topomojo_attempt($this->questionmanager);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -335,10 +299,93 @@ class topomojo {
         } else {
             return false;
         }
+
+
         $attempt->setState('inprogress');
 
         //TODO call start attempt event class from here
         return true;
+    }
+    /**
+     * Returns the class instance of the question manager
+     *
+     * @return \mod_topomojo\questionmanager
+     */
+    public function get_question_manager() {
+        return $this->questionmanager;
+    }
+
+    /**
+     * Saves the topomojo instance to the database
+     *
+     * @return bool
+     */
+    public function save() {
+        global $DB;
+
+        return $DB->update_record('topomojo', $this->topomojo);
+    }
+
+    public function get_openclose_state() {
+        $state = 'open';
+        $timenow = time();
+        if ($this->topomojo->timeopen && ($timenow < $this->topomojo->timeopen)) {
+            $state = 'unopen';
+            } else if ($this->topomojo->timeclose && ($timenow > $this->topomojo->timeclose)) {
+            $state = 'closed';
+        }
+
+        return $state;
+    }
+
+    /**
+     * Gets the review options for the specified time
+     *
+     * @param string $whenname The review options time that we want to get the options for
+     *
+     * @return \stdClass A class of the options
+     */
+    public function get_review_options() {
+
+        $reviewoptions = new \stdClass();
+	    $reviewoptions->reviewattempt = $this->topomojo->reviewattempt;
+        $reviewoptions->reviewcorrectness = $this->topomojo->reviewcorrectness;
+        $reviewoptions->reviewmarks = $this->topomojo->reviewmarks;
+        $reviewoptions->reviewspecificfeedback = $this->topomojo->reviewspecificfeedback;
+        $reviewoptions->reviewgeneralfeedback = $this->topomojo->reviewgeneralfeedback;
+        $reviewoptions->reviewrightanswer = $this->topomojo->reviewrightanswer;
+        $reviewoptions->reviewoverallfeedback = $this->topomojo->reviewoverallfeedback;
+        $reviewoptions->reviewmanualcomment = $this->topomojo->reviewmanualcomment;
+
+        return $reviewoptions;
+    }
+
+    public function canreviewmarks($reviewoptions, $state) {
+        $canreviewmarks = false;
+            if ($state == 'open') {
+                if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
+                    $canreviewmarks = true;
+                }
+            } else if ($state == 'closed') {
+                if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::AFTER_CLOSE) {
+                    $canreviewmarks = true;
+                }
+            }
+        return  $canreviewmarks;
+    }
+
+    public function canreviewattempt($reviewoptions, $state) {
+        $canreviewattempt = false;
+        if ($state == 'open') {
+            if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
+                $canreviewattempt = true;
+            }
+        } else if ($state == 'closed') {
+            if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::AFTER_CLOSE) {
+                $canreviewattempt = true;
+            }
+        }
+        return  $canreviewattempt;
     }
 
 }

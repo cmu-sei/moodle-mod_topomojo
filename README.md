@@ -3,12 +3,16 @@
 ## Description
 This is an activity plugin that allows Topomojo labs and exercises to accessed from the Moodle LMS. Topomojo is a open source lab player for cyber ranges. It can be download from GitHub at https://github.com/cmu-sei/topomojo. This plugin allows Topomojo labs to be integrated into a Moodle course. The Moodle activity may embed the Topomojo VM app into an iframe or it may provide a link for the student to open the full Topomojo lab player window in a new tab or window. The Topomojo labs can be started, accessed, and stopped using this plugin.
 
+## Development
+See the following page to build AMD JS modules:
+https://moodledev.io/general/development/tools/nodejs
+
 ## Requirements 
 * You must have the Topomojo applcation stack deployed for your organization
-* You must use the same OUATH2 identity server for authentication of Moodle and Topomojo
 
 ## Installation
 * Download the plugin and extract into mod/topomojo.
+$ Download the related plugins for mojomatch question type and question behaviour.
 
 ## License
 Topomojo Plugin for Moodle

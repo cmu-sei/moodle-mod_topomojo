@@ -138,7 +138,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-   // $oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
+    //$oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
 
     // Update the database.
     $topomojo->id = $topomojo->instance;
@@ -173,9 +173,44 @@ function topomojo_after_add_or_update($topomojo) {
 
 function topomojo_process_options($topomojo) {
     global $CFG;
+    require_once($CFG->libdir . '/questionlib.php');
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
     $topomojo->timemodified = time();
+    // Combing the individual settings into the review columns.
+    $topomojo->reviewattempt = topomojo_review_option_form_to_db($topomojo, 'attempt');
+    $topomojo->reviewcorrectness = topomojo_review_option_form_to_db($topomojo, 'correctness');
+    $topomojo->reviewmarks = topomojo_review_option_form_to_db($topomojo, 'marks');
+    $topomojo->reviewspecificfeedback = topomojo_review_option_form_to_db($topomojo, 'specificfeedback');
+    $topomojo->reviewgeneralfeedback = topomojo_review_option_form_to_db($topomojo, 'generalfeedback');
+    $topomojo->reviewrightanswer = topomojo_review_option_form_to_db($topomojo, 'rightanswer');
+    $topomojo->reviewoverallfeedback = topomojo_review_option_form_to_db($topomojo, 'overallfeedback');
+    $topomojo->reviewattempt |= mod_topomojo_display_options::DURING;
+    $topomojo->reviewoverallfeedback &= ~mod_topomojo_display_options::DURING;
+    $topomojo->reviewmanualcomment = topomojo_review_option_form_to_db($topomojo, 'manualcomment');
+}
+/**
+ * Helper function for {@link topomojo_process_options()}.
+ * @param object $fromform the sumbitted form date.
+ * @param string $field one of the review option field names.
+ */
+function topomojo_review_option_form_to_db($fromform, $field) {
+    static $times = array(
+        'during' => mod_topomojo_display_options::DURING,
+        'immediately' => mod_topomojo_display_options::IMMEDIATELY_AFTER,
+        'open' => mod_topomojo_display_options::LATER_WHILE_OPEN,
+        'closed' => mod_topomojo_display_options::AFTER_CLOSE,
+    );
 
+    $review = 0;
+    foreach ($times as $whenname => $when) {
+        $fieldname = $field . $whenname;
+        if (isset($fromform->$fieldname)) {
+            $review |= $when;
+            unset($fromform->$fieldname);
+        }
+    }
+
+    return $review;
 }
 
 /**
@@ -300,7 +335,6 @@ function mod_topomojo_core_calendar_provide_event_action(calendar_event $event,
 function topomojo_update_grades($topomojo, $userid = 0, $nullifnone = true) {
     global $CFG, $DB;
     require_once($CFG->libdir . '/gradelib.php');
-
     if ($topomojo->grade == 0) {
         topomojo_grade_item_update($topomojo);
 
@@ -409,30 +443,23 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
-    if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
-        $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
-        $context->add_node($node, $beforekey);
-    }
+    $url = new moodle_url('/mod/topomojo/challenge.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('challengetext', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_topomojo_challenge', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
+    
+    $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
+    $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
+    $context->add_node($node, $beforekey);
 
     if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/manage.php', array('c' => $PAGE->cm->course));
-        $node = navigation_node::create(get_string('managetext', 'mod_topomojo'),
+        $url = new moodle_url('/mod/topomojo/edit.php', array('cmid' => $PAGE->cm->id));
+        $node = navigation_node::create(get_string('questions', 'mod_topomojo'),
                 new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_manage', new pix_icon('i/grades', 'grades'));
+                navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));
         $context->add_node($node, $beforekey);
     }
-
-    if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/tasks.php', array('id' => $PAGE->cm->id));
-        $node = navigation_node::create(get_string('managetasks', 'mod_topomojo'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_tasks', new pix_icon('i/completion-manual-enabled', 'tasks'));
-        $context->add_node($node, $beforekey);
-    }
-
-
 }
-

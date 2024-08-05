@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a one page wonder table manager
+ * topomojo module main user interface
  *
  * @package    mod_topomojo
  * @copyright  2020 Carnegie Mellon University
@@ -33,51 +33,38 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-namespace mod_topomojo;
+define('AJAX_SCRIPT', true);
 
-require_once('../../config.php');
+require_once(__DIR__ . '/../../config.php');
+require_once("$CFG->dirroot/mod/topomojo/locallib.php");
+require_once($CFG->libdir . '/filelib.php');
+
 require_login();
-require_once($CFG->libdir . '/formslib.php');
+require_sesskey();
 
-/**
- * Define a form that acts on just one field, e.g "name", in an existing table
- */
-class topomojo_editgrade_form extends \moodleform {
+$id = required_param('id', PARAM_ALPHANUMEXT);
 
-    /**
-     * Defines forms elements
-     */
-    public function definition() {
-        global $CFG;
-
-        $mform = $this->_form;
-
-        $fieldname = "comment";
-        $mform->addElement('text', $fieldname, $fieldname,
-                array('size' => '64'));
-        $mform->setType($fieldname, PARAM_TEXT);
-        $mform->addRule($fieldname, null, 'required', null, 'client');
-        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
-                'maxlength', 255, 'client');
-
-        $fieldname = "score";
-        $mform->addElement('text', $fieldname, $fieldname,
-                array('size' => '64'));
-        $mform->setType($fieldname, PARAM_FLOAT);
-        $mform->addRule($fieldname, null, 'required', null, 'client');
-        $mform->addRule($fieldname, get_string('maximumchars', '', 255),
-                'maxlength', 255, 'client');
-
-        $mform->addElement('hidden', 'action', 'update');
-        $mform->setType('action', PARAM_TEXT);
-
-        $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
-
-        $mform->addElement('hidden', 'attemptid');
-        $mform->setType('attemptid', PARAM_INT);
-
-        $this->add_action_buttons();
-    }
+// Require the session key - want to make sure that this isn't called
+// maliciously to keep a session alive longer than intended.
+if (!confirm_sesskey()) {
+    header('HTTP/1.1 403 Forbidden');
+    print_error('invalidsesskey');
 }
+
+$response = array();
+
+$auth = setup();
+$result = get_ticket($auth);
+
+if (!$id || !$result) {
+    header('HTTP/1.1 500 Error');
+    $response['message'] = "error with get_ticket";
+    $response['gamespace'] = $id;
+} else {
+    header('HTTP/1.1 200 OK');
+    $response['ticket'] = $result;
+}
+
+echo json_encode($response);
+
 

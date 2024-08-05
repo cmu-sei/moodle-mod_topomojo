@@ -57,7 +57,7 @@ class grade {
      *
      * For now this will always be the last attempt for the user
      *
-     * @param \mod_topomojo\topomojo_attempt $attempt
+     * @param \mod_topomojo\TOPOMOJO_Attempt $attempt
      * @param int                                $userid The userid to get the grade for
      * @return array($forgroupid, $number)
      */
@@ -136,7 +136,7 @@ class grade {
      *
      * Is public function so that tableviews can get an attempt calculated grade
      *
-     * @param \mod_topomojo\topomojo_attempt $attempt
+     * @param \mod_topomojo\TOPOMOJO_Attempt $attempt
      * @return number The grade to save
      */
     public function calculate_attempt_grade($attempt) {
@@ -150,50 +150,16 @@ class grade {
             return $totalslotpoints;
         }
 
-        //get tasks from db
-        $tasks = $DB->get_records('topomojo_tasks', array("topomojoid" => $this->topomojo->topomojo->id, "gradable" => "1"));
-        $values = array();
+        $quba = $attempt->get_quba();
 
-        if ($tasks === false) {
-            return $scaledpoints;
-        }
-	    debugging("checking " . count($tasks) . " tasks", DEBUG_DEVELOPER);
-
-        foreach ($tasks as $task) {
-            //$results = $DB->get_records('topomojo_task_results', array("attemptid" => $attempt->id, "taskid" => $task->id), $sort="timemodified ASC");
-            $result = $DB->get_record_sql('SELECT * from {topomojo_task_results} WHERE '
-                . 'taskid = ' . $task->id . ' AND '
-                . 'attemptid = ' . $attempt->id . ' AND '
-                . $DB->sql_compare_text('vmname') . ' = '
-                . $DB->sql_compare_text(':vmname'), ['vmname' => 'SUMMARY']);
-            if ($result === false) {
-		        debugging("result is false", DEBUG_DEVELOPER);
-                continue;
-            } else if (is_null($result)) {
-		        debugging("result is null", DEBUG_DEVELOPER);
-                continue;
-	        }
-
-            $score = 0;
-            $points = 0;
-            $values[$task->id] = array();;
-            $vmresults = array();
-
-            $vmresults[$result->vmname] = $result->score;
-            $score = $result->score;
-            $points = $task->points;
-
-            $values[$task->id] = array($points, $score);
-        }
-
-        foreach ($values as $key => $vals) {
-            debugging("$key has points $vals[0] and score $vals[1]", DEBUG_DEVELOPER);
-            $totalpoints += $vals[0];
-            $totalslotpoints += $vals[1];
-        }
-
-        if ($totalpoints == 0) {
-            return 0;
+        $totalpoints = 0;
+        $totalslotpoints = 0;
+        foreach ($attempt->getSlots() as $slot) {
+            $totalpoints = $totalpoints + $quba->get_question_max_mark($slot);
+            $slotpoints = $quba->get_question_mark($slot);
+            if (!empty($slotpoints)) {
+                $totalslotpoints = $totalslotpoints + $slotpoints;
+            }
         }
         $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->topomojo->topomojo->grade;
 
@@ -229,18 +195,18 @@ class grade {
     protected function apply_grading_method($grades) {
         debugging("grade method is " . $this->topomojo->topomojo->grademethod . " for " . $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
-            case \mod_topomojo\utils\scaletypes::topomojo_FIRSTATTEMPT:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
                 // take the first record (as there should only be one since it was filtered out earlier)
                 reset($grades);
                 return current($grades);
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_LASTATTEMPT:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT:
                 // take the last grade (there should only be one, as the last attempt was filtered out earlier)
                 return end($grades);
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_ATTEMPTAVERAGE:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_ATTEMPTAVERAGE:
                 // average the grades
                 $gradecount = count($grades);
                 $gradetotal = 0;
@@ -250,7 +216,7 @@ class grade {
                 return $gradetotal / $gradecount;
 
                 break;
-            case \mod_topomojo\utils\scaletypes::topomojo_HIGHESTATTEMPTGRADE:
+            case \mod_topomojo\utils\scaletypes::TOPOMOJO_HIGHESTATTEMPTGRADE:
                 // find the highest grade
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
@@ -310,4 +276,26 @@ class grade {
         return true;
 
     }
+
+
+    /**
+     * Save and (re)calculate grades for this lab
+     *
+     * @param bool $regrade_attempts Regrade the question attempts themselves through the question engine
+     * @return bool
+     */
+    public function save_all_grades($regrade_attempts = false) {
+
+
+        $attempts = $this->topomojo->getall_attempts($open = 'closed');
+
+        foreach ($attempts as $attempt) {
+            // If we're regrading attempts, send them off to be re-graded before processing all sessions.
+            if ($regrade_attempts) {
+                $this->process_attempt($attempt);
+            }
+        }
+        return true;
+    }
+
 }

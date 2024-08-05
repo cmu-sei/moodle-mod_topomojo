@@ -40,20 +40,37 @@ require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
 
 class mod_topomojo_mod_form extends moodleform_mod {
-
-    /** @var array options to be used with date_time_selector fields in the activity. */
-    public static $datefieldoptions = array('optional' => true);
-
     private $auth;
+    private $workspaces;
+
+    /** @var array options to be used with date_time_selector fields in the quiz. */
+    public static $datefieldoptions = array('optional' => true);
+    protected static $reviewfields = array(); // Initialised in the constructor.
+    protected $_feedbacks;
+
+    public function __construct($current, $section, $cm, $course) {
+        self::$reviewfields = array(
+            'attempt'          => array('theattempt', 'topomojo'),
+            'correctness'      => array('whethercorrect', 'question'),
+            'marks'            => array('marks', 'topomojo'),
+            'specificfeedback' => array('specificfeedback', 'question'),
+            'generalfeedback'  => array('generalfeedback', 'question'),
+            'rightanswer'      => array('rightanswer', 'question'),
+            'overallfeedback'  => array('reviewoverallfeedback', 'topomojo'),
+            'manualcomment'    => array('manualcomment', 'topomojo')
+        );
+        parent::__construct($current, $section, $cm, $course);
+    }
+
 
     function definition() {
         global $COURSE, $CFG, $DB, $PAGE;
         $mform = $this->_form;
 
-        $config = get_config('topomojo');
+        $topomojoconfig = get_config('topomojo');
 
         // Adding the standard "intro" and "introformat" fields.
-        //$this->standard_intro_elements();
+        $this->standard_intro_elements();
         //TODO remove ability to edit the description and just show the select and dropdown
         //$mform->removeElement('introeditor');
         //TODO figure out why the description doesnt appear
@@ -63,8 +80,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-	    if ($config->autocomplete < 2) {
-	        #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
+            if ($topomojoconfig->autocomplete < 2) {
+                #debugging("looking up list of workspaces", DEBUG_DEVELOPER);
 
             // pull list from topomojo
             $this->auth = setup();
@@ -83,14 +100,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 //'noselectionstring' => get_string('selectname', 'topomojo'),
                 'placeholder' => get_string('selectname', 'topomojo')
             );
-            if ($config->autocomplete) {
+            if ($topomojoconfig->autocomplete) {
                 $mform->addElement('autocomplete', 'workspaceid', get_string('workspace', 'topomojo'), $labs, $options);
             } else {
                 $mform->addElement('select', 'workspaceid', get_string('workspace', 'topomojo'), $labs);
-	        }
+                }
         } else {
-	        debugging('need to manually select id', DEBUG_DEVELOPER);
-	        $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
+                debugging('need to manually select id', DEBUG_DEVELOPER);
+                $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
             $mform->setType('workspaceid', PARAM_ALPHANUMEXT);
         }
 
@@ -99,34 +116,29 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
-/*
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
-*/
+
+        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
+        $mform->setType('variant', PARAM_INT);
+        $mform->setDefault('variant', '1');
+        $mform->addHelpButton('variant', 'variant', 'topomojo');
+
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
-        $options = array('Display Link to Player', 'Embed VM App');
-        $mform->addElement('select', 'vmapp', get_string('vmapp', 'topomojo'), $options);
-        $mform->setDefault('vmapp', $config->vmapp);
-        $mform->addHelpButton('vmapp', 'vmapp', 'topomojo');
+        $options = array(get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo'));
+        $mform->addElement('select', 'embed', get_string('embed', 'topomojo'), $options);
+        $mform->setDefault('embed', $topomojoconfig->embed);
+        $mform->addHelpButton('embed', 'embed', 'topomojo');
 
         $options = array('', 'Countdown', 'Timer');
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
         $mform->setDefault('clock', '');
         $mform->addHelpButton('clock', 'clock', 'topomojo');
-            //TODO pull duration from topomojo workspace
-        $mform->addElement('text', 'duration', get_string('duration', 'topomojo'), "0");
-        $mform->setType('duration', PARAM_INT);
-        $mform->addHelpButton('duration', 'duration', 'topomojo');        
-        
-        $mform->addElement('checkbox', 'extendevent', get_string('extendeventsetting', 'topomojo'));
-        $mform->addHelpButton('extendevent', 'extendeventsetting', 'topomojo');
 
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 
-	    $mform->removeElement('grade');
+        $mform->removeElement('grade');
         $currentgrade = 0;
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
@@ -137,8 +149,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
         $mform->addElement('select', 'grademethod',
-            get_string('grademethod', 'topomojo'),
-            \mod_topomojo\utils\scaletypes::get_display_types());
+                get_string('grademethod', 'topomojo'),
+                \mod_topomojo\utils\scaletypes::get_display_types());
         $mform->setType('grademethod', PARAM_INT);
         $mform->addHelpButton('grademethod', 'grademethod', 'topomojo');
         //$mform->hideIf('grademethod', 'grade', 'eq', '0');
@@ -155,14 +167,182 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 self::$datefieldoptions);
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
+        //TODO pull duration from topomojo workspace
+        // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
+        $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
+        $mform->setType('duration', PARAM_INT);
+        $mform->setDefault('duration', '3600');
+        $mform->addHelpButton('duration', 'duration', 'topomojo');
+
+        $mform->addElement('checkbox', 'extendevent', get_string('extendevent', 'topomojo'));
+        $mform->addHelpButton('extendevent', 'extendevent', 'topomojo');
+
+
+        // -------------------------------------------------------------------------------
+        $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'topomojo'));
+
+        $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
+        $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
+
+        $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
+        $mform->addHelpButton('endlab', 'endlab', 'topomojo');
+
+        // Shuffle within questions.
+        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
+        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'topomojo');
+        $mform->setAdvanced('shuffleanswers', '');
+        $mform->setDefault('shuffleanswers', '');
+
+        // How questions behave (question behaviour).
+        if (!empty($this->current->preferredbehaviour)) {
+            $currentbehaviour = $this->current->preferredbehaviour;
+        } else {
+            $currentbehaviour = 'deferredfeedback';
+        }
+        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+        $mform->addElement('select', 'preferredbehaviour',
+                get_string('howquestionsbehave', 'question'), $behaviours);
+        $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
+
+        // -------------------------------------------------------------------------------
+        $mform->addElement('header', 'reviewoptionshdr',
+                get_string('reviewoptionsheading', 'topomojo'));
+        $mform->addHelpButton('reviewoptionshdr', 'reviewoptionsheading', 'topomojo');
+        // Review options.
+        $this->add_review_options_group($mform, $topomojoconfig, 'during',
+                mod_topomojo_display_options::DURING, true);
+        $this->add_review_options_group($mform, $topomojoconfig, 'immediately',
+                mod_topomojo_display_options::IMMEDIATELY_AFTER);
+        $this->add_review_options_group($mform, $topomojoconfig, 'open',
+                mod_topomojo_display_options::LATER_WHILE_OPEN);
+        $this->add_review_options_group($mform, $topomojoconfig, 'closed',
+                mod_topomojo_display_options::AFTER_CLOSE);
+
+
+        foreach (self::$reviewfields as $field => $notused) {
+            $mform->disabledIf($field . 'closed', 'timeclose[enabled]');
+        }
+
+
 
         //-------------------------------------------------------
         $this->standard_coursemodule_elements();
 
         //-------------------------------------------------------
         $this->add_action_buttons();
+    }
+
+    /**
+     * Adapted from the quiz module's review options group function
+     *
+     * @param      $mform
+     * @param      $whenname
+     * @param bool $withhelp
+     */
+    protected function add_review_options_group($mform, $topomojoconfig, $whenname,
+            $when, $withhelp = false) {
+        global $OUTPUT;
+
+        $group = array();
+        foreach (self::$reviewfields as $field => $string) {
+            list($identifier, $component) = $string;
+
+            $label = get_string($identifier, $component);
+            if ($withhelp) {
+                // TODO this displays a placeholder not an acutal help message
+                $label .= ' ' . $OUTPUT->help_icon($identifier, $component);
+            }
+
+            $group[] = $mform->createElement('checkbox', $field . $whenname, '', $label);
+        }
+        $mform->addGroup($group, $whenname . 'optionsgrp',
+                get_string('review' . $whenname, 'topomojo'), null, false);
+
+        foreach (self::$reviewfields as $field => $notused) {
+            $cfgfield = 'review' . $field;
+            if ($topomojoconfig->$cfgfield & $when) {
+                $mform->setDefault($field . $whenname, 1);
+            } else {
+                $mform->setDefault($field . $whenname, 0);
+            }
+        }
+        if ($whenname != 'during') {
+            $mform->disabledIf('correctness' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('specificfeedback' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('generalfeedback' . $whenname, 'attempt' . $whenname);
+            $mform->disabledIf('rightanswer' . $whenname, 'attempt' . $whenname);
+        }
+    }
+    protected function preprocessing_review_settings(&$toform, $whenname, $when) {
+        foreach (self::$reviewfields as $field => $notused) {
+            $fieldname = 'review' . $field;
+            if (array_key_exists($fieldname, $toform)) {
+                $toform[$field . $whenname] = $toform[$fieldname] & $when;
+            }
+        }
+    }
+    function data_preprocessing(&$toform) {
+        if (isset($toform['grade'])) {
+            // Convert to a real number, so we don't get 0.0000.
+            $toform['grade'] = $toform['grade'] + 0;
+        }
+
+        if (is_array($this->_feedbacks) && count($this->_feedbacks)) {
+            $key = 0;
+            foreach ($this->_feedbacks as $feedback) {
+                $draftid = file_get_submitted_draft_itemid('feedbacktext['.$key.']');
+                $toform['feedbacktext['.$key.']']['text'] = file_prepare_draft_area(
+                    $draftid,               // Draftid.
+                    $this->context->id,     // Context.
+                    'mod_topomojo',             // Component.
+                    'feedback',             // Filarea.
+                    !empty($feedback->id) ? (int) $feedback->id : null, // Itemid.
+                    null,
+                    $feedback->feedbacktext // Text.
+                );
+                $toform['feedbacktext['.$key.']']['format'] = $feedback->feedbacktextformat;
+                $toform['feedbacktext['.$key.']']['itemid'] = $draftid;
+
+                if ($toform['grade'] == 0) {
+                    // When a quiz is un-graded, there can only be one lot of
+                    // feedback. If the quiz previously had a maximum grade and
+                    // several lots of feedback, we must now avoid putting text
+                    // into input boxes that are disabled, but which the
+                    // validation will insist are blank.
+                    break;
+                }
+
+                if ($feedback->mingrade > 0) {
+                    $toform['feedbackboundaries['.$key.']'] =
+                            round(100.0 * $feedback->mingrade / $toform['grade'], 6) . '%';
+                }
+                $key++;
+            }
+        }
+/*
+        if (isset($toform['timelimit'])) {
+            $toform['timelimitenable'] = $toform['timelimit'] > 0;
+        }
+*/
+        $this->preprocessing_review_settings($toform, 'during',
+                mod_topomojo_display_options::DURING);
+        $this->preprocessing_review_settings($toform, 'immediately',
+                mod_topomojo_display_options::IMMEDIATELY_AFTER);
+        $this->preprocessing_review_settings($toform, 'open',
+                mod_topomojo_display_options::LATER_WHILE_OPEN);
+        $this->preprocessing_review_settings($toform, 'closed',
+                mod_topomojo_display_options::AFTER_CLOSE);
+        $toform['attemptduring'] = true;
+        $toform['overallfeedbackduring'] = false;
+
+        // Completion settings check.
+        if (empty($toform['completionusegrade'])) {
+            $toform['completionpass'] = 0; // Forced unchecked.
+        }
 
     }
+
+
 
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
@@ -172,59 +352,77 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $data['timeclose'] < $data['timeopen']) {
             $errors['timeclose'] = get_string('closebeforeopen', 'quiz');
         }
-
-
-        if (array_key_exists('completion', $data) && $data['completion'] == COMPLETION_TRACKING_AUTOMATIC) {
-            $completionpass = isset($data['completionpass']) ? $data['completionpass'] : $this->current->completionpass;
-
-            // Show an error if require passing grade was selected and the grade to pass was set to 0.
-            if ($completionpass && (empty($data['gradepass']) || grade_floatval($data['gradepass']) == 0)) {
-                if (isset($data['completionpass'])) {
-                    $errors['completionpassgroup'] = get_string('gradetopassnotset', 'topomojo');
-                } else {
-                    $errors['gradepass'] = get_string('gradetopassmustbeset', 'topomojo');
-                }
+        if (!empty($data['completionminattempts'])) {
+            if ($data['attempts'] > 0 && $data['completionminattempts'] > $data['attempts']) {
+                $errors['completionminattemptsgroup'] = get_string('completionminattemptserror', 'quiz');
             }
         }
-    }
-
-    function data_preprocessing(&$data) {
-
-        // Completion settings check.
-        if (empty($toform['completionusegrade'])) {
-            $toform['completionpass'] = 0; // Forced unchecked.
+        // If CBM is involved, don't show the warning for grade to pass being larger than the maximum grade.
+        if (($data['preferredbehaviour'] == 'deferredcbm') OR ($data['preferredbehaviour'] == 'immediatecbm')) {
+            unset($errors['gradepass']);
         }
+        return $errors;
 
     }
+
 
     function data_postprocessing($data) {
-        if (!$data->workspaceid) {
-            echo "return to settings page<br>";
-            exit;
+        $usetopomojointro = false;
+
+        parent::data_postprocessing($data);
+        if (!empty($data->completionunlocked)) {
+            // Turn off completion settings if the checkboxes aren't ticked.
+            $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->completionminattemptsenabled) || !$autocompletion) {
+                $data->completionminattempts = 0;
+            }
         }
-        if (!$data->vmapp) {
-            $data->vmapp = 0;
+
+        if (!$data->workspaceid) {
+            print_error("no workspace id is set");
+        }
+        if (!$data->embed) {
+            $data->embed = 0;
         }
 
         if (is_array($this->workspaces)) {
-            $index = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
-            $data->name = $this->workspaces[$index]->name;
-            $data->intro = $this->workspaces[$index]->description;
-            // pull durationMinutes from topomojo
-            if ($data->duration == 0) {
-                $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
-                $data->duration = $this->workspace->durationMinutes;
+            $selectedworkspace = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
+            $data->name = $this->workspaces[$selectedworkspace]->name;
+            // TODO make a setting to determine whether we pull this from topomojo or set it in moodle
+            if ($usetopomojointro) {
+                $description = $this->workspaces[$selectedworkspace]->description;
+                $markdowncutline = "<!-- cut -->";
+                $parts = preg_split($markdowncutline, $description);
+                $data->intro = $parts[0];
+                $data->introformat = FORMAT_MARKDOWN;
             }
-            $this->workspace = get_workspace($this->auth, $this->workspaces[$index]->id);
-
-            $data->introformat = FORMAT_MARKDOWN;
+            // TODO pull durationMinutes from topomojo workspace
+            if ($data->duration == 0) {
+                $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
+            }
+	    // check that variant is valid
+	    $challenge = get_challenge($this->auth, $this->workspaces[$selectedworkspace]->id);
+	    if ($challenge) {
+                $variants = count($challenge->variants);
+            } else {
+                $variants = 1;
+            }
+            if ($data->variant > $variants) {
+                //$data->variant = 1;
+                print_error("lab does not have " . $data->variant . " or more variants");
+            }
+            //if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
+            //    print_error("cannot import challenge when variant is random");
+            //}
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
             $data->name = "Unknown lab";
-            $data->intro = "No description available";
+            if ($usetopomojointro) {
+                $data->intro = "No description available";
+                $data->introeditor['format'] = FORMAT_PLAIN;
+            }
         }
-        $data->introeditor['format'] = FORMAT_PLAIN;
 
         // TODO if grade method changed, update all grades
     }

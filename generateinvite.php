@@ -62,10 +62,8 @@ if (!$id || !$result) {
     $response['gamespace'] = $id;
 } else {
     header('HTTP/1.1 200 OK');
-    $invitelinkurl = get_config('topomojo', 'playerappurl') . "/lp/?c=" . $result->code;
+    $invitelinkurl = get_config('topomojo', 'topomojobaseurl') . "/lp/?c=" . $result->code;
     $response['invitelinkurl'] = $invitelinkurl;
 }
 
 echo json_encode($response);
-
-

@@ -37,14 +37,138 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
+require_once($CFG->libdir . '/questionlib.php');
 
 function setup() {
         $client = new curl;
         $x_api_key = get_config('topomojo', 'apikey');
         $topoHeaders = array( 'x-api-key: ' . $x_api_key, 'content-type: application/json' );
         $client->setHeader($topoHeaders);
-	    #debugging("api key $x_api_key", DEBUG_DEVELOPER);
+	//debugging("api key $x_api_key", DEBUG_DEVELOPER);
         return $client;
+}
+
+/* this function currently returns all gamespaces deployed from a workspace with the same name.
+ * this list is not specific to moodle-deployed labs or labs for the current user.
+ * filter on the managerName to make it moodle-specifc or remove the Filter=All string.
+ * removing the filter=all prevents the term= from working.
+ * the records returned do not listed players.
+ */
+function list_events($client, $name) {
+	//debugging("listing events", DEBUG_DEVELOPER);
+    if ($client == null) {
+        print_error('error with userauth');
+        return;
+    }
+
+    // web request
+    //echo $name . "<br>";
+    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode("Wireless") . "&Filter=all";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&WantsActive=true";
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    if ($client->info['http_code']  !== 200) {
+        debugging('response code ' . $client->info['http_code'] . " $url", DEBUG_DEVELOPER);
+        return;
+    }
+    if (!$response) {
+        debugging("no response received by list_events $url", DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response, true);
+
+    if (!$r) {
+        debugging("could not decode json $url", DEBUG_DEVELOPER);
+        return;
+    }
+    usort($r, 'whenCreated');
+    return $r;
+}
+
+function moodle_events($events) {
+    $moodle_events = array();
+    if (!is_array($events)) {
+        debugging("no events to parse in moodle_events", DEBUG_DEVELOPER);
+        return;
+    }
+    foreach ($events as $event) {
+        if ($event['managerName'] == "Adam Welle") {
+            //echo "<br>got moodle user<br>";
+            array_push($moodle_events, $event);
+        }
+    }
+    //debugging("found " . count($moodle_events) . " events started by moodle", DEBUG_DEVELOPER);
+    return $moodle_events;
+}
+
+function user_events($client, $events) {
+    global $USER;
+    //debugging("filtering events for user", DEBUG_DEVELOPER);
+    if ($client == null) {
+        print_error('error with userauth');
+        return;
+    }
+    $user_events = array();
+
+    if (!is_array($events)) {
+        debugging("cannot parse for user_events if events is not an array", DEBUG_DEVELOPER);
+        return;
+    }
+
+    foreach ($events as $event) {
+        // web request
+        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
+        //echo "<br>GET $url<br>";
+
+        $count = 1;
+        $response = null;
+        do {
+            $response = $client->get($url);
+            //print_r($response);
+
+            if (!$response) {
+                debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
+                $count++;
+            }
+        } while (!$response && ($count < 4));
+        if (!$response) {
+            print_error("Error communicating with Topomojo after $count attempts: " . $response);
+            return;
+        }
+
+        $r = json_decode($response, true);
+
+        if (!$r) {
+            debugging("could not decode json $url", DEBUG_DEVELOPER);
+            print_error("Error communicating with Topomojo after $count attempts: " . $response);
+            return;
+        }
+
+        //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
+        $players = $r['players'];
+        //print_r($players);
+
+        $subjectid = explode( "@", $USER->email )[0];
+        //echo "<br>subjectid $subjectid<br>";
+
+        if (!is_array($players)) {
+            debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
+            return;
+
+        }
+        foreach ($players as $player) {
+            //print_r($player);
+            if ($player['subjectId'] == $subjectid) {
+                //echo "found user";
+                array_push($user_events, $r);
+            }
+        }
+    }
+    //debugging("found " . count($user_events) . " events for this user", DEBUG_DEVELOPER);
+    return $user_events;
 }
 
 function get_workspace($client, $id) {
@@ -62,8 +186,9 @@ function get_workspace($client, $id) {
     // TODO handle network error
 
     if ($client->info['http_code'] !== 200) {
-        #debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        print_r($client->response);
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
         print_error($client->info['http_code'] . " for $url");
     }
 
@@ -79,45 +204,6 @@ function get_workspace($client, $id) {
     }
 
     return $r;
-}
-
-function tasksort($a, $b) {
-    return strcmp($a->name, $b->name);
-}
-
-// filter for tasks the user can see and sort by name
-function filter_tasks($tasks, $visible = 0, $gradable = 0) {
-    global $DB;
-    if (is_null($tasks)) {
-        return;
-    }
-    $filtered = array();
-    foreach ($tasks as $task) {
-
-        $rec = $DB->get_record_sql('SELECT * from {topomojo_tasks} WHERE '
-                . $DB->sql_compare_text('dispatchtaskid') . ' = '
-                . $DB->sql_compare_text(':dispatchtaskid'), ['dispatchtaskid' => $task->id]);
-
-        if ($rec === false) {
-            // do not display tasks we do not have in the db
-            debugging('could not find task in db ' . $task->id, DEBUG_DEVELOPER);
-            continue;
-        }
-
-        if ($visible === (int)$rec->visible ) {
-            $task->points = $rec->points;
-            $filtered[] = $task;
-        }
-
-        // TODO show automatic checks or show manual tasks only?
-        //if ($task->triggerCondition == "Manual") {
-        //    $filtered[] = $task;
-        //}
-        //$filtered[] = $task;
-    }
-    // sort the array by name
-    usort($filtered, "tasksort");
-    return $filtered;
 }
 
 function get_workspaces($client) {
@@ -149,6 +235,70 @@ function get_workspaces($client) {
     return $r;
 }
 
+
+function get_gamespace_challenge($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/challenge";
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
+    }
+
+    if (!$response) {
+        debugging('no response received by get_workspace', DEBUG_DEVELOPER);
+    }
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+
+    if (!$r) {
+        debugging("could not find item by id", DEBUG_DEVELOPER);
+        return;
+    }
+
+    return $r;
+}
+
+function get_markdown($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
+    //echo "GET $url<br>";
+
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
+    }
+
+    if (!$response) {
+        debugging('no response received by get_document', DEBUG_DEVELOPER);
+    }
+
+    return $response;
+}
+
 function start_event($client, $id, $topomojo) {
     global $USER;
     debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
@@ -169,9 +319,9 @@ function start_event($client, $id, $topomojo) {
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = 1; // TODO get this from settings
-    $payload->maxMinutes = $topomojo->duration;
+    $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
-    $payload->variant = 0; // TODO get this from settings
+    $payload->variant = $topomojo->variant;
     $payload->players = array();
     $payload->players[0] = new stdClass();
     $payload->players[0]->subjectId = explode( "@", $USER->email )[0];
@@ -183,6 +333,7 @@ function start_event($client, $id, $topomojo) {
     $client->setopt( array( 'CURLOPT_POSTFIELDS' => $json) );
 
     $response = $client->post($url, $json);
+
     if (!$response) {
         debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
@@ -198,10 +349,11 @@ function start_event($client, $id, $topomojo) {
     if ($client->info['http_code']  === 200) {
         return $r;
     }
-    if ($client->info['http_code']  === 500) {
-        //echo "response code ". $client->info['http_code'] . "<br>";
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
+
+    //echo "response code ". $client->info['http_code'] . "<br>";
+    debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    //print_r($r);
+
     return;
 }
 
@@ -228,6 +380,37 @@ function stop_event($client, $id) {
         return;
     }
     //echo "response:<br><pre>$response</pre>";
+    return;
+}
+
+function get_ticket($client) {
+
+    if ($client == null) {
+        debugging('error with client in get_ticket', DEBUG_DEVELOPER);;
+        return;
+    }
+
+    // web request
+    $url = get_config('topomojo', 'topomojoapiurl') . "/user/ticket";
+    //echo "POST $url<br>";
+
+    $response = $client->get($url);
+
+    //echo "response:<br><pre>$response</pre>";
+    $r = json_decode($response);
+    if (!$r) {
+        //echo "could not decode json<br>";
+        return;
+    }
+
+    // success
+    if ($client->info['http_code']  === 200) {
+        return $r->ticket;
+    }
+    if ($client->info['http_code']  === 500) {
+        //echo "response code ". $client->info['http_code'] . "<br>";
+        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    }
     return;
 }
 
@@ -260,26 +443,6 @@ function get_invite($client, $id) {
         debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
-}
-
-function run_task($client, $id) {
-
-    if ($client == null) {
-        return;
-    }
-
-    // web request
-    $url = get_config('topomojo', 'steamfitterapiurl') . "/tasks/" . $id . "/execute";
-
-    $response = $client->post($url);
-
-    if ($client->info['http_code']  !== 200) {
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
-
-    $r = json_decode($response);
-
-    return $r;
 }
 
 function extend_event($client, $data) {
@@ -326,7 +489,7 @@ function get_event($client, $id) {
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        debugging("could not decode json for $url", DEBUG_DEVELOPER);
+        //debugging("could not decode json for $url", DEBUG_DEVELOPER);
         print_error($response);
         return;
     }
@@ -338,47 +501,6 @@ function get_event($client, $id) {
         print_error($r->detail);
     }
     return;
-}
-
-function get_task($client, $id) {
-
-    if ($client == null) {
-        debugging('error with client in get_tasks', DEBUG_DEVELOPER);;
-        return;
-    }
-
-    if ($id == null) {
-        debugging('error with id in get_tasks', DEBUG_DEVELOPER);;
-        return;
-    }
-
-    // web request
-    $url = get_config('topomojo', 'steamfitterapiurl') . "/tasks/" . $id;
-    //echo "GET $url<br>";
-
-    $response = $client->get($url);
-    if (!$response) {
-        debugging('no response received by get_tasks', DEBUG_DEVELOPER);
-        return;
-    }
-    //echo "response:<br><pre>$response</pre>";
-    $r = json_decode($response);
-    if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
-        return;
-    }
-
-    if ($client->info['http_code']  === 200) {
-        return $r;
-    } else {
-        debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    }
-    return;
-}
-
-// mot used
-function endDate($a, $b) {
-    return strnatcmp($a['endDate'], $b['endDate']);
 }
 
 function whenCreated($a, $b) {
@@ -396,31 +518,7 @@ function get_active_event($history) {
         }
     }
     debugging("there are no active events in the history pulled from topomojo", DEBUG_DEVELOPER);
-}
-
-function get_token($client) {
-    $access_token = $client->get_accesstoken();
-    return $access_token->token;
-}
-
-function get_refresh_token($client) {
-    $refresh_token = $client->get_refresh_token();
-    return $refresh_token->token;
-}
-
-function get_scopes($client) {
-    $access_token = $client->get_accesstoken();
-    return $access_token->scope;
-}
-
-function get_clientid($client) {
-    $issuer = $client->get_issuer();
-    return $issuer->get('clientid');
-}
-
-function get_clientsecret($client) {
-    $issuer = $client->get_issuer();
-    return $issuer->get('clientsecret');
+    return null;
 }
 
 /**
@@ -470,40 +568,38 @@ function topomojo_start($cm, $context, $topomojo) {
     $event->trigger();
 }
 
-// this functions returns all the vms in a view
-function get_allvms($auth, $id) {
-    if ($auth == null) {
-        print_error('error with auth');
-        return;
-    }
-
-    if ($id == null) {
-        print_error('error with id');
-        return;
+function get_challenge($client, $id) {
+    global $USER;
+    if ($client == null) {
+        print_error('could not setup session');
     }
 
     // web request
-    $url = "https://s3vm.cyberforce.site/api/views/" . $id . "/vms";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/challenge/" . $id;
     //echo "GET $url<br>";
 
-    $response = $auth->get($url);
-    if (!$response) {
-        debugging("no response received by get_allvms $url", DEBUG_DEVELOPER);
-        return;
+    $response = $client->get($url);
+
+    // TODO handle network error
+
+    if ($client->info['http_code'] !== 200) {
+        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        //print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed
+        print_error($client->info['http_code'] . " for $url");
     }
-    if ($auth->info['http_code']  !== 200) {
-        debugging('response code ' . $auth->info['http_code'], DEBUG_DEVELOPER);
+
+    if (!$response) {
+        debugging('no response received by get_challenge', DEBUG_DEVELOPER);
     }
     //echo "response:<br><pre>$response</pre>";
-    if ($response === "[]") {
+    $r = json_decode($response);
+
+    if (!$r) {
+        debugging("could not find item by id", DEBUG_DEVELOPER);
         return;
     }
 
-    $r = json_decode($response);
-    if (!$r) {
-        debugging("could not decode json", DEBUG_DEVELOPER);
-        return;
-    }
     return $r;
 }
 
@@ -547,3 +643,152 @@ function getall_topomojo_attempts($course) {
     return $attempts;
 
 }
+
+function topomojo_question_tostring($question, $showicon = false, $showquestiontext = true,
+        $showidnumber = false, $showtags = false) {
+    global $OUTPUT;
+    $result = '';
+
+    // Question name.
+    $name = shorten_text(format_string($question->name), 200);
+    if ($showicon) {
+        $name .= print_question_icon($question) . ' ' . $name;
+    }
+    $result .= html_writer::span($name, 'questionname');
+
+    // Question idnumber.
+    if ($showidnumber && $question->idnumber !== null && $question->idnumber !== '') {
+        $result .= ' ' . html_writer::span(
+                html_writer::span(get_string('idnumber', 'question'), 'accesshide') .
+                ' ' . s($question->idnumber), 'badge badge-primary');
+    }
+
+    // Question tags.
+    if (is_array($showtags)) {
+        $tags = $showtags;
+    } else if ($showtags) {
+        $tags = core_tag_tag::get_item_tags('core_question', 'question', $question->id);
+    } else {
+        $tags = [];
+    }
+    if ($tags) {
+        $result .= $OUTPUT->tag_list($tags, null, 'd-inline', 0, null, true);
+    }
+
+    // Question text.
+    if ($showquestiontext) {
+        $questiontext = question_utils::to_plain_text($question->questiontext,
+                $question->questiontextformat, array('noclean' => true, 'para' => false));
+        $questiontext = shorten_text($questiontext, 50);
+        if ($questiontext) {
+            $result .= ' ' . html_writer::span(s($questiontext), 'questiontext');
+        }
+    }
+
+    return $result;
+
+}
+
+/**
+ * @param object $topomojo the topomojo settings
+ * @param object $question the question
+ * @param int $variant which question variant to preview (optional).
+ * @return moodle_url to preview this question with the options from this quiz.
+ */
+function topomojo_question_preview_url($topomojo, $question, $variant = null) {
+    // Get the appropriate display options.
+    $displayoptions = topomojo_display_options::make_from_topomojo($topomojo,
+            topomojo_display_options::DURING);
+
+    $maxmark = null;
+    if (isset($question->maxmark)) {
+        $maxmark = $question->maxmark;
+    }
+
+    // Work out the correcte preview URL.
+    return \qbank_previewquestion\helper::question_preview_url($question->id, $topomojo->preferredbehaviour,
+            $maxmark, $displayoptions, $variant);
+}
+
+/**
+ * @param int $topomojoid The topomojo id.
+ * @return bool whether this topomojo has any (non-preview) attempts.
+ */
+function topomojo_has_attempts($topomojoid) {
+    global $DB;
+    return $DB->record_exists('topomojo_attempts', array('topomojoid' => $topomojoid));
+
+}
+/**
+ * An extension of question_display_options that includes the extra options used
+ * by the quiz.
+ *
+ * @copyright  2010 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mod_topomojo_display_options extends question_display_options {
+    /**#@+
+     * @var integer bits used to indicate various times in relation to a
+     * quiz attempt.
+     */
+    const DURING =            0x10000;
+    const IMMEDIATELY_AFTER = 0x01000;
+    const LATER_WHILE_OPEN =  0x00100;
+    const AFTER_CLOSE =       0x00010;
+    /**#@-*/
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $attempt = true;
+
+    /**
+     * @var boolean if this is false, then the student is not allowed to review
+     * anything about the attempt.
+     */
+    public $overallfeedback = self::VISIBLE;
+
+    /**
+     * Set up the various options from the quiz settings, and a time constant.
+     * @param object $topomojo the quiz settings.
+     * @param int $one of the {@link DURING}, {@link IMMEDIATELY_AFTER},
+     * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
+     * @return mod_topomojo_display_options set up appropriately.
+     */
+    // TODO remove if not used
+    public static function make_from_topomojo($topomojo, $when) {
+        $options = new self();
+
+        $options->attempt = self::extract($topomojo->reviewattempt, $when, true, false);
+        $options->correctness = self::extract($topomojo->reviewcorrectness, $when);
+        $options->marks = self::extract($topomojo->reviewmarks, $when,
+                self::MARK_AND_MAX, self::MAX_ONLY);
+        $options->feedback = self::extract($topomojo->reviewspecificfeedback, $when);
+        $options->generalfeedback = self::extract($topomojo->reviewgeneralfeedback, $when);
+        $options->rightanswer = self::extract($topomojo->reviewrightanswer, $when);            $options->overallfeedback = self::extract($topomojo->reviewoverallfeedback, $when);
+        $options->numpartscorrect = $options->feedback;
+            $options->manualcomment = $options->feedback;
+            //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
+
+        if ($topomojo->questiondecimalpoints != -1) {
+            $options->markdp = $topomojo->questiondecimalpoints;
+        } else {
+            $options->markdp = $topomojo->decimalpoints;
+        }
+
+        return $options;
+    }
+
+    protected static function extract($bitmask, $bit,
+            $whenset = self::VISIBLE, $whennotset = self::HIDDEN) {
+        if ($bitmask & $bit) {
+            return $whenset;
+        } else {
+            return $whennotset;
+        }
+    }
+}
+
+
+

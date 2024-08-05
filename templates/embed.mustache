@@ -29,19 +29,18 @@ DM20-0196
 
     This template renders a url in an iframe of given size.
 
-	    Example context (json):
-	    {
-		"name": "",
-		"intro": ""
-	    }
+            Example context (json):
+            {
+                "name": "",
+                "intro": ""
+            }
 }}
-
 <div>
-	{{#vmlist}}
-	{{#.}}
-		<a href="{{url}}" class="btn btn-primary" target="_blank" >{{name}}</a>
-	{{/.}}
-	{{/vmlist}}
+        {{#vmlist}}
+        {{#.}}
+                <button id="{{url}}" class="btn btn-primary console">{{name}}</button>
+        {{/.}}
+        {{/vmlist}}
 </div>
 <br>
 

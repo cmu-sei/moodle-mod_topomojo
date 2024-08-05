@@ -29,12 +29,20 @@ DM20-0196
 
     This template renders details about the lab.
 
-	    Example context (json):
-	    {
-		"name": "",
-		"intro": ""
-	    }
+            Example context (json):
+            {
+                "name": "",
+                "intro": ""
+            }
 }}
+<div style="background-color: #f0f8ff; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+    <h5><strong>📌 NICE Work Role(s):</strong></h5>
+    {{#tags}}
+    <ul>
+        <li>{{.}}</li>
+    </ul>
+    {{/tags}}
+</div>
 {{#duration}}
 <p>{{durationtext}}: {{duration}} Minutes</p>
 {{/duration}}
