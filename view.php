@@ -213,6 +213,15 @@ $tags = explode(' ', $tags);
 $tags = str_replace('-', ' ', $tags);
 $tags = array_map('ucwords', $tags);
 
+foreach ($tags as $tag) {
+	$nametag = \core_tag_tag::guess_by_name($tag);
+	if ($nametag) {
+		// tag exists in moodle, add it to the activity (if not already on activity)
+	} else {
+		// tag does not exist in moodle, add it to moodle and add it to activity
+	}
+}
+
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
 
