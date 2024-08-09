@@ -199,6 +199,28 @@ if ($tags)
     $tags = str_replace('-', ' ', $tags);
     $tags = array_map('ucwords', $tags);
 
+    //Check for the status for the tag collection
+    $collectionName = "NICE Work Roles";
+
+    // Fetch the tag collection record by name
+    $tagcollection = $DB->get_record('tag_coll', array('name' => $collectionName));
+    var_dump($tagcollection);
+
+    if ($tagcollection) {
+        // Tag collection exists
+        $collectionid = $tagcollection->id;
+    } else {
+        // Tag collection does not exist, create it
+        $newcollection = new stdClass();
+        $newcollection->name = $collectionName;
+        $newcollection->description = ''; // Provide a description if needed
+        $newcollection->descriptionformat = 0; // Assuming no format needed
+        $newcollection->timemodified = time();
+    
+        // Insert the new tag collection into the database
+        $collectionid = $DB->insert_record('tag_coll', $newcollection);
+    }
+
     foreach ($tags as $tag) {
         // Check if the tag exists in the database
         $tagname = $DB->get_record_sql("SELECT * FROM {tag} WHERE name = ?", array($tag));
@@ -210,7 +232,7 @@ if ($tags)
             // Tag does not exist, insert it
             $newtag = new stdClass();
             $newtag->userid = $USER->id; // or another appropriate user ID
-            $newtag->tagcollid = 1; // Default tag collection ID
+            $newtag->tagcollid = $collectionid; // Default tag collection ID
             $newtag->name = $tag;
             $newtag->rawname = $tag;
             $newtag->isstandard = 1;
