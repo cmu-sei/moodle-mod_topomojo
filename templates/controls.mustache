@@ -40,8 +40,9 @@ DM20-0196
     {{#extend}}
     <button id="extend-event" style"display:inline" class="btn btn-primary">{{extend}}</button>
     {{/extend}}
-    <form action="{{url}}" method="post" style="display:inline">
+    <form id="stop_form" action="{{url}}" method="post" style="display:inline">
         <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
+        <input id="stop_confirmed" type="hidden" name="stop_confirmed" value="" />
         <input id="end_button" class="btn btn-primary" type="submit" name="stop" value="{{# str }} stoplab, mod_topomojo {{/ str }}" />
     </form>
     <span id="invitationlinkurl" style="display:none"></span>
@@ -49,3 +50,13 @@ DM20-0196
     <button id="copy_invite" class="btn btn-primary" style="display:none">{{# str }} copyinvite, mod_topomojo {{/ str }}</button>
 </div>
 <br>
+
+<script type="text/javascript">
+    document.getElementById('end_button').addEventListener('click', function(event) {
+        if (!confirm("Are you sure you want to stop the attempt?\nThis will destroy the lab on TopoMojo.")) {
+            event.preventDefault(); // Prevent the form from being submitted if the user cancels
+        } else {
+            document.getElementById('stop_confirmed').value = "yes";
+        }
+    });
+</script>

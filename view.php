@@ -99,20 +99,15 @@ if ($activeAttempt == true) {
 }
 
 // handle start/stop form action
-if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
+if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
 
     // check not started already
     if (!$object->event) {
-
-        //TODO check for open attempt and check for status of its event
-
-
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
-            //f$object->event = get_event($object->userauth, $eventid);
             $activeAttempt = $object->init_attempt();
             debugging("init_attempt returned $activeAttempt", DEBUG_DEVELOPER);
             if (!$activeAttempt) {
@@ -127,16 +122,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
         if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
             $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-            //$object->get_question_manager()->create_questions_from_challenge($challenge);
         }
         // contact topomojo and pull the correct answers for this attempt
-        // TODO verify is this works for random attempts
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
 
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
-} else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
@@ -147,20 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
 
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
-            //TODO go to viewattempt page
-            $reviewattempturl = new moodle_url ( '/mod/topomojo/review.php', array ( 'id' => $cm->id ) );
+            $reviewattempturl = new moodle_url('/mod/topomojo/review.php', array('id' => $cm->id));
             redirect($reviewattempturl);
         }
     }
 }
-
-// if ((!$object->event) && ($activeAttempt)) {
-//     debugging("active attempt with no event", DEBUG_DEVELOPER);
-//     //print_error('attemptalreadyexists', 'topomojo');
-//     $grader = new \mod_topomojo\utils\grade($object);
-//     $grader->process_attempt($object->openAttempt);
-//     $object->openAttempt->close_attempt();
-// }
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeAttempt)) {
@@ -206,21 +190,50 @@ $renderer = $object->renderer;
 echo $renderer->header();
 $workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
 $tags = $workspaces->tags;
-// Split the string into an array by spaces
-$tags = explode(' ', $tags);
+if ($tags) 
+{
+    // Split the string into an array by spaces
+    $tags = explode(' ', $tags);
 
-// Capitalize the first letter of each word in each tag
-$tags = str_replace('-', ' ', $tags);
-$tags = array_map('ucwords', $tags);
+    // Capitalize the first letter of each word in each tag
+    $tags = str_replace('-', ' ', $tags);
+    $tags = array_map('ucwords', $tags);
 
-foreach ($tags as $tag) {
-	$nametag = \core_tag_tag::guess_by_name($tag);
-	if ($nametag) {
-		// tag exists in moodle, add it to the activity (if not already on activity)
-	} else {
-		// tag does not exist in moodle, add it to moodle and add it to activity
-	}
+    foreach ($tags as $tag) {
+        // Check if the tag exists in the database
+        $tagname = $DB->get_record_sql("SELECT * FROM {tag} WHERE name = ?", array($tag));
+        
+        if ($tagname) {
+            // Tag exists, get the tag ID
+            $tagid = $tagname->id;
+        } else {
+            // Tag does not exist, insert it
+            $newtag = new stdClass();
+            $newtag->userid = $USER->id; // or another appropriate user ID
+            $newtag->tagcollid = 1; // Default tag collection ID
+            $newtag->name = $tag;
+            $newtag->rawname = $tag;
+            $newtag->isstandard = 1;
+            $newtag->description = null;
+            $newtag->descriptionformat = 0;
+            $newtag->flag = 0;
+            $newtag->timemodified = time();
+
+            $tagid = $DB->insert_record('tag', $newtag);
+        }
+    }
+
+    // foreach ($tags as $tag) {
+    //     $nametag = \core_tag_tag::guess_by_name($tag);
+    //     if ($nametag) {
+    //         // tag exists in moodle, add it to the activity (if not already on activity)
+    //     } else {
+    //         // tag does not exist in moodle, add it to moodle and add it to activity
+    //     }
+    // }
 }
+
+
 
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);
