@@ -38,6 +38,11 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
+require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once("$CFG->dirroot/mod/topomojo/lib.php");
+require_once("$CFG->dirroot/tag/lib.php");
+
+use \mod_topomojo\topomojo;
 
 class mod_topomojo_mod_form extends moodleform_mod {
     private $auth;
@@ -222,7 +227,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
         foreach (self::$reviewfields as $field => $notused) {
             $mform->disabledIf($field . 'closed', 'timeclose[enabled]');
         }
-
 
 
         //-------------------------------------------------------
@@ -424,7 +428,31 @@ class mod_topomojo_mod_form extends moodleform_mod {
             }
         }
 
-        // TODO if grade method changed, update all grades
+        //activity tags
+        $cmid = $this->_cm->id;
+        $topomojoconfig = get_config('topomojo');
+        $tagImport = get_config('topomojo', 'tagimport');
+
+        if ($tagImport)
+        {
+            $workspaces = get_workspace($this->auth, $this->workspaces[$selectedworkspace]->id);
+            //var_dump($this->workspaces);
+            $tags = $workspaces->tags;
+            if ($tags) {
+                // Split the string into an array by spaces
+                $tags = explode(' ', $tags);
+    
+                // Capitalize the first letter of each word in each tag
+                $tags = str_replace('-', ' ', $tags);
+                $tags = array_map('ucwords', $tags);
+    
+                $topomojoconfig = get_config('topomojo');
+                $collectionId = $topomojoconfig->tagcollection;
+    
+                //add tag to moodle if missing
+                \core_tag_tag::create_if_missing($collectionId, $tags, true);
+            }
+        }
     }
 
 

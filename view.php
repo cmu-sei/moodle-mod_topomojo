@@ -40,6 +40,7 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
+require_once("$CFG->dirroot/tag/lib.php");
 
 
 
@@ -185,77 +186,44 @@ if ((int)$object->topomojo->grade > 0) {
     $showgrade = false;
 }
 
+//tags
+$topomojoconfig = get_config('topomojo');
+$tagImport = get_config('topomojo', 'tagimport');
+if ($tagImport)
+{
+    $workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
+    $tags = $workspaces->tags;
+
+    if ($tags) {
+        // Split the string into an array by spaces
+        $tags = explode(' ', $tags);
+
+        // Capitalize the first letter of each word in each tag
+        $tags = str_replace('-', ' ', $tags);
+        $tags = array_map('ucwords', $tags);
+
+        $courseTags = \core_tag_tag::get_item_tags('', 'course_modules', $id);
+            var_dump($courseTags);
+
+            $courseTagNames = array_map(function($tag) {
+                return $tag->name;
+            }, $courseTags);
+
+            $context = context_module::instance($id); // Context for the course module
+
+
+            foreach ($tags as $tag) {
+                // Check if the tag exists in the current activity tags
+                if (!in_array($tag, $courseTagNames)) {
+                    \core_tag_tag::add_item_tag('core', 'course_modules', $id, $context, $tag);  
+                }
+            }
+    }
+}
+
 //$renderer = $PAGE->get_renderer('mod_topomojo');
 $renderer = $object->renderer;
 echo $renderer->header();
-$workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
-$tags = $workspaces->tags;
-if ($tags) 
-{
-    // Split the string into an array by spaces
-    $tags = explode(' ', $tags);
-
-    // Capitalize the first letter of each word in each tag
-    $tags = str_replace('-', ' ', $tags);
-    $tags = array_map('ucwords', $tags);
-
-    //Check for the status for the tag collection
-    $collectionName = "NICE Work Roles";
-
-    // Fetch the tag collection record by name
-    $tagcollection = $DB->get_record('tag_coll', array('name' => $collectionName));
-    var_dump($tagcollection);
-
-    if ($tagcollection) {
-        // Tag collection exists
-        $collectionid = $tagcollection->id;
-    } else {
-        // Tag collection does not exist, create it
-        $newcollection = new stdClass();
-        $newcollection->name = $collectionName;
-        $newcollection->description = ''; // Provide a description if needed
-        $newcollection->descriptionformat = 0; // Assuming no format needed
-        $newcollection->timemodified = time();
-    
-        // Insert the new tag collection into the database
-        $collectionid = $DB->insert_record('tag_coll', $newcollection);
-    }
-
-    foreach ($tags as $tag) {
-        // Check if the tag exists in the database
-        $tagname = $DB->get_record_sql("SELECT * FROM {tag} WHERE name = ?", array($tag));
-        
-        if ($tagname) {
-            // Tag exists, get the tag ID
-            $tagid = $tagname->id;
-        } else {
-            // Tag does not exist, insert it
-            $newtag = new stdClass();
-            $newtag->userid = $USER->id; // or another appropriate user ID
-            $newtag->tagcollid = $collectionid; // Default tag collection ID
-            $newtag->name = $tag;
-            $newtag->rawname = $tag;
-            $newtag->isstandard = 1;
-            $newtag->description = null;
-            $newtag->descriptionformat = 0;
-            $newtag->flag = 0;
-            $newtag->timemodified = time();
-
-            $tagid = $DB->insert_record('tag', $newtag);
-        }
-    }
-
-    // foreach ($tags as $tag) {
-    //     $nametag = \core_tag_tag::guess_by_name($tag);
-    //     if ($nametag) {
-    //         // tag exists in moodle, add it to the activity (if not already on activity)
-    //     } else {
-    //         // tag does not exist in moodle, add it to moodle and add it to activity
-    //     }
-    // }
-}
-
-
 
 if ($object->event) {
     $code = substr($object->event->id, 0, 8);

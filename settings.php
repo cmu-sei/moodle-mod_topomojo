@@ -35,6 +35,7 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
+require_once("$CFG->dirroot/tag/lib.php");
 
 // This is used for performance, we don't need to know about these settings on every page in Moodle, only when
 // we are looking at the admin settings pages.
@@ -60,7 +61,26 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('topomojo/managername',
         get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+    
+    $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
+        get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), "", PARAM_URL, 60));
+    
+    $tagcollections = core_tag_collection::get_collections();
 
+    $collectionNames = array();
+    $collectionIDs = array();
+
+    if ($tagcollections != null) {
+        foreach ($tagcollections as $collection) {
+            $collectionID = $collection->id;
+            $collectionNames[$collectionID] = $collection->name;
+        }
+    }
+        
+    $settings->add(new admin_setting_configselect('topomojo/tagcollection',
+        get_string('tagcollection', 'topomojo'), get_string('configtagcollection', 'topomojo'), 1, $collectionNames));
+
+    $settings->hide_if('topomojo/tagcollection', 'topomojo/tagimport', 'notchecked', 1);
         
     // Review options.
     $settings->add(new admin_setting_heading('reviewheading',

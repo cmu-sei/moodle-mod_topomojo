@@ -65,6 +65,10 @@ $string['apikey'] = 'API Key';
 $string['configapikey'] = 'The value included with TopoMojo API requests under the x-api-key header. Assigned by the TopoMojo administrator.';
 $string['managername'] = 'Manager Name';
 $string['configmanagername'] = 'The Manager Name associated with the API key. Used to filter gamespaces.';
+$string['tagimport'] = 'Import Tags';
+$string['configtagimport'] = 'Import Tags from Topomojo Lab';
+$string['tagcollection'] = 'Tag Collection';
+$string['configtagcollection'] = 'This determines which Tag Collection should be used to group tags imported';
 $string['importchallenge'] = 'Import Challenge';
 $string['endlab'] = 'End Lab';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
@@ -221,3 +225,5 @@ $string['questionmoveup'] = 'Move question {$a} up';
 // privacy
 $string['privacy:metadata'] = 'The Topomojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
 
+
+$string['interestslist'] = 'list test';
