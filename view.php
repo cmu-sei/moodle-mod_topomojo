@@ -187,39 +187,38 @@ if ((int)$object->topomojo->grade > 0) {
 }
 
 //tags
-$topomojoconfig = get_config('topomojo');
-$tagImport = get_config('topomojo', 'tagimport');
-if ($tagImport)
-{
-    $workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
-    $tags = $workspaces->tags;
+// $topomojoconfig = get_config('topomojo');
+// $tagImport = get_config('topomojo', 'tagimport');
+// if ($tagImport)
+// {
+//     $workspaces = get_workspace($object->userauth, $object->topomojo->workspaceid);
+//     $tags = $workspaces->tags;
 
-    if ($tags) {
-        // Split the string into an array by spaces
-        $tags = explode(' ', $tags);
+//     if ($tags) {
+//         // Split the string into an array by spaces
+//         $tags = explode(' ', $tags);
 
-        // Capitalize the first letter of each word in each tag
-        $tags = str_replace('-', ' ', $tags);
-        $tags = array_map('ucwords', $tags);
+//         // Capitalize the first letter of each word in each tag
+//         $tags = str_replace('-', ' ', $tags);
+//         $tags = array_map('ucwords', $tags);
 
-        $courseTags = \core_tag_tag::get_item_tags('', 'course_modules', $id);
-            var_dump($courseTags);
+//         $courseTags = \core_tag_tag::get_item_tags('', 'course_modules', $id);
 
-            $courseTagNames = array_map(function($tag) {
-                return $tag->name;
-            }, $courseTags);
+//         $courseTagNames = array_map(function($tag) {
+//             return $tag->name;
+//         }, $courseTags);
 
-            $context = context_module::instance($id); // Context for the course module
+//         $context = context_module::instance($id); // Context for the course module
 
 
-            foreach ($tags as $tag) {
-                // Check if the tag exists in the current activity tags
-                if (!in_array($tag, $courseTagNames)) {
-                    \core_tag_tag::add_item_tag('core', 'course_modules', $id, $context, $tag);  
-                }
-            }
-    }
-}
+//         foreach ($tags as $tag) {
+//             // Check if the tag exists in the current activity tags
+//             if (!in_array($tag, $courseTagNames)) {
+//                 \core_tag_tag::add_item_tag('core', 'course_modules', $id, $context, $tag);  
+//             }
+//         }
+//     }
+// }
 
 //$renderer = $PAGE->get_renderer('mod_topomojo');
 $renderer = $object->renderer;

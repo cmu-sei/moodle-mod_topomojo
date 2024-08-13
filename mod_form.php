@@ -93,9 +93,53 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $this->workspaces = get_workspaces($this->auth);
             $labnames = array();
             $labs = [];
+            $topomojoconfig = get_config('topomojo');
+            $tagImport = get_config('topomojo', 'tagimport');
+            $cmid = $this->_cm->id;
+
             foreach ($this->workspaces as $workspace) {
                 array_push($labnames, $workspace->name);
                 $labs[$workspace->id] = s($workspace->name);
+
+                if (!empty($workspace->tags) && $tagImport) {
+                    $tagsArray = [];
+
+                    $tagsArray = $workspace->tags;
+
+                    //$tagsArray = explode(' ', $workspace->tags);
+
+                    // Check if $workspace->tags is a string
+                    if (str_contains($tagsArray, '-')) {
+                        $tagsArray = explode(' ', $workspace->tags);
+                        $tagsArray = str_replace('-', ' ', $tagsArray);
+                        $tagsArray = array_map('ucwords', $tagsArray); 
+                    }
+                    else {
+                        if (!is_array($tagsArray)) {
+                            $tagsArray = explode(', ', $tagsArray);
+                        } else {
+                            $tagsArray = $workspace->tags;;
+                        }
+                    }
+
+                    $allTagsArray[$workspace->id] = $tagsArray;
+
+                    $flattenedTagsArray = [];
+                    foreach ($allTagsArray as $tags) {
+                        if (is_array($tags)) {
+                            $flattenedTagsArray = array_merge($flattenedTagsArray, $tags);
+                        }
+                    }
+
+                    if (!empty($flattenedTagsArray)) {
+                        // Split the string into an array by spaces
+                        $collectionId = $topomojoconfig->tagcollection;
+            
+                        //add tag to moodle if missing
+                        \core_tag_tag::create_if_missing($collectionId, $flattenedTagsArray, true);
+                    }
+                }
+
             }
             array_unshift($labs, "");
             asort($labs);
@@ -429,30 +473,30 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
 
         //activity tags
-        $cmid = $this->_cm->id;
-        $topomojoconfig = get_config('topomojo');
-        $tagImport = get_config('topomojo', 'tagimport');
+        // $cmid = $this->_cm->id;
+        // $topomojoconfig = get_config('topomojo');
+        // $tagImport = get_config('topomojo', 'tagimport');
 
-        if ($tagImport)
-        {
-            $workspaces = get_workspace($this->auth, $this->workspaces[$selectedworkspace]->id);
-            //var_dump($this->workspaces);
-            $tags = $workspaces->tags;
-            if ($tags) {
-                // Split the string into an array by spaces
-                $tags = explode(' ', $tags);
+        // if ($tagImport)
+        // {
+        //     $workspaces = get_workspace($this->auth, $this->workspaces[$selectedworkspace]->id);
+        //     //var_dump($this->workspaces);
+        //     $tags = $workspaces->tags;
+        //     if ($tags) {
+        //         // Split the string into an array by spaces
+        //         $tags = explode(' ', $tags);
     
-                // Capitalize the first letter of each word in each tag
-                $tags = str_replace('-', ' ', $tags);
-                $tags = array_map('ucwords', $tags);
+        //         // Capitalize the first letter of each word in each tag
+        //         $tags = str_replace('-', ' ', $tags);
+        //         $tags = array_map('ucwords', $tags);
     
-                $topomojoconfig = get_config('topomojo');
-                $collectionId = $topomojoconfig->tagcollection;
+        //         $topomojoconfig = get_config('topomojo');
+        //         $collectionId = $topomojoconfig->tagcollection;
     
-                //add tag to moodle if missing
-                \core_tag_tag::create_if_missing($collectionId, $tags, true);
-            }
-        }
+        //         //add tag to moodle if missing
+        //         \core_tag_tag::create_if_missing($collectionId, $tags, true);
+        //     }
+        // }
     }
 
 
