@@ -95,7 +95,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $labs = [];
             $topomojoconfig = get_config('topomojo');
             $tagImport = get_config('topomojo', 'tagimport');
-            $cmid = $this->_cm->id;
 
             foreach ($this->workspaces as $workspace) {
                 array_push($labnames, $workspace->name);
@@ -105,8 +104,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
                     $tagsArray = [];
 
                     $tagsArray = $workspace->tags;
-
-                    //$tagsArray = explode(' ', $workspace->tags);
 
                     // Check if $workspace->tags is a string
                     if (str_contains($tagsArray, '-')) {
@@ -433,6 +430,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $data->embed = 0;
         }
 
+	$selectedworkspace = null;
         if (is_array($this->workspaces)) {
             $selectedworkspace = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
             $data->name = $this->workspaces[$selectedworkspace]->name;
@@ -470,33 +468,20 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $data->intro = "No description available";
                 $data->introeditor['format'] = FORMAT_PLAIN;
             }
+	}
+
+        // Handle tags
+        $tagImport = get_config('topomojo', 'tagimport');
+
+        if ($tagImport) {
+	    $tags = $this->workspaces[$selectedworkspace]->tags;
+            if ($tags) {
+	        // Process tags
+	        $words = explode(' ', $tags);
+	        $tags = str_replace('-', ' ', $words);
+                $data->tags = array_map('ucwords', $tags);
+            }
         }
-
-        //activity tags
-        // $cmid = $this->_cm->id;
-        // $topomojoconfig = get_config('topomojo');
-        // $tagImport = get_config('topomojo', 'tagimport');
-
-        // if ($tagImport)
-        // {
-        //     $workspaces = get_workspace($this->auth, $this->workspaces[$selectedworkspace]->id);
-        //     //var_dump($this->workspaces);
-        //     $tags = $workspaces->tags;
-        //     if ($tags) {
-        //         // Split the string into an array by spaces
-        //         $tags = explode(' ', $tags);
-    
-        //         // Capitalize the first letter of each word in each tag
-        //         $tags = str_replace('-', ' ', $tags);
-        //         $tags = array_map('ucwords', $tags);
-    
-        //         $topomojoconfig = get_config('topomojo');
-        //         $collectionId = $topomojoconfig->tagcollection;
-    
-        //         //add tag to moodle if missing
-        //         \core_tag_tag::create_if_missing($collectionId, $tags, true);
-        //     }
-        // }
     }
 
     /**
@@ -649,9 +634,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $mform->addElement('header', 'activitycompletionheader', get_string('activitycompletion', 'completion'));
             $this->add_completion_elements(null, false, false, false, $this->_course->id);
         }
-
-        // Populate module tags.
 /*
+	// TODO id topomojo is setting them, then display a message here instead
+        // Populate module tags.
 	if (core_tag_tag::is_enabled('core', 'course_modules')) {
             $mform->addElement('header', 'tagshdr', get_string('tags', 'tag'));
             $mform->addElement('tags', 'tags', get_string('tags'), array('itemtype' => 'course_modules', 'component' => 'core'));
@@ -660,7 +645,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $mform->setDefault('tags', $tags);
             }
         }
- */
+x */
         $this->standard_hidden_coursemodule_elements();
 
         $this->plugin_extend_coursemodule_standard_elements();
