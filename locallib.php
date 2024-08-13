@@ -84,8 +84,17 @@ function list_events($client, $name) {
         debugging("could not decode json $url", DEBUG_DEVELOPER);
         return;
     }
-    usort($r, 'whenCreated');
-    return $r;
+    $matches = array();
+    foreach ($r as $event) {
+	// filter by name
+        if (($event['name'] === $name) && ($event['isActive'])) {
+            array_push($matches, $event);
+        }
+    }
+    debugging("list_events found " . count($matches) . " active events", DEBUG_DEVELOPER);
+
+    usort($matches, 'whenCreated');
+    return $matches;
 }
 
 function moodle_events($events) {
@@ -104,6 +113,7 @@ function moodle_events($events) {
     return $moodle_events;
 }
 
+/* we have to git this endpoint to get the players list */
 function user_events($client, $events) {
     global $USER;
     //debugging("filtering events for user", DEBUG_DEVELOPER);
