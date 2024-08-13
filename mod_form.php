@@ -499,6 +499,171 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // }
     }
 
+    /**
+     * Adds all the standard elements to a form to edit the settings for an activity module.
+     */
+    protected function standard_coursemodule_elements() {
+        global $COURSE, $CFG, $DB, $OUTPUT;
+        $mform =& $this->_form;
 
+        $this->_outcomesused = false;
+        if ($this->_features->outcomes) {
+            if ($outcomes = grade_outcome::fetch_all_available($COURSE->id)) {
+                $this->_outcomesused = true;
+                $mform->addElement('header', 'modoutcomes', get_string('outcomes', 'grades'));
+                foreach($outcomes as $outcome) {
+                    $mform->addElement('advcheckbox', 'outcome_'.$outcome->id, $outcome->get_name());
+                }
+            }
+        }
+
+        if ($this->_features->rating) {
+            $this->add_rating_settings($mform, 0);
+        }
+
+        $mform->addElement('header', 'modstandardelshdr', get_string('modstandardels', 'form'));
+
+        $section = get_fast_modinfo($COURSE)->get_section_info($this->_section);
+        $allowstealth =
+            !empty($CFG->allowstealth) &&
+            $this->courseformat->allow_stealth_module_visibility($this->_cm, $section) &&
+            !$this->_features->hasnoview;
+        if ($allowstealth && $section->visible) {
+            $modvisiblelabel = 'modvisiblewithstealth';
+        } else if ($section->visible) {
+            $modvisiblelabel = 'modvisible';
+        } else {
+            $modvisiblelabel = 'modvisiblehiddensection';
+        }
+        $mform->addElement('modvisible', 'visible', get_string($modvisiblelabel), null,
+                array('allowstealth' => $allowstealth, 'sectionvisible' => $section->visible, 'cm' => $this->_cm));
+        $mform->addHelpButton('visible', $modvisiblelabel);
+        if ($this->_features->idnumber) {
+            $mform->addElement('text', 'cmidnumber', get_string('idnumbermod'));
+            $mform->setType('cmidnumber', PARAM_RAW);
+            $mform->addHelpButton('cmidnumber', 'idnumbermod');
+        }
+
+        if (has_capability('moodle/course:setforcedlanguage', $this->get_context())) {
+            $languages = ['' => get_string('forceno')];
+            $languages += get_string_manager()->get_list_of_translations();
+
+            $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
+        }
+
+        if ($CFG->downloadcoursecontentallowed) {
+                $choices = [
+                    DOWNLOAD_COURSE_CONTENT_DISABLED => get_string('no'),
+                    DOWNLOAD_COURSE_CONTENT_ENABLED => get_string('yes'),
+                ];
+                $mform->addElement('select', 'downloadcontent', get_string('downloadcontent', 'course'), $choices);
+                $downloadcontentdefault = $this->_cm->downloadcontent ?? DOWNLOAD_COURSE_CONTENT_ENABLED;
+                $mform->addHelpButton('downloadcontent', 'downloadcontent', 'course');
+                if (has_capability('moodle/course:configuredownloadcontent', $this->get_context())) {
+                    $mform->setDefault('downloadcontent', $downloadcontentdefault);
+                } else {
+                    $mform->hardFreeze('downloadcontent');
+                    $mform->setConstant('downloadcontent', $downloadcontentdefault);
+                }
+        }
+
+        if ($this->_features->groups) {
+            $options = array(NOGROUPS       => get_string('groupsnone'),
+                             SEPARATEGROUPS => get_string('groupsseparate'),
+                             VISIBLEGROUPS  => get_string('groupsvisible'));
+            $mform->addElement('select', 'groupmode', get_string('groupmode', 'group'), $options, NOGROUPS);
+            $mform->addHelpButton('groupmode', 'groupmode', 'group');
+        }
+
+        if ($this->_features->groupings) {
+            // Groupings selector - used to select grouping for groups in activity.
+            $options = array();
+            if ($groupings = $DB->get_records('groupings', array('courseid'=>$COURSE->id))) {
+                foreach ($groupings as $grouping) {
+                    $options[$grouping->id] = format_string($grouping->name);
+                }
+            }
+            core_collator::asort($options);
+            $options = array(0 => get_string('none')) + $options;
+            $mform->addElement('select', 'groupingid', get_string('grouping', 'group'), $options);
+            $mform->addHelpButton('groupingid', 'grouping', 'group');
+        }
+        if (!empty($CFG->enableavailability)) {
+            // Add special button to end of previous section if groups/groupings
+            // are enabled.
+
+            $availabilityplugins = \core\plugininfo\availability::get_enabled_plugins();
+            $groupavailability = $this->_features->groups && array_key_exists('group', $availabilityplugins);
+            $groupingavailability = $this->_features->groupings && array_key_exists('grouping', $availabilityplugins);
+
+            if ($groupavailability || $groupingavailability) {
+                // When creating the button, we need to set type=button to prevent it behaving as a submit.
+                $mform->addElement('static', 'restrictgroupbutton', '',
+                    html_writer::tag('button', get_string('restrictbygroup', 'availability'), [
+                        'id' => 'restrictbygroup',
+                        'type' => 'button',
+                        'disabled' => 'disabled',
+                        'class' => 'btn btn-secondary',
+                        'data-groupavailability' => $groupavailability,
+                        'data-groupingavailability' => $groupingavailability
+                    ])
+                );
+            }
+
+            // Availability field. This is just a textarea; the user interface
+            // interaction is all implemented in JavaScript.
+            $mform->addElement('header', 'availabilityconditionsheader',
+                    get_string('restrictaccess', 'availability'));
+            // Note: This field cannot be named 'availability' because that
+            // conflicts with fields in existing modules (such as assign).
+            // So it uses a long name that will not conflict.
+            $mform->addElement('textarea', 'availabilityconditionsjson',
+                    get_string('accessrestrictions', 'availability'),
+                    ['class' => 'd-none']
+            );
+            // Availability loading indicator.
+            $loadingcontainer = $OUTPUT->container(
+                $OUTPUT->render_from_template('core/loading', []),
+                'd-flex justify-content-center py-5 icon-size-5',
+                'availabilityconditions-loading'
+            );
+            $mform->addElement('html', $loadingcontainer);
+
+            // The _cm variable may not be a proper cm_info, so get one from modinfo.
+            if ($this->_cm) {
+                $modinfo = get_fast_modinfo($COURSE);
+                $cm = $modinfo->get_cm($this->_cm->id);
+            } else {
+                $cm = null;
+            }
+            \core_availability\frontend::include_all_javascript($COURSE, $cm);
+        }
+
+        // Conditional activities: completion tracking section
+        if(!isset($completion)) {
+            $completion = new completion_info($COURSE);
+        }
+
+        // Add the completion tracking elements to the form.
+        if ($completion->is_enabled()) {
+            $mform->addElement('header', 'activitycompletionheader', get_string('activitycompletion', 'completion'));
+            $this->add_completion_elements(null, false, false, false, $this->_course->id);
+        }
+
+        // Populate module tags.
+/*
+	if (core_tag_tag::is_enabled('core', 'course_modules')) {
+            $mform->addElement('header', 'tagshdr', get_string('tags', 'tag'));
+            $mform->addElement('tags', 'tags', get_string('tags'), array('itemtype' => 'course_modules', 'component' => 'core'));
+            if ($this->_cm) {
+                $tags = core_tag_tag::get_item_tags_array('core', 'course_modules', $this->_cm->id);
+                $mform->setDefault('tags', $tags);
+            }
+        }
+ */
+        $this->standard_hidden_coursemodule_elements();
+
+        $this->plugin_extend_coursemodule_standard_elements();
+    }
 }
 
