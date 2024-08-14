@@ -474,14 +474,19 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $tagImport = get_config('topomojo', 'tagimport');
 
         if ($tagImport) {
-	    $tags = $this->workspaces[$selectedworkspace]->tags;
-            if ($tags) {
+            $newTags = $this->workspaces[$selectedworkspace]->tags;
+            $existingTags = $data->tags;
+            if ($newTags) {
 	        // Process tags
-	        $words = explode(' ', $tags);
-	        $tags = str_replace('-', ' ', $words);
-                $data->tags = array_map('ucwords', $tags);
+	        $words = explode(' ', $newTags);
+	        $newTags = str_replace('-', ' ', $words);
+            $data->tags = array_merge($data->tags ?? [], $newTags);
             }
         }
+        // else {
+        //     $data->tags = $data->tags ?? [];
+        // }
+
     }
 
     /**
@@ -634,7 +639,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $mform->addElement('header', 'activitycompletionheader', get_string('activitycompletion', 'completion'));
             $this->add_completion_elements(null, false, false, false, $this->_course->id);
         }
-/*
+
 	// TODO id topomojo is setting them, then display a message here instead
         // Populate module tags.
 	if (core_tag_tag::is_enabled('core', 'course_modules')) {
@@ -645,7 +650,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $mform->setDefault('tags', $tags);
             }
         }
-x */
+
         $this->standard_hidden_coursemodule_elements();
 
         $this->plugin_extend_coursemodule_standard_elements();

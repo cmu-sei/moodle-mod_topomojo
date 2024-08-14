@@ -63,7 +63,7 @@ if ($ADMIN->fulltree) {
         get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
     
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
-        get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), "", PARAM_URL, 60));
+        get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
     
     $tagcollections = core_tag_collection::get_collections();
 
