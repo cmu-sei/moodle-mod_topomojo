@@ -14,19 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * The mod_topomojo ended event.
- *
- * @package    mod_topomojo
- * @author     Adam Welle <arwelle@cert.org>
- * @copyright  2020 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace mod_topomojo\event;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -37,6 +29,14 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
+ /**
+  * The mod_topomojo ended event.
+  *
+  * @package    mod_topomojo
+  * @author     Adam Welle <arwelle@cert.org>
+  * @copyright  2020 Carnegie Mellon University
+  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class attempt_ended extends \core\event\base {
 
     /**
@@ -73,7 +73,7 @@ class attempt_ended extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/topomojo/view.php', array('id' => $this->contextinstanceid));
+        return new \moodle_url('/mod/topomojo/view.php', ['id' => $this->contextinstanceid]);
     }
 
 }

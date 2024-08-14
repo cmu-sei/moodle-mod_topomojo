@@ -14,6 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+Topomojo Plugin for Moodle
+Copyright 2020 Carnegie Mellon University.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+This Software includes and/or makes use of the following Third-Party Software subject to its own license:
+1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
+DM20-0196
+ */
+
+defined('MOODLE_INTERNAL') || die;
+
 /**
  * topomojo module upgrade code
  *
@@ -41,20 +54,6 @@
  * @copyright  2020 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-/**
-Topomojo Plugin for Moodle
-Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
-This Software includes and/or makes use of the following Third-Party Software subject to its own license:
-1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-DM20-0196
- */
-
-defined('MOODLE_INTERNAL') || die;
-
 function xmldb_topomojo_upgrade($oldversion) {
     global $CFG, $DB;
     $dbman = $DB->get_manager();
@@ -92,7 +91,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         $field = new xmldb_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'intro');
 
         // Launch rename field workspaceid.
-	    $dbman->rename_field($table, $field, 'workspaceid');
+        $dbman->rename_field($table, $field, 'workspaceid');
 
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070700, 'topomojo');
@@ -100,7 +99,7 @@ function xmldb_topomojo_upgrade($oldversion) {
 
     if ($oldversion < 2022070701) {
 
-	    // Define field launchpointurl to be added to topomojo_attempts.
+        // Define field launchpointurl to be added to topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('launchpointurl', XMLDB_TYPE_TEXT, '255', null, null, null, null, null);
 
@@ -115,7 +114,7 @@ function xmldb_topomojo_upgrade($oldversion) {
 
     if ($oldversion < 2022070702) {
 
-	    // Define field duration to be added to topomojo.
+        // Define field duration to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, null, null, null, null);
 
@@ -127,7 +126,6 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070702, 'topomojo');
     }
-
 
     if ($oldversion < 2022071401) {
 
@@ -169,7 +167,8 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewgeneralfeedback to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewgeneralfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewspecificfeedback');
+        $field = new xmldb_field('reviewgeneralfeedback', XMLDB_TYPE_INTEGER, '6',
+                 null, XMLDB_NOTNULL, null, '0', 'reviewspecificfeedback');
 
         // Conditionally launch add field reviewgeneralfeedback.
         if (!$dbman->field_exists($table, $field)) {
@@ -178,17 +177,18 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewrightanswer to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewrightanswer', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewgeneralfeedback');
+        $field = new xmldb_field('reviewrightanswer', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
+                 null, '0', 'reviewgeneralfeedback');
 
         // Conditionally launch add field reviewrightanswer.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-
         // Define field reviewoverallfeedback to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewoverallfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewrightanswer');
+        $field = new xmldb_field('reviewoverallfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
+                 null, '0', 'reviewrightanswer');
 
         // Conditionally launch add field reviewoverallfeedback.
         if (!$dbman->field_exists($table, $field)) {
@@ -197,13 +197,13 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewmanualcomment to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewmanualcomment', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'reviewoverallfeedback');
+        $field = new xmldb_field('reviewmanualcomment', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
+                 null, '0', 'reviewoverallfeedback');
 
         // Conditionally launch add field reviewmanualcomment.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
 
         // Define field preferredbehaviour to be added to topomojo.
         $table = new xmldb_table('topomojo');
@@ -213,7 +213,6 @@ function xmldb_topomojo_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
 
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071401, 'topomojo');
@@ -243,7 +242,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-	    // Topomojo savepoint reached.
+        // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071805, 'topomojo');
     }
 
@@ -280,16 +279,12 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->drop_field($table, $field);
         }
 
-
         // Rename field layout on table topomojo to questionorder.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('layout', XMLDB_TYPE_TEXT, '255', null, null, null, null, 'reviewmanualcomment');
 
         // Launch rename field layout.
         $dbman->rename_field($table, $field, 'questionorder');
-
-
-
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071901, 'topomojo');
     }

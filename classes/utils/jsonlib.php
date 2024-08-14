@@ -18,15 +18,7 @@ namespace mod_topomojo\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Utils class for using json
- *
- * @package     mod_topomojo
- * @copyright   2014 Carnegie Mellon University
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Group Quiz Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -34,17 +26,25 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md)
+Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0197
  */
 
+ /**
+  * Utils class for using json
+  *
+  * @package     mod_topomojo
+  * @copyright   2014 Carnegie Mellon University
+  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class jsonlib {
 
     /** @var stdClass $response class to hold resonse information */
     protected $response;
 
     /** @var array $status codes Array to hold different status codes to return with response */
-    protected $status_codes = array(
+    protected $statuscodes = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -94,8 +94,8 @@ class jsonlib {
         506 => 'Variant Also Negotiates',
         507 => 'Insufficient Storage',
         509 => 'Bandwidth Limit Exceeded',
-        510 => 'Not Extended'
-    );
+        510 => 'Not Extended',
+    ];
 
 
     /**
@@ -132,7 +132,7 @@ class jsonlib {
         $this->response->message = $message;
 
         $response = json_encode($this->response);
-        if ($response === false) { // check for error
+        if ($response === false) { // Check for error
 
             $message = $this->get_json_error();
             $this->send_headers(500);
@@ -152,13 +152,13 @@ class jsonlib {
     public function send_response() {
 
         $response = json_encode($this->response);
-        if ($response === false) { // check for error
+        if ($response === false) { // Check for error
 
-            $response = $this->get_json_error(); // return error as bare text since json_encode isn't working
+            $response = $this->get_json_error(); // Return error as bare text since json_encode isn't working
             $this->send_headers(500);
         }
 
-        // set up headers for 200 response as well as tell the browser to not cache the content
+        // Set up headers for 200 response as well as tell the browser to not cache the content
         $this->send_headers(200);
         echo $response;
 
@@ -208,9 +208,9 @@ class jsonlib {
      */
     private function send_headers($status) {
 
-        if (!empty($this->status_codes[ $status ])) {
-            $status_string = $status . ' ' . $this->status_codes[ $status ];
-            header($_SERVER['SERVER_PROTOCOL'] . ' ' . $status_string, true, $status);
+        if (!empty($this->statuscodes[$status])) {
+            $stringstatus = $status . ' ' . $this->statuscodes[$status];
+            header($_SERVER['SERVER_PROTOCOL'] . ' ' . $stringstatus, true, $status);
             header('cache-control: private, max-age=0, no-cache');
             header('pragma: no-cache');
             header('Content-Type: application/json; charset=utf-8');

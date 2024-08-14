@@ -18,16 +18,7 @@ namespace mod_topomojo\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Class to define grade types for the module
- * Is used in multiple classes/functions
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon University
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -35,16 +26,48 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md)
+Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0196
  */
 
+ /**
+  * Class to define grade types for the module
+  * Is used in multiple classes/functions
+  *
+  * @package     mod_topomojo
+  * @copyright   2020 Carnegie Mellon University
+  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class scaletypes {
 
     /** Define grading scale types */
+    /**
+     * Scale type for the first attempt grade.
+     *
+     * @var int
+     */
     const TOPOMOJO_FIRSTATTEMPT = 1;
+
+     /**
+     * Scale type for the last attempt grade.
+     *
+     * @var int
+     */
     const TOPOMOJO_LASTATTEMPT = 2;
+
+    /**
+     * Scale type for the average of all attempts.
+     *
+     * @var int
+     */
     const TOPOMOJO_ATTEMPTAVERAGE = 3;
+
+    /**
+     * Scale type for the highest grade from all attempts.
+     *
+     * @var int
+     */
     const TOPOMOJO_HIGHESTATTEMPTGRADE = 4;
 
 
@@ -55,12 +78,12 @@ class scaletypes {
      */
     public static function get_types() {
 
-        return array(
+        return [
             'firstattempt' => self::TOPOMOJO_FIRSTATTEMPT,
             'lastattempt'  => self::TOPOMOJO_LASTATTEMPT,
             'average'      => self::TOPOMOJO_ATTEMPTAVERAGE,
             'highestgrade' => self::TOPOMOJO_HIGHESTATTEMPTGRADE,
-        );
+        ];
     }
 
     /**
@@ -71,12 +94,12 @@ class scaletypes {
      */
     public static function get_display_types() {
 
-        return array(
+        return [
             self::TOPOMOJO_FIRSTATTEMPT        => get_string('firstattempt', 'topomojo'),
             self::TOPOMOJO_LASTATTEMPT         => get_string('lastattempt', 'topomojo'),
             self::TOPOMOJO_ATTEMPTAVERAGE      => get_string('attemptaverage', 'topomojo'),
             self::TOPOMOJO_HIGHESTATTEMPTGRADE => get_string('highestattempt', 'topomojo'),
-        );
+        ];
     }
 
 }

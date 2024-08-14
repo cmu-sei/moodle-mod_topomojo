@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- *
- * @package   mod_topomojo
- * @copyright 2014 Carnegie Mellon University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-
 /*
 Group Quiz Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
@@ -36,7 +28,12 @@ DM20-0197
 
 namespace mod_topomojo\traits;
 
-
+/**
+ *
+ * @package   mod_topomojo
+ * @copyright 2014 Carnegie Mellon University
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 trait renderer_base {
 
 
@@ -49,7 +46,8 @@ trait renderer_base {
     /** @var \mod_topomojo\topomojo $topomojo */
     protected $topomojo;
 
-    protected $pageMessage;
+    /** @var array|null $pagemessage Message details with type and content. */
+    protected $pagemessage;
 
     /**
      * Sets a page message to display when the page is loaded into view
@@ -59,9 +57,8 @@ trait renderer_base {
      * @param string $type
      * @param string $message
      */
-    public function setMessage($type, $message)
-    {
-        $this->pageMessage = array($type, $message);
+    public function setMessage($type, $message) {
+        $this->pagemessage = [$type, $message];
     }
 
     /**
@@ -69,8 +66,7 @@ trait renderer_base {
      *
      * @param string $tab the current tab to show as group
      */
-    public function base_header($tab = 'view')
-    {
+    public function base_header($tab = 'view') {
         echo $this->output->header();
         //echo topomojo_view_tabs($this->topomojo, $tab);
         $this->showMessage(); // shows a message if there is one
@@ -80,8 +76,7 @@ trait renderer_base {
      * Base footer function to do basic footer rendering
      *
      */
-    public function base_footer()
-    {
+    public function base_footer() {
         echo $this->output->footer();
     }
 
@@ -89,29 +84,28 @@ trait renderer_base {
      * shows a message if there is one
      *
      */
-    public function showMessage()
-    {
+    public function showMessage() {
 
-        if ( empty($this->pageMessage) ) {
+        if ( empty($this->pagemessage) ) {
             return; // return if there is no message
         }
 
-        if ( !is_array($this->pageMessage) ) {
+        if ( !is_array($this->pagemessage) ) {
             return; // return if it's not an array
         }
 
-        switch ($this->pageMessage[0]) {
+        switch ($this->pagemessage[0]) {
             case 'error':
-                echo $this->output->notification($this->pageMessage[1], 'error');
+                echo $this->output->notification($this->pagemessage[1], 'error');
                 break;
             case 'success':
-                echo $this->output->notification($this->pageMessage[1], 'success');
+                echo $this->output->notification($this->pagemessage[1], 'success');
                 break;
             case 'info':
-                echo $this->output->notification($this->pageMessage[1], 'info');
+                echo $this->output->notification($this->pagemessage[1], 'info');
                 break;
             case 'warning':
-                echo $this->output->notification($this->pageMessage[1], 'warning');
+                echo $this->output->notification($this->pagemessage[1], 'warning');
                 break;
             default:
                 // unrecognized notification type
@@ -124,8 +118,7 @@ trait renderer_base {
      *
      * @param string $message
      */
-    public function render_popup_error($message)
-    {
+    public function render_popup_error($message) {
 
         $this->setMessage('error', $message);
         echo $this->output->header();
@@ -140,8 +133,7 @@ trait renderer_base {
      * @param \moodle_url $pageurl Always require the page url
      * @param array $pagevars (optional)
      */
-    public function init($topomojo, $pageurl, $pagevars = array())
-    {
+    public function init($topomojo, $pageurl, $pagevars = []) {
         $this->pagevars = $pagevars;
         $this->pageurl = $pageurl;
         $this->topomojo = $topomojo;

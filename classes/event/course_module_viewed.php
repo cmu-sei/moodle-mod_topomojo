@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * The mod_topomojo course module viewed event.
- *
- * @package    mod_topomojo
- * @copyright  2020 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -37,6 +29,13 @@ namespace mod_topomojo\event;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * The mod_topomojo course module viewed event.
+ *
+ * @package    mod_topomojo
+ * @copyright  2020 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class course_module_viewed extends \core\event\course_module_viewed {
 
     /**
@@ -50,8 +49,16 @@ class course_module_viewed extends \core\event\course_module_viewed {
         $this->data['objecttable'] = 'topomojo';
     }
 
+    /**
+     * Provides the mapping of the object ID for the restore process.
+     *
+     * This function returns an array that maps the event's object ID to the corresponding
+     * database table ('topomojo') and specifies the restore process name ('topomojo').
+     *
+     * @return array An array containing the database table and restore process mapping.
+     */
     public static function get_objectid_mapping() {
-        return array('db' => 'topomojo', 'restore' => 'topomojo');
+        return ['db' => 'topomojo', 'restore' => 'topomojo'];
     }
 }
 

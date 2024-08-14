@@ -18,16 +18,7 @@ namespace mod_topomojo\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * topomojo Attempt wrapper class to encapsulate functions needed to individual
- * attempt records
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon Univeristy
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -38,6 +29,14 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
+/**
+ * topomojo Attempt wrapper class to encapsulate functions needed to individual
+ * attempt records
+ *
+ * @package     mod_topomojo
+ * @copyright   2020 Carnegie Mellon Univeristy
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class grade {
 
     /** @var \mod_topomojo\topomojo */
@@ -62,7 +61,7 @@ class grade {
      * @return array($forgroupid, $number)
      */
     public function get_attempt_grade($attempt) {
-        return array($attempt->userid, $this->calculate_attempt_grade($attempt));
+        return [$attempt->userid, $this->calculate_attempt_grade($attempt)];
     }
 
     /**
@@ -76,25 +75,31 @@ class grade {
 
         global $DB;
         $recs = $DB->get_records_select('topomojo_grades', 'userid = ? AND topomojoid = ?',
-                array($userid, $topomojo->id), 'grade');
-        $grades = array();
+                [$userid, $topomojo->id], 'grade');
+        $grades = [];
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
-        // user should only have one grade entry in the topomojo grades table for each activity
+        // User should only have one grade entry in the topomojo grades table for each activity
         debugging("user $userid has " . count($grades) . " grades for $topomojo->id", DEBUG_DEVELOPER);
         return $grades;
     }
 
+    /**
+     * Processes and updates grades for a given attempt, handling transactions and gradebook updates.
+     *
+     * @param \stdClass $attempt The attempt object containing attempt details.
+     * @return bool True on success, false on failure.
+     */
     public function process_attempt($attempt) {
         global $DB;
 
-        // get this attempt grade
+        // Get this attempt grade
         $this->calculate_attempt_grade($attempt);
 
-        // get all attempt grades
-        $grades = array();
-        $attemptsgrades = array();
+        // Get all attempt grades
+        $grades = [];
+        $attemptsgrades = [];
 
         // TODO should we be processing just one user here?
         $attempts = $this->topomojo->getall_attempts('');
@@ -107,14 +112,14 @@ class grade {
         $grades[$attempt->userid] = $grade;
         debugging("new grade for $attempt->userid in topomojo " . $this->topomojo->topomojo->id . " is $grade", DEBUG_DEVELOPER);
 
-        // run the whole thing on a transaction (persisting to our table and gradebook updates).
+        // Run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
 
-        // now that we have the final grades persist the grades to topomojo grades table.
-        //TODO we could possibly remove this table and just look at the grade_grades table
+        // Now that we have the final grades persist the grades to topomojo grades table.
+        // TODO we could possibly remove this table and just look at the grade_grades table
         $this->persist_grades($grades, $transaction);
 
-        // update grades to gradebookapi.
+        // Update grades to gradebookapi.
         $updated = topomojo_update_grades($this->topomojo->topomojo, $attempt->userid, $grade);
 
         if ($updated === GRADE_UPDATE_FAILED) {
@@ -124,7 +129,7 @@ class grade {
         // Allow commit if we get here
         $transaction->allow_commit();
 
-        // if everything passes to here return true
+        // If everything passes to here return true
         return true;
 
     }
@@ -161,7 +166,7 @@ class grade {
                 $totalslotpoints = $totalslotpoints + $slotpoints;
             }
         }
-        $scaledpoints = ($totalslotpoints / $totalpoints) *  $this->topomojo->topomojo->grade;
+        $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
         debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->topomojo->topomojo->grade, DEBUG_DEVELOPER);
         debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
@@ -180,7 +185,8 @@ class grade {
     public function get_grade_item_passing_grade() {
         global $DB;
 
-        $gradetopass = $DB->get_field('grade_items', 'gradepass', array('iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo'));
+        $gradetopass = $DB->get_field('grade_items', 'gradepass',
+                            ['iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo']);
 
         return $gradetopass;
     }
@@ -193,21 +199,22 @@ class grade {
      * @throws \Exception When there is no valid scaletype throws new exception
      */
     protected function apply_grading_method($grades) {
-        debugging("grade method is " . $this->topomojo->topomojo->grademethod . " for " . $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
+        debugging("grade method is " . $this->topomojo->topomojo->grademethod . " for " .
+                  $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
-                // take the first record (as there should only be one since it was filtered out earlier)
+                // Take the first record (as there should only be one since it was filtered out earlier)
                 reset($grades);
                 return current($grades);
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT:
-                // take the last grade (there should only be one, as the last attempt was filtered out earlier)
+                // Take the last grade (there should only be one, as the last attempt was filtered out earlier)
                 return end($grades);
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_ATTEMPTAVERAGE:
-                // average the grades
+                // Average the grades
                 $gradecount = count($grades);
                 $gradetotal = 0;
                 foreach ($grades as $grade) {
@@ -217,7 +224,7 @@ class grade {
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_HIGHESTATTEMPTGRADE:
-                // find the highest grade
+                // Find the highest grade
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
                     if ($grade > $highestgrade) {
@@ -241,15 +248,14 @@ class grade {
      *
      * @return bool
      */
-
     protected function persist_grades($grades, \moodle_transaction $transaction) {
         global $DB;
 
         foreach ($grades as $userid => $grade) {
 
-            if ($usergrade = $DB->get_record('topomojo_grades', array('userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id))) {
-                // we're updating
-
+            if ($usergrade = $DB->get_record('topomojo_grades',
+                                  ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id])) {
+                // We're updating
                 $usergrade->grade = $grade;
                 $usergrade->timemodified = time();
 
@@ -257,7 +263,7 @@ class grade {
                     $transaction->rollback(new \Exception('Can\'t update user grades'));
                 }
             } else {
-                // we're adding
+                // We're adding
 
                 $usergrade = new \stdClass();
                 $usergrade->topomojoid = $this->topomojo->topomojo->id;
@@ -281,17 +287,16 @@ class grade {
     /**
      * Save and (re)calculate grades for this lab
      *
-     * @param bool $regrade_attempts Regrade the question attempts themselves through the question engine
+     * @param bool $regradeattempts Regrade the question attempts themselves through the question engine
      * @return bool
      */
-    public function save_all_grades($regrade_attempts = false) {
-
+    public function save_all_grades($regradeattempts = false) {
 
         $attempts = $this->topomojo->getall_attempts($open = 'closed');
 
         foreach ($attempts as $attempt) {
             // If we're regrading attempts, send them off to be re-graded before processing all sessions.
-            if ($regrade_attempts) {
+            if ($regradeattempts) {
                 $this->process_attempt($attempt);
             }
         }

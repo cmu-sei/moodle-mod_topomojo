@@ -18,23 +18,8 @@ namespace mod_topomojo;
 
 defined('MOODLE_INTERNAL') || die();
 
-use \mod_topomojo\form\edit\add_question_form;
+use mod_topomojo\form\edit\add_question_form;
 use stdClass;
-
-/**
- * Question manager class
- *
- * Provides utility functions to manage questions for a realtime quiz
- *
- * Basically this class provides an interface to internally map the questions added to a realtime quiz to
- * questions in the question bank.  calling get_questions() will return an ordered array of question objects
- * from the questions table and not the topomojo_questions table.  That table is only used internally by this
- * class.
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon University
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 
 /*
 Group Quiz Plugin for Moodle
@@ -44,10 +29,25 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md)
+Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0197
  */
 
+ /**
+  * Question manager class
+  *
+  * Provides utility functions to manage questions for a realtime quiz
+  *
+  * Basically this class provides an interface to internally map the questions added to a realtime quiz to
+  * questions in the question bank.  calling get_questions() will return an ordered array of question objects
+  * from the questions table and not the topomojo_questions table.  That table is only used internally by this
+  * class.
+  *
+  * @package     mod_topomojo
+  * @copyright   2020 Carnegie Mellon University
+  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class questionmanager {
 
     /** @var topomojo */
@@ -60,18 +60,23 @@ class questionmanager {
     protected $renderer;
 
     /** @var array internal use only as we'll always just give out the qbank ordered questions */
-    protected $topomojoQuestions;
+    protected $topomojoquestions;
 
     /** @var array */
-    protected $qbankOrderedQuestions;
+    protected $qbankorderedquestions;
 
     /** @var \moodle_url */
     protected $baseurl;
 
+    /**
+     * @var array $orderedquestions List of ordered questions.
+     */
     protected $orderedquestions;
 
+    /**
+     * @var object $object Generic object for internal use.
+     */
     protected $object;
-
 
     /**
      * Construct an instance of question manager
@@ -80,23 +85,22 @@ class questionmanager {
      * @param \mod_topomojo_renderer $renderer The realtime quiz renderer to render visual elements
      * @param array $pagevars page variables array
      */
-    public function __construct($object, $renderer, $pagevars = array())
-    {
+    public function __construct($object, $renderer, $pagevars = []) {
         global $DB;
 
         $this->object = $object;
         $this->renderer = $renderer;
         $this->pagevars = $pagevars;
-        $this->orderedquestions = array();
+        $this->orderedquestions = [];
 
         if ( !empty($this->pagevars) ) {
             $this->baseurl = $this->pagevars['pageurl'];
         } else {
-            $params = array('cmid' => $this->object->cm->id);
+            $params = ['cmid' => $this->object->cm->id];
             $this->baseurl = new \moodle_url('/mod/topomojo/edit.php', $params);
         }
 
-        // load questions
+        // Load questions
         $this->refresh_questions();
     }
 
@@ -105,8 +109,7 @@ class questionmanager {
      *
      * @return topomojo
      */
-    public function gettopomojo()
-    {
+    public function gettopomojo() {
         return $this->object;
     }
 
@@ -118,34 +121,33 @@ class questionmanager {
      *
      * @return mixed
      */
-    public function edit_question($questionid)
-    {
+    public function edit_question($questionid) {
         global $DB;
 
         $actionurl = clone($this->baseurl);
         $actionurl->param('action', 'editquestion');
         $actionurl->param('topomojoquestionid', $questionid);
 
-        $topomojoquestion = $DB->get_record('topomojo_questions', array('id' => $questionid), '*', MUST_EXIST);
-        $qrecord = $DB->get_record('question', array('id' => $topomojoquestion->questionid), '*', MUST_EXIST);
+        $topomojoquestion = $DB->get_record('topomojo_questions', ['id' => $questionid], '*', MUST_EXIST);
+        $qrecord = $DB->get_record('question', ['id' => $topomojoquestion->questionid], '*', MUST_EXIST);
 
         $mform = new add_question_form($actionurl,
-            array(
+            [
                 'topomojo' => $topomojoquestion->topomojoid,
                 'questionname' => $qrecord->name,
                 'defaultmark' => $topomojoquestion->points,
-                'edit' => true));
+                'edit' => true]);
 
-        // form handling
+        // Form handling
         if ( $mform->is_cancelled() ) {
-            // redirect back to list questions page
+            // Redirect back to list questions page
             $this->baseurl->remove_params('action');
             redirect($this->baseurl, null, 0);
 
         } else if ( $data = $mform->get_data() ) {
-            // process data from the form
+            // Process data from the form
             if ( number_format($data->points, 2) != $topomojoquestion->points ) {
-                // if we have a different points, update any existing sessions/attempts max points and regrade.
+                // If we have a different points, update any existing sessions/attempts max points and regrade.
                 $this->update_points(number_format($data->points, 2), $topomojoquestion, $qrecord);
             }
 
@@ -157,13 +159,13 @@ class questionmanager {
 
             $DB->update_record('topomojo_questions', $question);
 
-            // ensure there is no action or questionid in the baseurl
+            // Ensure there is no action or questionid in the baseurl
             $this->baseurl->remove_params('action', 'questionid');
             redirect($this->baseurl, null, 0);
 
         } else {
-            // display the form
-            $mform->set_data(array('points' => number_format($topomojoquestion->points, 2)));
+            // Display the form
+            $mform->set_data(['points' => number_format($topomojoquestion->points, 2)]);
             $this->renderer->addquestionform($mform);
         }
     }
@@ -175,19 +177,18 @@ class questionmanager {
      *
      * @return bool
      */
-    public function delete_question($questionid)
-    {
+    public function delete_question($questionid) {
         // TODO disable this if attempts exist
         global $DB;
 
         try {
-            $DB->delete_records('topomojo_questions', array('id' => $questionid));
+            $DB->delete_records('topomojo_questions', ['id' => $questionid]);
             $this->update_questionorder('deletequestion', $questionid);
-        } catch(\Exception $e) {
-            return false; // return false on error
+        } catch (\Exception $e) {
+            return false; // Return false on error
         }
 
-        // if we get here return true
+        // If we get here return true
         return true;
     }
     /**
@@ -197,26 +198,25 @@ class questionmanager {
      *
      * @return bool
      */
-    public function add_question($questionid)
-    {
+    public function add_question($questionid) {
         global $DB;
 
-	if ($this->is_question_already_present($questionid)) {
-	    debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
+        if ($this->is_question_already_present($questionid)) {
+            debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
             return false;
         }
 
         $question = new \stdClass();
         $question->topomojoid = $this->object->topomojo->id;
         $question->questionid = $questionid;
-        $qrecord = $DB->get_record('question', array('id' => $questionid), '*', MUST_EXIST);
+        $qrecord = $DB->get_record('question', ['id' => $questionid], '*', MUST_EXIST);
         $question->points = number_format($qrecord->defaultmark, 2);
 
         $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
 
-        // if we get here return true
+        // If we get here return true
         return true;
     }
 
@@ -228,11 +228,10 @@ class questionmanager {
      *
      * @return bool
      */
-    public function move_question($direction, $questionid)
-    {
+    public function move_question($direction, $questionid) {
 
         if ( $direction !== 'up' && $direction != 'down' ) {
-            return false; // return false if the direction is not up or down
+            return false; // Return false if the direction is not up or down
         }
 
         return $this->update_questionorder('movequestion' . $direction, $questionid);
@@ -246,8 +245,7 @@ class questionmanager {
      * @param array $fullorder
      * @return bool
      */
-    public function set_full_order($fullorder = array())
-    {
+    public function set_full_order($fullorder = []) {
 
         if ( !is_array($fullorder) ) {
             return false;
@@ -263,9 +261,8 @@ class questionmanager {
      *
      * @return array of the question bank ordered questions of \mod_topomojo\topomojo_question objects
      */
-    public function get_questions()
-    {
-        return $this->qbankOrderedQuestions;
+    public function get_questions() {
+        return $this->qbankorderedquestions;
     }
 
     /**
@@ -276,15 +273,14 @@ class questionmanager {
      *
      * @return string
      */
-    public function get_questiontype_byqnum($qnum)
-    {
+    public function get_questiontype_byqnum($qnum) {
 
-        // get the actual key for the qbank question
-        $qbankkeys = array_keys($this->qbankOrderedQuestions);
+        // Get the actual key for the qbank question
+        $qbankkeys = array_keys($this->qbankorderedquestions);
         $desiredkey = $qbankkeys[$qnum - 1];
-        $topomojoQuestion = $this->qbankOrderedQuestions[$desiredkey];
+        $topomojoquestion = $this->qbankorderedquestions[$desiredkey];
 
-        return $topomojoQuestion->getQuestion()->qtype;
+        return $topomojoquestion->getQuestion()->qtype;
     }
 
     /**
@@ -294,8 +290,7 @@ class questionmanager {
      *
      * @return \mod_topomojo\topomojo_question
      */
-    public function get_first_question($attempt)
-    {
+    public function get_first_question($attempt) {
         return $this->get_question_with_slot(1, $attempt);
     }
 
@@ -307,41 +302,50 @@ class questionmanager {
      *
      * @return \mod_topomojo\topomojo_question
      */
-    public function get_question_with_slot($slotnum, $attempt)
-    {
+    public function get_question_with_slot($slotnum, $attempt) {
 
         $slots = $attempt->getSlots();
         $quba = $attempt->get_quba();
 
-        // first check if this is the last question
+        // First check if this is the last question
         if ( empty($slots[$slotnum]) ) {
             $attempt->islastquestion(true);
         } else {
             $attempt->islastquestion(false);
         }
 
-        // since arrays are indexed starting at 0 and we reference questions starting with 1, we subtract 1
+        // Since arrays are indexed starting at 0 and we reference questions starting with 1, we subtract 1
         $slotnum = $slotnum - 1;
 
+        // Get the first question
+        $qubaquestion = $quba->get_question($slots[$slotnum]);
 
-        // get the first question
-        $qubaQuestion = $quba->get_question($slots[$slotnum]);
+        foreach ($this->qbankorderedquestions as $qbankquestion) {
+            if ( $qbankquestion->getQuestion()->id == $qubaquestion->id ) {
+                // Set the slot on the qbank question as this is the actual id we're using for question number
+                $qbankquestion->set_slot($slots[$slotnum]);
 
-        foreach ($this->qbankOrderedQuestions as $qbankQuestion) {
-            /** @var \mod_topomojo\topomojo_question $qbankQuestion */
-
-            if ( $qbankQuestion->getQuestion()->id == $qubaQuestion->id ) {
-                // set the slot on the qbank question as this is the actual id we're using for question number
-                $qbankQuestion->set_slot($slots[$slotnum]);
-
-                return $qbankQuestion;
+                return $qbankquestion;
             }
         }
 
-        // if we get here return null due to no question
+        // If we get here return null due to no question
         return null;
     }
 
+    /**
+     * Updates the answers for questions in the given quiz attempt based on the gamespace ID.
+     *
+     * This function retrieves the event and challenge information associated with the provided
+     * gamespace ID. It then iterates over the challenge sections and questions to match them
+     * with existing questions in the Moodle database. If a match is found and the variant
+     * corresponds, it updates the answers accordingly.
+     *
+     * @param \question_usage_by_activity $quba The question usage object for the quiz attempt.
+     * @param int $gamespaceid The ID of the gamespace associated with the current challenge.
+     *
+     * @return void
+     */
     public function update_answers($quba, $gamespaceid) {
         global $DB;
 
@@ -351,36 +355,36 @@ class questionmanager {
             $variant = $event->variant;
             debugging("this event has variant $variant", DEBUG_DEVELOPER);
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
-            if (!isset($challenge->challenge->sections)) {
+        if (!isset($challenge->challenge->sections)) {
                 debugging("no sections set!", DEBUG_DEVELOPER);
                 return;
-            }
-            foreach ($challenge->challenge->sections as $section) {
-                foreach ($section->questions as $question) {
+        }
+        foreach ($challenge->challenge->sections as $section) {
+            foreach ($section->questions as $question) {
                     $questionid = 0;
                     debugging("checking for question with variant $variant", DEBUG_DEVELOPER);
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
-                    $records = $DB->get_records_sql($sql, array($question->text));
-                    if (count($records)) {
+                    $records = $DB->get_records_sql($sql, [$question->text]);
+                if (count($records)) {
                         //echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
-                        foreach ($records as $record) {
-                            $options = $DB->get_record('qtype_mojomatch_options', array('questionid' => $record->id));
-                            if ($options) {
-                                if ($variant == $options->variant) {
-                                    debugging("question exists for variant " . $options->variant, DEBUG_DEVELOPER);
-                                    $questionid = $record->id;
-                                    break;
-                                } else {
-                                    debugging("event $variant not a match to question variant $record->variant", DEBUG_DEVELOPER);
-                                }
+                    foreach ($records as $record) {
+                            $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $record->id]);
+                        if ($options) {
+                            if ($variant == $options->variant) {
+                                debugging("question exists for variant " . $options->variant, DEBUG_DEVELOPER);
+                                $questionid = $record->id;
+                                break;
                             } else {
-                                debugging("no options found for question", DEBUG_DEVELOPER);
+                                debugging("event $variant not a match to question variant $record->variant", DEBUG_DEVELOPER);
                             }
+                        } else {
+                            debugging("no options found for question", DEBUG_DEVELOPER);
                         }
                     }
+                }
 
-                    if ($questionid) {
-                        debugging("question found with id $questionid", DEBUG_DEVELOPER);
+                if ($questionid) {
+                    debugging("question found with id $questionid", DEBUG_DEVELOPER);
                         //$table = 'question_attempts';
                         //$questionusageid = $quba->get_id();
                         //$dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
@@ -390,11 +394,11 @@ class questionmanager {
                         //  update quba with the correct answer
                         //$DB->update_record($table, $dataobject);
 
-                    } else {
-                        debugging("question was not found on moodle", DEBUG_DEVELOPER);
-                    }
+                } else {
+                    debugging("question was not found on moodle", DEBUG_DEVELOPER);
                 }
-          }
+            }
+        }
     }
 
     /**
@@ -405,14 +409,11 @@ class questionmanager {
      *
      * @return array
      */
-    public function add_questions_to_quba(\question_usage_by_activity $quba)
-    {
+    public function add_questions_to_quba(\question_usage_by_activity $quba) {
 
-        // we need the questionids of our questions
-        $questionids = array();
-        foreach ($this->qbankOrderedQuestions as $qbankquestion) {
-            /** @var topomojo_question $qbankquestion */
-
+        // We need the questionids of our questions
+        $questionids = [];
+        foreach ($this->qbankorderedquestions as $qbankquestion) {
             if ( !in_array($qbankquestion->getQuestion()->id, $questionids) ) {
                 $questionids[] = $qbankquestion->getQuestion()->id;
             }
@@ -421,22 +422,24 @@ class questionmanager {
 
         //print_r($questions);
 
-        // loop through the ordered question bank questions and add them to the quba
-        // object
-        $attemptquestionorder = array();
-        foreach ($this->qbankOrderedQuestions as $qbankquestion) {
+        // Loop through the ordered question bank questions and add them to the quba
+        // Object
+        $attemptquestionorder = [];
+        foreach ($this->qbankorderedquestions as $qbankquestion) {
             $questionid = $qbankquestion->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
             $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
         }
 
-        // start the questions in the quba
+        // Start the questions in the quba
         $quba->start_all_questions();
 
-        /**
-         * return the attempt questionorder which is a set of ids that are the slot ids from the question engine usage by activity instance
-         * these are what are used during an actual attempt rather than the questionid themselves, since the question engine will handle
-         * the translation
+        /*
+         * Return the attempt questionorder which is a set of ids that are the slot ids from the
+         * question engine usage by activity instance
+         * These are what are used during an actual attempt rather than the questionid themselves,
+         * since the question engine will handle
+         * The translation
          */
         return $attemptquestionorder;
     }
@@ -446,8 +449,7 @@ class questionmanager {
      *
      * @return string
      */
-    protected function get_question_order()
-    {
+    protected function get_question_order() {
         return $this->object->topomojo->questionorder;
     }
 
@@ -457,8 +459,7 @@ class questionmanager {
      * @param string
      * @return bool
      */
-    protected function set_question_order($questionorder)
-    {
+    protected function set_question_order($questionorder) {
         $this->object->topomojo->questionorder = $questionorder;
         return $this->object->save();
 
@@ -475,8 +476,7 @@ class questionmanager {
      *
      * @return bool true/false if it was successful
      */
-    protected function update_questionorder($action, $questionid, $fullorder = array())
-    {
+    protected function update_questionorder($action, $questionid, $fullorder = []) {
 
         switch ($action) {
             case 'addquestion':
@@ -622,11 +622,10 @@ class questionmanager {
      *
      * @return bool
      */
-    protected function is_question_already_present($questionid)
-    {
+    protected function is_question_already_present($questionid) {
 
         // loop through the db topomojo questions and see if we find a match
-        foreach ($this->topomojoQuestions as $dbtopomojoquestion) {
+        foreach ($this->topomojoquestions as $dbtopomojoquestion) {
             if ( $dbtopomojoquestion->questionid == $questionid ) {
                 return true;
             }
@@ -642,8 +641,7 @@ class questionmanager {
      * in the correct order
      *
      */
-    protected function refresh_questions()
-    {
+    protected function refresh_questions() {
         $this->init_topomojo_questions();
         $this->init_qbank_questions();
     }
@@ -652,10 +650,9 @@ class questionmanager {
      * Gets the list of questions from the DB
      *
      */
-    private function init_topomojo_questions()
-    {
+    private function init_topomojo_questions() {
         global $DB;
-        $this->topomojoQuestions = $DB->get_records('topomojo_questions', array('topomojoid' => $this->object->topomojo->id));
+        $this->topomojoquestions = $DB->get_records('topomojo_questions', ['topomojoid' => $this->object->topomojo->id]);
     }
 
     /**
@@ -663,63 +660,67 @@ class questionmanager {
      * puts question bank ordered questions into the qbankorderedquestions var
      *
      */
-    private function init_qbank_questions()
-    {
+    private function init_qbank_questions() {
         global $DB;
 
-        // start by ordering the topomojo question ids into an array
+        // Start by ordering the topomojo question ids into an array
         $questionorder = $this->object->topomojo->questionorder;
 
-        // generate empty array for ordered questions for no question order
+        // Generate empty array for ordered questions for no question order
         if (empty($questionorder) ) {
 
-            $this->qbankOrderedQuestions = array();
+            $this->qbankorderedquestions = [];
 
             return;
 
-        } else { // otherwise explode it and continue on
+        } else { // Otherwise explode it and continue on
             $questionorder = explode(',', $questionorder);
         }
 
-        // using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
-        $orderedquestionids = array();
+        // Using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
+        $orderedquestionids = [];
         foreach ($questionorder as $qorder) {
-            // store the topomojo question id as the key so that it can be used later when adding question time to
-            // question bank question object
-            $orderedquestionids[$qorder] = $this->topomojoQuestions[$qorder]->questionid;
+            // Store the topomojo question id as the key so that it can be used later when adding question time to
+            // Question bank question object
+            $orderedquestionids[$qorder] = $this->topomojoquestions[$qorder]->questionid;
         }
 
-        // get qbank questions based on the question ids from the topomojo questions table
+        // Get qbank questions based on the question ids from the topomojo questions table
         list($sql, $params) = $DB->get_in_or_equal($orderedquestionids);
         $query = 'SELECT * FROM {question} WHERE id ' . $sql;
         $questions = $DB->get_records_sql($query, $params);
 
         // Now order the qbank questions based on the order that we got above
-        $qbankOrderedQuestions = array();
-        foreach ($orderedquestionids as $topomojoqid => $questionid) { // use the ordered question ids we got earlier
+        $qbankorderedquestions = [];
+        foreach ($orderedquestionids as $topomojoqid => $questionid) { // Use the ordered question ids we got earlier
             if ( !empty($questions[$questionid]) ) {
 
-                // create topomojo question and add it to the array
+                // Create topomojo question and add it to the array
                 $topomojoquestion = new \mod_topomojo\topomojo_question($topomojoqid,
-                    $this->topomojoQuestions[$topomojoqid]->points,
+                    $this->topomojoquestions[$topomojoqid]->points,
                     $questions[$questionid]);
-                $qbankOrderedQuestions[$topomojoqid] = $topomojoquestion; // add question to the ordered questions
+                $qbankorderedquestions[$topomojoqid] = $topomojoquestion; // Add question to the ordered questions
             }
         }
 
-        $this->qbankOrderedQuestions = $qbankOrderedQuestions;
+        $this->qbankorderedquestions = $qbankorderedquestions;
     }
 
     /**
-     * @param float $newpoints
-     * @param \stdClass $questionrecord
-     * @param \stdClass $qrecord
+     * Updates the points for a specific question based on the provided records.
      *
-     * @throws \moodle_exception  Throws moodle exception when a slot isn't found, or if unable to grade
-     * @return bool;
+     * This function adjusts the points associated with a question by using the provided
+     * question record and question record objects. It throws exceptions if issues are
+     * encountered during the update process.
+     *
+     * @param float $newpoints The new points value to be assigned to the question.
+     * @param \stdClass $questionrecord The record of the question being updated.
+     * @param \stdClass $qrecord The record containing additional question data.
+     *
+     * @throws \moodle_exception Throws a Moodle exception if a slot isn't found or if grading fails.
+     * @return bool Returns true if the update is successful, otherwise false.
      */
-    public function update_points($newpoints, $questionrecord, $qrecord)
-    {
+    public function update_points($newpoints, $questionrecord, $qrecord) {
         global $DB;
 
         $q = new \mod_topomojo\topomojo_question(
@@ -731,7 +732,6 @@ class questionmanager {
         $attempts = $this->object->getall_attempts('all');
 
         foreach ($attempts as $attempt) {
-            /** @var \mod_topomojo\topomojo_attempt $attempt */
             if ( $slot = $attempt->get_question_slot($q) ) {
                 $quba = $attempt->get_quba();
                 $quba->set_max_mark($slot, $newpoints);
@@ -752,17 +752,32 @@ class questionmanager {
         }
     }
 
+    /**
+     * Processes and updates questions for a specific variant and challenge, adding them to the quiz if necessary.
+     *
+     * This method removes existing questions from the quiz that do not match the current variant,
+     * then processes and adds new questions from the specified challenge and variant. It updates
+     * questions in the database and optionally adds them to the quiz.
+     *
+     * @param \context $context The context in which the questions are being processed (e.g., course context).
+     * @param stdClass $object An object containing information related to the topomojo instance.
+     * @param int $variant The variant number of the questions to process.
+     * @param stdClass $challenge The challenge object containing the sections and questions.
+     * @param bool $addtoquiz Flag indicating whether to add the questions to the quiz.
+     *
+     * @return void
+     */
     public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
 
-        // remove mojomatch questions from other variants from the quiz
+        // Remove mojomatch questions from other variants from the quiz
         $currentquestions = $this->get_questions();
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
             if ($q->qtype == "mojomatch") {
                 $qoptions = $DB->get_record('qtype_mojomatch_options',
-                        array('questionid' => $q->id));
+                        ['questionid' => $q->id]);
                 if (($qoptions->variant != $variant) ||
                             ($qoptions->workspaceid != $object->topomojo->workspaceid)) {
                         $this->delete_question($tq->getId());
@@ -775,22 +790,22 @@ class questionmanager {
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
             debugging("Adding $count question(s) for variant $variant", DEBUG_DEVELOPER);
-            //TODO maybe we track the number of questions and make sure that it matches?
+            // TODO maybe we track the number of questions and make sure that it matches?
             //$type = 'success';
             //$message = get_string('importsuccess', 'topomojo');
             foreach ($section->questions as $question) {
                 $questionnumber++;
                 $questionid = 0;
                 $qexists = 0;
-                // match on name too
+                // Match on name too
                 $sql = "select * from {qtype_mojomatch_options} where " . $DB->sql_compare_text('workspaceid') . " = ? and variant = ? and qorder = ?";
                 $rec = $DB->get_record_sql($sql, array($object->topomojo->workspaceid, $variant, $questionnumber));
                 if ($rec) {
                     $qexists = 1;
                     $questionid = $rec->questionid;
                 }
-		if (!$qexists) {
-		    debugging("adding new question to database", DEBUG_DEVELOPER);
+                if (!$qexists) {
+                    debugging("adding new question to database", DEBUG_DEVELOPER);
                     //echo "<br>adding new question<br>";
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {
@@ -832,17 +847,17 @@ class questionmanager {
                     if (is_numeric($question->weight)) {
                         if (floor($question->weight) != $question->weight) {
                             $form->defaultmark = $question->weight * 10;
-                        } else  {
+                        } else {
                             $form->defaultmark = $question->weight;
                         }
                     }
                     if ($form->defaultmark == 0) {
                         $form->defaultmark = 1;
                     }
-                    $form->usecase = '0'; // case sensitive, topomojo does tolower() on responses
-                    $form->answer = array($question->answer);
-                    $form->fraction = array('1');
-                    $form->feedback[0] = array('text' => '', 'format' => '1');
+                    $form->usecase = '0'; // Case sensitive, topomojo does tolower() on responses
+                    $form->answer = [$question->answer];
+                    $form->fraction = ['1'];
+                    $form->feedback[0] = ['text' => '', 'format' => '1'];
                     $form->variant = $variant;
                     $form->workspaceid = $object->topomojo->workspaceid;
                     $form->transforms = 0;
@@ -850,7 +865,7 @@ class questionmanager {
 
                     if (preg_match('/##.*##/', $question->answer)) {
                         $form->transforms = 1;
-                        $form->feedback[0] = array('text' => 'This answer is randomly generated at runtime.', 'format' => '1');
+                        $form->feedback[0] = ['text' => 'This answer is randomly generated at runtime.', 'format' => '1'];
                     }
 
                     $saq->save_defaults_for_new_questions($form);

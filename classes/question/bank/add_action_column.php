@@ -30,15 +30,43 @@ class add_action_column extends \core_question\local\bank\question_action_base {
     /** @var string caches a lang string used repeatedly. */
     protected $stradd;
 
+    /**
+     * Initializes the component with additional strings specific to the Topomojo plugin.
+     *
+     * This function overrides the parent `init` method to include additional
+     * initialization for the Topomojo plugin. It sets up a localized string
+     * used within the plugin.
+     *
+     * @return void
+     */
     public function init(): void {
         parent::init();
         $this->stradd = get_string('addtotopomojo', 'topomojo');
     }
 
+    /**
+     * Retrieves the name identifier for the Topomojo action.
+     *
+     * This function returns the name identifier 'addtotopomojoaction',
+     * which is used to identify this specific action within the Topomojo plugin.
+     *
+     * @return string The name identifier of the action.
+     */
     public function get_name() {
         return 'addtotopomojoaction';
     }
 
+    /**
+     * Displays the content for a given question with specific row classes.
+     *
+     * This function checks if the user has the capability to use the given question.
+     * If the user has the necessary capability, an icon is printed which allows the
+     * user to add the question to Topomojo.
+     *
+     * @param stdClass $question The question object containing the question's data.
+     * @param string $rowclasses A string of CSS classes to apply to the row.
+     * @return void
+     */
     protected function display_content($question, $rowclasses) {
         if (!question_has_capability_on($question, 'use')) {
             return;

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -34,7 +33,7 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-use \mod_topomojo\topomojo;
+use mod_topomojo\topomojo;
 
 //require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
@@ -43,21 +42,21 @@ require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 global $USER;
 
 try {
     if ($id) {
         $cm         = get_coursemodule_from_id('topomojo', $id, 0, false, MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-        $topomojo   = $DB->get_record('topomojo', array('id' => $cm->instance), '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $cm->instance], '*', MUST_EXIST);
     } else if ($c) {
-        $topomojo   = $DB->get_record('topomojo', array('id' => $c), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $topomojo->course), '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $c], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
     }
 } catch (Exception $e) {
-    print_error("invalid course module id passed");
+    throw new moodle_exception("invalid course module id passed");
 }
 
 require_course_login($course, true, $cm);
@@ -70,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/review.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/topomojo/review.php', ['id' => $cm->id]);
+$returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -80,7 +79,7 @@ $PAGE->set_heading($course->fullname);
 
 // new topomojo class
 $pageurl = $url;
-$pagevars = array();
+$pagevars = [];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 $renderer = $PAGE->get_renderer('mod_topomojo');

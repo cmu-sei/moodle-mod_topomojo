@@ -18,14 +18,6 @@ namespace mod_topomojo\question\bank;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Subclass of the question bank view class to change the way it works/looks
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon University
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 /*
 Group Quiz Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
@@ -34,10 +26,18 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md)
+Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0197
  */
 
+ /**
+  * Subclass of the question bank view class to change the way it works/looks
+  *
+  * @package     mod_topomojo
+  * @copyright   2020 Carnegie Mellon University
+  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class custom_view extends \core_question\local\bank\view {
 
     /** @var bool whether the topomojo this is used by has been attemptd. */
@@ -56,8 +56,16 @@ class custom_view extends \core_question\local\bank\view {
         }
     }
 
-
-
+    /**
+     * Retrieves and configures the available question bank plugins and columns.
+     *
+     * This function initializes the core question bank columns, checks for additional
+     * columns from the Topomojo plugin and other question bank plugins, and includes them
+     * if they are enabled and meet the necessary criteria. It returns an array of configured
+     * question bank columns.
+     *
+     * @return array An array of question bank column objects, indexed by their short names.
+     */
     protected function get_question_bank_plugins(): array {
         $questionbankclasscolumns = [];
         $corequestionbankcolumns = [
@@ -66,7 +74,7 @@ class custom_view extends \core_question\local\bank\view {
             'question_type_column',
             'question_name_text_column',
             'delete_action_column',
-            'preview_action_column'
+            'preview_action_column',
         ];
 
         if (question_get_display_preference('qbshowtext', 0, PARAM_BOOL, new \moodle_url(''))) {
@@ -135,8 +143,6 @@ class custom_view extends \core_question\local\bank\view {
      * category      Chooses the category
      * displayoptions Sets display options
      */
-//    public function display($tabname, $page, $perpage, $cat,
-//                            $recurse, $showhidden, $showquestiontext, $tagids = array()) {
     public function render($pagevars, $tabname): string {
         ob_start();
         $this->display();
@@ -165,13 +171,16 @@ class custom_view extends \core_question\local\bank\view {
 
     }
 
-    /*
-     * This has been taken from the base class to allow us to call our own version of
-     * create_new_question_button.
+    /**
+     * Displays a form for creating a new question in the given category.
      *
-     * @param $category
-     * @param $canadd
-     * @throws \coding_exception
+     * This function renders the interface for creating a new question, including a button
+     * to initiate the question creation process if the user has the necessary permissions.
+     * It overrides the base class method to call a custom version of `create_new_question_button`.
+     *
+     * @param \stdClass $category The question category where the new question will be created.
+     * @param bool $canadd Whether the user has the permission to add new questions.
+     * @throws \coding_exception If an error occurs during the creation of the form.
      */
     protected function create_new_question_form($category, $canadd): void {
         global $CFG;
@@ -212,16 +221,28 @@ class custom_view extends \core_question\local\bank\view {
         }
         $params['category'] = $categoryid;
         $url = new \moodle_url('/question/addquestion.php', $params);
-        echo $OUTPUT->single_button($url, $caption, 'get', array('disabled'=>$disabled, 'title'=>$tooltip));
+        echo $OUTPUT->single_button($url, $caption, 'get', ['disabled' => $disabled, 'title' => $tooltip]);
 
         if (!$choiceformprinted) {
             echo '<div id="qtypechoicecontainer">';
-            echo print_choose_qtype_to_add_form(array(), $enabledtypes);
+            echo print_choose_qtype_to_add_form([], $enabledtypes);
             echo "</div>\n";
             $choiceformprinted = true;
         }
     }
 
+    /**
+     * Displays the bottom controls for the question bank interface.
+     *
+     * This function renders a section at the bottom of the question bank interface with
+     * controls for interacting with selected questions. It includes a button to add selected
+     * questions to the lab, but this button is only displayed if the user has the necessary
+     * capability. The button is initially disabled.
+     *
+     * @param \context $catcontext The context of the category where the question bank is displayed.
+     *
+     * @return void
+     */
     protected function display_bottom_controls(\context $catcontext): void {
         $cmoptions = new \stdClass();
         $cmoptions->hasattempts = !empty($this->topomojohasattempts);
@@ -231,7 +252,7 @@ class custom_view extends \core_question\local\bank\view {
         echo \html_writer::start_tag('div', ['class' => 'pt-2']);
         if ($canuseall) {
             // Add selected questions to the lab.
-            $params = array(
+            $params = [
                 'type' => 'submit',
                 'name' => 'addquestionlist',
                 'class' => 'btn btn-primary',
@@ -240,11 +261,12 @@ class custom_view extends \core_question\local\bank\view {
                 'data-togglegroup' => 'qbank',
                 'data-toggle' => 'action',
                 'disabled' => true,
-            );
+            ];
             echo \html_writer::empty_tag('input', $params);
         }
         echo \html_writer::end_tag('div');
     }
+
     /**
      * Question preview url.
      *

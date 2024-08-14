@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -42,7 +42,7 @@ $string['modulename_link'] = 'mod/topomojo/view';
 $string['modulenameplural'] = 'Topomojos';
 $string['pluginname'] = 'Topomojo';
 
-// plugin settings
+// Plugin settings
 $string['topomojoapiurl'] = 'Topomojo API Base URL';
 $string['embed'] = 'Display Mode';
 $string['topomojobaseurl'] = 'Topomojo Base URL';
@@ -74,7 +74,7 @@ $string['endlab'] = 'End Lab';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
 $string['endlab_help'] = 'Whether quiz submission should end Topomojo lab.';
 
-// activity settings
+// Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to Topomojo is displayed';
 $string['workspace_help'] = 'This is the Workspace GUID in Topomojo.';
 $string['workspace'] = 'Topomojo Workspace';
@@ -117,14 +117,14 @@ $string['eventclose'] = 'Close the activity';
 $string['eventopen_help'] = 'The actitity will not be available until this date.';
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
-// history table
+// History table
 $string['id'] = 'Topomojo Gamespace GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
 
-// attempt table
+// Attempt table
 $string['eventid'] = 'Topomojo Gamespace GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
@@ -133,11 +133,11 @@ $string['tasks'] = 'Tasks';
 $string['score'] = 'Score';
 $string['username'] = 'Username';
 
-// events
+// Events
 $string['eventattemptstarted'] = 'Attempt started';
 $string['eventattemptended'] = 'Attempt ended';
 
-// view
+// View
 $string['eventwithoutattempt'] = 'Gamespace exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
@@ -152,12 +152,12 @@ $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
 $string['stoplab'] = 'End Lab';
 
-// review
+// Review
 $string['returntext'] = 'Return to Lab';
 $string['savequestion'] = 'Save question';
 $string['noreview'] = 'You are not able to review the quiz attempt at this time.';
 
-// review options
+// Review options
 $string['review'] = 'Review';
 $string['reviewafter'] = 'Allow review after lab is closed';
 $string['reviewalways'] = 'Allow review at any time';
@@ -189,17 +189,17 @@ $string['reviewresponsetoq'] = 'Review response (question {$a})';
 $string['reviewthisattempt'] = 'Review your responses to this attempt';
 
 
-// roles
+// Roles
 $string['topomojo:manage'] = 'Manage Topomojo activities';
 $string['topomojo:view'] = 'View Topomojo activity information';
 $string['topomojo:addinstance'] = 'Add a new Topomojo activties';
 
-// questions
+// Questions
 $string['noquestions'] = 'No questions have been added yet';
 $string['questions'] = 'Questions';
 
 
-// edit
+// Edit
 $string['questionlist'] = 'Question List';
 $string['cannoteditafterattempts'] = 'You cannot add or remove questions because this lab has been attempted.';
 $string['addtotopomojo'] = 'Add to lab';
@@ -222,7 +222,7 @@ $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
 
-// privacy
+// Privacy
 $string['privacy:metadata'] = 'The Topomojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
 
 

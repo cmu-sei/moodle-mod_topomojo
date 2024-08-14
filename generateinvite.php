@@ -48,10 +48,10 @@ $id = required_param('id', PARAM_ALPHANUMEXT);
 // maliciously to keep a session alive longer than intended.
 if (!confirm_sesskey()) {
     header('HTTP/1.1 403 Forbidden');
-    print_error('invalidsesskey');
+    throw new moodle_exception('invalidsesskey');
 }
 
-$response = array();
+$response = [];
 
 $auth = setup();
 $result = get_invite($auth, $id);

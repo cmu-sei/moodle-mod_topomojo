@@ -20,16 +20,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
 
-/**
- * Moodle form for confirming question add and get the time for the question
- * to appear on the page
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon University
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Group Quiz Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -41,6 +32,14 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0197
  */
 
+ /**
+  * Moodle form for confirming question add and get the time for the question
+  * to appear on the page
+  *
+  * @package     mod_topomojo
+  * @copyright   2020 Carnegie Mellon University
+  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 class add_question_form extends \moodleform {
 
     /**
@@ -63,7 +62,7 @@ class add_question_form extends \moodleform {
      */
     public function definition() {
 
-	    $mform = $this->_form;
+        $mform = $this->_form;
         $topomojo = $this->_customdata['topomojo'];;
 
         $mform->addElement('static', 'questionid', get_string('question', 'topomojo'), $this->_customdata['questionname']);
@@ -95,7 +94,7 @@ class add_question_form extends \moodleform {
      */
     public function validation($data, $files) {
 
-        $errors = array();
+        $errors = [];
 
         if (!filter_var($data['points'], FILTER_VALIDATE_FLOAT) && filter_var($data['points'], FILTER_VALIDATE_FLOAT) != 0) {
             $errors['points'] = get_string('invalid_points', 'topomojo');
