@@ -113,14 +113,14 @@ if (!$attempt) {
         default:
 
             // TODO create attempt viewed event
-            $params = [
+            $params = array(
                 'relateduserid' => $USER->id,
                 'objectid'      => $pagevars['a'],
                 'context'       => $context,
                 'other'         => [
                     'topomojoid'   => $object->topomojo->id,
                 ],
-            ];
+            );
             //$event = \mod_topomojo\event\attempt_viewed::create($params);
             //$event->add_record_snapshot('topomojo_attempts', $attempt->get_attempt());
             //$event->trigger();

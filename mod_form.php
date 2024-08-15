@@ -108,16 +108,16 @@ class mod_topomojo_mod_form extends moodleform_mod {
      * @param stdClass $course The course object or details related to the class.
      */
     public function __construct($current, $section, $cm, $course) {
-        self::$reviewfields = [
-            'attempt'          => ['theattempt', 'topomojo'],
-            'correctness'      => ['whethercorrect', 'question'],
-            'marks'            => ['marks', 'topomojo'],
-            'specificfeedback' => ['specificfeedback', 'question'],
-            'generalfeedback'  => ['generalfeedback', 'question'],
-            'rightanswer'      => ['rightanswer', 'question'],
-            'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'],
-            'manualcomment'    => ['manualcomment', 'topomojo'],
-        ];
+        self::$reviewfields = array(
+            'attempt'          => ['theattempt', 'topomojo'],          // Field for attempt details
+            'correctness'      => ['whethercorrect', 'question'],      // Field for correctness of the answer
+            'marks'            => ['marks', 'topomojo'],               // Field for marks obtained
+            'specificfeedback' => ['specificfeedback', 'question'],    // Specific feedback related to the question
+            'generalfeedback'  => ['generalfeedback', 'question'],     // General feedback for the question
+            'rightanswer'      => ['rightanswer', 'question'],         // The correct answer
+            'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'], // Overall feedback for the review
+            'manualcomment'    => ['manualcomment', 'topomojo']        // Manual comments by the reviewer
+        );
         parent::__construct($current, $section, $cm, $course);
     }
 
@@ -151,6 +151,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $labnames = [];
             $labs = [];
             $tagimport = get_config('topomojo', 'tagimport');
+            $tagcreate = get_config('topomojo', 'tagcreate');
 
             foreach ($this->workspaces as $workspace) {
                 array_push($labnames, $workspace->name);
@@ -183,7 +184,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                         }
                     }
 
-                    if (!empty($flattenedtagsarray)) {
+                    if (!empty($flattenedtagsarray) && $tagcreate) {
                         // Split the string into an array by spaces
                         $collectionid = get_config('topomojo', 'tagcollection');
                         // Add tag to moodle if missing
@@ -564,10 +565,11 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // Handle tags
         $tagimport = get_config('topomojo', 'tagimport');
+        $tagmap = get_config('topomojo', 'tagmap');
 
         if ($tagimport) {
             $newtags = $this->workspaces[$selectedworkspace]->tags;
-            if ($newtags) {
+            if ($newtags && $tagmap) {
                 // Process tags
                 $words = explode(' ', $newtags);
                 $newtags = str_replace('-', ' ', $words);

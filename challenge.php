@@ -87,7 +87,7 @@ $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevar
 
 // Get current state of workspace
 $allevents = list_events($object->userauth, $object->topomojo->name);
-$eventsmoodle = eventsmoodle($allevents);
+$eventsmoodle = moodle_events($allevents);
 $history = user_events($object->userauth, $eventsmoodle);
 $object->event = get_active_event($history);
 

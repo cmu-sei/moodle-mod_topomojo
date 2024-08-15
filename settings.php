@@ -65,6 +65,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
         get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
 
+    $settings->add(new admin_setting_configcheckbox('topomojo/tagcreate',
+        get_string('tagcreate', 'topomojo'), get_string('configtagcreate', 'topomojo'), 0));
+
+    $settings->hide_if('topomojo/tagcreate', 'topomojo/tagimport', 'notchecked', 1);
+
     $tagcollections = core_tag_collection::get_collections();
 
     $collectionnames = [];
@@ -79,7 +84,14 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('topomojo/tagcollection',
         get_string('tagcollection', 'topomojo'), get_string('configtagcollection', 'topomojo'), 1, $collectionnames));
 
+    $settings->hide_if('topomojo/tagcollection', 'topomojo/tagcreate', 'notchecked', 1);
     $settings->hide_if('topomojo/tagcollection', 'topomojo/tagimport', 'notchecked', 1);
+
+    $settings->add(new admin_setting_configcheckbox('topomojo/tagmap',
+        get_string('tagmap', 'topomojo'), get_string('configtagmap', 'topomojo'), 0));
+
+    $settings->hide_if('topomojo/tagmap', 'topomojo/tagcreate', 'notchecked', 1);
+    $settings->hide_if('topomojo/tagmap', 'topomojo/tagimport', 'notchecked', 1);
 
     // Review options.
     $settings->add(new admin_setting_heading('reviewheading',

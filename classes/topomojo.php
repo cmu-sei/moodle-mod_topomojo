@@ -52,7 +52,7 @@ class topomojo {
     /**
      * @var topomojo_attempt The currently open attempt
      */
-    public $openattempt;
+    public $openAttempt;
 
     /**
      * @var \context_module The context for the course module
@@ -225,7 +225,7 @@ class topomojo {
         debugging("open attempt found", DEBUG_DEVELOPER);
 
         // Get the first (and only) value in the array
-        $this->openattempt = reset($attempts);
+        $this->openAttempt = reset($attempts);
 
         return true;
     }
@@ -278,6 +278,7 @@ class topomojo {
         foreach ($dbattempts as $dbattempt) {
             $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
         }
+
         return $attempts;
 
     }
@@ -352,7 +353,7 @@ class topomojo {
 
         $attempt = $this->get_open_attempt();
         if ($attempt === true) {
-            debugging("init_attempt found " . $this->openattempt->id, DEBUG_DEVELOPER);
+            debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
             return true;
         }
         debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
@@ -373,7 +374,7 @@ class topomojo {
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
 
         if ($attempt->save()) {
-            $this->openattempt = $attempt;
+            $this->openAttempt = $attempt;
         } else {
             return false;
         }

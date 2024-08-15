@@ -49,7 +49,7 @@ require_once($CFG->libdir . '/questionlib.php');
 function setup() {
         $client = new curl;
         $xapikey = get_config('topomojo', 'apikey');
-        $topoheaders = ['x-api-key: ' . $xapikey, 'content-type: application/json'];
+        $topoheaders = array('x-api-key: ' . $xapikey, 'content-type: application/json');
         $client->setHeader($topoheaders);
         //debugging("api key $xapikey", DEBUG_DEVELOPER);
         return $client;
@@ -79,8 +79,7 @@ function list_events($client, $name) {
     // Web request
     //echo $name . "<br>";
     //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode("Wireless") . "&Filter=all";
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" .
-           rawurlencode($name) . "&WantsActive=true";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&WantsActive=true";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -103,6 +102,7 @@ function list_events($client, $name) {
     $matches = [];
     foreach ($r as $event) {
         // Filter by name
+        $name = preg_replace('/ - \d+$/', '', $name); ///CHECK THIS - 0 IS BEING ADDED TO THE NAME DON'T KNOW WHY
         if (($event['name'] === $name) && ($event['isActive'])) {
             array_push($matches, $event);
         }
@@ -1127,6 +1127,3 @@ class mod_topomojo_display_options extends question_display_options {
         }
     }
 }
-
-
-

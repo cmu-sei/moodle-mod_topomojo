@@ -486,7 +486,7 @@ class topomojo_attempt {
                 $transaction->allow_commit();
 
                 // Trigger event for question manually graded
-                $params = [
+                $params = array(
                     'objectid' => $this->quba->get_question($slot)->id,
                     //'courseid' => $topomojo->getCourse()->id,
                     'context'  => $this->context,
@@ -495,7 +495,7 @@ class topomojo_attempt {
                         'attemptid' => $this->attempt->id,
                         'slot'      => $slot,
                     ],
-                ];
+                );
                 // TODO create event
                 //$event = \mod_topomojo\event\question_manually_graded::create($params);
                 //$event->trigger();
