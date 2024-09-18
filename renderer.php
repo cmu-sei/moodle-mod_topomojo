@@ -634,7 +634,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $url = get_config('topomojo', 'topomojobaseurl');
 
         // Add classes
-        $cleaned = str_replace("img src=", "img class=\"img-fluid rounded\" src=", $cleaned);
+        $cleaned = str_replace("img src=", "img class=\"tm-img-fluid tm-rounded\" src=", $cleaned);
 
         // Risky due to lack of verification of img...
         //$cleaned = str_replace("src=\"/docs/", "src=\"" . $url . "/docs/", $cleaned, $i);
