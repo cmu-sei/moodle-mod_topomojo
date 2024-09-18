@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Renderer outputting the quiz editing UI.
- *
- * @package mod_topomojo
- * @copyright 2016 Carnegie Mellon University
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 /*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
@@ -30,20 +22,33 @@ Released under a GNU GPL 3.0-style license, please see license.txt or contact pe
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
 This Software includes and/or makes use of the following Third-Party Software subject to its own license:
 1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md) Copyright 2014 John Hoopes and the University of Wisconsin.
+2. mod_activequiz (https://github.com/jhoopes/moodle-mod_activequiz/blob/master/README.md)
+Copyright 2014 John Hoopes and the University of Wisconsin.
 DM20-0197
  */
 
 namespace mod_topomojo\output;
 defined('MOODLE_INTERNAL') || die();
 
-use \mod_topomojo\traits\renderer_base;
+use mod_topomojo\traits\renderer_base;
 
+/**
+ * Renderer outputting the quiz editing UI.
+ *
+ * @package mod_topomojo
+ * @copyright 2016 Carnegie Mellon University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class edit_renderer extends \plugin_renderer_base {
 
     use renderer_base;
 
-    public $has_attempts;
+    /**
+     * Indicates if there are any attempts for the current quiz.
+     *
+     * @var bool
+     */
+    public $hasattempts;
 
     /**
      * Render the list questions view for the edit page
@@ -52,11 +57,11 @@ class edit_renderer extends \plugin_renderer_base {
      */
     public function listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars) {
         global $CFG;
-	    $this->has_attempts = $topomojohasattempts;
-	    echo \html_writer::start_div('row', array('id' => 'questionrow'));
+        $this->hasattempts = $topomojohasattempts;
+        echo \html_writer::start_div('row', ['id' => 'questionrow']);
         echo \html_writer::start_div('inline-block col-sm-6');
         echo \html_writer::tag('h2', get_string('questionlist', 'topomojo'));
-        echo \html_writer::div('', 'topomojostatusbox topomojohiddenstatus', array('id' => 'editstatus'));
+        echo \html_writer::div('', 'topomojostatusbox topomojohiddenstatus', ['id' => 'editstatus']);
         if (count($questions) == 0) {
             echo \html_writer::tag('p', get_string('noquestions', 'topomojo'));
         }
@@ -65,7 +70,7 @@ class edit_renderer extends \plugin_renderer_base {
 
         echo \html_writer::end_div(); //inline-block-span6 questionlist
 
-        if ($this->has_attempts) {
+        if ($this->hasattempts) {
             echo \html_writer::start_div('inline-block span6');
             echo \html_writer::tag('h2', get_string('questionbank', 'question'));
             echo \html_writer::tag('p', get_string('cannoteditafterattempts', 'topomojo'));
@@ -83,22 +88,22 @@ class edit_renderer extends \plugin_renderer_base {
             // TODO update to amd
             $this->page->requires->js('/mod/topomojo/js/edit_quiz.js');
 
-            // next set up a class to pass to js for js info
+            // Next set up a class to pass to js for js info
             $jsinfo = new \stdClass();
             $jsinfo->sesskey = sesskey();
             $jsinfo->siteroot = $CFG->wwwroot;
             $jsinfo->cmid = $cm->id;
             $jsinfo->topomojoid = $this->topomojo->topomojo->id;
 
-            // print jsinfo to javascript
-            echo \html_writer::start_tag('script', array('type' => 'text/javascript'));
+            // Print jsinfo to javascript
+            echo \html_writer::start_tag('script', ['type' => 'text/javascript']);
             echo "topomojoinfo = " . json_encode($jsinfo);
             echo \html_writer::end_tag('script');
 
-            $this->page->requires->strings_for_js(array(
+            $this->page->requires->strings_for_js([
                 'success',
-                'error'
-            ), 'core');
+                'error',
+            ], 'core');
         }
     }
 
@@ -115,7 +120,6 @@ class edit_renderer extends \plugin_renderer_base {
         $questioncount = count($questions);
         $questionnum = 1;
         foreach ($questions as $question) {
-            /** @var \mod_topomojo\topomojo_question $question */
             $return .= '<li data-questionid="' . $question->getId() . '">';
             $return .= $this->display_question_block($question, $questionnum, $questioncount);
             $return .= '</li>';
@@ -139,7 +143,7 @@ class edit_renderer extends \plugin_renderer_base {
 
         $return = '';
 
-	    // TODO disable reordering if attepts exist
+        // TODO disable reordering if attepts exist
         $dragicon = new \pix_icon('i/dragdrop', 'dragdrop');
         $return .= \html_writer::div($this->output->render($dragicon), 'dragquestion');
 
@@ -153,24 +157,24 @@ class edit_renderer extends \plugin_renderer_base {
 
         $return .= \html_writer::div($namehtml, 'name');
 
-        $controlHTML = '';
+        $controlhtml = '';
 
-        $spacericon = new \pix_icon('spacer', 'space', null, array('class' => 'smallicon space'));
-        $controlHTML .= \html_writer::start_tag('noscript');
-        if ($qnum > 1) { // if we're on a later question than the first one add the move up control
+        $spacericon = new \pix_icon('spacer', 'space', null, ['class' => 'smallicon space']);
+        $controlhtml .= \html_writer::start_tag('noscript');
+        if ($qnum > 1) { // If we're on a later question than the first one add the move up control
 
             $moveupurl = clone($this->pageurl);
             $moveupurl->param('action', 'moveup');
-            $moveupurl->param('questionid', $question->getId()); // add the topomojoqid so that the question manager handles the translation
+            $moveupurl->param('questionid', $question->getId()); // Add the topomojoqid so that the question manager handles the translation
 
             $alt = get_string('questionmoveup', 'mod_topomojo', $qnum);
 
             $upicon = new \pix_icon('t/up', $alt);
-            $controlHTML .= \html_writer::link($moveupurl, $this->output->render($upicon));
+            $controlhtml .= \html_writer::link($moveupurl, $this->output->render($upicon));
         } else {
-            $controlHTML .= $this->output->render($spacericon);
+            $controlhtml .= $this->output->render($spacericon);
         }
-        if ($qnum < $qcount) { // if we're not on the last question add the move down control
+        if ($qnum < $qcount) { // If we're not on the last question add the move down control
 
             $movedownurl = clone($this->pageurl);
             $movedownurl->param('action', 'movedown');
@@ -179,38 +183,37 @@ class edit_renderer extends \plugin_renderer_base {
             $alt = get_string('questionmovedown', 'mod_topomojo', $qnum);
 
             $downicon = new \pix_icon('t/down', $alt);
-            $controlHTML .= \html_writer::link($movedownurl, $this->output->render($downicon));
+            $controlhtml .= \html_writer::link($movedownurl, $this->output->render($downicon));
 
         } else {
-            $controlHTML .= $this->output->render($spacericon);
+            $controlhtml .= $this->output->render($spacericon);
         }
 
-        $controlHTML .= \html_writer::end_tag('noscript');
+        $controlhtml .= \html_writer::end_tag('noscript');
 
-	    // do not allow edit or delete if attempts exist
-	    if (!$this->has_attempts) {
+        // Do not allow edit or delete if attempts exist
+        if (!$this->hasattempts) {
             $editurl = clone($this->pageurl);
             $editurl->param('action', 'editquestion');
             $editurl->param('topomojoquestionid', $question->getId());
             $alt = get_string('questionedit', 'topomojo', $qnum);
             $deleteicon = new \pix_icon('t/edit', $alt);
-            $controlHTML .= \html_writer::link($editurl, $this->output->render($deleteicon));
+            $controlhtml .= \html_writer::link($editurl, $this->output->render($deleteicon));
             $deleteurl = clone($this->pageurl);
             $deleteurl->param('action', 'deletequestion');
             $deleteurl->param('questionid', $question->getId());
             $alt = get_string('questiondelete', 'mod_topomojo', $qnum);
             $deleteicon = new \pix_icon('t/delete', $alt);
-            $controlHTML .= \html_writer::link($deleteurl, $this->output->render($deleteicon));
+            $controlhtml .= \html_writer::link($deleteurl, $this->output->render($deleteicon));
         }
         $previewurl = \qbank_previewquestion\helper::question_preview_url($question->getQuestion()->id);
         $previewicon = new \pix_icon('t/preview', get_string('preview'));
         $options = ['height' => 800, 'width' => 900];
         $popup = new \popup_action('click', $previewurl, 'preview', $options);
-        $actionlink = new \action_link($previewurl, '', $popup, array('target' => '_blank'), $previewicon);
-        $controlHTML .= $this->output->render($actionlink);
+        $actionlink = new \action_link($previewurl, '', $popup, ['target' => '_blank'], $previewicon);
+        $controlhtml .= $this->output->render($actionlink);
 
-
-        $return .= \html_writer::div($controlHTML, 'controls');
+        $return .= \html_writer::div($controlhtml, 'controls');
 
         return $return;
 
@@ -227,7 +230,16 @@ class edit_renderer extends \plugin_renderer_base {
 
     }
 
-    public function opensession(){
+    /**
+     * Displays an error message when a session cannot be opened.
+     *
+     * This function outputs an error message indicating that the session
+     * could not be opened. It uses Moodle's HTML writer to generate the
+     * HTML for the message.
+     *
+     * @return void
+     */
+    public function opensession() {
 
         echo \html_writer::tag('h3', get_string('editpage_opensession_error', 'topomojo'));
 

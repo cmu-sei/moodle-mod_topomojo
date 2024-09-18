@@ -37,7 +37,7 @@ DM20-0196
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2024070304;
+$plugin->version = 2024091801;
 
 // This is the version of Moodle this plugin requires.
 $plugin->requires = 2018050800;
@@ -47,7 +47,7 @@ $plugin->component = 'mod_topomojo';
 
 // This is a list of plugins, this plugin depends on (and their versions).
 $plugin->dependencies = [
-	'qtype_mojomatch' => 2022081602,
+  'qtype_mojomatch' => 2022081602,
 ];
 
 // This is a stable release.

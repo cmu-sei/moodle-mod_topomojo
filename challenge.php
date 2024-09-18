@@ -34,7 +34,7 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-use \mod_topomojo\topomojo;
+use mod_topomojo\topomojo;
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
@@ -44,25 +44,21 @@ require_once($CFG->libdir . '/completionlib.php');
 
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
-
-// if (empty($attemptid)) {
-//     redirect('view.php?id=' . $cm->id);
-// }
 
 try {
     if ($id) {
         $cm         = get_coursemodule_from_id('topomojo', $id, 0, false, MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-        $topomojo   = $DB->get_record('topomojo', array('id' => $cm->instance), '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $cm->instance], '*', MUST_EXIST);
     } else if ($c) {
-        $topomojo   = $DB->get_record('topomojo', array('id' => $c), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $topomojo->course), '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $c], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
     }
 } catch (Exception $e) {
-    print_error("invalid course module id passed");
+    throw new moodle_exception("invalid course module id passed");
 }
 
 require_course_login($course, true, $cm);
@@ -75,80 +71,77 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/challenge.php', array ( 'id' => $cm->id ) );
-$returnurl = new moodle_url ( '/mod/topomojo/view.php', array ( 'id' => $cm->id ) );
+$url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id]);
+$returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
-// new topomojo class
+// New topomojo class
 $pageurl = $url;
-$pagevars = array();
+$pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-
-// get current state of workspace
-$all_events = list_events($object->userauth, $object->topomojo->name);
-$moodle_events = moodle_events($all_events);
-$history = user_events($object->userauth, $moodle_events);
+// Get current state of workspace
+$allevents = list_events($object->userauth, $object->topomojo->name);
+$eventsmoodle = moodle_events($allevents);
+$history = user_events($object->userauth, $eventsmoodle);
 $object->event = get_active_event($history);
 
-// get active attempt for user: true/false
-$activeAttempt = $object->get_open_attempt();
-if ($activeAttempt == true) {
+// Get active attempt for user: true/false
+$activeattempt = $object->get_open_attempt();
+if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
-} else if ($activeAttempt == false) {
+} else if ($activeattempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
     redirect($returnurl);
 }
 
-// handle start/stop form action
-if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
+// Handle start/stop form action
+if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
     debugging("start request received", DEBUG_DEVELOPER);
 
-    // check not started already
+    // Check not started already
     if (!$object->event) {
 
-        //TODO check for open attempt and check for status of its event
-
-
+        // TODO check for open attempt and check for status of its event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
             //$object->event = get_event($object->userauth, $eventid);
-            $activeAttempt = $object->init_attempt();
-            debugging("init_attempt returned $activeAttempt", DEBUG_DEVELOPER);
-            if (!$activeAttempt) {
+            $activeattempt = $object->init_attempt();
+            debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
+            if (!$activeattempt) {
                 debugging("init_attempt failed");
-                print_error('init_attempt failed');
+                throw new moodle_exception('init_attempt failed');
             }
             topomojo_start($cm, $context, $topomojo);
         } else {
             debugging("start_event failed", DEBUG_DEVELOPER);
-            print_error("start_event failed");
+            throw new moodle_exception("start_event failed");
         }
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
         if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
             $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
             //$object->get_question_manager()->create_questions_from_challenge($challenge);
         }
-        // contact topomojo and pull the correct answers for this attempt
+        // Contact topomojo and pull the correct answers for this attempt
         // TODO verify is this works for random attempts
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
 
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
-} else if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['stop'])) {
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
-            if (!$activeAttempt) {
+            if (!$activeattempt) {
                 debugging('no attempt to close', DEBUG_DEVELOPER);
-                print_error('no attempt to close');
+                throw new moodle_exception('no attempt to close');
             }
 
             $object->openAttempt->save_question();
@@ -157,19 +150,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['start'])) {
             $grader->process_attempt($object->openAttempt);
 
             if ($object->topomojo->endlab) {
-            stop_event($object->userauth, $object->event->id);
-            topomojo_end($cm, $context, $topomojo);
+                stop_event($object->userauth, $object->event->id);
+                topomojo_end($cm, $context, $topomojo);
             }
 
-            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $object->openAttempt->id, 'action' => 'view' ) );
+            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php',
+                              ['a' => $object->openAttempt->id, 'action' => 'view']);
             redirect($viewattempturl);
         }
     }
 }
 
-if ((!$object->event) && ($activeAttempt)) {
+if ((!$object->event) && ($activeattempt)) {
     debugging("active attempt with no event", DEBUG_DEVELOPER);
-    //print_error('attemptalreadyexists', 'topomojo');
+    //throw new moodle_exception(('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
     $grader->process_attempt($object->openAttempt);
     $object->openAttempt->close_attempt();
@@ -179,7 +173,7 @@ $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
 debugging("grade to pass is $gradepass", DEBUG_DEVELOPER);
 
-// show grade only if a grade is set
+// Show grade only if a grade is set
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
@@ -196,15 +190,15 @@ switch($action) {
         debugging("submitquiz request received", DEBUG_DEVELOPER);
         if ($object->event) {
             if ($object->event->isActive) {
-                if (!$activeAttempt) {
+                if (!$activeattempt) {
                     debugging('no active attempt', DEBUG_DEVELOPER);
-                    print_error('no active attempt');
+                    throw new moodle_exception('no active attempt');
                 }
 
-                //TODO if we are submitting answers, dont close, just save
+                // TODO if we are submitting answers, dont close, just save
                 $object->openAttempt->save_questions();
 
-                //TODO maybe dont reload?
+                // TODO maybe dont reload?
                 redirect($url);
             }
         }
@@ -223,6 +217,6 @@ switch($action) {
             }
         }
 }
-// attempts may differ from events pulled from history on server
+// Attempts may differ from events pulled from history on server
 
 echo $renderer->footer();

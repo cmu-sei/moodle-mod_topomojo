@@ -18,16 +18,7 @@ namespace mod_topomojo;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * topomojo Attempt wrapper class to encapsulate functions needed to individual
- * attempt records
- *
- * @package     mod_topomojo
- * @copyright   2020 Carnegie Mellon Univeristy
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -38,12 +29,29 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
+
+/**
+ * topomojo Attempt wrapper class to encapsulate functions needed to individual
+ * attempt records
+ *
+ * @package     mod_topomojo
+ * @copyright   2020 Carnegie Mellon Univeristy
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class topomojo_attempt {
 
     /** Constants for the status of the attempt */
+
+    /** @var int NOTSTARTED Indicates that the attempt has not started */
     const NOTSTARTED = 0;
+
+    /** @var int INPROGRESS Indicates that the attempt is currently in progress */
     const INPROGRESS = 10;
+
+    /** @var int ABANDONED Indicates that the attempt has been abandoned */
     const ABANDONED = 20;
+
+    /** @var int FINISHED Indicates that the attempt has finished */
     const FINISHED = 30;
 
     /** @var \stdClass The attempt record */
@@ -76,10 +84,10 @@ class topomojo_attempt {
         $this->questionmanager = $questionmanager;
         $this->context = $context;
 
-        // if empty create new attempt
+        // If empty create new attempt
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
-            // create a new quba since we're creating a new attempt
+            // Create a new quba since we're creating a new attempt
             $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
                     $this->questionmanager->gettopomojo()->getContext());
             // TODO get from module settings
@@ -88,12 +96,12 @@ class topomojo_attempt {
             $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
             $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
-            // add the attempt layout to this instance
+            // Add the attempt layout to this instance
             $this->attempt->layout = implode(',', $attemptlayout);
 
             \question_engine::save_questions_usage_by_activity($this->quba);
 
-        } else { // else load it up in this class instance
+        } else { // Else load it up in this class instance
             $this->attempt = $dbattempt;
             $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
         }
@@ -187,8 +195,8 @@ class topomojo_attempt {
 
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
-            } catch(\Exception $e) {
-                error_log($e->getMessage());
+            } catch (\Exception $e) {
+                debugging($e->getMessage());
 
                 return false; // return false on failure
             }
@@ -197,7 +205,7 @@ class topomojo_attempt {
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
                 $this->attempt->id = $newid;
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 var_dump($e);
                 return false; // return false on failure
             }
@@ -220,11 +228,11 @@ class topomojo_attempt {
         $this->attempt->timefinish = time();
         $this->save();
 
-        $params = array(
+        $params = [
             'objectid'      => $this->attempt->topomojoid,
             'context'       => $this->context,
-            'relateduserid' => $USER->id
-        );
+            'relateduserid' => $USER->id,
+        ];
 
         // TODO verify this info is gtg and send the event
         //$event = \mod_topomojo\event\attempt_ended::create($params);
@@ -252,7 +260,6 @@ class topomojo_attempt {
         throw new \Exception('undefined property(' . $prop . ') on topomojo attempt');
 
     }
-
 
     /**
      * magic setter method for this class
@@ -359,20 +366,20 @@ class topomojo_attempt {
                 $options->rightanswer = \question_display_options::VISIBLE;
                 $options->history = \question_display_options::VISIBLE;
             } else if ($reviewoptions instanceof \stdClass) {
-		        foreach ($reviewoptions as $field => $data) {
-		            if ($when == 'closed') {
-			            if (($field == 'reviewmarks') &&
-			                    ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
-			                $options->marks = \question_display_options::MARK_AND_MAX;
-			            } else {
+                foreach ($reviewoptions as $field => $data) {
+                    if ($when == 'closed') {
+                        if (($field == 'reviewmarks') &&
+                            ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+                            $options->marks = \question_display_options::MARK_AND_MAX;
+                        } else {
                             $options->$field = \question_display_options::VISIBLE;
-			            }
-			            if (($field == 'reviewrightanswer') &&
+                        }
+                        if (($field == 'reviewrightanswer') &&
                                 ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
                             $options->rightanswer = \question_display_options::VISIBLE;
                         }
                     }
-		        }
+                }
                 $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
                 if ($when == 'closed') {
                     $state = \mod_topomojo_display_options::AFTER_CLOSE;
@@ -389,9 +396,9 @@ class topomojo_attempt {
                     }
                 }
 
-		    }
+            }
         } else {
-            // default options for during quiz
+            // Default options for during quiz
             $options->rightanswer = \question_display_options::HIDDEN;
             $options->numpartscorrect = \question_display_options::HIDDEN;
             $options->manualcomment = \question_display_options::HIDDEN;
@@ -418,7 +425,7 @@ class topomojo_attempt {
 
         $transaction->allow_commit();
 
-        return true; // return true if we get to here
+        return true; // Return true if we get to here
     }
 
     /**
@@ -463,7 +470,7 @@ class topomojo_attempt {
     public function process_comment($topomojo, $slot = null) {
         global $DB;
 
-        // if there is no slot return false
+        // If there is no slot return false
         if (empty($slot)) {
             return false;
         }
@@ -483,11 +490,11 @@ class topomojo_attempt {
                     'objectid' => $this->quba->get_question($slot)->id,
                     //'courseid' => $topomojo->getCourse()->id,
                     'context'  => $this->context,
-                    'other'    => array(
+                    'other'    => [
                         'topomojoid'     => $topomojo->id,
                         'attemptid' => $this->attempt->id,
                         'slot'      => $slot,
-                    )
+                    ],
                 );
                 // TODO create event
                 //$event = \mod_topomojo\event\question_manually_graded::create($params);
@@ -495,10 +502,10 @@ class topomojo_attempt {
 
                 return true;
             } else {
-		// TODO maybe add button to go back
-		echo "value entered is not in range";
-		exit;
-	    }
+                // TODO maybe add button to go back
+                echo "value entered is not in range";
+                exit;
+            }
         }
 
         return false;

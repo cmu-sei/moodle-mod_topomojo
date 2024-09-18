@@ -34,7 +34,7 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-use \mod_topomojo\topomojo;
+use mod_topomojo\topomojo;
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
@@ -49,15 +49,15 @@ $c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as 
 try {
     if ($id) {
         $cm         = get_coursemodule_from_id('topomojo', $id, 0, false, MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-        $topomojo   = $DB->get_record('topomojo', array('id' => $cm->instance), '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $cm->instance], '*', MUST_EXIST);
     } else if ($c) {
-        $topomojo   = $DB->get_record('topomojo', array('id' => $c), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $topomojo->course), '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $c], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
     }
 } catch (Exception $e) {
-    print_error("invalid course module id passed");
+    throw new moodle_exception("invalid course module id passed");
 }
 
 require_course_login($course, true, $cm);
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 */
 
-$url = new moodle_url ( '/mod/topomojo/edit.php', array ( 'cmid' => $cm->id ) );
+$url = new moodle_url ( '/mod/topomojo/edit.php', ['cmid' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -82,9 +82,9 @@ $PAGE->set_heading($course->fullname);
 $action = optional_param('action', '', PARAM_ALPHA);
 $addquestionlist = optional_param('addquestionlist', '', PARAM_ALPHA);
 
-// new topomojo class
+// New topomojo class
 $pageurl = $url;
-$pagevars = array();
+$pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
@@ -107,7 +107,7 @@ if ($addquestionlist) {
 if ($object->topomojo->importchallenge) {
     $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
     if (!$challenge) {
-        print_error("this lab has no challenge");
+        throw new moodle_exception("this lab has no challenge");
     }
 
     if ($object->topomojo->variant == 0) {
@@ -123,7 +123,7 @@ if ($object->topomojo->importchallenge) {
         $type = 'info';
         $message = get_string('importtopo', 'topomojo');
 
-        //adjust for offset
+        //Adjust for offset
         $variant = $object->topomojo->variant - 1;
         $addtoquiz = true;
         $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
@@ -131,7 +131,7 @@ if ($object->topomojo->importchallenge) {
     $renderer->setMessage($type, $message);
 }
 
-// handle actions
+// Handle actions
 switch ($action) {
     case 'addquestionlist':
         $rawdata = (array) data_submitted();
@@ -195,7 +195,7 @@ switch ($action) {
             $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
         }
         break;
-    case 'dragdrop': // this is a javascript callack case for the drag and drop of questions using ajax.
+    case 'dragdrop': // This is a javascript callack case for the drag and drop of questions using ajax.
         if ($topomojohasattempts) {
             debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
         } else {

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
+/*
 Topomojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
@@ -34,29 +33,29 @@ This Software includes and/or makes use of the following Third-Party Software su
 DM20-0196
  */
 
-use \mod_topomojo\topomojo;
+use mod_topomojo\topomojo;
 
 //require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 
-$a = required_param('a', PARAM_INT);  // attempt ID 
+$a = required_param('a', PARAM_INT);  // Attempt ID
 $action = optional_param('action', 'view', PARAM_TEXT);
 $slot = optional_param('slot', '', PARAM_INT);
 
 if (!$a) {
-    $a = required_param('attemptid', PARAM_INT);  // attempt ID
+    $a = required_param('attemptid', PARAM_INT);  // Attempt ID
 }
 $attemptid = $a;
 
 try {
-        $attempt    = $DB->get_record('topomojo_attempts', array('id' => $a), '*', MUST_EXIST);
-        $topomojo   = $DB->get_record('topomojo', array('id' => $attempt->topomojoid), '*', MUST_EXIST);
-        $course     = $DB->get_record('course', array('id' => $topomojo->course), '*', MUST_EXIST);
+        $attempt    = $DB->get_record('topomojo_attempts', ['id' => $a], '*', MUST_EXIST);
+        $topomojo   = $DB->get_record('topomojo', ['id' => $attempt->topomojoid], '*', MUST_EXIST);
+        $course     = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
         $cm         = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
 } catch (Exception $e) {
-    print_error("invalid attempt id passed");
+    throw new moodle_exception("invalid attempt id passed");
 }
 
 require_course_login($course, true, $cm);
@@ -65,22 +64,22 @@ $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:view', $context);
 
 // TODO log event attempt views
-if ($_SERVER['REQUEST_METHOD'] == "GET") {
-    // Completion and trigger events.
-    //topomojo_view($topomojo, $course, $cm, $context);
-}
+// if ($_SERVER['REQUEST_METHOD'] == "GET") {
+// Completion and trigger events.
+//topomojo_view($topomojo, $course, $cm, $context);
+// }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/viewattempt.php', array ( 'a' => $a ) );
+$url = new moodle_url ( '/mod/topomojo/viewattempt.php', ['a' => $a]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
-// new topomojo class
+// New topomojo class
 $pageurl = $url;
-$pagevars = array('a' => $a, 'pageurl' => $pageurl);
+$pagevars = ['a' => $a, 'pageurl' => $pageurl];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 $attempt = $object->get_attempt($attemptid);
 $cmid = $object->getCM()->id;
@@ -96,7 +95,7 @@ if (!$attempt) {
 
             $success = $attempt->process_comment($object->topomojo, $slot);
             if ($success) {
-                // if successful recalculate the grade for the attempt's userid as the grader can update grades on the questions
+                // If successful recalculate the grade for the attempt's userid as the grader can update grades on the questions
                 $object->renderer->base_header();
 
                 $grader = new \mod_topomojo\utils\grade($object);
@@ -118,9 +117,9 @@ if (!$attempt) {
                 'relateduserid' => $USER->id,
                 'objectid'      => $pagevars['a'],
                 'context'       => $context,
-                'other'         => array(
-                    'topomojoid'   => $object->topomojo->id
-                )
+                'other'         => [
+                    'topomojoid'   => $object->topomojo->id,
+                ],
             );
             //$event = \mod_topomojo\event\attempt_viewed::create($params);
             //$event->add_record_snapshot('topomojo_attempts', $attempt->get_attempt());

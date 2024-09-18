@@ -43,17 +43,27 @@ defined('MOODLE_INTERNAL') || die();
  */
 function topomojo_supports($feature) {
     switch($feature) {
-        case FEATURE_MOD_ARCHETYPE:           return MOD_ARCHETYPE_OTHER;
-        case FEATURE_GROUPS:                  return false;
-        case FEATURE_GROUPINGS:               return false;
-        case FEATURE_MOD_INTRO:               return true;
-        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
-        case FEATURE_GRADE_HAS_GRADE:         return true;
-        case FEATURE_GRADE_OUTCOMES:          return false;
-        case FEATURE_BACKUP_MOODLE2:          return true;
-        case FEATURE_SHOW_DESCRIPTION:        return true;
+        case FEATURE_MOD_ARCHETYPE:
+            return MOD_ARCHETYPE_OTHER;
+        case FEATURE_GROUPS:
+            return false;
+        case FEATURE_GROUPINGS:
+            return false;
+        case FEATURE_MOD_INTRO:
+            return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
+            return true;
+        case FEATURE_GRADE_HAS_GRADE:
+            return true;
+        case FEATURE_GRADE_OUTCOMES:
+            return false;
+        case FEATURE_BACKUP_MOODLE2:
+            return true;
+        case FEATURE_SHOW_DESCRIPTION:
+            return true;
 
-        default: return null;
+        default:
+            return null;
     }
 }
 /**
@@ -61,7 +71,7 @@ function topomojo_supports($feature) {
  * @return array
  */
 function topomojo_get_extra_capabilities() {
-    return array('moodle/site:accessallgroups');
+    return ['moodle/site:accessallgroups'];
 }
 
 /**
@@ -74,7 +84,7 @@ function topomojo_reset_userdata($data) {
     // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
     // See MDL-9367.
 
-    return array();
+    return [];
 }
 
 /**
@@ -88,7 +98,7 @@ function topomojo_reset_userdata($data) {
  * @return array
  */
 function topomojo_get_post_actions() {
-    return array('update', 'add');
+    return ['update', 'add'];
 }
 
 /**
@@ -109,7 +119,7 @@ function topomojo_add_instance($topomojo, $mform) {
     }
 
     $topomojo->created = time();
-    $topomojo->grade = 100; //default
+    $topomojo->grade = 100; // Default
     $topomojo->id = $DB->insert_record('topomojo', $topomojo);
 
     // Do the processing required after an add or an update.
@@ -163,14 +173,25 @@ function topomojo_after_add_or_update($topomojo) {
     $cmid = $topomojo->coursemodule;
 
     // We need to use context now, so we need to make sure all needed info is already in db.
-    $DB->set_field('course_modules', 'instance', $topomojo->id, array('id'=>$cmid));
+    $DB->set_field('course_modules', 'instance', $topomojo->id, ['id' => $cmid]);
     $context = context_module::instance($cmid);
 
     // Update related grade item.
     topomojo_grade_item_update($topomojo);
 }
 
-
+/**
+ * Processes and updates options for the Topomojo module.
+ *
+ * This function takes a Topomojo object, updates its properties based on the form input,
+ * and sets various review options by calling helper functions.
+ *
+ * @param stdClass $topomojo The Topomojo object to be updated. This object represents
+ *                           the current instance of the Topomojo module with various
+ *                           settings and options.
+ *
+ * @return void
+ */
 function topomojo_process_options($topomojo) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
@@ -188,18 +209,19 @@ function topomojo_process_options($topomojo) {
     $topomojo->reviewoverallfeedback &= ~mod_topomojo_display_options::DURING;
     $topomojo->reviewmanualcomment = topomojo_review_option_form_to_db($topomojo, 'manualcomment');
 }
+
 /**
  * Helper function for {@link topomojo_process_options()}.
  * @param object $fromform the sumbitted form date.
  * @param string $field one of the review option field names.
  */
 function topomojo_review_option_form_to_db($fromform, $field) {
-    static $times = array(
+    static $times = [
         'during' => mod_topomojo_display_options::DURING,
         'immediately' => mod_topomojo_display_options::IMMEDIATELY_AFTER,
         'open' => mod_topomojo_display_options::LATER_WHILE_OPEN,
         'closed' => mod_topomojo_display_options::AFTER_CLOSE,
-    );
+    ];
 
     $review = 0;
     foreach ($times as $whenname => $when) {
@@ -220,22 +242,21 @@ function topomojo_review_option_form_to_db($fromform, $field) {
  */
 function topomojo_delete_instance($id) {
     global $DB;
-    $topomojo = $DB->get_record('topomojo', array('id' => $id), '*', MUST_EXIST);
+    $topomojo = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
 
-    // delete calander events
-    $events = $DB->get_records('event', array('modulename' => 'topomojo', 'instance' => $topomojo->id));
+    // Delete calander events
+    $events = $DB->get_records('event', ['modulename' => 'topomojo', 'instance' => $topomojo->id]);
     foreach ($events as $event) {
         $event = calendar_event::load($event);
         $event->delete();
     }
 
-
-    // delete grade from database
+    // Delete grade from database
     topomojo_grade_item_delete($topomojo);
 
-    // note: all context files are deleted automatically
+    // Note: all context files are deleted automatically
 
-    $DB->delete_records('topomojo', array('id'=>$topomojo->id));
+    $DB->delete_records('topomojo', ['id' => $topomojo->id]);
 
     return true;
 }
@@ -253,22 +274,28 @@ function topomojo_delete_instance($id) {
 function topomojo_get_coursemodule_info($coursemodule) {
 }
 
-/*
- * Mark the activity completed (if required) and trigger the course_module_viewed event.
+/**
+ * Handles the viewing of the Topomojo activity.
  *
- * @param  stdClass $topomojo        topomojo object
- * @param  stdClass $course     course object
- * @param  stdClass $cm         course module object
- * @param  stdClass $context    context object
- * @since Moodle 3.0
+ * This function triggers the `course_module_viewed` event and marks the activity as completed
+ * if required. It updates the completion status and records the event data for the Topomojo
+ * activity, course, and course module.
+ *
+ * @param stdClass $topomojo The Topomojo object representing the activity being viewed.
+ * @param stdClass $course   The course object containing information about the course.
+ * @param stdClass $cm       The course module object representing the module instance.
+ * @param stdClass $context  The context object representing the current context.
+ *
+ * @return void
+ *
  */
 function topomojo_view($topomojo, $course, $cm, $context) {
 
     // Trigger course_module_viewed event.
-    $params = array(
+    $params = [
         'context' => $context,
-        'objectid' => $topomojo->id
-    );
+        'objectid' => $topomojo->id,
+    ];
 
     $event = \mod_topomojo\event\course_module_viewed::create($params);
     $event->add_record_snapshot('course_modules', $cm);
@@ -290,8 +317,8 @@ function topomojo_view($topomojo, $course, $cm, $context) {
  * @return stdClass an object with the different type of areas indicating if they were updated or not
  * @since Moodle 3.2
  */
-function topomojo_check_updates_since(cm_info $cm, $from, $filter = array()) {
-    $updates = course_check_module_updates_since($cm, $from, array('content'), $filter);
+function topomojo_check_updates_since(cm_info $cm, $from, $filter = []) {
+    $updates = course_check_module_updates_since($cm, $from, ['content'], $filter);
     return $updates;
 }
 /**
@@ -338,7 +365,7 @@ function topomojo_update_grades($topomojo, $userid = 0, $nullifnone = true) {
     if ($topomojo->grade == 0) {
         topomojo_grade_item_update($topomojo);
 
-    } else if ($grades =  topomojo_get_user_grades($topomojo, $userid)) {
+    } else if ($grades = topomojo_get_user_grades($topomojo, $userid)) {
 
         $status = topomojo_grade_item_update($topomojo, $grades);
     } else if ($userid && $nullifnone) {
@@ -364,9 +391,9 @@ function topomojo_grade_item_update($topomojo, $grades = null) {
     require_once($CFG->libdir . '/gradelib.php');
 
     if (property_exists($topomojo, 'cmidnumber')) { // May not be always present.
-        $params = array('itemname' => $topomojo->name, 'idnumber' => $topomojo->cmidnumber);
+        $params = ['itemname' => $topomojo->name, 'idnumber' => $topomojo->cmidnumber];
     } else {
-        $params = array('itemname' => $topomojo->name);
+        $params = ['itemname' => $topomojo->name];
     }
     if ($topomojo->grade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
@@ -375,7 +402,7 @@ function topomojo_grade_item_update($topomojo, $grades = null) {
     } else {
         $params['gradetype'] = GRADE_TYPE_NONE;
     }
-    if ($grades  === 'reset') {
+    if ($grades === 'reset') {
         $params['reset'] = true;
         $grades = null;
     }
@@ -395,7 +422,7 @@ function topomojo_grade_item_delete($topomojo) {
     require_once($CFG->libdir . '/gradelib.php');
 
     return grade_update('mod/topomojo', $topomojo->course, 'mod', 'topomojo', $topomojo->id, 0,
-            null, array('deleted' => 1));
+            null, ['deleted' => 1]);
 }
 
 /**
@@ -408,7 +435,7 @@ function topomojo_grade_item_delete($topomojo) {
 function topomojo_get_user_grades($topomojo, $userid = 0) {
     global $CFG, $DB;
 
-    $params = array($topomojo->id);
+    $params = [$topomojo->id];
     $usertest = '';
     if ($userid) {
         $params[] = $userid;
@@ -431,32 +458,44 @@ function topomojo_get_user_grades($topomojo, $userid = 0) {
             GROUP BY u.id, cg.grade, cg.timemodified", $params);
 }
 
+/**
+ * Extends the settings navigation with additional links for the Topomojo module.
+ *
+ * This function adds custom navigation nodes to the settings navigation for the Topomojo module,
+ * such as links to challenge, review, and edit pages. The nodes are added at specific positions
+ * relative to existing nodes based on the current context.
+ *
+ * @param settings_navigation $settingsnav The settings navigation object to which nodes are added.
+ * @param context $context The context object representing the current context for the navigation.
+ *
+ * @return void
+ */
 function topomojo_extend_settings_navigation($settingsnav, $context) {
     global $PAGE;
 
     $keys = $context->get_children_key_list();
     $beforekey = null;
     $i = array_search('modedit', $keys);
-    if ($i === false and array_key_exists(0, $keys)) {
+    if ($i === false && array_key_exists(0, $keys)) {
         $beforekey = $keys[0];
     } else if (array_key_exists($i + 1, $keys)) {
         $beforekey = $keys[$i + 1];
     }
 
-    $url = new moodle_url('/mod/topomojo/challenge.php', array('id' => $PAGE->cm->id));
+    $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $PAGE->cm->id]);
     $node = navigation_node::create(get_string('challengetext', 'mod_topomojo'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING, null, 'mod_topomojo_challenge', new pix_icon('i/grades', 'grades'));
     $context->add_node($node, $beforekey);
-    
-    $url = new moodle_url('/mod/topomojo/review.php', array('id' => $PAGE->cm->id));
+
+    $url = new moodle_url('/mod/topomojo/review.php', ['id' => $PAGE->cm->id]);
     $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
     $context->add_node($node, $beforekey);
 
     if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/edit.php', array('cmid' => $PAGE->cm->id));
+        $url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $PAGE->cm->id]);
         $node = navigation_node::create(get_string('questions', 'mod_topomojo'),
                 new moodle_url($url),
                 navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));

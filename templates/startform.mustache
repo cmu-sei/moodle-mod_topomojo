@@ -36,13 +36,22 @@ DM20-0196
             }
 }}
 
-<form action="{{url}}" method="post">
+<form id="start_form" action="{{url}}" method="post">
     <input id="event" type="hidden" name="event" value=""/>
     <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
+    <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
     <input id="launch_button" class="btn btn-primary" type="submit" name="start" value="Launch Lab" />
 </form>
 {{{markdown}}}
 
 <br>
 
-
+<script type="text/javascript">
+    document.getElementById('launch_button').addEventListener('click', function(event) {
+        if (!confirm("Are you sure you want to start the attempt?\nThis will deploy the lab on TopoMojo.")) {
+            event.preventDefault(); // Prevent the form from being submitted if the user cancels
+        } else {
+            document.getElementById('start_confirmed').value = "yes";
+        }
+    });
+</script>

@@ -58,7 +58,7 @@ class mod_topomojo_admin_review_setting extends admin_setting {
     const AFTER_CLOSE       = 0x00010;
 
     /**
-     * @var boolean|null forced checked / disabled attributes for the during time.
+     * @var bool|null forced checked / disabled attributes for the during time.
      */
     protected $duringstate;
 
@@ -68,7 +68,7 @@ class mod_topomojo_admin_review_setting extends admin_setting {
      * @return array
      */
     public static function fields() {
-        return array(
+        return [
             'attempt'          => get_string('theattempt', 'topomojo'),
             'correctness'      => get_string('whethercorrect', 'question'),
             'marks'            => get_string('marks', 'question'),
@@ -77,7 +77,7 @@ class mod_topomojo_admin_review_setting extends admin_setting {
             'rightanswer'      => get_string('rightanswer', 'question'),
             'overallfeedback'  => get_string('overallfeedback', 'topomojo'),
             'manualcomment'    => get_string('manualcomment', 'topomojo'),
-        );
+        ];
     }
 
     /**
@@ -110,14 +110,25 @@ class mod_topomojo_admin_review_setting extends admin_setting {
      * @return array an array of time constant => lang string.
      */
     protected static function times() {
-        return array(
+        return [
             self::DURING            => get_string('reviewduring', 'topomojo'),
             self::IMMEDIATELY_AFTER => get_string('reviewimmediately', 'topomojo'),
             self::LATER_WHILE_OPEN  => get_string('reviewopen', 'topomojo'),
             self::AFTER_CLOSE       => get_string('reviewclosed', 'topomojo'),
-        );
+        ];
     }
 
+    /**
+     * Normalizes the given data based on predefined time masks.
+     *
+     * This method iterates over predefined time masks and checks if each time mask is present
+     * in the input data. It also considers a special state (`duringstate`) when the time mask
+     * is equal to `DURING`. It calculates a cumulative value based on the presence of these
+     * time masks and the `duringstate` flag.
+     *
+     * @param array $data An associative array where keys represent time masks and values represent data related to those masks.
+     * @return int The cumulative value based on the presence of time masks in the input data and the `duringstate` flag.
+     */
     protected function normalise_data($data) {
         $times = self::times();
         $value = 0;
@@ -133,10 +144,28 @@ class mod_topomojo_admin_review_setting extends admin_setting {
         return $value;
     }
 
+    /**
+     * Retrieves the configuration setting for the current object.
+     *
+     * This method accesses the configuration system to read and return the value
+     * associated with the object's name. It leverages the `config_read` method
+     * to fetch the setting.
+     *
+     * @return mixed The configuration value associated with the object's name.
+     */
     public function get_setting() {
         return $this->config_read($this->name);
     }
 
+    /**
+     * Writes a configuration setting for the current object.
+     *
+     * This method normalizes the input data if it is an array or empty, then
+     * writes the normalized data to the configuration system using the `config_write` method.
+     *
+     * @param mixed $data The data to be written to the configuration. It will be normalized if it's an array or empty.
+     * @return string An empty string indicating successful completion.
+     */
     public function write_setting($data) {
         if (is_array($data) || empty($data)) {
             $data = $this->normalise_data($data);
@@ -145,6 +174,17 @@ class mod_topomojo_admin_review_setting extends admin_setting {
         return '';
     }
 
+    /**
+     * Generates HTML output for the configuration setting.
+     *
+     * This method normalizes the input data if it is an array or empty, then generates
+     * an HTML snippet that represents a group of checkboxes based on the provided data.
+     * It also handles the "DURING" state and constructs the HTML for each checkbox.
+     *
+     * @param mixed $data The data to be represented by checkboxes. If it's an array or empty, it will be normalized.
+     * @param string $query Optional query string to be included in the output.
+     * @return string The generated HTML output for the configuration setting.
+     */
     public function output_html($data, $query = '') {
         if (is_array($data) || empty($data)) {
             $data = $this->normalise_data($data);
