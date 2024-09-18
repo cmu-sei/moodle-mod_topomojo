@@ -84,12 +84,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
-        $options['trusted'] = true;
-        $options['noclean'] = true;
-        $options['nocache'] = true;
+        //$options['trusted'] = true;
+        //$options['noclean'] = true;
+        //$options['nocache'] = true;
 
-        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        $url = get_config('topomojo', 'topomojobaseurl');
+        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        //$url = get_config('topomojo', 'topomojobaseurl');
         //$data->markdown = str_replace("src=\"/docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
         //$data->markdown = str_replace("src=\"docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
         $data->markdown = $this->clean_markdown($markdown);
@@ -619,7 +619,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         //$markdown = "![page2-nestednetworkdiagram.jpg](/docs/6a4d6fa4-1147-47b9-ae76-7d914854f717/page2-nestednetworkdiagram.jpg)";
         // Match the pattern for markdown images
         $pattern = '/(!\[.*\]\()(.*\))/i';
-        $replace = '${1}' . $url .'${2}';
+        $replace = '${1}' . $url . '/${2}';
         foreach ($lines as $line) {
             $clean = preg_replace($pattern, $replace, $line);
             array_push($cleanlines, $clean);
