@@ -90,7 +90,10 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
         $url = get_config('topomojo', 'topomojobaseurl');
-        $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
+        //$data->markdown = str_replace("src=\"/docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
+        //$data->markdown = str_replace("src=\"docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
+        $data->markdown = $this->clean_markdown($markdown);
+
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/startform', $data);
@@ -164,11 +167,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_challenge_instructions($markdown) {
         $data = new stdClass();
-        $options['trusted'] = true;
-        $options['noclean'] = true;
-        $options['nocache'] = true;
+        //$options['trusted'] = true;
+        //$options['noclean'] = true;
+        //$options['nocache'] = true;
 
-        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        $data->markdown = $this->clean_markdown($markdown);
+
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/challenge', $data);
@@ -194,13 +199,16 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $data->vmlist = $vmlist;
 
-        $options['trusted'] = true;
-        $options['noclean'] = true;
-        $options['nocache'] = true;
+        //$options['trusted'] = true;
+        //$options['noclean'] = true;
+        //$options['nocache'] = true;
 
-        $data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        $url = get_config('topomojo', 'topomojobaseurl');
-        $data->markdown = str_replace("/docs/", $url . "/docs/", $data->markdown, $i);
+        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
+        //$url = get_config('topomojo', 'topomojobaseurl');
+        //$data->markdown = str_replace("img src=\"/docs/", "img src=\"" . $url . "docs/", $data->markdown, $i);
+        //$data->markdown = str_replace("img src=\"docs/", "img src=\"" . $url . "docs/", $data->markdown, $i);
+
+        $data->markdown = $this->clean_markdown($markdown);
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/embed', $data);
@@ -603,6 +611,36 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             echo $output;
     }
 
+    private function clean_markdown($markdown) {
+        $cleanlines = array();
+        $url = get_config('topomojo', 'topomojobaseurl');
+        $lines = preg_split("/\r\n|\n|\r/", $markdown);
+
+        //$markdown = "![page2-nestednetworkdiagram.jpg](/docs/6a4d6fa4-1147-47b9-ae76-7d914854f717/page2-nestednetworkdiagram.jpg)";
+        // Match the pattern for markdown images
+        $pattern = '/(!\[.*\]\()(.*\))/i';
+        $replace = '${1}' . $url .'${2}';
+        foreach ($lines as $line) {
+            $clean = preg_replace($pattern, $replace, $line);
+            array_push($cleanlines, $clean);
+        }
+        $markdown = implode("\n", $cleanlines);
+
+        $options['nocache'] = true;
+        $options['trusted'] = true;
+        $options['noclean'] = true;
+   
+        $cleaned = format_text($markdown, FORMAT_MARKDOWN, $options);
+        $url = get_config('topomojo', 'topomojobaseurl');
+
+        // Add classes
+        $cleaned = str_replace("img src=", "img class=\"img-fluid rounded\" src=", $cleaned);
+
+        // Risky due to lack of verification of img...
+        //$cleaned = str_replace("src=\"/docs/", "src=\"" . $url . "/docs/", $cleaned, $i);
+
+        return $cleaned;
+    }
 }
 
 
