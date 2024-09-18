@@ -317,6 +317,19 @@ function topomojo_get_coursemodule_info($coursemodule) {
  * @return void
  *
  */
+
+use core_xapi\local\statement;
+use core_xapi\local\statement\item;
+use core_xapi\local\statement\item_agent;
+use core_xapi\local\statement\item_actor;
+use core_xapi\local\statement\item_activity;
+use core_xapi\local\statement\item_object;
+use core_xapi\local\statement\item_verb;
+use core_xapi\local\statement\item_result;
+use core_xapi\local\statement\item_attachment;
+use core_xapi\local\statement\item_context;
+use core_xapi\xapi_exception;
+
 function topomojo_view($topomojo, $course, $cm, $context) {
 
     // Trigger course_module_viewed event.
@@ -334,6 +347,20 @@ function topomojo_view($topomojo, $course, $cm, $context) {
     // Completion.
     $completion = new completion_info($course);
     $completion->set_module_viewed($cm);
+
+    global $USER;
+    $statement = new statement();
+    $statement->set_actor(item_agent::create_from_user($USER));
+    $statement->set_verb(item_verb::create_from_id('viewed'));
+    $statement->set_object(item_activity::create_from_id('paella'));
+    //$statement->set_result($this->get_valid_item('result'));
+    //$statement->set_context($this->get_valid_item('context'));
+    //$statement->set_authority($this->get_valid_item('authority'));
+    //$statement->add_attachment($this->get_valid_item('attachment'));
+    $statement->set_version('Example');
+    $statement->set_timestamp('Example');
+    $statement->set_stored('Example');
+
 }
 
 /**
