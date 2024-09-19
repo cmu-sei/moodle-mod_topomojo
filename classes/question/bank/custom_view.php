@@ -273,7 +273,7 @@ class custom_view extends \core_question\local\bank\view {
      * @param \stdClass $question
      * @return \moodle_url
      */
-    public function preview_question_url($question) {
+    public function preview_question_url() {
         return topomojo_question_preview_url($this->topomojo, $question);
     }
 
