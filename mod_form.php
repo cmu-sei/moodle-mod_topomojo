@@ -244,7 +244,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $currentgrade = $this->current->grade;
         }
 
-        $mform->addElement('text', 'grade', get_string('grade', 'quiz'), $currentgrade);
+        $mform->addElement('text', 'grade', get_string('grade', 'topomojo'), $currentgrade);
         $mform->setType('grade', PARAM_INT);
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
