@@ -23,7 +23,7 @@
  */
 
 /*
-Topomojo Plugin for Moodle
+TopoMojo Plugin for Moodle
 Copyright 2020 Carnegie Mellon University.
 NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN 'AS-IS' BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
 Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
@@ -36,28 +36,28 @@ DM20-0196
 // This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
-$string['modulename'] = 'Topomojo';
-$string['modulename_help'] = 'Displays Topomojo labs and VM consoles';
+$string['modulename'] = 'TopoMojo';
+$string['modulename_help'] = 'Displays TopoMojo labs and VM consoles';
 $string['modulename_link'] = 'mod/topomojo/view';
-$string['modulenameplural'] = 'Topomojos';
-$string['pluginname'] = 'Topomojo';
+$string['modulenameplural'] = 'TopoMojos';
+$string['pluginname'] = 'TopoMojo';
 
 // Plugin settings
-$string['topomojoapiurl'] = 'Topomojo API Base URL';
+$string['topomojoapiurl'] = 'TopoMojo API Base URL';
 $string['embed'] = 'Display Mode';
-$string['topomojobaseurl'] = 'Topomojo Base URL';
+$string['topomojobaseurl'] = 'TopoMojo Base URL';
 $string['autocomplete'] = 'Workspace Selection Method';
 $string['workspace'] = 'Workspace';
 $string['selectname'] = 'Search for an Workspace by name';
 $string['showfailed'] = 'Show Failed';
-$string['displaylink'] = 'Display Link to Topomojo';
+$string['displaylink'] = 'Display Link to TopoMojo';
 $string['embedlab'] = 'Embed Lab inside Moodle';
 $string['theattempt'] = 'The attempt';
 $string['theattempt_help'] = 'Whether the student can review the attempt at all.';
-$string['configtopomojobaseurl'] = 'Base URL for Topomojo without trailing /.';
+$string['configtopomojobaseurl'] = 'Base URL for TopoMojo without trailing /.';
 $string['configissuerid'] = 'This is the integer value for the issuer.';
-$string['configembed'] = 'This determines whether the lab is embedded or whether a link to Topomojo is displayed';
-$string['configtopomojoapiurl'] = 'Base URL for Topomojo API instance without trailing /.';
+$string['configembed'] = 'This determines whether the lab is embedded or whether a link to TopoMojo is displayed';
+$string['configtopomojoapiurl'] = 'Base URL for TopoMojo API instance without trailing /.';
 $string['configworkspace'] = 'Workspace GUID to be launched.';
 $string['configautocomplete'] = 'Display list of Workspaces in a dropdown or a searchable text box.';
 $string['configshowfailed'] = 'Show failed Events in the history table.';
@@ -66,23 +66,23 @@ $string['configapikey'] = 'The value included with TopoMojo API requests under t
 $string['managername'] = 'Manager Name';
 $string['configmanagername'] = 'The Manager Name associated with the API key. Used to filter gamespaces.';
 $string['tagimport'] = 'Import Tags';
-$string['configtagimport'] = 'Import Tags from Topomojo Lab.';
+$string['configtagimport'] = 'Import Tags from TopoMojo Lab.';
 $string['tagcreate'] = 'Create Tags';
-$string['configtagcreate'] = 'Create Tags from Topomojo Lab in Moodle.';
+$string['configtagcreate'] = 'Create Tags from TopoMojo Lab in Moodle.';
 $string['tagmap'] = 'Map Tags';
-$string['configtagmap'] = 'Maps Tags from Topomojo Lab to Moodle Activities.';
+$string['configtagmap'] = 'Maps Tags from TopoMojo Lab to Moodle Activities.';
 $string['tagcollection'] = 'Tag Collection';
 $string['configtagcollection'] = 'This determines which Tag Collection should be used to group tags imported';
 $string['importchallenge'] = 'Import Challenge';
 $string['endlab'] = 'End Lab';
-$string['importchallenge_help'] = 'Whether challenge questions should be imported from Topomojo.';
-$string['endlab_help'] = 'Whether quiz submission should end Topomojo lab.';
+$string['importchallenge_help'] = 'Whether challenge questions should be imported from TopoMojo.';
+$string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab.';
 
 // Activity settings
-$string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to Topomojo is displayed';
-$string['workspace_help'] = 'This is the Workspace GUID in Topomojo.';
-$string['workspace'] = 'Topomojo Workspace';
-$string['pluginadministration'] = 'Topomojo administration';
+$string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
+$string['workspace_help'] = 'This is the Workspace GUID in TopoMojo.';
+$string['workspace'] = 'TopoMojo Workspace';
+$string['pluginadministration'] = 'TopoMojo administration';
 $string['playerlinktext'] = 'Open lab in new tab';
 $string['clock'] = 'Clock';
 $string['configclock'] = 'Style for clock.';
@@ -112,7 +112,7 @@ $string['questionbehaviour'] = 'Question behaviour';
 $string['marks'] = 'Marks';
 $string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
 $string['variant'] = 'Variant';
-$string['variant_help'] = 'The variant of the lab deployment on Topomojo. WARNING: If set to 0 it will be randomized!';
+$string['variant_help'] = 'The variant of the lab deployment on TopoMojo. WARNING: If set to 0 it will be randomized!';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -122,14 +122,14 @@ $string['eventopen_help'] = 'The actitity will not be available until this date.
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
 // History table
-$string['id'] = 'Topomojo Gamespace GUID';
+$string['id'] = 'TopoMojo Gamespace GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
 
 // Attempt table
-$string['eventid'] = 'Topomojo Gamespace GUID';
+$string['eventid'] = 'TopoMojo Gamespace GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
 $string['timefinish'] = 'Time Finished';
@@ -194,14 +194,16 @@ $string['reviewthisattempt'] = 'Review your responses to this attempt';
 
 
 // Roles
-$string['topomojo:manage'] = 'Manage Topomojo activities';
-$string['topomojo:view'] = 'View Topomojo activity information';
-$string['topomojo:addinstance'] = 'Add a new Topomojo activties';
+$string['topomojo:manage'] = 'Manage TopoMojo activities';
+$string['topomojo:view'] = 'View TopoMojo activity information';
+$string['topomojo:addinstance'] = 'Add a new TopoMojo activties';
 
 // Questions
 $string['noquestions'] = 'No questions have been added yet';
 $string['questions'] = 'Questions';
 
+// Task
+$string['taskcloseattempt'] = 'Close Expired TopoMojo Attempts';
 
 // Edit
 $string['questionlist'] = 'Question List';
@@ -219,15 +221,15 @@ $string['qdeletesucess'] = 'Successfully deleted question';
 $string['qdeleteerror'] = 'Couldn\'t delete question';
 $string['qaddsuccess'] = 'Successfully added question';
 $string['qadderror'] = 'Couldn\'t add question';
-$string['importtopo'] = 'Questions synced from Topomojo lab cannot be removed';
+$string['importtopo'] = 'Questions synced from TopoMojo lab cannot be removed';
 $string['importtoporandom'] = 'Questions from random variants will be synced at runtime';
-$string['importsuccess'] = 'Successfully imported questions from Topomojo';
+$string['importsuccess'] = 'Successfully imported questions from TopoMojo';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
 
 // Privacy
-$string['privacy:metadata'] = 'The Topomojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
+$string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
 
 
 $string['interestslist'] = 'list test';
