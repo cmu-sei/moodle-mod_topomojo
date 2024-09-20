@@ -692,16 +692,29 @@ class questionmanager {
 
         // Now order the qbank questions based on the order that we got above
         $qbankorderedquestions = [];
-        foreach ($orderedquestionids as $topomojoqid => $questionid) { // Use the ordered question ids we got earlier
-            if ( !empty($questions[$questionid]) ) {
-
-                // Create topomojo question and add it to the array
-                $topomojoquestion = new \mod_topomojo\topomojo_question($topomojoqid,
+        foreach ($orderedquestionids as $topomojoqid => $questionid) {
+            // Log the question object for debugging
+            debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
+            debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
+        
+            // Check if the question and question text are not empty
+            if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
+                debugging("Adding question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
+        
+                // Create topomojo question and add it to the array if questiontext is not null
+                $topomojoquestion = new \mod_topomojo\topomojo_question(
+                    $topomojoqid,
                     $this->topomojoquestions[$topomojoqid]->points,
-                    $questions[$questionid]);
-                $qbankorderedquestions[$topomojoqid] = $topomojoquestion; // Add question to the ordered questions
+                    $questions[$questionid]
+                );
+                var_dump($topomojoquestion);
+                $qbankorderedquestions[$topomojoqid] = $topomojoquestion; 
+                
+            } else {
+                debugging("Skipping question with ID {$questionid} because questiontext is null or empty", DEBUG_DEVELOPER);
             }
         }
+        
 
         $this->qbankorderedquestions = $qbankorderedquestions;
     }
