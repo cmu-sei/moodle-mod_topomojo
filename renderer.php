@@ -626,7 +626,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         }
         $markdown = implode("\n", $cleanlines);
 
-        $options['nocache'] = true;
+        //$options['nocache'] = true;
         $options['trusted'] = true;
         $options['noclean'] = true;
    

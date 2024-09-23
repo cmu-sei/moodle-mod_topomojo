@@ -251,6 +251,8 @@ if ($object->event) {
 
 } else {
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
+    $markdowncutline = "/\n---\n/";
+    $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail($topomojo, $topomojo->duration);
 
     if ($showgrade) {
@@ -258,7 +260,7 @@ if ($object->event) {
     }
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $markdown);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
 }
 
 // Attempts may differ from events pulled from history on server
