@@ -433,6 +433,23 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
+    if ($oldversion < 2024092201) {
+
+        // Define the table topomojo_questions to update.
+        $table = new xmldb_table('topomojo_questions');
+    
+        // Define the new index for the 'topomojoid' field.
+        $index = new xmldb_index('topomojoid_ix', XMLDB_INDEX_NOTUNIQUE, ['topomojoid']);
+    
+        // Conditionally add the index if it does not exist.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+    
+        // Topomojo savepoint reached.
+        upgrade_mod_savepoint(true, 2024092201, 'topomojo');
+    }
+    
 
     return true;
 }

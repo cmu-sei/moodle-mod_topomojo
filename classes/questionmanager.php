@@ -707,7 +707,6 @@ class questionmanager {
                     $this->topomojoquestions[$topomojoqid]->points,
                     $questions[$questionid]
                 );
-                var_dump($topomojoquestion);
                 $qbankorderedquestions[$topomojoqid] = $topomojoquestion; 
                 
             } else {
