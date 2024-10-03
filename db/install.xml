@@ -45,16 +45,17 @@
       </INDEXES>
     </TABLE>
     <TABLE NAME="topomojo_grades" COMMENT="topomojo grades table to hold grades for individual users">
-      <FIELDS>
+    <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="topomojoid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the topomojo id"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The userid that this grade is for"/>
         <FIELD NAME="grade" TYPE="number" LENGTH="6" NOTNULL="true" DEFAULT="0.00" SEQUENCE="false" DECIMALS="2" COMMENT="The grade for this user, for this topomojo lab"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time created/modified for this grade"/>
-      </FIELDS>
-      <KEYS>
+    </FIELDS>
+    <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
+        <KEY NAME="topomojoid_fk" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id"/>
+    </KEYS>
     </TABLE>
     <TABLE NAME="topomojo_attempts" COMMENT="The topomojo attempts table to hold attempts for students">
       <FIELDS>
@@ -79,7 +80,7 @@
         <KEY NAME="questionusageid" TYPE="foreign-unique" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for group quizzes">
+    <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for topomojo quizzes">
     <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key for the table, auto-incremented."/>
         <FIELD NAME="topomojoid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The topomojo this question instance is associated with."/>
@@ -88,7 +89,7 @@
     </FIELDS>
     <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fk_topomojoid" TYPE="foreign" FIELDS="topomojoid" REFTABLE="quiz" REFFIELDS="id" COMMENT="Foreign key referencing the quiz table."/>
+        <KEY NAME="fk_topomojoid" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id" COMMENT="Foreign key referencing the quiz table."/>
         <KEY NAME="fk_questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id" COMMENT="Foreign key referencing the question table."/>
     </KEYS>
     </TABLE>

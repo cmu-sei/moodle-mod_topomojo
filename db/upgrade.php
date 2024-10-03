@@ -435,28 +435,31 @@ function xmldb_topomojo_upgrade($oldversion) {
     }
     if ($oldversion < 2024100208) {
 
-        // Define table topomojo_questions to be created.
+        // Define table topomojo_questions to be updated.
         $table = new xmldb_table('topomojo_questions');
     
-        // Adding fields to table topomojo_questions.
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('topomojoid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('questionid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('points', XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, '0');
-    
-        // Adding keys to table topomojo_questions.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'quiz', ['id']);
-        $table->add_key('questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']);
-    
-        // Conditionally launch create table for topomojo_questions.
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
+        // Check if the incorrect foreign key exists, and drop it if it does.
+        if ($dbman->find_key($table, 'mdl_topoques_top_ix')) {
+            $dbman->drop_key($table, 'mdl_topoques_top_ix');
         }
     
-        // Topomojo savepoint reached.
+        // Now, add the correct foreign key for topomojoid.
+        $key = new xmldb_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
+        $dbman->add_key($table, $key);
+    
+        // Savepoint reached.
         upgrade_mod_savepoint(true, 2024100208, 'topomojo');
-    }    
+
+        // Define table topomojo_grades to be updated.
+        $table = new xmldb_table('topomojo_grades');
+
+        // Adding foreign key for topomojoid, referencing the topomojo table.
+        $key = new xmldb_key('topomojoid_fk', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
+        $dbman->add_key($table, $key);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024100209, 'topomojo');
+    }
     return true;
 }
 
