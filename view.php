@@ -190,15 +190,15 @@ echo $renderer->header();
 
 if ($object->event) {
 
-    $object->event->vms = null;
-
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
         // If VMs array is missing or not valid, display error and stop further processing
         stop_event($object->userauth, $object->event->id);
         topomojo_end($cm, $context, $topomojo);
+        
         $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
         $markdowncutline = "/\n---\n/";
         $parts = preg_split($markdowncutline, $markdown);
+
         $renderer->display_detail_no_vms($topomojo, $topomojo->duration);
 
         if ($showgrade) {
