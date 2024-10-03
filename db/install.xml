@@ -4,23 +4,23 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="topomojo" COMMENT="each record is one topomojo resource">
+    <TABLE NAME="topomojo" COMMENT="each record is one topomojo activity">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the topomojo activity, pulled from topomojo"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The description of the topomojo activity"/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="intro text format."/>
-        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The is the guid"/>
-        <FIELD NAME="embed" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="workspaceid" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="This is the guid of the workspace in topomojo"/>
+        <FIELD NAME="embed" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Embed the markdown in the activity instead of displaying a link to topomojo"/>
+        <FIELD NAME="clock" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false" COMMENT="Whether to display the clock to the user"/>
+	<FIELD NAME="extendevent" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false" COMMENT="Allows the user to request an additional hour"/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
         <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz closes. (0 = no restriction.)"/>
         <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The total that the quiz is scaled out of."/>
         <FIELD NAME="grademethod" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grading method for grading.  This applies to grading multiple attempts"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this topomojo activity was created"/>
+	<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this topomojo activity was modified"/>
         <FIELD NAME="reviewattempt" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. This is a bit field, decoded by the mod_topomojo_display_options class. It is formed by ORing together the constants defined there."/>
         <FIELD NAME="reviewcorrectness" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
         <FIELD NAME="reviewmarks" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether users are allowed to review their quiz attempts at various times. A bit field, like reviewattempt."/>
@@ -34,7 +34,7 @@
         <FIELD NAME="preferredbehaviour" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="The behaviour to ask questions to use."/>
         <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time limit for lab attempts, in seconds."/>
 	<FIELD NAME="importchallenge" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether or not moodle should automatically pull challenge questions from topomojo and add them to the quiz inside of the lab"/>
-  <FIELD NAME="endlab" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether quiz submission should end Topomojo lab."/>
+  <FIELD NAME="endlab" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether quiz submission should end TopoMojo lab."/>
         <FIELD NAME="variant" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The variant of the lab. Defaults to 0."/>
       </FIELDS>
       <KEYS>
@@ -54,7 +54,7 @@
     </FIELDS>
     <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="topomojoid_fk" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id"/>
+        <KEY NAME="topomojoid_fk" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id" COMMENT="Foreign key referencing the topomojo table."/>
     </KEYS>
     </TABLE>
     <TABLE NAME="topomojo_attempts" COMMENT="The topomojo attempts table to hold attempts for students">
@@ -77,7 +77,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="questionusageid" TYPE="foreign-unique" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id"/>
+        <KEY NAME="questionusageid" TYPE="foreign-unique" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id" COMMENT="Foreign key referencing the question_usages table."/>
       </KEYS>
     </TABLE>
     <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for topomojo quizzes">
@@ -89,7 +89,7 @@
     </FIELDS>
     <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fk_topomojoid" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id" COMMENT="Foreign key referencing the quiz table."/>
+        <KEY NAME="fk_topomojoid" TYPE="foreign" FIELDS="topomojoid" REFTABLE="topomojo" REFFIELDS="id" COMMENT="Foreign key referencing the topomojo table."/>
         <KEY NAME="fk_questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id" COMMENT="Foreign key referencing the question table."/>
     </KEYS>
     </TABLE>

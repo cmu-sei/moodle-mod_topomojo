@@ -271,7 +271,7 @@ if ($object->event) {
 
 } else {
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $markdowncutline = "/\n---\n/";
+    $markdowncutline = "/\n<!-- cut -->\n/";
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail($topomojo, $topomojo->duration);
 
