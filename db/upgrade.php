@@ -433,15 +433,10 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
-    if ($oldversion < 2024100300) {
+    if ($oldversion < 2024100304) {
 
         // Define table topomojo_questions to be updated.
         $table = new xmldb_table('topomojo_questions');
-    
-        // Check if the incorrect foreign key exists, and drop it if it does.
-        if ($dbman->find_key($table, 'mdl_topoques_top_ix')) {
-            $dbman->drop_key($table, 'mdl_topoques_top_ix');
-        }
     
         // Now, add the correct foreign key for topomojoid.
         $key = new xmldb_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
@@ -455,7 +450,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         $dbman->add_key($table, $key);
 
         // Savepoint reached.
-        upgrade_mod_savepoint(true, 2024100300, 'topomojo');
+        upgrade_mod_savepoint(true, 2024100304, 'topomojo');
     }
     return true;
 }
