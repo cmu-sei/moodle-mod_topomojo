@@ -433,24 +433,30 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
-    if ($oldversion < 2024092201) {
+    if ($oldversion < 2024100208) {
 
-        // Define the table topomojo_questions to update.
+        // Define table topomojo_questions to be created.
         $table = new xmldb_table('topomojo_questions');
     
-        // Define the new index for the 'topomojoid' field.
-        $index = new xmldb_index('topomojoid_ix', XMLDB_INDEX_NOTUNIQUE, ['topomojoid']);
+        // Adding fields to table topomojo_questions.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('topomojoid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('questionid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('points', XMLDB_TYPE_NUMBER, '12, 7', null, XMLDB_NOTNULL, null, '0');
     
-        // Conditionally add the index if it does not exist.
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
+        // Adding keys to table topomojo_questions.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'quiz', ['id']);
+        $table->add_key('questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']);
+    
+        // Conditionally launch create table for topomojo_questions.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
         }
     
         // Topomojo savepoint reached.
-        upgrade_mod_savepoint(true, 2024092201, 'topomojo');
-    }
-    
-
+        upgrade_mod_savepoint(true, 2024100208, 'topomojo');
+    }    
     return true;
 }
 
