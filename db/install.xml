@@ -80,17 +80,17 @@
       </KEYS>
     </TABLE>
     <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for group quizzes">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="topomojoid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The topomojo this question instance is associated with"/>
-        <FIELD NAME="questionid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The question id for the question in the question engine"/>
+    <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key for the table, auto-incremented."/>
+        <FIELD NAME="topomojoid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The topomojo this question instance is associated with."/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="The question ID for the question in the question engine."/>
         <FIELD NAME="points" TYPE="number" LENGTH="12" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="7" COMMENT="How many points this question contributes to quiz.sumgrades."/>
-      </FIELDS>
-      <KEYS>
+    </FIELDS>
+    <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="topomojoid" TYPE="foreign" FIELDS="id" REFTABLE="quiz" REFFIELDS="id"/>
-        <KEY NAME="questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
-      </KEYS>
+        <KEY NAME="fk_topomojoid" TYPE="foreign" FIELDS="topomojoid" REFTABLE="quiz" REFFIELDS="id" COMMENT="Foreign key referencing the quiz table."/>
+        <KEY NAME="fk_questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id" COMMENT="Foreign key referencing the question table."/>
+    </KEYS>
     </TABLE>
   </TABLES>
 </XMLDB>
