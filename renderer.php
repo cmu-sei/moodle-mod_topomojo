@@ -67,6 +67,21 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
+    public function display_detail_no_vms($topomojo, $duration, $code = false, $showWarning = true) {
+        $data = new stdClass();
+        $data->name = $topomojo->name;
+        $data->intro = $topomojo->intro;
+        $data->code = $code;
+        $data->durationtext = get_string('durationtext', 'mod_topomojo');
+        $data->duration = $duration / 60;
+        
+        // Add the flag to the data object
+        $data->showWarning = $showWarning;
+    
+        echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
+    }
+    
+
     /**
      * Renders the start form for Topomojo activity with Markdown content.
      *

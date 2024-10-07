@@ -206,7 +206,6 @@ class topomojo_attempt {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
                 $this->attempt->id = $newid;
             } catch (\Exception $e) {
-                var_dump($e);
                 return false; // return false on failure
             }
         }
