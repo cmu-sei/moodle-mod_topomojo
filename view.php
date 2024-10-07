@@ -185,73 +185,93 @@ if ((int)$object->topomojo->grade > 0) {
     $showgrade = false;
 }
 
-//$renderer = $PAGE->get_renderer('mod_topomojo');
 $renderer = $object->renderer;
 echo $renderer->header();
 
 if ($object->event) {
-    $code = substr($object->event->id, 0, 8);
 
-    $renderer->display_detail($topomojo, $topomojo->duration, $code);
+    if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
+        // If VMs array is missing or not valid, display error and stop further processing
+        stop_event($object->userauth, $object->event->id);
+        topomojo_end($cm, $context, $topomojo);
+        
+        $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
+        $markdowncutline = "/\n---\n/";
+        $parts = preg_split($markdowncutline, $markdown);
 
-    $jsoptions = ['keepaliveinterval' => 1];
+        $renderer->display_detail_no_vms($topomojo, $topomojo->duration);
 
-    $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
-
-    $extend = false;
-    if ($object->userauth && $topomojo->extendevent) {
-        $extend = true;
-    }
-
-    $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
-    // No matter what, start our session timer
-    $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init',
-                                ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
-    if ($topomojo->clock == 1) {
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
-    } else if ($topomojo->clock == 2) {
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup');
-    }
-
-    $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
-    $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
-
-    if ($embed == 1) {
-
-        $vmlist = [];
-        if (!is_array($object->event->vms)) {
-            throw new moodle_exception("No VMs visible to user");
+        if ($showgrade) {
+            $renderer->display_grade($topomojo);
         }
-        $jsoptions = ['id' => $object->event->id];
-        $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
 
-        foreach ($object->event->vms as $vm) {
-            if (is_array($vm)) {
-                if ($vm['isVisible']) {
-                    $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                     "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
-                    $vmdata['name'] = $vm['name'];
-                    array_push($vmlist, $vmdata);
+        // Display start form
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
+    } else {
+
+        $code = substr($object->event->id, 0, 8);
+
+        $renderer->display_detail($topomojo, $topomojo->duration, $code);
+
+        $jsoptions = ['keepaliveinterval' => 1];
+
+        $PAGE->requires->js_call_amd('mod_topomojo/keepalive', 'init', [$jsoptions]);
+
+        $extend = false;
+        if ($object->userauth && $topomojo->extendevent) {
+            $extend = true;
+        }
+
+        $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
+        // No matter what, start our session timer
+        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init',
+                                    ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
+        if ($topomojo->clock == 1) {
+            $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
+        } else if ($topomojo->clock == 2) {
+            $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countup');
+        }
+
+        $jsoptions = ['id' => $object->event->id, 'topomojo_api_url' => get_config('topomojo', 'topomojoapiurl')];
+        $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
+
+        if ($embed == 1) {
+
+            $vmlist = [];
+            if (!is_array($object->event->vms)) {
+                throw new moodle_exception("No VMs visible to user");
+            }
+            $jsoptions = ['id' => $object->event->id];
+            $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
+
+            foreach ($object->event->vms as $vm) {
+                if (is_array($vm)) {
+                    if ($vm['isVisible']) {
+                        $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
+                                        "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                        $vmdata['name'] = $vm['name'];
+                        array_push($vmlist, $vmdata);
+                    }
+                } else {
+                    if ($vm->isVisible) {
+                        $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
+                                        "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                        $vmdata['name'] = $vm->name;
+                        array_push($vmlist, $vmdata);
+                    }
                 }
-            } else {
-                if ($vm->isVisible) {
-                    $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                     "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
-                    $vmdata['name'] = $vm->name;
-                    array_push($vmlist, $vmdata);
-                }
+
             }
 
+            $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist);
+        } else {
+            $renderer->display_link_page($object->openAttempt->launchpointurl);
         }
-
-        $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist);
-    } else {
-        $renderer->display_link_page($object->openAttempt->launchpointurl);
     }
 
 } else {
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $markdowncutline = "/\n---\n/";
+    $markdowncutline = "/\n<!-- cut -->\n/";
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail($topomojo, $topomojo->duration);
 

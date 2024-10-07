@@ -433,7 +433,25 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Topomojo savepoint reached.
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
+    if ($oldversion < 2024100304) {
 
+        // Define table topomojo_questions to be updated.
+        $table = new xmldb_table('topomojo_questions');
+    
+        // Now, add the correct foreign key for topomojoid.
+        $key = new xmldb_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
+        $dbman->add_key($table, $key);
+    
+        // Define table topomojo_grades to be updated.
+        $table = new xmldb_table('topomojo_grades');
+
+        // Adding foreign key for topomojoid, referencing the topomojo table.
+        $key = new xmldb_key('topomojoid_fk', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
+        $dbman->add_key($table, $key);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024100304, 'topomojo');
+    }
     return true;
 }
 
