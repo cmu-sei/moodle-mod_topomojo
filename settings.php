@@ -35,7 +35,7 @@ DM24-1175
 */
 
 /**
- * Settings for the Topomojo plugin in Moodle.
+ * Settings for the TopoMojo plugin in Moodle.
  * @package   mod_topomojo
  * @copyright 2024 Carnegie Mellon University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

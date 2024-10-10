@@ -55,9 +55,9 @@ require_once("$CFG->dirroot/tag/lib.php");
 use mod_topomojo\topomojo;
 
 /**
- * Class representing the form for the Topomojo module in Moodle.
+ * Class representing the form for the TopoMojo module in Moodle.
  *
- * This form is used to configure the settings for the Topomojo module.
+ * This form is used to configure the settings for the TopoMojo module.
  * It extends the moodleform_mod class to inherit Moodle's standard
  * module form functionality.
  *
@@ -73,7 +73,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
     private $auth;
 
     /**
-     * Workspaces pulled from Topomojo.
+     * Workspaces pulled from TopoMojo.
      *
      * @var array[]|null An array of associative arrays, where each array represents a workspace with various properties,
      * or null if not set.

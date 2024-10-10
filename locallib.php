@@ -51,7 +51,7 @@ require_once($CFG->libdir . '/questionlib.php');
  * Sets up and returns a cURL client with the required headers.
  *
  * This function initializes a cURL client and configures it with the necessary headers,
- * including the API key for the Topomojo service. The API key is retrieved from the configuration.
+ * including the API key for the TopoMojo service. The API key is retrieved from the configuration.
  *
  * @return curl The configured cURL client instance.
  */
@@ -67,7 +67,7 @@ function setup() {
 /**
  * Retrieves and filters events from the gamespaces endpoint.
  *
- * This function makes a web request to the Topomojo API to list gamespaces that match the given name.
+ * This function makes a web request to the TopoMojo API to list gamespaces that match the given name.
  * It filters the results based on the active status of the events and the provided name. The function
  * also handles HTTP errors and JSON decoding issues.
  *
@@ -153,7 +153,7 @@ function moodle_events($events) {
  * Filters events to include only those associated with the current user.
  *
  * This function iterates over a list of events and retrieves additional information
- * about each event from the Topomojo API. It then checks if the current user is
+ * about each event from the TopoMojo API. It then checks if the current user is
  * listed as a player in each event and includes only those events where the user is found.
  *
  * @param curl $client An instance of the curl class used for making HTTP requests.
@@ -162,7 +162,7 @@ function moodle_events($events) {
  * @return array An array of events where the current user is listed as a player.
  * If no events match or if there is an error, an empty array or error will be returned.
  *
- * @throws moodle_exception If there is an error with user authentication, an error communicating with Topomojo,
+ * @throws moodle_exception If there is an error with user authentication, an error communicating with TopoMojo,
  * or an issue decoding the JSON response.
  */
 function user_events($client, $events) {
@@ -196,7 +196,7 @@ function user_events($client, $events) {
             }
         } while (!$response && ($count < 4));
         if (!$response) {
-            throw new moodle_exception("Error communicating with Topomojo after $count attempts: " . $response);
+            throw new moodle_exception("Error communicating with TopoMojo after $count attempts: " . $response);
             return;
         }
 
@@ -204,7 +204,7 @@ function user_events($client, $events) {
 
         if (!$r) {
             debugging("could not decode json $url", DEBUG_DEVELOPER);
-            throw new moodle_exception("Error communicating with Topomojo after $count attempts: " . $response);
+            throw new moodle_exception("Error communicating with TopoMojo after $count attempts: " . $response);
             return;
         }
 
@@ -233,9 +233,9 @@ function user_events($client, $events) {
 }
 
 /**
- * Retrieves workspace information from the Topomojo API.
+ * Retrieves workspace information from the TopoMojo API.
  *
- * This function sends a request to the Topomojo API to get details about a specific workspace
+ * This function sends a request to the TopoMojo API to get details about a specific workspace
  * based on the provided workspace ID. It handles HTTP response codes and errors during the
  * request. The function assumes that the API returns a JSON response containing workspace details.
  *
@@ -283,9 +283,9 @@ function get_workspace($client, $id) {
 }
 
 /**
- * Retrieves a list of workspaces from the Topomojo API.
+ * Retrieves a list of workspaces from the TopoMojo API.
  *
- * This function sends a request to the Topomojo API to get details about all workspaces. It handles
+ * This function sends a request to the TopoMojo API to get details about all workspaces. It handles
  * HTTP response codes and errors during the request. The function assumes that the API returns a
  * JSON response containing a list of workspaces.
  *
@@ -326,9 +326,9 @@ function get_workspaces($client) {
 }
 
 /**
- * Retrieves the challenge associated with a specific gamespace from the Topomojo API.
+ * Retrieves the challenge associated with a specific gamespace from the TopoMojo API.
  *
- * This function sends a request to the Topomojo API to get the challenge details for a gamespace
+ * This function sends a request to the TopoMojo API to get the challenge details for a gamespace
  * identified by its ID. It handles HTTP response codes and potential errors during the request.
  * The function assumes that the API returns a JSON response containing the challenge details.
  *
@@ -376,9 +376,9 @@ function get_gamespace_challenge($client, $id) {
 }
 
 /**
- * Retrieves a document in Markdown format from the Topomojo API.
+ * Retrieves a document in Markdown format from the TopoMojo API.
  *
- * This function sends a request to the Topomojo API to get the content of a document identified
+ * This function sends a request to the TopoMojo API to get the content of a document identified
  * by its ID. It handles HTTP response codes and potential errors during the request. The function
  * assumes that the API returns the document content directly as a response.
  *
@@ -421,8 +421,8 @@ function get_markdown($client, $id) {
 /**
  * Starts a new gamespace from a specified workspace.
  *
- * This function sends a request to the Topomojo API to initiate a new gamespace using the provided
- * workspace ID and Topomojo settings. It configures various parameters such as maximum attempts,
+ * This function sends a request to the TopoMojo API to initiate a new gamespace using the provided
+ * workspace ID and TopoMojo settings. It configures various parameters such as maximum attempts,
  * duration, points, and player information before making the request. The function returns the
  * response from the API if successful, or handles errors if the request fails.
  *
@@ -496,7 +496,7 @@ function start_event($client, $id, $topomojo) {
 /**
  * Stops and completes a gamespace identified by the given ID.
  *
- * This function sends a POST request to the Topomojo API to mark a gamespace as completed. It handles
+ * This function sends a POST request to the TopoMojo API to mark a gamespace as completed. It handles
  * the request using the provided HTTP client and processes the response. If the request fails or returns
  * an error code, the function logs debugging information. If no response is received, an exception is thrown.
  *
@@ -533,9 +533,9 @@ function stop_event($client, $id) {
 }
 
 /**
- * Retrieves a ticket from the Topomojo API for the current user.
+ * Retrieves a ticket from the TopoMojo API for the current user.
  *
- * This function sends a GET request to the Topomojo API to obtain a ticket associated with the current user.
+ * This function sends a GET request to the TopoMojo API to obtain a ticket associated with the current user.
  * It handles the request using the provided HTTP client and processes the response. If the response code is
  * 200, it returns the ticket. If the response code is 500, it logs debugging information. If the response
  * cannot be decoded or if there is an error, the function returns `null`.
@@ -577,9 +577,9 @@ function get_ticket($client) {
 }
 
 /**
- * Retrieves an invitation for a specific gamespace from the Topomojo API.
+ * Retrieves an invitation for a specific gamespace from the TopoMojo API.
  *
- * This function sends a POST request to the Topomojo API to obtain an invitation for a gamespace identified
+ * This function sends a POST request to the TopoMojo API to obtain an invitation for a gamespace identified
  * by the provided ID. It handles the request using the provided HTTP client and processes the response. If
  * the response code is 200, it returns the invitation details. If the response code is 500, it logs debugging
  * information. If the response cannot be decoded or if there is an error, the function returns `null`.
@@ -622,9 +622,9 @@ function get_invite($client, $id) {
 }
 
 /**
- * Extends or updates a gamespace with the provided data using the Topomojo API.
+ * Extends or updates a gamespace with the provided data using the TopoMojo API.
  *
- * This function sends a PUT request to the Topomojo API to update a gamespace with the data provided. It sets
+ * This function sends a PUT request to the TopoMojo API to update a gamespace with the data provided. It sets
  * the appropriate header for JSON Patch format and processes the response. If the response code is 200, it
  * indicates a successful update and the function returns `true`. If the response code is not 200, it logs the
  * response code and returns `false`.
@@ -655,9 +655,9 @@ function extend_event($client, $data) {
 }
 
 /**
- * Retrieves a gamespace event from the Topomojo API.
+ * Retrieves a gamespace event from the TopoMojo API.
  *
- * This function sends a GET request to the Topomojo API to retrieve details of a gamespace event identified
+ * This function sends a GET request to the TopoMojo API to retrieve details of a gamespace event identified
  * by the provided ID. It processes the response and returns the decoded event data if the request is successful.
  * If the request fails or the response cannot be decoded, it logs debugging information and throws an exception.
  *
@@ -750,11 +750,11 @@ function get_active_event($history) {
 }
 
 /**
- * Retrieves the grading options for calculating the Topomojo grade.
+ * Retrieves the grading options for calculating the TopoMojo grade.
  *
  * This function returns an associative array where the keys are grading option constants
  * and the values are corresponding language strings
- * that describe each grading option. The grading options determine how the Topomojo grade
+ * that describe each grading option. The grading options determine how the TopoMojo grade
  * is calculated from individual attempt grades.
  *
  * @return array An associative array where the keys are grading option constants and the values are language strings.
@@ -783,13 +783,13 @@ function topomojo_get_grading_option_name($option) {
 }
 
 /**
- * Creates and triggers an event when a Topomojo attempt ends.
+ * Creates and triggers an event when a TopoMojo attempt ends.
  *
- * This function logs the end of a Topomojo attempt by creating and triggering a Moodle event.
+ * This function logs the end of a TopoMojo attempt by creating and triggering a Moodle event.
  *
  * @param stdClass $cm The course module object containing the module ID.
  * @param context $context The context in which the event is triggered.
- * @param stdClass $topomojo The Topomojo instance object.
+ * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
 function topomojo_end($cm, $context, $topomojo) {
@@ -805,13 +805,13 @@ function topomojo_end($cm, $context, $topomojo) {
 }
 
 /**
- * Creates and triggers an event when a Topomojo attempt starts.
+ * Creates and triggers an event when a TopoMojo attempt starts.
  *
- * This function logs the start of a Topomojo attempt by creating and triggering a Moodle event.
+ * This function logs the start of a TopoMojo attempt by creating and triggering a Moodle event.
  *
  * @param stdClass $cm The course module object containing the module ID.
  * @param context $context The context in which the event is triggered.
- * @param stdClass $topomojo The Topomojo instance object.
+ * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
 function topomojo_start($cm, $context, $topomojo) {
@@ -827,9 +827,9 @@ function topomojo_start($cm, $context, $topomojo) {
 }
 
 /**
- * Retrieves a challenge from the Topomojo API based on the provided ID.
+ * Retrieves a challenge from the TopoMojo API based on the provided ID.
  *
- * This function sends a request to the Topomojo API to fetch details of a specific challenge by its ID.
+ * This function sends a request to the TopoMojo API to fetch details of a specific challenge by its ID.
  * It handles the response and errors, and returns the challenge data as a decoded JSON object.
  *
  * @param object $client The HTTP client used to make the API request.
@@ -873,7 +873,7 @@ function get_challenge($client, $id) {
 }
 
 /**
- * Retrieves all attempts for a given course from the Topomojo module.
+ * Retrieves all attempts for a given course from the TopoMojo module.
  *
  * This function queries the database to fetch all attempts related to the specified course.
  * It then creates an array of `topomojo_attempt` objects from the retrieved records.
@@ -907,12 +907,12 @@ function getall_course_attempts($course) {
 }
 
 /**
- * Retrieves all Topomojo attempts from the database.
+ * Retrieves all TopoMojo attempts from the database.
  *
  * This function queries the database to fetch all records from the `topomojo_attempts` table
  * and then creates an array of `topomojo_attempt` objects from the retrieved records.
  *
- * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing all Topomojo attempts.
+ * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing all TopoMojo attempts.
  */
 function getall_topomojo_attempts($course) {
     global $DB, $USER;

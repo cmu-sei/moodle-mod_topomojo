@@ -67,7 +67,7 @@ class custom_view extends \core_question\local\bank\view {
      * Retrieves and configures the available question bank plugins and columns.
      *
      * This function initializes the core question bank columns, checks for additional
-     * columns from the Topomojo plugin and other question bank plugins, and includes them
+     * columns from the TopoMojo plugin and other question bank plugins, and includes them
      * if they are enabled and meet the necessary criteria. It returns an array of configured
      * question bank columns.
      *

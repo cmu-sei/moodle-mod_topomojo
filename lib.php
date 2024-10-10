@@ -35,7 +35,7 @@ DM24-1175
 */
 
 /**
- * Topomojo mod callbacks.
+ * TopoMojo mod callbacks.
  *
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
@@ -190,13 +190,13 @@ function topomojo_after_add_or_update($topomojo) {
 }
 
 /**
- * Processes and updates options for the Topomojo module.
+ * Processes and updates options for the TopoMojo module.
  *
- * This function takes a Topomojo object, updates its properties based on the form input,
+ * This function takes a TopoMojo object, updates its properties based on the form input,
  * and sets various review options by calling helper functions.
  *
- * @param stdClass $topomojo The Topomojo object to be updated. This object represents
- *                           the current instance of the Topomojo module with various
+ * @param stdClass $topomojo The TopoMojo object to be updated. This object represents
+ *                           the current instance of the TopoMojo module with various
  *                           settings and options.
  *
  * @return void
@@ -284,13 +284,13 @@ function topomojo_get_coursemodule_info($coursemodule) {
 }
 
 /**
- * Handles the viewing of the Topomojo activity.
+ * Handles the viewing of the TopoMojo activity.
  *
  * This function triggers the `course_module_viewed` event and marks the activity as completed
- * if required. It updates the completion status and records the event data for the Topomojo
+ * if required. It updates the completion status and records the event data for the TopoMojo
  * activity, course, and course module.
  *
- * @param stdClass $topomojo The Topomojo object representing the activity being viewed.
+ * @param stdClass $topomojo The TopoMojo object representing the activity being viewed.
  * @param stdClass $course   The course object containing information about the course.
  * @param stdClass $cm       The course module object representing the module instance.
  * @param stdClass $context  The context object representing the current context.
@@ -468,9 +468,9 @@ function topomojo_get_user_grades($topomojo, $userid = 0) {
 }
 
 /**
- * Extends the settings navigation with additional links for the Topomojo module.
+ * Extends the settings navigation with additional links for the TopoMojo module.
  *
- * This function adds custom navigation nodes to the settings navigation for the Topomojo module,
+ * This function adds custom navigation nodes to the settings navigation for the TopoMojo module,
  * such as links to challenge, review, and edit pages. The nodes are added at specific positions
  * relative to existing nodes based on the current context.
  *

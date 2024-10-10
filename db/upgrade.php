@@ -76,7 +76,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Launch rename field gamespaceid.
         $dbman->rename_field($table, $field, 'gamespaceid');
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070602, 'topomojo');
     }
 
@@ -89,7 +89,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Launch rename field workspaceid.
         $dbman->rename_field($table, $field, 'workspaceid');
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070603, 'topomojo');
     }
 
@@ -102,7 +102,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Launch rename field workspaceid.
         $dbman->rename_field($table, $field, 'workspaceid');
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070700, 'topomojo');
     }
 
@@ -117,7 +117,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070701, 'topomojo');
     }
 
@@ -132,7 +132,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022070702, 'topomojo');
     }
 
@@ -223,7 +223,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071401, 'topomojo');
     }
 
@@ -236,7 +236,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Launch rename field vmapp.
         $dbman->rename_field($table, $field, 'embed');
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071403, 'topomojo');
     }
 
@@ -251,7 +251,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071805, 'topomojo');
     }
 
@@ -294,7 +294,7 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Launch rename field layout.
         $dbman->rename_field($table, $field, 'questionorder');
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022071901, 'topomojo');
     }
 
@@ -319,7 +319,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072000, 'topomojo');
     }
     if ($oldversion < 2022072001) {
@@ -333,7 +333,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072001, 'topomojo');
     }
     if ($oldversion < 2022072002) {
@@ -345,7 +345,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Launch rename field quesntionusageid.
         $dbman->rename_field($table, $field, 'questionusageid');
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072002, 'topomojo');
     }
     if ($oldversion < 2022072003) {
@@ -359,7 +359,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072003, 'topomojo');
     }
     if ($oldversion < 2022072004) {
@@ -373,7 +373,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->drop_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072004, 'topomojo');
     }
     if ($oldversion < 2022072100) {
@@ -396,7 +396,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072100, 'topomojo');
     }
     if ($oldversion < 2022072101) {
@@ -427,7 +427,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2022072101, 'topomojo');
     }
     if ($oldversion < 2024070304) {
@@ -439,7 +439,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        // Topomojo savepoint reached.
+        // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
     if ($oldversion < 2024100304) {

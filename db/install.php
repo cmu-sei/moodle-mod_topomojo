@@ -51,7 +51,7 @@ defined('MOODLE_INTERNAL') || die;
 function xmldb_topomojo_install() {
     global $CFG;
 
-    echo "<p>This actity is used to access and display Topomojo labs.</p>";
+    echo "<p>This actity is used to access and display TopoMojo labs.</p>";
 
 }
 

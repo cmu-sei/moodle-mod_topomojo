@@ -35,7 +35,7 @@ DM24-1175
 */
 
 /**
- * Topomojo.
+ * TopoMojo.
  *
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
