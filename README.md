@@ -8,7 +8,7 @@ See the following page to build AMD JS modules:
 https://moodledev.io/general/development/tools/nodejs
 
 ## Requirements
-* You must have the TopoMojo applcation stack deployed for your organization
+* You must have the TopoMojo application stack deployed for your organization
 
 ## Installation
 * Download the plugin and extract into mod/topomojo.
