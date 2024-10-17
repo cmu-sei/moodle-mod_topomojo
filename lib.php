@@ -14,23 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Topomojo mod callbacks.
- *
- * @package    mod_topomojo
- * @copyright  2020 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+/*
+TopoMojo Plugin for Moodle
+
+Copyright 2024 Carnegie Mellon University.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+Please see Copyright notice for non-US Government use and distribution.
+
+This Software includes and/or makes use of Third-Party Software each subject to its own license.
+
+DM24-1175
+*/
 
 /**
-Topomojo Plugin for Moodle
-Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
-This Software includes and/or makes use of the following Third-Party Software subject to its own license:
-1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-DM20-0196
+ * TopoMojo mod callbacks.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 // This line protects the file from being accessed by a URL directly.
@@ -181,13 +190,13 @@ function topomojo_after_add_or_update($topomojo) {
 }
 
 /**
- * Processes and updates options for the Topomojo module.
+ * Processes and updates options for the TopoMojo module.
  *
- * This function takes a Topomojo object, updates its properties based on the form input,
+ * This function takes a TopoMojo object, updates its properties based on the form input,
  * and sets various review options by calling helper functions.
  *
- * @param stdClass $topomojo The Topomojo object to be updated. This object represents
- *                           the current instance of the Topomojo module with various
+ * @param stdClass $topomojo The TopoMojo object to be updated. This object represents
+ *                           the current instance of the TopoMojo module with various
  *                           settings and options.
  *
  * @return void
@@ -275,13 +284,13 @@ function topomojo_get_coursemodule_info($coursemodule) {
 }
 
 /**
- * Handles the viewing of the Topomojo activity.
+ * Handles the viewing of the TopoMojo activity.
  *
  * This function triggers the `course_module_viewed` event and marks the activity as completed
- * if required. It updates the completion status and records the event data for the Topomojo
+ * if required. It updates the completion status and records the event data for the TopoMojo
  * activity, course, and course module.
  *
- * @param stdClass $topomojo The Topomojo object representing the activity being viewed.
+ * @param stdClass $topomojo The TopoMojo object representing the activity being viewed.
  * @param stdClass $course   The course object containing information about the course.
  * @param stdClass $cm       The course module object representing the module instance.
  * @param stdClass $context  The context object representing the current context.
@@ -459,9 +468,9 @@ function topomojo_get_user_grades($topomojo, $userid = 0) {
 }
 
 /**
- * Extends the settings navigation with additional links for the Topomojo module.
+ * Extends the settings navigation with additional links for the TopoMojo module.
  *
- * This function adds custom navigation nodes to the settings navigation for the Topomojo module,
+ * This function adds custom navigation nodes to the settings navigation for the TopoMojo module,
  * such as links to challenge, review, and edit pages. The nodes are added at specific positions
  * relative to existing nodes based on the current context.
  *

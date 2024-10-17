@@ -15,28 +15,37 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
-Topomojo Plugin for Moodle
-Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
-This Software includes and/or makes use of the following Third-Party Software subject to its own license:
-1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-DM20-0196
- */
+TopoMojo Plugin for Moodle
+
+Copyright 2024 Carnegie Mellon University.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+Please see Copyright notice for non-US Government use and distribution.
+
+This Software includes and/or makes use of Third-Party Software each subject to its own license.
+
+DM24-1175
+*/
 
 defined('MOODLE_INTERNAL') || die();
 use mod_topomojo\traits\renderer_base;
 
 /**
- * Renderer for the Topomojo plugin in Moodle.
+ * Renderer for the TopoMojo plugin in Moodle.
  *
- * This file contains the renderer class for the Topomojo plugin, which is responsible
+ * This file contains the renderer class for the TopoMojo plugin, which is responsible
  * for rendering the plugin's output in the Moodle environment. The class extends Moodle's
  * `plugin_renderer_base` and utilizes traits to provide additional functionality.
  *
  * @package   mod_topomojo
- * @copyright 2020 Carnegie Mellon University
+ * @copyright 2024 Carnegie Mellon University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_topomojo_renderer extends \plugin_renderer_base {
@@ -46,13 +55,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 //class mod_topomojo_renderer extends plugin_renderer_base {
 
     /**
-     * Renders the detailed view of a Topomojo activity.
+     * Renders the detailed view of a TopoMojo activity.
      *
-     * This function prepares the data for rendering a detailed view of a Topomojo activity,
+     * This function prepares the data for rendering a detailed view of a TopoMojo activity,
      * including its name, introduction text, duration, and an optional code. It then
      * renders this data using the `mod_topomojo/detail` template.
      *
-     * @param object $topomojo The Topomojo object containing activity details.
+     * @param object $topomojo The TopoMojo object containing activity details.
      * @param int $duration The duration of the activity in seconds.
      * @param bool $code Optional. A flag to include a code in the view. Default is false.
      * @return void
@@ -83,15 +92,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     
 
     /**
-     * Renders the start form for Topomojo activity with Markdown content.
+     * Renders the start form for TopoMojo activity with Markdown content.
      *
-     * This function prepares and renders a start form for a Topomojo activity. It processes
+     * This function prepares and renders a start form for a TopoMojo activity. It processes
      * the provided Markdown content, formats it, and replaces any placeholder URLs with
-     * the base URL configured for Topomojo. The prepared data is then rendered using
+     * the base URL configured for TopoMojo. The prepared data is then rendered using
      * the `mod_topomojo/startform` template.
      *
      * @param string $url The URL to be used for rendering.
-     * @param string $workspace The workspace or context where the Topomojo activity is used.
+     * @param string $workspace The workspace or context where the TopoMojo activity is used.
      * @param string $markdown The Markdown content to be displayed in the start form.
      * @return void
      */
@@ -115,14 +124,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the stop form for Topomojo activity.
+     * Renders the stop form for TopoMojo activity.
      *
-     * This function prepares and renders a stop form for a Topomojo activity. It prepares
+     * This function prepares and renders a stop form for a TopoMojo activity. It prepares
      * the data required for the stop form, which includes the URL and workspace, and then
      * renders the data using the `mod_topomojo/stopform` template.
      *
      * @param string $url The URL to be used for rendering.
-     * @param string $workspace The workspace or context where the Topomojo activity is used.
+     * @param string $workspace The workspace or context where the TopoMojo activity is used.
      * @return void
      */
     public function display_stopform($url, $workspace) {
@@ -133,14 +142,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the return form for Topomojo activity.
+     * Renders the return form for TopoMojo activity.
      *
-     * This function prepares and renders a return form for a Topomojo activity. It includes
+     * This function prepares and renders a return form for a TopoMojo activity. It includes
      * the URL, an identifier, and a localized return text message. The form is rendered
      * using the `mod_topomojo/returnform` template.
      *
      * @param string $url The URL to be used for rendering the return form.
-     * @param int $id The identifier related to the Topomojo activity.
+     * @param int $id The identifier related to the TopoMojo activity.
      * @return void
      */
     public function display_return_form($url, $id) {
@@ -152,13 +161,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders a link page for Topomojo activity.
+     * Renders a link page for TopoMojo activity.
      *
-     * This function prepares and renders a link page for a Topomojo activity. It includes
+     * This function prepares and renders a link page for a TopoMojo activity. It includes
      * the URL for the launch point and a localized link text. The page is rendered using
      * the `mod_topomojo/link` template.
      *
-     * @param string $launchpointurl The URL to be used as the launch point for the Topomojo activity.
+     * @param string $launchpointurl The URL to be used as the launch point for the TopoMojo activity.
      * @return void
      */
     public function display_link_page($launchpointurl) {

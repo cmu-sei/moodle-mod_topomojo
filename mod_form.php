@@ -15,23 +15,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+TopoMojo Plugin for Moodle
+
+Copyright 2024 Carnegie Mellon University.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+Please see Copyright notice for non-US Government use and distribution.
+
+This Software includes and/or makes use of Third-Party Software each subject to its own license.
+
+DM24-1175
+*/
+
 /**
  * topomojo configuration form
  *
  * @package    mod_topomojo
- * @copyright  2020 Carnegie Mellon University
+ * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/*
-Topomojo Plugin for Moodle
-Copyright 2020 Carnegie Mellon University.
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Released under a GNU GPL 3.0-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
-This Software includes and/or makes use of the following Third-Party Software subject to its own license:
-1. Moodle (https://docs.moodle.org/dev/License) Copyright 1999 Martin Dougiamas.
-DM20-0196
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -46,9 +55,9 @@ require_once("$CFG->dirroot/tag/lib.php");
 use mod_topomojo\topomojo;
 
 /**
- * Class representing the form for the Topomojo module in Moodle.
+ * Class representing the form for the TopoMojo module in Moodle.
  *
- * This form is used to configure the settings for the Topomojo module.
+ * This form is used to configure the settings for the TopoMojo module.
  * It extends the moodleform_mod class to inherit Moodle's standard
  * module form functionality.
  *
@@ -64,7 +73,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
     private $auth;
 
     /**
-     * Workspaces pulled from Topomojo.
+     * Workspaces pulled from TopoMojo.
      *
      * @var array[]|null An array of associative arrays, where each array represents a workspace with various properties,
      * or null if not set.

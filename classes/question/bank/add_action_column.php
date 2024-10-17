@@ -14,15 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+TopoMojo Plugin for Moodle
+
+Copyright 2024 Carnegie Mellon University.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+Please see Copyright notice for non-US Government use and distribution.
+
+This Software includes and/or makes use of Third-Party Software each subject to its own license.
+
+DM24-1175
+*/
+
 namespace mod_topomojo\question\bank;
 
 /**
  * A column type for the add this question to the topomojo action.
  *
  * @package    mod_topomojo
- * @category   question
- * @copyright  2009 Tim Hunt
- * @author     2021 Safat Shahin <safatshahin@catalyst-au.net>
+ * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class add_action_column extends \core_question\local\bank\question_action_base {
@@ -31,10 +49,10 @@ class add_action_column extends \core_question\local\bank\question_action_base {
     protected $stradd;
 
     /**
-     * Initializes the component with additional strings specific to the Topomojo plugin.
+     * Initializes the component with additional strings specific to the TopoMojo plugin.
      *
      * This function overrides the parent `init` method to include additional
-     * initialization for the Topomojo plugin. It sets up a localized string
+     * initialization for the TopoMojo plugin. It sets up a localized string
      * used within the plugin.
      *
      * @return void
@@ -45,10 +63,10 @@ class add_action_column extends \core_question\local\bank\question_action_base {
     }
 
     /**
-     * Retrieves the name identifier for the Topomojo action.
+     * Retrieves the name identifier for the TopoMojo action.
      *
      * This function returns the name identifier 'addtotopomojoaction',
-     * which is used to identify this specific action within the Topomojo plugin.
+     * which is used to identify this specific action within the TopoMojo plugin.
      *
      * @return string The name identifier of the action.
      */
@@ -61,7 +79,7 @@ class add_action_column extends \core_question\local\bank\question_action_base {
      *
      * This function checks if the user has the capability to use the given question.
      * If the user has the necessary capability, an icon is printed which allows the
-     * user to add the question to Topomojo.
+     * user to add the question to TopoMojo.
      *
      * @param stdClass $question The question object containing the question's data.
      * @param string $rowclasses A string of CSS classes to apply to the row.
