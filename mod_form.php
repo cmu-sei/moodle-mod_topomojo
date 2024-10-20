@@ -149,8 +149,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $this->standard_intro_elements();
         // TODO remove ability to edit the description and just show the select and dropdown
         // $mform->removeElement('introeditor');
-        // TODO figure out why the description doesnt appear
-        // $mform->removeElement('showdescription');
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         if ($topomojoconfig->autocomplete < 2) {
