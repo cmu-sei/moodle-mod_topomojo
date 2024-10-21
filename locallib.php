@@ -455,7 +455,7 @@ function start_event($client, $id, $topomojo) {
     $payload->startGamespace = true;
     $payload->allowPreview = false;
     $payload->allowReset = false;
-    $payload->maxAttempts = 1; // TODO get this from settings
+    $payload->maxAttempts = $topomojo->submissions;
     $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
     $payload->variant = $topomojo->variant;

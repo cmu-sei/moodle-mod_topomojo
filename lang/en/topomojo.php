@@ -122,6 +122,10 @@ $string['marks'] = 'Marks';
 $string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
 $string['variant'] = 'Variant';
 $string['variant_help'] = 'The variant of the lab deployment on TopoMojo. WARNING: If set to 0 it will be randomized!';
+$string['attemptsallowed'] = 'Attempts allowed';
+$string['completionminattemptserror'] = 'Minimum number of attempts must be lower or equal to attempts allowed.';
+$string['submissionsallowed'] = 'Submissions allowed';
+$string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
 
 // Time options
 $string['timing'] = 'Timing';
