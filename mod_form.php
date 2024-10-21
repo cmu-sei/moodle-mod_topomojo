@@ -255,6 +255,15 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setType('grade', PARAM_INT);
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
+        // Number of attempts.
+        $attemptoptions = ['0' => get_string('unlimited')];
+        for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+            $attemptoptions[$i] = $i;
+        }
+        $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
+                $attemptoptions);
+
+        // Grading method.
         $mform->addElement('select', 'grademethod',
                 get_string('grademethod', 'topomojo'),
                 \mod_topomojo\utils\scaletypes::get_display_types());
@@ -289,8 +298,22 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
         $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
 
+        // TODO this affects the submissions option
         $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
         $mform->addHelpButton('endlab', 'endlab', 'topomojo');
+
+        // Number of challenge submissions.
+        // TODO this is affected by the endlab option
+        //  if endlab is true, set submissions to 1 and disable
+        $submissionoptions = ['0' => get_string('unlimited')];
+        for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+            $submissionoptions[$i] = $i;
+        }
+
+        $mform->addElement('select', 'submissions', get_string('submissionsallowed', 'topomojo'),
+                $attemptoptions);
+
+        $mform->disabledIf('submissions', 'endlab', 'checked');
 
         // Shuffle within questions.
         $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
@@ -489,7 +512,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         if (!empty($data['completionminattempts'])) {
             if ($data['attempts'] > 0 && $data['completionminattempts'] > $data['attempts']) {
-                $errors['completionminattemptsgroup'] = get_string('completionminattemptserror', 'quiz');
+                $errors['completionminattemptsgroup'] = get_string('completionminattemptserror', 'topomojo');
             }
         }
         // If CBM is involved, don't show the warning for grade to pass being larger than the maximum grade.
@@ -556,6 +579,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
             if ($data->variant > $variants) {
                 // $data->variant = 1;
                 throw new moodle_exception("lab does not have " . $data->variant . " or more variants");
+            }
+            if ($data->endlab) {
+                $data->submissions = 1;
             }
             //if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
             //    print_error("cannot import challenge when variant is random");
