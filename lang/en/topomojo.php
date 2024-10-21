@@ -83,9 +83,9 @@ $string['configtagmap'] = 'Maps Tags from TopoMojo Lab to Moodle Activities.';
 $string['tagcollection'] = 'Tag Collection';
 $string['configtagcollection'] = 'This determines which Tag Collection should be used to group tags imported';
 $string['importchallenge'] = 'Import Challenge';
-$string['endlab'] = 'End Lab';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from TopoMojo.';
-$string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab.';
+$string['endlab'] = 'End Lab';
+$string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab. Will set submissions to 1.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
@@ -126,8 +126,8 @@ $string['attemptsallowed'] = 'Attempts allowed';
 $string['completionminattemptserror'] = 'Minimum number of attempts must be lower or equal to attempts allowed.';
 $string['submissionsallowed'] = 'Submissions allowed';
 $string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
-$string['attempts_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
-$string['submissions_help'] = 'Submissions allowed for the challenge/quiz.';
+$string['attemptsallowed_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
+$string['submissionsallowed_help'] = 'Submissions allowed for the challenge/quiz.';
 
 // Time options
 $string['timing'] = 'Timing';

@@ -99,9 +99,6 @@ class topomojo_attempt {
             // Create a new quba since we're creating a new attempt
             $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
                     $this->questionmanager->gettopomojo()->getContext());
-            // TODO get from module settings
-            //$this->quba->set_preferred_behaviour('immediatefeedback');
-            //$this->quba->set_preferred_behaviour('deferredfeedback');
             $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
             $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);

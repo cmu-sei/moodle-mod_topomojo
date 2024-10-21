@@ -237,9 +237,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('embed', $topomojoconfig->embed);
         $mform->addHelpButton('embed', 'embed', 'topomojo');
 
-        $options = ['', 'Countdown', 'Timer'];
+        $options = ['Hidden', 'Countdown', 'Timer'];
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
-        $mform->setDefault('clock', '');
+        $mform->setDefault('clock', 'Countdown');
         $mform->addHelpButton('clock', 'clock', 'topomojo');
 
         // Grade settings.
@@ -262,7 +262,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
                 $attemptoptions);
-        $mform->addHelpButton('attempts', 'attempts', 'topomojo');
+        $mform->addHelpButton('attempts', 'attemptsallowed', 'topomojo');
 
         // Grading method.
         $mform->addElement('select', 'grademethod',
@@ -313,7 +313,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('select', 'submissions', get_string('submissionsallowed', 'topomojo'),
                 $attemptoptions);
-        $mform->addHelpButton('submissions', 'submissions', 'topomojo');
+        $mform->addHelpButton('submissions', 'submissionsallowed', 'topomojo');
         $mform->disabledIf('submissions', 'endlab', 'checked');
 
         // Shuffle within questions.
@@ -329,7 +329,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
         } else {
             $currentbehaviour = 'deferredfeedback';
         }
-        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+	$behaviours = question_engine::get_behaviour_options($currentbehaviour);
+	//var_dump($behaviours);
+	//array(7) { ["adaptive"]=> string(13) "Adaptive mode" ["adaptivenopenalty"]=> string(28) "Adaptive mode (no penalties)" ["deferredfeedback"]=> string(17) "Deferred feedback" ["deferredcbm"]=> string(26) "Deferred feedback with CBM" ["immediatefeedback"]=> string(18) "Immediate feedback" ["immediatecbm"]=> string(27) "Immediate feedback with CBM" ["interactive"]=> string(31) "Interactive with multiple tries" }
+	// TODO these are going to be the most common
+        //deferredfeedback
+	//immediatefeedback
+	//interactive
+
         $mform->addElement('select', 'preferredbehaviour',
                 get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
