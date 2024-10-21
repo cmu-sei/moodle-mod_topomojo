@@ -108,7 +108,7 @@ $string['extendevent'] = 'Extend Lab';
 $string['extendevent_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
 $string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 $string['duration'] = 'Duration';
-$string['duration_help'] = 'This is the duration of the lab in minutes.';
+$string['duration_help'] = 'This is the duration of the lab in minutes. Set to 0 to use worspace default from TopoMojo';
 $string['overallfeedback'] = 'Overall feedback';
 $string['overallfeedback_help'] = 'Overall feedback is text that is shown after a  has been attempted. By specifying additional grade boundaries (as a percentage or as a number), the text shown can depend on the grade obtained.';
 $string['everythingon'] = 'Everything on';
@@ -126,6 +126,8 @@ $string['attemptsallowed'] = 'Attempts allowed';
 $string['completionminattemptserror'] = 'Minimum number of attempts must be lower or equal to attempts allowed.';
 $string['submissionsallowed'] = 'Submissions allowed';
 $string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
+$string['attempts_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
+$string['submissions_help'] = 'Submissions allowed for the challenge/quiz.';
 
 // Time options
 $string['timing'] = 'Timing';
