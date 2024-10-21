@@ -283,7 +283,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 self::$datefieldoptions);
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
-        // TODO pull duration from topomojo workspace
+        // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
         $mform->setType('duration', PARAM_INT);
@@ -565,7 +565,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $data->intro = $parts[0];
                 $data->introformat = FORMAT_MARKDOWN;
             }
-            // TODO pull durationMinutes from topomojo workspace
+            // pull durationMinutes from topomojo workspace if set to 0 by the teacher
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
