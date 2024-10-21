@@ -129,12 +129,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             throw new moodle_exception("start_event failed");
         }
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
-        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
-            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-        }
-        // Contact topomojo and pull the correct answers for this attempt
+	if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
+	    // get the challenge questions
+	    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+	    // TODO import them?
+	} else if ($object->topomojo->importchallenge) {
+	    // questions should have already been imported?
+	}
+	// Contact topomojo and pull the correct answers for this attempt
+	// TODO this might cause an error if variant is set to random and we have not added the questions yet
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
-
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
@@ -288,6 +292,7 @@ if ($object->event) {
         $renderer->display_grade($topomojo);
     }
 
+    // TODO check whether the user has any attempts left
     // Display start form
     $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
 }
