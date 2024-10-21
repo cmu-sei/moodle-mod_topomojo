@@ -262,6 +262,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
                 $attemptoptions);
+        $mform->addHelpButton('attempts', 'attempts', 'topomojo');
 
         // Grading method.
         $mform->addElement('select', 'grademethod',
@@ -312,7 +313,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('select', 'submissions', get_string('submissionsallowed', 'topomojo'),
                 $attemptoptions);
-
+        $mform->addHelpButton('submissions', 'submissions', 'topomojo');
         $mform->disabledIf('submissions', 'endlab', 'checked');
 
         // Shuffle within questions.
@@ -321,6 +322,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
+	// TODO if we have mutiple tries, should this be set to interactive with multiple tries?
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
