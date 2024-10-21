@@ -589,10 +589,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 // $data->variant = 1;
                 throw new moodle_exception("lab does not have " . $data->variant . " or more variants");
             }
-            if ($data->endlab) {
-                $data->submissions = 1;
-            }
-            //if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
+            //if (property_exists($data, 'importchallenge') && ($data->variant == 0)) {
             //    print_error("cannot import challenge when variant is random");
             //}
 
