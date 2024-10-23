@@ -73,11 +73,9 @@ class close_attempts extends \core\task\scheduled_task {
         $attempts = $this->getall_expired_attempts('open');
 
         foreach ($attempts as $attempt) {
-            echo "closing attempt $attempt->id<br>";
             debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
         }
-
     }
 
     /**
@@ -136,9 +134,9 @@ class close_attempts extends \core\task\scheduled_task {
             $object = new topomojo($cm, $course, $topomojo);
             $questionmanager = new questionmanager($object, $object->renderer);
             $attempts[] = new topomojo_attempt($questionmanager, $dbattempt);
-	}
-	debugging("found " . count($attempts), DEBUG_DEVELOPER);
-        exit;
+        }
+        debugging("successfully loaded " . count($attempts) . " attempt to be closed", DEBUG_DEVELOPER);
+ 
         return $attempts;
 
     }
