@@ -63,20 +63,21 @@ class edit_renderer extends \plugin_renderer_base {
      * @param array  $questions Array of questions
      */
     public function listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars) {
-        global $CFG;
+	global $CFG;
         $this->hasattempts = $topomojohasattempts;
+
+	// Question List
         echo \html_writer::start_div('row', ['id' => 'questionrow']);
-        echo \html_writer::start_div('inline-block col-sm-6');
+        echo \html_writer::start_div('inline-block col-sm-4');
         echo \html_writer::tag('h2', get_string('questionlist', 'topomojo'));
         echo \html_writer::div('', 'topomojostatusbox topomojohiddenstatus', ['id' => 'editstatus']);
         if (count($questions) == 0) {
             echo \html_writer::tag('p', get_string('noquestions', 'topomojo'));
         }
-
         echo $this->show_questionlist($questions);
-
         echo \html_writer::end_div(); //inline-block-span6 questionlist
 
+	// Question Bank
         if ($this->hasattempts) {
             echo \html_writer::start_div('inline-block span6');
             echo \html_writer::tag('h2', get_string('questionbank', 'question'));
@@ -86,7 +87,6 @@ class edit_renderer extends \plugin_renderer_base {
             echo \html_writer::start_div('inline-block col-sm-6');
             echo $questionbankview->display($pagevars, 'editq');
             echo \html_writer::end_div(); // inline-block-span6 questionbank
-
             echo \html_writer::end_div(); // questionrow
 
             // TODO update to amd
@@ -127,7 +127,7 @@ class edit_renderer extends \plugin_renderer_base {
         $questioncount = count($questions);
         $questionnum = 1;
         foreach ($questions as $question) {
-            $return .= '<li data-questionid="' . $question->getId() . '">';
+		$return .= '<li class="flex-container" data-questionid="' . $question->getId() . '">';
             $return .= $this->display_question_block($question, $questionnum, $questioncount);
             $return .= '</li>';
             $questionnum++;
@@ -150,17 +150,15 @@ class edit_renderer extends \plugin_renderer_base {
 
         $return = '';
 
-        // TODO disable reordering if attepts exist
+        // TODO disable reordering if attempts exist
         $dragicon = new \pix_icon('i/dragdrop', 'dragdrop');
         $return .= \html_writer::div($this->output->render($dragicon), 'dragquestion');
-
         $return .= \html_writer::div(print_question_icon($question->getQuestion()), 'icon');
 
-        $namehtml = \html_writer::start_tag('p');
-
+        $namehtml = \html_writer::start_tag('span');
         $namehtml .= $question->getQuestion()->name . '<br />';
         $namehtml .= get_string('points', 'topomojo') . ': ' . number_format($question->getPoints(), 2);
-        $namehtml .= \html_writer::end_tag('p');
+        $namehtml .= \html_writer::end_tag('span');
 
         $return .= \html_writer::div($namehtml, 'name');
 

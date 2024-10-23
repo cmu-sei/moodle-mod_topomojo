@@ -6,3 +6,7 @@
 .tm-rounded {
     border-radius: .25rem !important;
 }
+
+.flex-container {
+    display: flex;
+}
