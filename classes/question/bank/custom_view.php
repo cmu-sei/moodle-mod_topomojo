@@ -76,12 +76,14 @@ class custom_view extends \core_question\local\bank\view {
     protected function get_question_bank_plugins(): array {
         $questionbankclasscolumns = [];
         $corequestionbankcolumns = [
-            'add_action_column',
             'checkbox_column',
             'question_type_column',
             'question_name_text_column',
-            'delete_action_column',
-            'preview_action_column',
+            'edit_menu_column',
+            'question_status_column',
+            'version_number_column',
+            'creator_name_column',
+            'modifier_name_column'
         ];
 
         if (question_get_display_preference('qbshowtext', 0, PARAM_BOOL, new \moodle_url(''))) {
