@@ -36,6 +36,10 @@ DM24-1175
 
 namespace mod_topomojo\task;
 
+use \mod_topomojo\topomojo;
+use \mod_topomojo\topomojo_attempt;
+use \mod_topomojo\questionmanager;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -69,11 +73,9 @@ class close_attempts extends \core\task\scheduled_task {
         $attempts = $this->getall_expired_attempts('open');
 
         foreach ($attempts as $attempt) {
-            echo "closing attempt $attempt->id<br>";
             debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
         }
-
     }
 
     /**
@@ -117,13 +119,24 @@ class close_attempts extends \core\task\scheduled_task {
 
         $sql = "SELECT * FROM {topomojo_attempts} WHERE $wherestring";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
+        debugging("we found " . count($dbattempts) . " expired and inprogress attempts", DEBUG_DEVELOPER);
 
         $attempts = [];
 
         // Create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
-            $attempts[] = new \mod_topomojo\topomojo_attempt($dbattempt);
+            $id = $dbattempt->topomojoid;
+            debugging("attempt found for tm id $id", DEBUG_DEVELOPER);
+            $topomojo   = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
+            $course     = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
+            $cm         = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
+
+            $object = new topomojo($cm, $course, $topomojo);
+            $questionmanager = new questionmanager($object, $object->renderer);
+            $attempts[] = new topomojo_attempt($questionmanager, $dbattempt);
         }
+        debugging("successfully loaded " . count($attempts) . " attempt to be closed", DEBUG_DEVELOPER);
+ 
         return $attempts;
 
     }

@@ -281,6 +281,25 @@ function topomojo_delete_instance($id) {
  * @return cached_cm_info info
  */
 function topomojo_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    // Fetch the topomojo instance from the database.
+    $dbparams = array('id' => $coursemodule->instance);
+    $fields = 'id, name, intro, introformat';
+    if (! $topomojo = $DB->get_record('topomojo', $dbparams, $fields)) {
+        return false; // Return false if the record cannot be found.
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $topomojo->name; // Set the module name.
+
+    // Check if we need to display the description.
+    if ($coursemodule->showdescription) {
+        // Format the intro (description) and add it to the result.
+        $result->content = format_module_intro('topomojo', $topomojo, $coursemodule->id, false);
+    }
+
+    return $result;
 }
 
 /**
