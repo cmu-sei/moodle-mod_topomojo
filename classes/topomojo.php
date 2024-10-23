@@ -128,7 +128,7 @@ class topomojo {
      * @param string $renderersubtype Renderer sub-type to load if requested
      *
      */
-    public function __construct($cm, $course, $topomojo, $pageurl, $pagevars = [], $renderersubtype = null) {
+    public function __construct($cm, $course, $topomojo, $pageurl = null, $pagevars = [], $renderersubtype = null) {
         global $CFG, $PAGE;
 
         $this->cm = $cm;
@@ -138,13 +138,13 @@ class topomojo {
 
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
-
-        $this->userauth = setup(); // Fails when called by runtask
-
-        $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderersubtype);
-        $this->renderer->init($this, $pageurl, $pagevars);
-
-        $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+	$this->renderer = $PAGE->get_renderer('mod_topomojo', $renderersubtype);
+	if ($pageurl) {
+            // skip this initialization during cron task
+            $this->renderer->init($this, $pageurl, $pagevars);
+            $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+            $this->userauth = setup();
+        }
     }
 
 
