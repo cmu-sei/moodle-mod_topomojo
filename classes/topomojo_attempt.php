@@ -109,9 +109,10 @@ class topomojo_attempt {
 
             \question_engine::save_questions_usage_by_activity($this->quba);
 
-        } else { // Else load it up in this class instance
+	} else { // else load it up in this class instance
+            debugging("loading existing attempt", DEBUG_DEVELOPER);
             $this->attempt = $dbattempt;
-            $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
+            $this->quba = question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
         }
     }
 
