@@ -461,25 +461,38 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Savepoint reached.
         upgrade_mod_savepoint(true, 2024100304, 'topomojo');
     }
-    if ($oldversion < 2024102100) {
+    if ($oldversion < 2024102301) {
 
         // Define field endlab to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('attempts', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'attempts');
+        $field = new xmldb_field('attempts', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'variant');
 
         // Conditionally launch add field attempts.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('submissions', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'submissions');
+        $field = new xmldb_field('submissions', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'attempts');
         // Conditionally launch add field submissions.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         // Savepoint reached.
-        upgrade_mod_savepoint(true, 2024102100, 'topomojo');
+        upgrade_mod_savepoint(true, 2024102301, 'topomojo');
+    }
+
+    if ($oldversion < 2024102302) {
+
+        // Define key questionusageid (foreign-unique) to be dropped form topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN_UNIQUE, ['questionusageid'], 'question_usages', ['id']);
+
+        // Launch drop key questionusageid.
+        $dbman->drop_key($table, $key);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024102302, 'topomojo');
     }
 
     return true;

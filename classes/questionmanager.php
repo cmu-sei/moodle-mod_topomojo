@@ -44,9 +44,9 @@ use stdClass;
  /**
   * Question manager class
   *
-  * Provides utility functions to manage questions for a realtime quiz
+  * Provides utility functions to manage questions for a quiz
   *
-  * Basically this class provides an interface to internally map the questions added to a realtime quiz to
+  * Basically this class provides an interface to internally map the questions added to a topomojo quiz to
   * questions in the question bank.  calling get_questions() will return an ordered array of question objects
   * from the questions table and not the topomojo_questions table.  That table is only used internally by this
   * class.
@@ -89,7 +89,7 @@ class questionmanager {
      * Construct an instance of question manager
      *
      * @param object $topomojo
-     * @param \mod_topomojo_renderer $renderer The realtime quiz renderer to render visual elements
+     * @param \mod_topomojo_renderer $renderer The renderer to render visual elements
      * @param array $pagevars page variables array
      */
     public function __construct($object, $renderer, $pagevars = []) {
@@ -100,7 +100,7 @@ class questionmanager {
         $this->pagevars = $pagevars;
         $this->orderedquestions = [];
 
-        if ( !empty($this->pagevars) ) {
+        if (!empty($this->pagevars)) {
             $this->baseurl = $this->pagevars['pageurl'];
         } else {
             $params = ['cmid' => $this->object->cm->id];
@@ -146,14 +146,14 @@ class questionmanager {
                 'edit' => true]);
 
         // Form handling
-        if ( $mform->is_cancelled() ) {
+        if ($mform->is_cancelled()) {
             // Redirect back to list questions page
             $this->baseurl->remove_params('action');
             redirect($this->baseurl, null, 0);
 
-        } else if ( $data = $mform->get_data() ) {
+        } else if ($data = $mform->get_data()) {
             // Process data from the form
-            if ( number_format($data->points, 2) != $topomojoquestion->points ) {
+            if (number_format($data->points, 2) != $topomojoquestion->points) {
                 // If we have a different points, update any existing sessions/attempts max points and regrade.
                 $this->update_points(number_format($data->points, 2), $topomojoquestion, $qrecord);
             }
@@ -237,7 +237,7 @@ class questionmanager {
      */
     public function move_question($direction, $questionid) {
 
-        if ( $direction !== 'up' && $direction != 'down' ) {
+        if ($direction !== 'up' && $direction != 'down') {
             return false; // Return false if the direction is not up or down
         }
 
@@ -254,7 +254,7 @@ class questionmanager {
      */
     public function set_full_order($fullorder = []) {
 
-        if ( !is_array($fullorder) ) {
+        if (!is_array($fullorder)) {
             return false;
         }
 
@@ -315,7 +315,7 @@ class questionmanager {
         $quba = $attempt->get_quba();
 
         // First check if this is the last question
-        if ( empty($slots[$slotnum]) ) {
+        if (empty($slots[$slotnum])) {
             $attempt->islastquestion(true);
         } else {
             $attempt->islastquestion(false);
@@ -328,7 +328,7 @@ class questionmanager {
         $qubaquestion = $quba->get_question($slots[$slotnum]);
 
         foreach ($this->qbankorderedquestions as $qbankquestion) {
-            if ( $qbankquestion->getQuestion()->id == $qubaquestion->id ) {
+            if ($qbankquestion->getQuestion()->id == $qubaquestion->id) {
                 // Set the slot on the qbank question as this is the actual id we're using for question number
                 $qbankquestion->set_slot($slots[$slotnum]);
 
@@ -421,7 +421,7 @@ class questionmanager {
         // We need the questionids of our questions
         $questionids = [];
         foreach ($this->qbankorderedquestions as $qbankquestion) {
-            if ( !in_array($qbankquestion->getQuestion()->id, $questionids) ) {
+            if (!in_array($qbankquestion->getQuestion()->id, $questionids)) {
                 $questionids[] = $qbankquestion->getQuestion()->id;
             }
         }
@@ -476,10 +476,10 @@ class questionmanager {
      * Updates the question order for the question manager
      *
      * @param string $action
-     * @param int $questionid the realtime quiz question id, NOT the question engine question id
+     * @param int $questionid the topomojo question id, NOT the question engine question id
      * @param array $fullorder An array of question objects to sort as is.
-     *                         This is mainly used for the dragdrop callback on the edit page.  If the full order is not specified
-     *                         with all questions currently on the quiz, the case will return false
+     *     This is mainly used for the dragdrop callback on the edit page.  If the full order is not specified
+     *     with all questions currently on the quiz, the case will return false
      *
      * @return bool true/false if it was successful
      */
@@ -489,7 +489,7 @@ class questionmanager {
             case 'addquestion':
 
                 $questionorder = $this->get_question_order();
-                if ( empty($questionorder) ) {
+                if (empty($questionorder)) {
                     $questionorder = $questionid;
                 } else {
                     $questionorder .= ',' . $questionid;
@@ -509,7 +509,7 @@ class questionmanager {
 
                 foreach ($questionorder as $index => $qorder) {
 
-                    if ( $qorder == $questionid ) {
+                    if ($qorder == $questionid) {
                         unset($questionorder[$index]);
                         break;
                     }
@@ -530,9 +530,9 @@ class questionmanager {
 
                 foreach ($questionorder as $index => $qorder) {
 
-                    if ( $qorder == $questionid ) {
+                    if ($qorder == $questionid) {
 
-                        if ( $index == 0 ) {
+                        if ($index == 0) {
                             return false; // can't move first question up
                         }
 
@@ -563,9 +563,9 @@ class questionmanager {
 
                 foreach ($questionorder as $index => $qorder) {
 
-                    if ( $qorder == $questionid ) {
+                    if ($qorder == $questionid) {
 
-                        if ( $index == $questionordercount - 1 ) {
+                        if ($index == $questionordercount - 1) {
                             return false; // can't move last question down
                         }
 
@@ -593,19 +593,19 @@ class questionmanager {
                 $questionorder = explode(',', $questionorder);
 
                 // if we don't have the same number of questions return error
-                if ( count($fullorder) !== count($questionorder) ) {
+                if (count($fullorder) !== count($questionorder)) {
                     return false;
                 }
 
                 // next validate that the questions sent all match to a question in the current order
                 $allmatch = true;
                 foreach ($questionorder as $qorder) {
-                    if ( !in_array($qorder, $fullorder) ) {
+                    if (!in_array($qorder, $fullorder)) {
                         $allmatch = false;
                     }
                 }
 
-                if ( $allmatch ) {
+                if ($allmatch) {
 
                     $newquestionorder = implode(',', $fullorder);
                     $this->set_question_order($newquestionorder);
@@ -633,7 +633,7 @@ class questionmanager {
 
         // loop through the db topomojo questions and see if we find a match
         foreach ($this->topomojoquestions as $dbtopomojoquestion) {
-            if ( $dbtopomojoquestion->questionid == $questionid ) {
+            if ($dbtopomojoquestion->questionid == $questionid) {
                 return true;
             }
         }
@@ -663,7 +663,7 @@ class questionmanager {
     }
 
     /**
-     * Orders the real time questions and then
+     * Orders the questions and then
      * puts question bank ordered questions into the qbankorderedquestions var
      *
      */
@@ -751,7 +751,7 @@ class questionmanager {
         $attempts = $this->object->getall_attempts('all');
 
         foreach ($attempts as $attempt) {
-            if ( $slot = $attempt->get_question_slot($q) ) {
+            if ($slot = $attempt->get_question_slot($q)) {
                 $quba = $attempt->get_quba();
                 $quba->set_max_mark($slot, $newpoints);
                 $quba->regrade_question($slot, false, $newpoints);
@@ -764,7 +764,7 @@ class questionmanager {
         $grader = new \mod_topomojo\utils\grade($this->object);
 
         // re-save all grades after regrading the question attempts for the slot.
-        if ( $grader->save_all_grades(true) ) {
+        if ($grader->save_all_grades(true)) {
             return true;
         } else {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');

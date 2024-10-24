@@ -214,7 +214,7 @@ switch($action) {
 
         break;
     default:
-        if ($object->openAttempt) {
+        if ($object->openAttempt && $object->openAttempt->get_quba()) {
             if (count($object->get_question_manager()->get_questions())) {
                 if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
@@ -224,6 +224,8 @@ switch($action) {
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
+        } else {
+            $renderer->render_no_challenge();
         }
 }
 // Attempts may differ from events pulled from history on server

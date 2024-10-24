@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -51,8 +51,6 @@ use mod_topomojo\traits\renderer_base;
 class mod_topomojo_renderer extends \plugin_renderer_base {
 
     use renderer_base;
-
-//class mod_topomojo_renderer extends plugin_renderer_base {
 
     /**
      * Renders the detailed view of a TopoMojo activity.
@@ -83,13 +81,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->code = $code;
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
         $data->duration = $duration / 60;
-        
+
         // Add the flag to the data object
         $data->showWarning = $showWarning;
-    
+
         echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
     }
-    
+
 
     /**
      * Renders the start form for TopoMojo activity with Markdown content.
@@ -108,16 +106,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
-        //$options['trusted'] = true;
-        //$options['noclean'] = true;
-        //$options['nocache'] = true;
 
-        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        //$url = get_config('topomojo', 'topomojobaseurl');
-        //$data->markdown = str_replace("src=\"/docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
-        //$data->markdown = str_replace("src=\"docs/", "src=\"" . $url . "docs/", $data->markdown, $i);
         $data->markdown = $this->clean_markdown($markdown);
-
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/startform', $data);
@@ -191,46 +181,29 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_challenge_instructions($markdown) {
         $data = new stdClass();
-        //$options['trusted'] = true;
-        //$options['noclean'] = true;
-        //$options['nocache'] = true;
 
-        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
         $data->markdown = $this->clean_markdown($markdown);
-
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
     /**
-     * Renders an embedded page with a launch URL, Markdown content, and a VM list.
+     * Renders an embedded page with Markdown content, and a VM list.
      *
-     * This function prepares data for an embedded page by including a launch URL, formatted
+     * This function prepares data for an embedded page by including, formatted
      * Markdown content, and a list of virtual machines (VMs). The Markdown is formatted with
      * trusted content settings, and specific URLs within the Markdown are adjusted. The data
      * is then rendered using the `mod_topomojo/embed` Mustache template.
      *
-     * @param string $launchpointurl The URL to be used for launching the embedded page.
      * @param string $markdown The Markdown-formatted content to be included on the page.
      * @param array $vmlist An array of virtual machines to be displayed on the page.
      * @return void
      */
-    public function display_embed_page($launchpointurl, $markdown, $vmlist) {
+    public function display_embed_page($markdown, $vmlist) {
         $data = new stdClass();
-        $data->url = $launchpointurl;
-        //$data->fullscreen = get_string('fullscreen', 'mod_topomojo');
 
         $data->vmlist = $vmlist;
-
-        //$options['trusted'] = true;
-        //$options['noclean'] = true;
-        //$options['nocache'] = true;
-
-        //$data->markdown = format_text($markdown, FORMAT_MARKDOWN, $options);
-        //$url = get_config('topomojo', 'topomojobaseurl');
-        //$data->markdown = str_replace("img src=\"/docs/", "img src=\"" . $url . "docs/", $data->markdown, $i);
-        //$data->markdown = str_replace("img src=\"docs/", "img src=\"" . $url . "docs/", $data->markdown, $i);
 
         $data->markdown = $this->clean_markdown($markdown);
 
@@ -407,7 +380,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $output = '';
 
-            //$output .= html_writer::start_div();
+        //$output .= html_writer::start_div();
         //$output .= $this->topomojo_intro();
         //$output .= html_writer::end_div();
 
@@ -435,7 +408,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $output .= $instructions;
         $output .= html_writer::end_div();
         */
-
         foreach ($attempt->getSlots() as $slot) {
             // Render question form.
             $output .= $this->render_question_form($slot, $attempt);
@@ -516,7 +488,9 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $this->display_grade($this->topomojo->topomojo);
         }
 
-        if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
+        if (!$attempt->questionusageid) {
+            echo html_writer::tag('p', get_string('nochallenge', 'topomojo'), ['id' => 'review_notavailable']);
+        } else if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
             foreach ($attempt->getSlots() as $slot) {
                 if ($this->topomojo->is_instructor()) {
                     echo $this->render_edit_review_question($slot, $attempt);
@@ -628,11 +602,21 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output = '';
             $params = [
                 'id' => $this->topomojo->getCM()->id,
-                //'action' => ''
             ];
-            $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+            $starturl = new moodle_url('/mod/topomojo/review.php', $params);
             $output .= $this->output->single_button($starturl, 'Return', 'get');
             echo $output;
+    }
+
+    public function render_no_challenge() {
+        $output = '';
+        $output .= html_writer::tag('p', get_string('nochallenge', 'topomojo'), ['id' => 'review_notavailable']);
+        $params = [
+            'id' => $this->topomojo->getCM()->id,
+        ];
+        $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+        $output .= $this->output->single_button($starturl, 'Return', 'get');
+        echo $output;
     }
 
     private function clean_markdown($markdown) {
@@ -653,7 +637,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         //$options['nocache'] = true;
         $options['trusted'] = true;
         $options['noclean'] = true;
-   
+
         $cleaned = format_text($markdown, FORMAT_MARKDOWN, $options);
         $url = get_config('topomojo', 'topomojobaseurl');
 

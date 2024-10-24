@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -54,7 +54,6 @@ require_once("$CFG->dirroot/tag/lib.php");
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
-$attemptid = optional_param('attemptid', 0, PARAM_INT);
 
 try {
     if ($id) {
@@ -91,18 +90,30 @@ $PAGE->set_heading($course->fullname);
 $pageurl = $url;
 $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
-$object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
+$object = new topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 // Get current state of workspace
-$allevents = list_events($object->userauth, $object->topomojo->name);
-$eventsmoodle = moodle_events($allevents);
-$history = user_events($object->userauth, $eventsmoodle);
+$allevents = list_events(client: $object->userauth, name: $object->topomojo->name);
+$eventsmoodle = moodle_events(events: $allevents);
+$history = user_events($object->userauth, events: $eventsmoodle);
 $object->event = get_active_event($history);
 
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
+    if (!$object->event) {
+        debugging("but no live event" . $object->openAttempt->id, DEBUG_DEVELOPER);
+        if ($object->openAttempt->questionusageid) {
+            $object->openAttempt->save_question();
+        }
+        $object->openAttempt->close_attempt();
+        //if ($object->openAttempt->quba) {
+        //    $grader = new \mod_topomojo\utils\grade($object);
+        //    $grader->process_attempt($object->openAttempt);
+        //}
+        topomojo_end($cm, $context, topomojo: $topomojo);
+    }
 } else if ($activeattempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 }
@@ -129,16 +140,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             throw new moodle_exception("start_event failed");
         }
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
-	if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
-	    // get the challenge questions
-	    $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-	    // TODO import them?
-	} else if ($object->topomojo->importchallenge) {
-	    // questions should have already been imported?
-	}
-	// Contact topomojo and pull the correct answers for this attempt
-	// TODO this might cause an error if variant is set to random and we have not added the questions yet
-        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
+        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
+            // get the challenge questions
+            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+            // TODO import them?
+        } else if ($object->topomojo->importchallenge) {
+            // questions should have already been imported?
+        }
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
@@ -161,13 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
-        // This should not happend because we create the attempt when we start it
+        // This should not happen because we create the attempt when we start it
         debugging("active event with no attempt", DEBUG_DEVELOPER);
         //throw new moodle_exception('eventwithoutattempt', 'topomojo');
         // TODO give user a popup to confirm they are starting an attempt
         $activeattempt = $object->init_attempt();
     }
-    // Check age and get new link, chekcing for 30 minute timeout of the url
+    // Check age and get new link, checking for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
                 ((time() - $object->openAttempt->timemodified) > 3600 )) {
         debugging("getting new launchpointurl", DEBUG_DEVELOPER);
@@ -205,9 +213,10 @@ if ($object->event) {
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
         // If VMs array is missing or not valid, display error and stop further processing
+        print_error("no vms");
         stop_event($object->userauth, $object->event->id);
         topomojo_end($cm, $context, $topomojo);
-        
+
         $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
         $markdowncutline = "/\n---\n/";
         $parts = preg_split($markdowncutline, $markdown);
@@ -249,7 +258,6 @@ if ($object->event) {
         $PAGE->requires->js_call_amd('mod_topomojo/invite', 'init', [$jsoptions]);
 
         if ($embed == 1) {
-
             $vmlist = [];
             if (!is_array($object->event->vms)) {
                 throw new moodle_exception("No VMs visible to user");
@@ -273,31 +281,29 @@ if ($object->event) {
                         array_push($vmlist, $vmdata);
                     }
                 }
-
             }
 
-            $renderer->display_embed_page($object->openAttempt->launchpointurl, $object->event->markdown, $vmlist);
+            $renderer->display_embed_page($object->event->markdown, $vmlist);
         } else {
             $renderer->display_link_page($object->openAttempt->launchpointurl);
         }
     }
 
 } else {
-    $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $markdowncutline = "/\n<!-- cut -->\n/";
-    $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail($topomojo, $topomojo->duration);
-
     if ($showgrade) {
         $renderer->display_grade($topomojo);
     }
 
     // TODO check whether the user has any attempts left
+
+    $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
+    $markdowncutline = "/\n<!-- cut -->\n/";
+    $parts = preg_split($markdowncutline, $markdown);
+    $renderer->display_detail($topomojo, $topomojo->duration);
+
     // Display start form
     $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
 }
-
-// Attempts may differ from events pulled from history on server
 
 echo $renderer->footer();
 

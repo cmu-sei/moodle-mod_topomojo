@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -138,11 +138,20 @@ class topomojo {
 
         $this->context = \context_module::instance($cm->id);
         $PAGE->set_context($this->context);
-	$this->renderer = $PAGE->get_renderer('mod_topomojo', $renderersubtype);
-	if ($pageurl) {
+        $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderersubtype);
+
+        if ($pageurl) {
             // skip this initialization during cron task
             $this->renderer->init($this, $pageurl, $pagevars);
-            $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+            if (str_contains($pageurl->get_path(), "edit.php")) {
+                    $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+            } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
+                    (str_contains($pageurl->get_path(), "challenge.php")) ||
+                    (str_contains($pageurl->get_path(), "viewattempt.php"))) {
+                if (isset($this->topomojo->questionorder)) {
+                        $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+                    }
+            }
             $this->userauth = setup();
         }
     }
@@ -365,10 +374,10 @@ class topomojo {
             debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
             return true;
         }
-        debugging("init_attempt could not find attempt", DEBUG_DEVELOPER);
+        debugging("init_attempt could not find attempt by calling get_open_attempt", DEBUG_DEVELOPER);
 
         // Create a new attempt
-        $attempt = new topomojo_attempt($this->questionmanager);
+        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -384,7 +393,9 @@ class topomojo {
 
         if ($attempt->save()) {
             $this->openAttempt = $attempt;
+            debugging("saved attempt", DEBUG_DEVELOPER);
         } else {
+            debugging("could not save new attempt", DEBUG_DEVELOPER);
             return false;
         }
 
@@ -398,7 +409,7 @@ class topomojo {
      *
      * @return \mod_topomojo\questionmanager
      */
-    public function get_question_manager() {
+    public function get_question_manager(): questionmanager {
         return $this->questionmanager;
     }
 
