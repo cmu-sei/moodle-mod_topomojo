@@ -175,6 +175,7 @@ $string['stoplab'] = 'End Lab';
 $string['returntext'] = 'Return to Lab';
 $string['savequestion'] = 'Save question';
 $string['noreview'] = 'You are not able to review the quiz attempt at this time.';
+$string['nochallenge'] = 'There are no challenge questions to review.';
 
 // Review options
 $string['review'] = 'Review';

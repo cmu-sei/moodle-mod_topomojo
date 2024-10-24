@@ -74,7 +74,6 @@ echo $OUTPUT->heading($strtopomojos);
 
 if (!$topomojos = get_all_instances_in_course('topomojo', $course)) {
     notice(get_string('thereareno', 'moodle', $strtopomojos), "$CFG->wwwroot/course/view.php?id=$course->id");
-    exit;
 }
 
 $usesections = course_format_uses_sections($course->format);
