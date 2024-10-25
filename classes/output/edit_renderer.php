@@ -127,7 +127,7 @@ class edit_renderer extends \plugin_renderer_base {
         $questioncount = count($questions);
         $questionnum = 1;
         foreach ($questions as $question) {
-		$return .= '<li class="flex-container" data-questionid="' . $question->getId() . '">';
+            $return .= '<li class="flex-container" data-questionid="' . $question->getId() . '">';
             $return .= $this->display_question_block($question, $questionnum, $questioncount);
             $return .= '</li>';
             $questionnum++;
