@@ -52,5 +52,16 @@ DM24-1175
 <p>{{durationtext}}: {{duration}} Minutes</p>
 {{/duration}}
 {{#code}}
-<p>{{# str }} supportcode, mod_topomojo {{/ str }}{{code}}</p>
+<p>
+    {{# str }} supportcode, mod_topomojo {{/ str }}: {{code}}
+    <i class="fa fa-info-circle" data-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
+</p>
 {{/code}}
+
+<script>
+    require(['jquery', 'core/tooltip'], function($) {
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+</script>
