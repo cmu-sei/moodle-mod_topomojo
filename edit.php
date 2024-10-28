@@ -118,25 +118,10 @@ if ($object->topomojo->importchallenge) {
         throw new moodle_exception("this lab has no challenge");
     }
 
-    if ($object->topomojo->variant == 0) {
-        $type = 'info';
-        $message = get_string('importtoporandom', 'topomojo');
-        $variants = count($challenge->variants);
-        $addtoquiz = false;
-        debugging("random variant set for this lab, adding all questions", DEBUG_DEVELOPER);
-        for ($variant = 0; $variant < $variants; $variant++) {
-            $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
-        }
-    } else if ($object->topomojo->variant > 0) {
-        $type = 'info';
-        $message = get_string('importtopo', 'topomojo');
-
-        //Adjust for offset
-        $variant = $object->topomojo->variant - 1;
-        $addtoquiz = true;
-        $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
-    }
-    $renderer->setMessage($type, $message);
+    //Adjust for offset
+    $variant = $object->topomojo->variant;
+    $addtoquiz = true;
+    $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
 }
 
 // Handle actions

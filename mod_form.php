@@ -227,7 +227,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
         $mform->setType('variant', PARAM_INT);
-        $mform->setDefault('variant', '1');
+        $mform->setDefault('variant', '0');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
@@ -588,6 +588,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             }
             if ($data->variant > $variants) {
                 // $data->variant = 1;
+                // Display the message as a warning
                 throw new moodle_exception("lab does not have " . $data->variant . " or more variants");
             }
             //if (property_exists($data, 'importchallenge') && ($data->variant == 0)) {

@@ -456,7 +456,6 @@ function start_event($client, $id, $topomojo) {
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = $topomojo->submissions;
-    var_dump($topomojo);
     $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
     $payload->variant = $topomojo->variant;

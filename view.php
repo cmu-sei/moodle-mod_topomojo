@@ -140,13 +140,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             throw new moodle_exception("start_event failed");
         }
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
-        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
-            // get the challenge questions
-            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-            // TODO import them?
-        } else if ($object->topomojo->importchallenge) {
-            // questions should have already been imported?
-        }
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }

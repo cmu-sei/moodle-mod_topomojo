@@ -133,12 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             throw new moodle_exception("start_event failed");
         }
         debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
-        if ($object->topomojo->importchallenge && $object->topomojo->variant == 0) {
-            $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-            //$object->get_question_manager()->create_questions_from_challenge($challenge);
-        }
         // Contact topomojo and pull the correct answers for this attempt
-        // TODO verify is this works for random attempts
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
 
     } else {

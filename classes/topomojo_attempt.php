@@ -105,7 +105,6 @@ class topomojo_attempt {
                 $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
                 $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
-                var_dump($attemptlayout);
                 // Add the attempt layout to this instance
                 $this->attempt->layout = implode(',', $attemptlayout);
                 \question_engine::save_questions_usage_by_activity($this->quba);
