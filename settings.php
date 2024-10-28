@@ -70,6 +70,9 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configtext('topomojo/managername',
         get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+    
+    $settings->add(new admin_setting_configtext('topomojo/maxattempts', 
+            get_string('maxattemptlabel', 'topomojo'), get_string('maxattemptdesc', 'topomojo'), 10, PARAM_INT));
 
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
         get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));

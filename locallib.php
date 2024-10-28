@@ -140,8 +140,8 @@ function moodle_events($events) {
         return;
     }
     foreach ($events as $event) {
-        if ($event['managerName'] == "Adam Welle") {
-            //echo "<br>got moodle user<br>";
+        $managername = get_config('topomojo', 'managername');
+        if ($event['managerName'] == $managername) {
             array_push($eventsmoodle, $event);
         }
     }
@@ -456,6 +456,7 @@ function start_event($client, $id, $topomojo) {
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = $topomojo->submissions;
+    var_dump($topomojo);
     $payload->maxMinutes = $topomojo->duration / 60;
     $payload->points = $topomojo->grade;
     $payload->variant = $topomojo->variant;

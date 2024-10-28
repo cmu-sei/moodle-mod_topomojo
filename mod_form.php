@@ -256,8 +256,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
         // Number of attempts.
+        $maxattempts = get_config('topomojo', 'maxattempts');
         $attemptoptions = ['0' => get_string('unlimited')];
-        for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+        for ($i = 1; $i <= $maxattempts; $i++) {
             $attemptoptions[$i] = $i;
         }
         $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
@@ -307,7 +308,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // TODO this is affected by the endlab option
         //  if endlab is true, set submissions to 1 and disable
         $submissionoptions = ['0' => get_string('unlimited')];
-        for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+        for ($i = 1; $i <= $maxattempts; $i++) {
             $submissionoptions[$i] = $i;
         }
 
