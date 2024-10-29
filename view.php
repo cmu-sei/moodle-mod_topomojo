@@ -211,7 +211,7 @@ if ($object->event) {
         topomojo_end($cm, $context, $topomojo);
 
         $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-        $markdowncutline = "/\n---\n/";
+        $markdowncutline = "<!-- cut -->";
         $parts = preg_split($markdowncutline, $markdown);
 
         $renderer->display_detail_no_vms($topomojo, $topomojo->duration);
