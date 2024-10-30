@@ -300,22 +300,20 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         }
         $data->tableheaders->timestart = get_string('timestart', 'mod_topomojo');
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
-
-        if ($showgrade) {
+    
+        // Only add score if any attempt will display a score
+        $show_any_score = $showgrade && !empty(array_filter($attempts, function($attempt) { return $attempt->questionusageid != 268; }));
+        if ($show_any_score) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
         }
-
+    
         if ($attempts) {
             foreach ($attempts as $attempt) {
                 $rowdata = new stdClass();
                 if ($showuser) {
                     $user = $DB->get_record("user", ['id' => $attempt->userid]);
                     $rowdata->username = fullname($user);
-                    if ($attempt->eventid) {
-                        $rowdata->eventguid = $attempt->eventid;
-                    } else {
-                        $rowdata->eventguid = "-";
-                    }
+                    $rowdata->eventguid = $attempt->eventid ?: "-";
                 }
                 if ($showdetail) {
                     $topomojo = $DB->get_record("topomojo", ['id' => $attempt->topomojoid]);
@@ -323,24 +321,23 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $rowdata->moduleurl = new moodle_url('/mod/topomojo/view.php', ["c" => $topomojo->id]);
                 }
                 $rowdata->timestart = userdate($attempt->timestart);
-                if ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) {
-                    $rowdata->timefinish = userdate($attempt->timefinish);
+                $rowdata->timefinish = ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) ? userdate($attempt->timefinish) : null;
+    
+                // Conditionally set score based on questionusageid
+                if ($showgrade && $attempt->questionusageid !== null && $attempt->questionusageid != 0) {
+                    $rowdata->score = $attempt->score ?? "-";
+                    $rowdata->attempturl = $attempt->score !== null ? new moodle_url('/mod/topomojo/viewattempt.php', ["a" => $attempt->id]) : null;
                 } else {
-                    $rowdata->timefinish = null;
+                    $rowdata->score = "-"; // Hide the score for specific questionusageid
                 }
-                if ($showgrade) {
-                    if ($attempt->score !== null) {
-                        $rowdata->score = $attempt->score;
-                        $rowdata->attempturl = new moodle_url('/mod/topomojo/viewattempt.php', ["a" => $attempt->id]);
-                    } else {
-                        $rowdata->score = "-";
-                    }
-                }
+    
                 $data->tabledata[] = $rowdata;
             }
         }
+        
         echo $this->render_from_template('mod_topomojo/history', $data);
     }
+    
 
     /**
      * Renders control elements for managing the topomojo event time.
