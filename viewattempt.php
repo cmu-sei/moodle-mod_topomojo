@@ -84,7 +84,6 @@ $url = new moodle_url ( '/mod/topomojo/viewattempt.php', ['a' => $a]);
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
-$PAGE->set_heading($course->fullname);
 
 // New topomojo class
 $pageurl = $url;

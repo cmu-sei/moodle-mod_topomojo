@@ -85,7 +85,6 @@ $url = new moodle_url ( '/mod/topomojo/edit.php', ['cmid' => $cm->id]);
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
-$PAGE->set_heading($course->fullname);
 
 $action = optional_param('action', '', PARAM_ALPHA);
 $addquestionlist = optional_param('addquestionlist', '', PARAM_ALPHA);
