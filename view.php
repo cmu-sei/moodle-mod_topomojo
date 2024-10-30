@@ -97,6 +97,8 @@ $allevents = list_events(client: $object->userauth, name: $object->topomojo->nam
 $eventsmoodle = moodle_events(events: $allevents);
 $history = user_events($object->userauth, events: $eventsmoodle);
 $object->event = get_active_event($history);
+$renderer = $object->renderer;
+echo $renderer->header();
 
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
@@ -118,10 +120,23 @@ if ($activeattempt == true) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 }
 
+$max_attempts = $topomojo->attempts;
+$current_attempt_count = $DB->count_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+
+// If the maximum attempts are reached, display the max attempts template and exit
+if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdowncutline = "<<!-- cut -->>";
+    $parts = preg_split($markdowncutline, $markdown);
+    $renderer->display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $parts[0]);
+    echo $renderer->footer();
+    exit;
+    //exit; // Stop execution if max attempts are reached
+}
+
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    debugging("start request received", DEBUG_DEVELOPER);
-
+    debugging("start request received", DEBUG_DEVELOPER);    
     // Check not started already
     if (!$object->event) {
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
@@ -198,9 +213,6 @@ if ((int)$object->topomojo->grade > 0) {
 } else {
     $showgrade = false;
 }
-
-$renderer = $object->renderer;
-echo $renderer->header();
 
 if ($object->event) {
 

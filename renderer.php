@@ -88,7 +88,16 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
     }
 
-
+    public function display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $markdown) {
+        $data = new stdClass();
+        $data->max_attempts = $max_attempts;
+        $data->current_attempt_count = $current_attempt_count;
+        $data->is_max_reached = ($current_attempt_count >= $max_attempts);
+        $data->markdown = $this->clean_markdown($markdown);
+    
+        echo $this->render_from_template('mod_topomojo/max_attempts', $data);
+    }
+    
     /**
      * Renders the start form for TopoMojo activity with Markdown content.
      *

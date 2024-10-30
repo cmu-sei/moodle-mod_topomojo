@@ -49,8 +49,9 @@ DM24-1175
 {{/showWarning}}
 
 {{#duration}}
+<div class="notification-style notification-box">
 <p>{{durationtext}}: {{duration}} Minutes</p>
-{{/duration}}
+</div>
 {{#code}}
 <p>
     {{# str }} supportcode, mod_topomojo {{/ str }} {{code}}
@@ -64,3 +65,4 @@ DM24-1175
     });
 </script>
 {{/code}}
+{{/duration}}
