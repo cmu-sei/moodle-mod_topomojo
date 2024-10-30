@@ -105,7 +105,7 @@ $activeattempt = $object->get_open_attempt();
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
     if (!$object->event) {
-        debugging("but no live event" . $object->openAttempt->id, DEBUG_DEVELOPER);
+        debugging("but no live event for " . $object->openAttempt->id, DEBUG_DEVELOPER);
         if ($object->openAttempt->questionusageid) {
             $object->openAttempt->save_question();
         }
@@ -168,7 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             }
 
             stop_event($object->userauth, $object->event->id);
-            topomojo_end($cm, $context, $topomojo);
+	    topomojo_end($cm, $context, $topomojo);
+	    //$object->openAttempt->close_attempt();
+
             $reviewattempturl = new moodle_url('/mod/topomojo/review.php', ['id' => $cm->id]);
             redirect($reviewattempturl);
         }

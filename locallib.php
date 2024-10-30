@@ -118,7 +118,7 @@ function list_events($client, $name) {
     }
     debugging("list_events found " . count($matches) . " active events", DEBUG_DEVELOPER);
 
-    usort($matches, 'whencreated');
+    usort($matches, 'whenCreated');
     return $matches;
 }
 
@@ -721,7 +721,7 @@ function get_event($client, $id) {
  *             value of $a is less than, equal to, or greater than the 'whenCreated' value of $b.
  */
 function whencreated($a, $b) {
-    return strnatcmp($a['whencreated'], $b['whencreated']);
+    return strnatcmp($a['whenCreated'], $b['whenCreated']);
 }
 
 /**

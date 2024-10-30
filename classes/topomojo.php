@@ -381,7 +381,7 @@ class topomojo {
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
-        $attempt->state = \mod_topomojo\topomojo_attempt::NOTSTARTED;
+        $attempt->state = \mod_topomojo\topomojo_attempt::INPROGRESS;
         $attempt->timemodified = time();
         $attempt->timestart = time();
         $attempt->timefinish = null;
@@ -399,7 +399,7 @@ class topomojo {
             return false;
         }
 
-        $attempt->setState('inprogress');
+        //$attempt->setState('inprogress');
 
         // TODO call start attempt event class from here
         return true;
