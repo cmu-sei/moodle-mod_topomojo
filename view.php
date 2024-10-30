@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             }
             $object->openAttempt->close_attempt();
             stop_event($object->userauth, $object->event->id);
-	        topomojo_end($cm, $context, $topomojo);
+            topomojo_end($cm, $context, $topomojo);
 
             $reviewattempturl = new moodle_url('/mod/topomojo/review.php', ['id' => $cm->id]);
             redirect($reviewattempturl);
