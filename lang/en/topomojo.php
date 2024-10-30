@@ -248,5 +248,7 @@ $string['questionmoveup'] = 'Move question {$a} up';
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
 
+// Global Search
+$string['search:activity'] = 'TopoMojo - activity information';
 
 $string['interestslist'] = 'list test';
