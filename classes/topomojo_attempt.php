@@ -95,25 +95,27 @@ class topomojo_attempt {
 
         // If empty create new attempt
         if (empty($dbattempt)) {
+            debugging("creating new attempt", DEBUG_DEVELOPER);
             $this->attempt = new \stdClass();
-            // Create a new quba since we're creating a new attempt
-            $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
-                    $this->questionmanager->gettopomojo()->getContext());
-            // TODO get from module settings
-            //$this->quba->set_preferred_behaviour('immediatefeedback');
-            //$this->quba->set_preferred_behaviour('deferredfeedback');
-            $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
-            $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
-            // Add the attempt layout to this instance
-            $this->attempt->layout = implode(',', $attemptlayout);
+            if ($this->questionmanager) {
+                // Create a new quba since we're creating a new attempt
+                $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
+                        $this->questionmanager->gettopomojo()->getContext());
+                $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
-            \question_engine::save_questions_usage_by_activity($this->quba);
-
-	} else { // else load it up in this class instance
+                $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
+                // Add the attempt layout to this instance
+                $this->attempt->layout = implode(',', $attemptlayout);
+                \question_engine::save_questions_usage_by_activity($this->quba);
+                $this->save();
+            }
+        } else { // else load it up in this class instance
             debugging("loading existing attempt", DEBUG_DEVELOPER);
             $this->attempt = $dbattempt;
-            $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
+            if ($this->attempt->questionusageid) {
+                $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
+            }
         }
     }
 
@@ -164,7 +166,9 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
-                $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
+                if ($this->questionmanager) {
+                    $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
+                }
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;
@@ -188,17 +192,14 @@ class topomojo_attempt {
      */
     public function save() {
         global $DB;
-        // TODO check for undefined
-        if (is_null($this->attempt->endtime)) {
-            debugging("null endtime passed to attempt->save for " . $this->attempt->id, DEBUG_DEVELOPER);
-        }
 
         // first save the question usage by activity object
-        \question_engine::save_questions_usage_by_activity($this->quba);
+        if ($this->quba) {
+            \question_engine::save_questions_usage_by_activity($this->quba);
 
-        // this is here because for new usages there is no id until we save it
-        $this->attempt->questionusageid = $this->quba->get_id();
-
+            // this is here because for new usages there is no id until we save it
+            $this->attempt->questionusageid = $this->quba->get_id();
+        }
         $this->attempt->timemodified = time();
 
         if (isset($this->attempt->id)) { // update the record
@@ -207,19 +208,19 @@ class topomojo_attempt {
                 $DB->update_record('topomojo_attempts', $this->attempt);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
-
                 return false; // return false on failure
             }
         } else {
+            debugging("setting new id");
             // insert new record
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
-                $this->attempt->id = $newid;
             } catch (\Exception $e) {
+                debugging($e->getMessage());
                 return false; // return false on failure
             }
         }
-
+        debugging("saved attempt", DEBUG_DEVELOPER);
         return true; // return true if we get here
     }
 
@@ -232,7 +233,9 @@ class topomojo_attempt {
      */
     public function close_attempt() {
         global $USER;
-        $this->quba->finish_all_questions(time());
+        if ($this->quba) {
+            $this->quba->finish_all_questions(time());
+        }
         $this->attempt->state = self::FINISHED;
         $this->attempt->timefinish = time();
         $this->save();
@@ -294,7 +297,7 @@ class topomojo_attempt {
      * @return array
      */
     public function getSlots() {
-        return explode(',', $this->attempt->layout);
+        return explode(',', $this->attempt->layout ?? '');
     }
 
     /**
@@ -512,8 +515,7 @@ class topomojo_attempt {
                 return true;
             } else {
                 // TODO maybe add button to go back
-                echo "value entered is not in range";
-                exit;
+                print_error("value entered is not in range");
             }
         }
 

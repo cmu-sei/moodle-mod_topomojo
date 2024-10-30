@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -446,11 +446,11 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define table topomojo_questions to be updated.
         $table = new xmldb_table('topomojo_questions');
-    
+
         // Now, add the correct foreign key for topomojoid.
         $key = new xmldb_key('topomojoid', XMLDB_KEY_FOREIGN, ['topomojoid'], 'topomojo', ['id']);
         $dbman->add_key($table, $key);
-    
+
         // Define table topomojo_grades to be updated.
         $table = new xmldb_table('topomojo_grades');
 
@@ -461,6 +461,40 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Savepoint reached.
         upgrade_mod_savepoint(true, 2024100304, 'topomojo');
     }
+    if ($oldversion < 2024102301) {
+
+        // Define field endlab to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('attempts', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'variant');
+
+        // Conditionally launch add field attempts.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('submissions', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'attempts');
+        // Conditionally launch add field submissions.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024102301, 'topomojo');
+    }
+
+    if ($oldversion < 2024102302) {
+
+        // Define key questionusageid (foreign-unique) to be dropped form topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN_UNIQUE, ['questionusageid'], 'question_usages', ['id']);
+
+        // Launch drop key questionusageid.
+        $dbman->drop_key($table, $key);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024102302, 'topomojo');
+    }
+
     return true;
 }
 

@@ -57,7 +57,7 @@ $string['embed'] = 'Display Mode';
 $string['topomojobaseurl'] = 'TopoMojo Base URL';
 $string['autocomplete'] = 'Workspace Selection Method';
 $string['workspace'] = 'Workspace';
-$string['selectname'] = 'Search for an Workspace by name';
+$string['selectname'] = 'Search for a Workspace by name';
 $string['showfailed'] = 'Show Failed';
 $string['displaylink'] = 'Display Link to TopoMojo';
 $string['embedlab'] = 'Embed Lab inside Moodle';
@@ -83,9 +83,11 @@ $string['configtagmap'] = 'Maps Tags from TopoMojo Lab to Moodle Activities.';
 $string['tagcollection'] = 'Tag Collection';
 $string['configtagcollection'] = 'This determines which Tag Collection should be used to group tags imported';
 $string['importchallenge'] = 'Import Challenge';
-$string['endlab'] = 'End Lab';
 $string['importchallenge_help'] = 'Whether challenge questions should be imported from TopoMojo.';
-$string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab.';
+$string['endlab'] = 'End Lab';
+$string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab. Will set submissions to 1.';
+$string['maxattemptlabel'] = 'Maximum Challenge Submissions';
+$string['maxattemptdesc'] = 'Set the maximum number of challenge submissions allowed per lab attempt. Set to 0 for unlimited submissions.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
@@ -108,7 +110,7 @@ $string['extendevent'] = 'Extend Lab';
 $string['extendevent_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
 $string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 $string['duration'] = 'Duration';
-$string['duration_help'] = 'This is the duration of the lab in minutes.';
+$string['duration_help'] = 'This is the duration of the lab in minutes. Set to 0 to use worspace default from TopoMojo';
 $string['overallfeedback'] = 'Overall feedback';
 $string['overallfeedback_help'] = 'Overall feedback is text that is shown after a  has been attempted. By specifying additional grade boundaries (as a percentage or as a number), the text shown can depend on the grade obtained.';
 $string['everythingon'] = 'Everything on';
@@ -121,7 +123,13 @@ $string['questionbehaviour'] = 'Question behaviour';
 $string['marks'] = 'Marks';
 $string['marks_help'] = 'The numerical marks for each question, and the overall attempt score.';
 $string['variant'] = 'Variant';
-$string['variant_help'] = 'The variant of the lab deployment on TopoMojo. WARNING: If set to 0 it will be randomized!';
+$string['variant_help'] = 'The variant of the lab deployment on TopoMojo.';
+$string['attemptsallowed'] = 'Attempts allowed';
+$string['completionminattemptserror'] = 'Minimum number of attempts must be lower or equal to attempts allowed.';
+$string['submissionsallowed'] = 'Submissions allowed';
+$string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
+$string['attemptsallowed_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
+$string['submissionsallowed_help'] = 'Submissions allowed for the challenge/quiz.';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -169,6 +177,7 @@ $string['stoplab'] = 'End Lab';
 $string['returntext'] = 'Return to Lab';
 $string['savequestion'] = 'Save question';
 $string['noreview'] = 'You are not able to review the quiz attempt at this time.';
+$string['nochallenge'] = 'There are no challenge questions to review.';
 
 // Review options
 $string['review'] = 'Review';
@@ -231,7 +240,6 @@ $string['qdeleteerror'] = 'Couldn\'t delete question';
 $string['qaddsuccess'] = 'Successfully added question';
 $string['qadderror'] = 'Couldn\'t add question';
 $string['importtopo'] = 'Questions synced from TopoMojo lab cannot be removed';
-$string['importtoporandom'] = 'Questions from random variants will be synced at runtime';
 $string['importsuccess'] = 'Successfully imported questions from TopoMojo';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
@@ -240,5 +248,7 @@ $string['questionmoveup'] = 'Move question {$a} up';
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
 
+// Global Search
+$string['search:activity'] = 'TopoMojo - activity information';
 
 $string['interestslist'] = 'list test';

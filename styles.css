@@ -10,3 +10,29 @@
 .flex-container {
     display: flex;
 }
+
+#topomojo-markdown table {
+    border-collapse: collapse;
+}
+
+#topomojo-markdown table td, 
+#topomojo-markdown table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#topomojo-markdown table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#topomojo-markdown table tr:hover {
+    background-color: #ddd;
+}
+
+#topomojo-markdown table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #f5f5f5;
+    color: black;
+}

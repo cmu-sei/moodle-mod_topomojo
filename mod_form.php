@@ -227,7 +227,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
         $mform->setType('variant', PARAM_INT);
-        $mform->setDefault('variant', '1');
+        $mform->setDefault('variant', '0');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
@@ -237,9 +237,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('embed', $topomojoconfig->embed);
         $mform->addHelpButton('embed', 'embed', 'topomojo');
 
-        $options = ['', 'Countdown', 'Timer'];
+        $options = ['Hidden', 'Countdown', 'Timer'];
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
-        $mform->setDefault('clock', '');
+        $mform->setDefault('clock', 'Countdown');
         $mform->addHelpButton('clock', 'clock', 'topomojo');
 
         // Grade settings.
@@ -255,6 +255,17 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setType('grade', PARAM_INT);
         $mform->addHelpButton('grade', 'grade', 'topomojo');
 
+        // Number of attempts.
+        $maxattempts = get_config('topomojo', 'maxattempts');
+        $attemptoptions = ['0' => get_string('unlimited')];
+        for ($i = 1; $i <= $maxattempts; $i++) {
+            $attemptoptions[$i] = $i;
+        }
+        $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
+                $attemptoptions);
+        $mform->addHelpButton('attempts', 'attemptsallowed', 'topomojo');
+
+        // Grading method.
         $mform->addElement('select', 'grademethod',
                 get_string('grademethod', 'topomojo'),
                 \mod_topomojo\utils\scaletypes::get_display_types());
@@ -274,7 +285,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 self::$datefieldoptions);
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
-        // TODO pull duration from topomojo workspace
+        // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
         $mform->setType('duration', PARAM_INT);
@@ -289,8 +300,22 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
         $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
 
+        // TODO this affects the submissions option
         $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
         $mform->addHelpButton('endlab', 'endlab', 'topomojo');
+
+        // Number of challenge submissions.
+        // TODO this is affected by the endlab option
+        //  if endlab is true, set submissions to 1 and disable
+        $submissionoptions = ['0' => get_string('unlimited')];
+        for ($i = 1; $i <= $maxattempts; $i++) {
+            $submissionoptions[$i] = $i;
+        }
+
+        $mform->addElement('select', 'submissions', get_string('submissionsallowed', 'topomojo'),
+                $attemptoptions);
+        $mform->addHelpButton('submissions', 'submissionsallowed', 'topomojo');
+        $mform->disabledIf('submissions', 'endlab', 'checked');
 
         // Shuffle within questions.
         $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
@@ -298,13 +323,21 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
+	// TODO if we have mutiple tries, should this be set to interactive with multiple tries?
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
         } else {
             $currentbehaviour = 'deferredfeedback';
         }
-        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+	$behaviours = question_engine::get_behaviour_options($currentbehaviour);
+	//var_dump($behaviours);
+	//array(7) { ["adaptive"]=> string(13) "Adaptive mode" ["adaptivenopenalty"]=> string(28) "Adaptive mode (no penalties)" ["deferredfeedback"]=> string(17) "Deferred feedback" ["deferredcbm"]=> string(26) "Deferred feedback with CBM" ["immediatefeedback"]=> string(18) "Immediate feedback" ["immediatecbm"]=> string(27) "Immediate feedback with CBM" ["interactive"]=> string(31) "Interactive with multiple tries" }
+	// TODO these are going to be the most common
+        //deferredfeedback
+	//immediatefeedback
+	//interactive
+
         $mform->addElement('select', 'preferredbehaviour',
                 get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
@@ -489,7 +522,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         if (!empty($data['completionminattempts'])) {
             if ($data['attempts'] > 0 && $data['completionminattempts'] > $data['attempts']) {
-                $errors['completionminattemptsgroup'] = get_string('completionminattemptserror', 'quiz');
+                $errors['completionminattemptsgroup'] = get_string('completionminattemptserror', 'topomojo');
             }
         }
         // If CBM is involved, don't show the warning for grade to pass being larger than the maximum grade.
@@ -542,7 +575,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $data->intro = $parts[0];
                 $data->introformat = FORMAT_MARKDOWN;
             }
-            // TODO pull durationMinutes from topomojo workspace
+            // pull durationMinutes from topomojo workspace if set to 0 by the teacher
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
@@ -555,9 +588,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
             }
             if ($data->variant > $variants) {
                 // $data->variant = 1;
+                // Display the message as a warning
                 throw new moodle_exception("lab does not have " . $data->variant . " or more variants");
             }
-            //if (property_exists($data, 'importchallenge')  && ($data->variant == 0)) {
+            //if (property_exists($data, 'importchallenge') && ($data->variant == 0)) {
             //    print_error("cannot import challenge when variant is random");
             //}
 
