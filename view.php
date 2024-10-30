@@ -102,23 +102,6 @@ echo $renderer->header();
 
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
-if ($activeattempt == true) {
-    debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
-    if (!$object->event) {
-        debugging("but no live event for " . $object->openAttempt->id, DEBUG_DEVELOPER);
-        if ($object->openAttempt->questionusageid) {
-            $object->openAttempt->save_question();
-        }
-        $object->openAttempt->close_attempt();
-        //if ($object->openAttempt->quba) {
-        //    $grader = new \mod_topomojo\utils\grade($object);
-        //    $grader->process_attempt($object->openAttempt);
-        //}
-        topomojo_end($cm, $context, topomojo: $topomojo);
-    }
-} else if ($activeattempt == false) {
-    debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
-}
 
 $max_attempts = $topomojo->attempts;
 $current_attempt_count = $DB->count_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
@@ -166,10 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 debugging('no attempt to close', DEBUG_DEVELOPER);
                 throw new moodle_exception('no attempt to close');
             }
-
+            debugging("but no live event for " . $object->openAttempt->id, DEBUG_DEVELOPER);
+            if ($object->openAttempt->questionusageid) {
+                $object->openAttempt->save_question();
+            }
+            $object->openAttempt->close_attempt();
             stop_event($object->userauth, $object->event->id);
-	    topomojo_end($cm, $context, $topomojo);
-	    //$object->openAttempt->close_attempt();
+	        topomojo_end($cm, $context, $topomojo);
 
             $reviewattempturl = new moodle_url('/mod/topomojo/review.php', ['id' => $cm->id]);
             redirect($reviewattempturl);
@@ -179,10 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
-        // This should not happen because we create the attempt when we start it
         debugging("active event with no attempt", DEBUG_DEVELOPER);
-        //throw new moodle_exception('eventwithoutattempt', 'topomojo');
-        // TODO give user a popup to confirm they are starting an attempt
         $activeattempt = $object->init_attempt();
     }
     // Check age and get new link, checking for 30 minute timeout of the url

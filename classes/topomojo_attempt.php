@@ -203,7 +203,6 @@ debugging("call to attempt->save()", DEBUG_DEVELOPER);
             $this->attempt->questionusageid = $this->quba->get_id();
         }
         $this->attempt->timemodified = time();
-var_dump($this->attempt);
         if (isset($this->attempt->id)) { // update the record
 
             try {
@@ -214,7 +213,6 @@ var_dump($this->attempt);
             }
 	} else {
 		debugging("inserting new record into db", DEBUG_DEVELOPER);
-		var_dump($this->attempt);
             debugging("setting new id", DEBUG_DEVELOPER);
             // insert new record
             try {
