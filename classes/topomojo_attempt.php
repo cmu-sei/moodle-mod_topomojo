@@ -206,7 +206,7 @@ class topomojo_attempt {
         if (isset($this->attempt->id)) { // update the existing record
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
-                debugging("updated existing attempt record $newid", DEBUG_DEVELOPER);
+                debugging("updated existing attempt record" . $this->attempt->id, DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
                 return false; // return false on failure

@@ -237,7 +237,7 @@ if ($object->event) {
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
         // No matter what, start our session timer
         $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init',
-                                    ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
+                ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
         if ($topomojo->clock == 1) {
             $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
         } else if ($topomojo->clock == 2) {
@@ -259,14 +259,14 @@ if ($object->event) {
                 if (is_array($vm)) {
                     if ($vm['isVisible']) {
                         $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                        "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                                "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
                         $vmdata['name'] = $vm['name'];
                         array_push($vmlist, $vmdata);
                     }
                 } else {
                     if ($vm->isVisible) {
                         $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                        "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                                "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
                         $vmdata['name'] = $vm->name;
                         array_push($vmlist, $vmdata);
                     }

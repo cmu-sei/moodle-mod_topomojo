@@ -241,6 +241,7 @@ $string['qaddsuccess'] = 'Successfully added question';
 $string['qadderror'] = 'Couldn\'t add question';
 $string['importtopo'] = 'Questions synced from TopoMojo lab cannot be removed';
 $string['importsuccess'] = 'Successfully imported questions from TopoMojo';
+$string['importprevious'] = 'Questions from TopoMojo have aleady been added';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
