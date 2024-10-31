@@ -235,9 +235,9 @@ switch($action) {
                                 $renderer->render_challenge_instructions_warning($challenge->text);
                             }
                         } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        } else {
-                            $renderer->render_warning();
+                            $renderer->render_challenge_instructions_endlab($markdown);
+                        } elseif ($max_attempts == 0 && $endlab == 1) {
+                            $renderer->render_challenge_instructions_endlab($markdown);
                         }
                     } else {
                         // No challenge text; handle general warnings based on attempts and endlab
@@ -249,8 +249,8 @@ switch($action) {
                             }
                         } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
                             $renderer->render_endlab();
-                        } else {
-                            $renderer->render_warning();
+                        } elseif ($max_attempts == 0 && $endlab == 1) {
+                            $renderer->render_endlab();
                         }
                     }
                     
