@@ -214,6 +214,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
+
+    public function render_challenge_instructions_endlab($markdown) {
+        $data = new stdClass();
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->endlab = true;      // Not an end-lab scenario
+    
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
     
     public function render_warning_endlab() {
         $data = new stdClass();
@@ -233,7 +241,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     
     public function render_endlab() {
         $data = new stdClass();
-        $data->showWarning = false; // No warning; this is an end-lab notice
         $data->endlab = true;       // End-lab scenario
     
         echo $this->render_from_template('mod_topomojo/challenge', $data);
