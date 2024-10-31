@@ -257,12 +257,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // Number of attempts.
         $maxattempts = get_config('topomojo', 'maxattempts');
-        $attemptoptions = ['0' => get_string('unlimited')];
-        for ($i = 1; $i <= $maxattempts; $i++) {
-            $attemptoptions[$i] = $i;
-        }
-        $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'topomojo'),
-                $attemptoptions);
+        $mform->addElement('text', 'attempts', get_string('attemptsallowed', 'topomojo'));
+        $mform->setType('attempts', PARAM_ALPHANUMEXT);
+        $mform->setDefault('attempts', $maxattempts);
+        var_dump($maxattempts);
         $mform->addHelpButton('attempts', 'attemptsallowed', 'topomojo');
 
         // Grading method.
