@@ -806,7 +806,6 @@ class questionmanager {
         $questionnumber = 0;
         $type = 'info';
         $message = '';
-        //$messageedetail = '';
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
             debugging("Adding $count question(s) for variant $variant", DEBUG_DEVELOPER);
@@ -899,8 +898,8 @@ class questionmanager {
                     if (!$this->add_question($questionid)) {
                         debugging("could not add question $questionid - it may be present already", DEBUG_DEVELOPER);
                         //$type = 'warning';
-                        $message = get_string('importprevious', 'topomojo');
-                        //$messagedetail .= "<br>could not add question $questionid - is it already present?";
+                        //$message = get_string('importprevious', 'topomojo');
+                        //$message .= "<br>could not add question $questionid - is it already present?";
                         //$renderer->setMessage($type, $message);
                     }
                 }

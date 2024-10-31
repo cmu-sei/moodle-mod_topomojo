@@ -130,6 +130,7 @@ $string['submissionsallowed'] = 'Submissions allowed';
 $string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
 $string['attemptsallowed_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
 $string['submissionsallowed_help'] = 'Submissions allowed for the challenge/quiz.';
+$string['maxattemptsreached'] = 'You have reached the maximum number of attempts allowed for this activity.';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -173,6 +174,10 @@ $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
 $string['stoplab'] = 'End Lab';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';
+$string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt?\nThis will destroy the lab on TopoMojo.';
+$string['attemptscompleted'] = 'Attempts completed';
+$string['nomoreattempts'] = 'No more attempts can be made.';
+$string['challengeinstructions'] = 'Challenge Instructions';
 
 // Review
 $string['returntext'] = 'Return to Lab';

@@ -46,12 +46,12 @@ DM24-1175
 }}
 <div class="topomojo-attempt-limit">
     <div class="attempt-info alert alert-warning"">
-        <p>You have reached the maximum number of attempts allowed for this activity.</p>
-        <p><strong>Allowed Attempts:</strong> {{ max_attempts }}</p>
-        <p><strong>Completed Attempts:</strong> {{ current_attempt_count }}</p>
+        <p>{{# str }} maxattemptsreached, mod_topomojo {{/ str }}</p>
+        <p><strong>{{# str }} attemptsallowed, mod_topomojo {{/ str }}:</strong> {{ max_attempts }}</p>
+        <p><strong>{{#  str }} attemptscompleted, mod_topomojo {{/ str }}:</strong> {{ current_attempt_count }}</p>
 
         {{#is_max_reached}}
-            <em>No more attempts can be made.</em>
+            <em>{{# str }} nomoreattempts, mod_topomojo {{/ str }}</em>
         {{/is_max_reached}}
     </div>
 </div>
