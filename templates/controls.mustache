@@ -62,7 +62,7 @@ DM24-1175
 
 <script type="text/javascript">
     document.getElementById('end_button').addEventListener('click', function(event) {
-        if (!confirm("{{# str }} start_attempt_confirm, mod_topomojo {{/ str }}")) {
+        if (!confirm("{{# str }} stop_attempt_confirm, mod_topomojo {{/ str }}")) {
             event.preventDefault(); // Prevent the form from being submitted if the user cancels
         } else {
             document.getElementById('stop_confirmed').value = "yes";

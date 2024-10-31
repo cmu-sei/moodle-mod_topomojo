@@ -50,6 +50,8 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
+global $USER;
+
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
@@ -210,9 +212,48 @@ switch($action) {
             if (count($object->get_question_manager()->get_questions())) {
                 if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
+                    $userid = $USER->id;
+                    $max_attempts = $topomojo->attempts;
+                    $current_attempt_count = $DB->count_records('topomojo_attempts', [
+                        'topomojoid' => $topomojo->id,
+                        'userid' => $userid,
+                    ]);
+                    
+                    $endlab = $object->topomojo->endlab;
+
                     if ($challenge->text) {
-                        $renderer->render_challenge_instructions($challenge->text);
+                        if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
+                            // Normal instruction when attempts are not maxed out, no end lab
+                            $renderer->render_challenge_instructions($challenge->text);
+                        } elseif ($current_attempt_count == $max_attempts && $max_attempts != 0) {
+                            // Conditions when attempts are maxed out
+                            if ($endlab == 1) {
+                                // Show end lab warning if the lab is ending
+                                $renderer->render_challenge_instructions_warning_endlab($challenge->text);
+                            } else {
+                                // Show warning if max attempts are reached, lab not ending
+                                $renderer->render_challenge_instructions_warning($challenge->text);
+                            }
+                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
+                            $renderer->render_endlab();
+                        } else {
+                            $renderer->render_warning();
+                        }
+                    } else {
+                        // No challenge text; handle general warnings based on attempts and endlab
+                        if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
+                            if ($endlab == 1) {
+                                $renderer->render_warning_endlab();
+                            } else {
+                                $renderer->render_warning();
+                            }
+                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
+                            $renderer->render_endlab();
+                        } else {
+                            $renderer->render_warning();
+                        }
                     }
+                    
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
