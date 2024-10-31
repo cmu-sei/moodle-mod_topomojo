@@ -260,7 +260,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addElement('text', 'attempts', get_string('attemptsallowed', 'topomojo'));
         $mform->setType('attempts', PARAM_ALPHANUMEXT);
         $mform->setDefault('attempts', $maxattempts);
-        var_dump($maxattempts);
         $mform->addHelpButton('attempts', 'attemptsallowed', 'topomojo');
 
         // Grading method.
