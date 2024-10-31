@@ -11,6 +11,10 @@
     display: flex;
 }
 
+#topomojo-markdown {
+    margin-top: 10px;
+}
+
 #topomojo-markdown table {
     border-collapse: collapse;
 }
