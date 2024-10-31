@@ -328,13 +328,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
         } else {
             $currentbehaviour = 'deferredfeedback';
         }
-	$behaviours = question_engine::get_behaviour_options($currentbehaviour);
-	//var_dump($behaviours);
-	//array(7) { ["adaptive"]=> string(13) "Adaptive mode" ["adaptivenopenalty"]=> string(28) "Adaptive mode (no penalties)" ["deferredfeedback"]=> string(17) "Deferred feedback" ["deferredcbm"]=> string(26) "Deferred feedback with CBM" ["immediatefeedback"]=> string(18) "Immediate feedback" ["immediatecbm"]=> string(27) "Immediate feedback with CBM" ["interactive"]=> string(31) "Interactive with multiple tries" }
-	// TODO these are going to be the most common
-        //deferredfeedback
-	//immediatefeedback
-	//interactive
+        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+        // Filter to keep only 'deferredfeedback' behavior in the options.
+        $filtered_behaviours = array_filter($behaviours, function($behaviour) {
+            return $behaviour == 'deferredfeedback';
+        });
+
+        // Replace the behaviors with only deferredfeedback.
+        $behaviours = !empty($filtered_behaviours) ? $filtered_behaviours : ['deferredfeedback' => 'Deferred feedback'];
 
         $mform->addElement('select', 'preferredbehaviour',
                 get_string('howquestionsbehave', 'question'), $behaviours);

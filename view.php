@@ -73,6 +73,8 @@ require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:view', $context);
 
+global $USER;
+
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
     topomojo_view($topomojo, $course, $cm, $context);
@@ -102,8 +104,14 @@ echo $renderer->header();
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
 
+$userid = $USER->id;
+
 $max_attempts = $topomojo->attempts;
-$current_attempt_count = $DB->count_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+$current_attempt_count = $DB->count_records('topomojo_attempts', [
+    'topomojoid' => $topomojo->id,
+    'userid' => $userid,
+    'state' => 30
+]);
 
 // If the maximum attempts are reached, display the max attempts template and exit
 if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {

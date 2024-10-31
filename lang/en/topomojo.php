@@ -88,6 +88,7 @@ $string['endlab'] = 'End Lab';
 $string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab. Will set submissions to 1.';
 $string['maxattemptlabel'] = 'Maximum Challenge Submissions';
 $string['maxattemptdesc'] = 'Set the maximum number of challenge submissions allowed per lab attempt. Set to 0 for unlimited submissions.';
+$string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and your responses will be graded.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';

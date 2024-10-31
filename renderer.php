@@ -190,22 +190,54 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_challenge_instructions($markdown) {
         $data = new stdClass();
-
         $data->markdown = $this->clean_markdown($markdown);
-
-        // Render the data in a Mustache template.
+        $data->showWarning = false; // No warning in normal instructions
+        $data->endlab = false;      // Not an end-lab scenario
+    
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-
-    public function render_challenge_instructions_warning($markdown, $showWarning = true) {
+    
+    public function render_challenge_instructions_warning_endlab($markdown) {
         $data = new stdClass();
-
         $data->markdown = $this->clean_markdown($markdown);
-        $data->showWarning = $showWarning;
-
-        // Render the data in a Mustache template.
+        $data->showWarning = true;  // Show warning for maxed attempts
+        $data->endlab = true;       // End-lab scenario
+    
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
+    
+    public function render_challenge_instructions_warning($markdown) {
+        $data = new stdClass();
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->showWarning = true;  // Show warning for maxed attempts
+        $data->endlab = false;      // Not an end-lab scenario
+    
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+    
+    public function render_warning_endlab() {
+        $data = new stdClass();
+        $data->showWarning = true;  // General warning for maxed attempts
+        $data->endlab = true;       // End-lab scenario with no challenge text
+    
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+    
+    public function render_warning() {
+        $data = new stdClass();
+        $data->showWarning = true;  // General warning for maxed attempts
+        $data->endlab = false;      // Not an end-lab scenario
+    
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+    
+    public function render_endlab() {
+        $data = new stdClass();
+        $data->showWarning = false; // No warning; this is an end-lab notice
+        $data->endlab = true;       // End-lab scenario
+    
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }    
     
     /**
      * Renders an embedded page with Markdown content, and a VM list.

@@ -118,7 +118,7 @@ if ($object->topomojo->importchallenge) {
     }
 
     //Adjust for offset
-    $variant = $object->topomojo->variant;
+    $variant = $object->topomojo->variant - 1;
     $addtoquiz = true;
     $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
 }
