@@ -210,8 +210,13 @@ switch($action) {
             if (count($object->get_question_manager()->get_questions())) {
                 if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-                    if ($challenge->text) {
-                        $renderer->render_challenge_instructions($challenge->text);
+                    //if ($challenge->text) {
+                    $max_attempts = $topomojo->attempts;
+                    $current_attempt_count = $DB->count_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+                        
+                    // If the maximum attempts are reached, display the max attempts template and exit
+                    if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
+                        $renderer->render_challenge_instructions_warning($challenge->text);
                     }
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);

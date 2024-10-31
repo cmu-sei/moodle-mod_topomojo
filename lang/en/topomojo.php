@@ -131,6 +131,7 @@ $string['completionminaubmissionserror'] = 'Minimum number of submissions must b
 $string['attemptsallowed_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
 $string['submissionsallowed_help'] = 'Submissions allowed for the challenge/quiz.';
 $string['maxattemptsreached'] = 'You have reached the maximum number of attempts allowed for this activity.';
+$string['finalattempt'] = "Notice: This is your final submission for this challenge.";
 
 // Time options
 $string['timing'] = 'Timing';

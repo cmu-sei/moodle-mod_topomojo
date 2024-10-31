@@ -197,6 +197,16 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    public function render_challenge_instructions_warning($markdown, $showWarning = true) {
+        $data = new stdClass();
+
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->showWarning = $showWarning;
+
+        // Render the data in a Mustache template.
+        echo $this->render_from_template('mod_topomojo/challenge', $data);
+    }
+    
     /**
      * Renders an embedded page with Markdown content, and a VM list.
      *
