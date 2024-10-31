@@ -50,8 +50,6 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
-
-
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
@@ -75,7 +73,8 @@ $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:view', $context);
 
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
-    // Completion and trigger events.
+    // Completion and trigger events.a
+    // TODO make a topomojo challenge view
     topomojo_view($topomojo, $course, $cm, $context);
 }
 
@@ -95,9 +94,9 @@ $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 // Get current state of workspace
-$allevents = list_events($object->userauth, $object->topomojo->name);
-$eventsmoodle = moodle_events($allevents);
-$history = user_events($object->userauth, $eventsmoodle);
+$allevents = list_events($object->userauth, $object->topomojo->name); // events for workspace
+$eventsmoodle = moodle_events($allevents); // events for moodle bot
+$history = user_events($object->userauth, $eventsmoodle); // events for this user/player
 $object->event = get_active_event($history);
 
 // Get active attempt for user: true/false
@@ -120,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
-            //$object->event = get_event($object->userauth, $eventid);
             $activeattempt = $object->init_attempt();
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
             if (!$activeattempt) {
@@ -159,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             }
 
             $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php',
-                              ['a' => $object->openAttempt->id, 'action' => 'view']);
+                    ['a' => $object->openAttempt->id, 'action' => 'view']);
             redirect($viewattempturl);
         }
     }
@@ -206,7 +204,6 @@ switch($action) {
                 redirect($url);
             }
         }
-
         break;
     default:
         if ($object->openAttempt && $object->openAttempt->get_quba()) {

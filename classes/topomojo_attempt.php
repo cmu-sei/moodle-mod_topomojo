@@ -108,7 +108,6 @@ class topomojo_attempt {
                 // Add the attempt layout to this instance
                 $this->attempt->layout = implode(',', $attemptlayout);
                 \question_engine::save_questions_usage_by_activity($this->quba);
-                $this->save();
             }
         } else { // else load it up in this class instance
             debugging("loading existing attempt", DEBUG_DEVELOPER);
@@ -117,6 +116,8 @@ class topomojo_attempt {
                 $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
             }
         }
+//$this->save();
+
     }
 
     /**
@@ -166,9 +167,9 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
-                if ($this->questionmanager) {
-                    $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
-                }
+                //if ($this->questionmanager) {
+                //    $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
+                //}
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;
@@ -192,29 +193,30 @@ class topomojo_attempt {
      */
     public function save() {
         global $DB;
-
+        debugging("call to attempt->save()", DEBUG_DEVELOPER);
         // first save the question usage by activity object
         if ($this->quba) {
+            debugging("save function - quba in the attempt obj", DEBUG_DEVELOPER);
             \question_engine::save_questions_usage_by_activity($this->quba);
 
             // this is here because for new usages there is no id until we save it
             $this->attempt->questionusageid = $this->quba->get_id();
         }
         $this->attempt->timemodified = time();
-
-        if (isset($this->attempt->id)) { // update the record
-
+        if (isset($this->attempt->id)) { // update the existing record
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
+                debugging("updated existing attempt record" . $this->attempt->id, DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
                 return false; // return false on failure
             }
         } else {
-            debugging("setting new id");
+            debugging("inserting new record into db", DEBUG_DEVELOPER);
             // insert new record
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
+                debugging("created new attempt record $newid", DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
                 return false; // return false on failure
@@ -240,17 +242,6 @@ class topomojo_attempt {
         $this->attempt->timefinish = time();
         $this->save();
 
-        $params = [
-            'objectid'      => $this->attempt->topomojoid,
-            'context'       => $this->context,
-            'relateduserid' => $USER->id,
-        ];
-
-        // TODO verify this info is gtg and send the event
-        //$event = \mod_topomojo\event\attempt_ended::create($params);
-        //$event->add_record_snapshot('topomojo_attempts', $this->attempt);
-        //$event->trigger();
-
         return true;
     }
 
@@ -270,7 +261,6 @@ class topomojo_attempt {
 
         // otherwise throw a new exception
         throw new \Exception('undefined property(' . $prop . ') on topomojo attempt');
-
     }
 
     /**
@@ -433,7 +423,7 @@ class topomojo_attempt {
         $this->quba->process_all_actions($timenow);
         $this->attempt->timemodified = time();
 
-        $this->save();
+        //$this->save();
 
         $transaction->allow_commit();
 

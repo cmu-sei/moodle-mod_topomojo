@@ -851,7 +851,7 @@ class questionmanager {
                         $form->matchtype = '3'; // match
                     } else {
                         $type = 'warning';
-                        $message .= "<br>we need to handle $question->grader";
+                        $message .= "<br>we need to handle mojomatch type $question->grader";
                         break;
                     }
                     $q = new stdClass();
@@ -882,6 +882,8 @@ class questionmanager {
                     $form->transforms = 0;
                     $form->qorder = $questionnumber;
 
+                    // TODO check for hint and add as feedback
+
                     if (preg_match('/##.*##/', $question->answer)) {
                         $form->transforms = 1;
                         $form->feedback[0] = ['text' => 'This answer is randomly generated at runtime.', 'format' => '1'];
@@ -895,8 +897,9 @@ class questionmanager {
                     // attempt to add question to topomojo quiz
                     if (!$this->add_question($questionid)) {
                         debugging("could not add question $questionid - it may be present already", DEBUG_DEVELOPER);
-                        //$type = 'warning';0
-                        $message .= "<br>could not add question $questionid - is it already present?";
+                        //$type = 'warning';
+                        //$message = get_string('importprevious', 'topomojo');
+                        //$message .= "<br>could not add question $questionid - is it already present?";
                         //$renderer->setMessage($type, $message);
                     }
                 }

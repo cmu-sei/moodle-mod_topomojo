@@ -34,20 +34,27 @@ DM24-1175
 }}
 
 {{!
-    @template mod_topomojoscore/
+    @template mod_topomojo/detail
 
-    This template renders a table of data
+    This template renders details about the lab.
 
             Example context (json):
             {
-                score: value
+                "name": "",
+                "intro": ""
             }
 }}
+<div class="topomojo-attempt-limit">
+    <div class="attempt-info alert alert-warning"">
+        <p>{{# str }} maxattemptsreached, mod_topomojo {{/ str }}</p>
+        <p><strong>{{# str }} attemptsallowed, mod_topomojo {{/ str }}:</strong> {{ max_attempts }}</p>
+        <p><strong>{{#  str }} attemptscompleted, mod_topomojo {{/ str }}:</strong> {{ current_attempt_count }}</p>
 
-<div id="attempt-score" class="notification-style notification-box">
-    <caption>
-        {{# str }} attemptscore, mod_topomojo {{/ str }}
-    </caption>
-    {{score}} / {{maxgrade}}
+        {{#is_max_reached}}
+            <em>{{# str }} nomoreattempts, mod_topomojo {{/ str }}</em>
+        {{/is_max_reached}}
+    </div>
 </div>
-
+<div id="topomojo-markdown">
+{{{markdown}}}
+</div>

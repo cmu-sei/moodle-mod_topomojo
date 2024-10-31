@@ -62,7 +62,7 @@ DM24-1175
 
 <script type="text/javascript">
     document.getElementById('end_button').addEventListener('click', function(event) {
-        if (!confirm("Are you sure you want to stop the attempt?\nThis will destroy the lab on TopoMojo.")) {
+        if (!confirm("{{# str }} start_attempt_confirm, mod_topomojo {{/ str }}")) {
             event.preventDefault(); // Prevent the form from being submitted if the user cancels
         } else {
             document.getElementById('stop_confirmed').value = "yes";

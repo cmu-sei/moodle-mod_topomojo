@@ -66,7 +66,6 @@ $strlastmodified = get_string('lastmodified');
 
 $PAGE->set_url('/mod/topomojo/index.php', ['id' => $course->id]);
 $PAGE->set_title($course->shortname.': '.$strtopomojos);
-$PAGE->set_heading($course->fullname);
 $PAGE->navbar->add($strtopomojos);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strtopomojos);

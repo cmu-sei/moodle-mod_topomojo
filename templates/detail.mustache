@@ -45,13 +45,12 @@ DM24-1175
             }
 }}
 {{#duration}}
-<p>{{durationtext}}: {{duration}} Minutes</p>
+<div class="notification-style notification-box">
+{{durationtext}}: {{duration}} Minutes
 {{/duration}}
 {{#code}}
-<p>
-    {{# str }} supportcode, mod_topomojo {{/ str }} {{code}}
-    <i class="fa fa-info-circle" data-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
-</p>
+{{# str }} supportcode, mod_topomojo {{/ str }} {{code}}
+<i class="fa fa-info-circle" data-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
 <script>
     require(['jquery', 'core/tooltip'], function($) {
         $(document).ready(function() {
@@ -60,4 +59,5 @@ DM24-1175
     });
 </script>
 {{/code}}
+</div>
 
