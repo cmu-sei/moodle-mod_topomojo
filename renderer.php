@@ -97,6 +97,18 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     
         echo $this->render_from_template('mod_topomojo/max_attempts', $data);
     }
+
+
+    public function display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $current_deployed_count, $markdown, $lab_names) {
+        $data = new stdClass();
+        $data->max_deployed_labs = $max_deployed_labs;
+        $data->current_deployed_count = $current_deployed_count;
+        $data->is_max_reached = ($current_deployed_count >= $max_deployed_labs);
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->lab_names = $lab_names;
+    
+        echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
+    }
     
     /**
      * Renders the start form for TopoMojo activity with Markdown content.

@@ -88,6 +88,8 @@ $string['endlab'] = 'End Lab';
 $string['endlab_help'] = 'Whether quiz submission should end TopoMojo lab. Will set submissions to 1.';
 $string['maxattemptlabel'] = 'Maximum Challenge Submissions';
 $string['maxattemptdesc'] = 'Set the maximum number of challenge submissions allowed per lab attempt. Set to 0 for unlimited submissions.';
+$string['maxdeployedlabel'] = 'Maximum Active Labs';
+$string['maxdeployedlabsdesc'] = 'Set the maximum number of active labs a student can have at one time. Set to 0 for unlimited active labs.';
 $string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and your responses will be graded.';
 
 // Activity settings
@@ -126,13 +128,16 @@ $string['marks_help'] = 'The numerical marks for each question, and the overall 
 $string['variant'] = 'Variant';
 $string['variant_help'] = 'The variant of the lab deployment on TopoMojo.';
 $string['attemptsallowed'] = 'Attempts allowed';
+$string['deploymentsallowed'] = 'Deployments allowed';
 $string['completionminattemptserror'] = 'Minimum number of attempts must be lower or equal to attempts allowed.';
 $string['submissionsallowed'] = 'Submissions allowed';
 $string['completionminaubmissionserror'] = 'Minimum number of submissions must be lower or equal to submissions allowed.';
 $string['attemptsallowed_help'] = 'Attempts allowed for the lab activity. The number of times the lab can be launched.';
 $string['submissionsallowed_help'] = 'Submissions allowed for the challenge/quiz.';
 $string['maxattemptsreached'] = 'You have reached the maximum number of attempts allowed for this activity.';
+$string['maxdeploysreached'] = 'You have reached the maximum number of deployments allowed.';
 $string['finalattempt'] = "Notice: This is your final submission for this challenge.";
+$string['currentlydeployedlabs'] = 'Currently Deployed Labs';
 
 // Time options
 $string['timing'] = 'Timing';
@@ -178,7 +183,9 @@ $string['stoplab'] = 'End Lab';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';
 $string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt?\nThis will destroy the lab on TopoMojo.';
 $string['attemptscompleted'] = 'Attempts completed';
+$string['launchedlabs'] = 'Launched Labs';
 $string['nomoreattempts'] = 'No more attempts can be made.';
+$string['nomorelabs'] = 'No more labs can be deployed at the moment.';
 $string['challengeinstructions'] = 'Challenge Instructions';
 
 // Review
