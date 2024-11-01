@@ -235,9 +235,9 @@ switch($action) {
                                 $renderer->render_challenge_instructions_warning($challenge->text);
                             }
                         } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($markdown);
+                            $renderer->render_challenge_instructions_endlab($challenge->text);
                         } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($markdown);
+                            $renderer->render_challenge_instructions_endlab($challenge->text);
                         }
                     } else {
                         // No challenge text; handle general warnings based on attempts and endlab
