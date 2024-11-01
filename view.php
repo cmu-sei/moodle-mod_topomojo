@@ -121,8 +121,36 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
     $renderer->display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $parts[0]);
     echo $renderer->footer();
     exit;
-    //exit; // Stop execution if max attempts are reached
 }
+
+$max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
+$current_deployed_count = $DB->count_records('topomojo_attempts', [
+    'userid' => $userid,
+    'state' => 10
+]);
+
+$workspaces_deployed = $DB->get_fieldset_select('topomojo_attempts', 'workspaceid', 'userid = ? AND state = ?', [$userid, 10]);
+
+// Check if any workspaces were found
+if (!empty($workspaces_deployed)) {
+    list($in_sql, $in_params) = $DB->get_in_or_equal($workspaces_deployed, SQL_PARAMS_QM);
+    $sql = "SELECT DISTINCT name FROM {topomojo} WHERE workspaceid " . $in_sql;
+    $lab_names = $DB->get_fieldset_sql($sql, $in_params);
+} else {
+    $lab_names = [];
+}
+
+//If the maximum deployed labs are reached, display the deployed labs template and exit
+if (!in_array($topomojo->workspaceid, $workspaces_deployed) && $current_deployed_count >= $max_deployed_labs) {
+    // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdowncutline = "<<!-- cut -->>";
+    $parts = preg_split($markdowncutline, $markdown);
+    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $current_deployed_count, $parts[0], $lab_names);
+    echo $renderer->footer();
+    exit;
+}
+
 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {

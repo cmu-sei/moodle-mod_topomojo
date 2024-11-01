@@ -239,7 +239,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $options = ['Hidden', 'Countdown', 'Timer'];
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
-        $mform->setDefault('clock', 'Countdown');
+        $mform->setDefault('clock', 1); // Set default to the index of 'Countdown' in $options array
         $mform->addHelpButton('clock', 'clock', 'topomojo');
 
         // Grade settings.
