@@ -157,23 +157,35 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     debugging("start request received", DEBUG_DEVELOPER);    
     // Check not started already
     if (!$object->event) {
+        // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
+        
         if ($object->event) {
-            debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
+            // If the event is created successfully, proceed
+            debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
             $activeattempt = $object->init_attempt();
+            
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
+            
             if (!$activeattempt) {
                 debugging("init_attempt failed");
                 throw new moodle_exception('init_attempt failed');
             }
+            
+            // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
+            
         } else {
-            debugging("start_event failed", DEBUG_DEVELOPER);
-            throw new moodle_exception("start_event failed");
+            // Event creation failed, possibly due to an empty response
+            debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
+            throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");
         }
-        debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
+        
+        debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
+        
     } else {
+        // If event already exists, no action needed
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {

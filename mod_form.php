@@ -585,6 +585,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $variants = 1;
             }
 
+            if ($data->extendevent && $data->clock != 1) {
+                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+            }
+
             if ($data->variant == 0) {
                 throw new moodle_exception("random variants are not suppored.");
             } else if ($data->variant > $variants) {
