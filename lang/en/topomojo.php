@@ -91,6 +91,10 @@ $string['maxattemptdesc'] = 'Set the maximum number of challenge submissions all
 $string['maxdeployedlabel'] = 'Maximum Active Labs';
 $string['maxdeployedlabsdesc'] = 'Set the maximum number of active labs a student can have at one time. Set to 0 for unlimited active labs.';
 $string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and your responses will be graded.';
+$string['filterworkspaces'] = 'Filter Workspaces';
+$string['configfilterworkspaces'] = 'Filter workspaces based on audience';
+$string['audiencefilter'] = 'Audience Filter';
+$string['configaudiencefilter'] = 'Specify the target audience for filtering workspaces.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';

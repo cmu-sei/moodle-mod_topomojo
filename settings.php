@@ -59,6 +59,14 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('topomojo/autocomplete',
         get_string('autocomplete', 'topomojo'), get_string('configautocomplete', 'topomojo'), 1, $options));
 
+    $settings->add(new admin_setting_configcheckbox('topomojo/filterworkspaces',
+        get_string('filterworkspaces', 'topomojo'), get_string('configfilterworkspaces', 'topomojo'), 0));
+
+    $settings->add(new admin_setting_configtext('topomojo/audiencefilter',
+        get_string('audiencefilter', 'topomojo'), get_string('configaudiencefilter', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
+
+    $settings->hide_if('topomojo/audiencefilter', 'topomojo/filterworkspaces', 'notchecked', 1);
+
     $settings->add(new admin_setting_configtext('topomojo/topomojoapiurl',
         get_string('topomojoapiurl', 'topomojo'), get_string('configtopomojoapiurl', 'topomojo'), "", PARAM_URL, 60));
 
