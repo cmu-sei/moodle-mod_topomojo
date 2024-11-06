@@ -90,6 +90,7 @@ $string['maxattemptlabel'] = 'Maximum Challenge Submissions';
 $string['maxattemptdesc'] = 'Set the maximum number of challenge submissions allowed per lab attempt. Set to 0 for unlimited submissions.';
 $string['maxdeployedlabel'] = 'Maximum Active Labs';
 $string['maxdeployedlabsdesc'] = 'Set the maximum number of active labs a student can have at one time. Set to 0 for unlimited active labs.';
+$string['maxgamespacesreached'] = 'This lab could not be deployed because the system account has reached the maximum limit of deployed namespaces. Please contact support to resolve this issue.';
 $string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and your responses will be graded.';
 $string['filterworkspaces'] = 'Filter Workspaces';
 $string['configfilterworkspaces'] = 'Filter workspaces based on audience';

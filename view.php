@@ -101,6 +101,22 @@ $object->event = get_active_event($history);
 $renderer = $object->renderer;
 echo $renderer->header();
 
+//get current deployed workspaces
+$managername = get_config('topomojo', 'managername');
+$gamespacelimit = get_gamespace_limit($object->userauth, $managername);
+$current_deployed_gamespaces = $DB->count_records('topomojo_attempts', [
+    'state' => 10
+]);
+
+if ($current_deployed_gamespaces >= $gamespacelimit) {
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdowncutline = "<<!-- cut -->>";
+    $parts = preg_split($markdowncutline, $markdown);
+    $renderer->display_detail_max_gamespaces($topomojo, $parts[0]);
+    echo $renderer->footer();
+    exit;
+}
+
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
 

@@ -418,6 +418,48 @@ function get_markdown($client, $id) {
     return $response;
 }
 
+function get_gamespace_limit($client, $managername) {
+
+    if ($client == null) {
+        debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
+        return;
+    }
+
+    // Base URL from configuration and construct endpoint with the term parameter
+    $base_url = get_config('topomojo', 'topomojoapiurl');
+    $url = $base_url . "/users?Term=" . urlencode($managername);
+
+    // Set the Authorization header for the request
+    $headers = [
+        'accept: text/plain',
+        'Authorization: Bearer ' . get_config('topomojo', 'apikey')
+    ];
+
+    // Perform the GET request
+    $response = $client->get($url, [
+        'headers' => $headers
+    ]);
+
+    // Decode the JSON response
+    $response_data = json_decode($response);
+
+    // Check if decoding was successful
+    if (!$response_data) {
+        debugging('Could not decode JSON response', DEBUG_DEVELOPER);
+        return;
+    }
+
+    if (isset($response_data[0]->gamespaceLimit)) {
+        return $response_data[0]->gamespaceLimit;
+    } else {
+        debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
+        return null;
+    }
+
+    return null;
+}
+
+
 /**
  * Starts a new gamespace from a specified workspace.
  *
