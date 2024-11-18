@@ -109,6 +109,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     
         echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
     }
+
+    public function display_detail_max_gamespaces($topomojo, $markdown) {
+        $data = new stdClass();
+        $data->markdown = $this->clean_markdown($markdown);
+    
+        echo $this->render_from_template('mod_topomojo/max_deployed_gamespaces', $data);
+    }
     
     /**
      * Renders the start form for TopoMojo activity with Markdown content.

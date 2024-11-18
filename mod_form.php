@@ -159,10 +159,22 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $labs = [];
             $tagimport = get_config('topomojo', 'tagimport');
             $tagcreate = get_config('topomojo', 'tagcreate');
+            $filtercheck = get_config('topomojo', 'filterworkspaces');
+            $audiencefilter = null;
+            if ($filtercheck) {
+                $audiencefilter = get_config('topomojo', 'audiencefilter');
+            }
 
             foreach ($this->workspaces as $workspace) {
-                array_push($labnames, $workspace->name);
-                $labs[$workspace->id] = s($workspace->name);
+                if ($filtercheck && $audiencefilter) {
+                    if (is_string($workspace->audience) && strpos($workspace->audience, $audiencefilter) !== false) {
+                        array_push($labnames, $workspace->name);
+                        $labs[$workspace->id] = s($workspace->name);
+                    }
+                } else {
+                    array_push($labnames, $workspace->name);
+                    $labs[$workspace->id] = s($workspace->name);
+                }
 
                 if (!empty($workspace->tags) && $tagimport) {
                     $tagsarray = [];
@@ -583,6 +595,11 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $variants = count($challenge->variants);
             } else {
                 $variants = 1;
+            }
+
+
+            if (!empty($data->extendevent) && $data->clock != 1) {
+                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
             }
 
             if ($data->variant == 0) {
