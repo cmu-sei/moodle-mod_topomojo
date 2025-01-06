@@ -49,6 +49,7 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 require_once("$CFG->dirroot/tag/lib.php");
+require_once("$CFG->dirroot/lib/licenselib.php");
 
 
 
@@ -100,10 +101,6 @@ $history = user_events($object->userauth, events: $eventsmoodle);
 $object->event = get_active_event($history);
 $renderer = $object->renderer;
 echo $renderer->header();
-
-if ($object->topomojo->showcontentlicense) {
-    
-}
 
 //get current deployed workspaces
 $managername = get_config('topomojo', 'managername');
@@ -284,8 +281,13 @@ if ($object->event) {
             $renderer->display_grade($topomojo);
         }
 
+        if ($object->topomojo->showcontentlicense) {
+            $license_id = $object->topomojo->contentlicense;
+            $license_info = license_manager::get_license_by_shortname($license_id);
+        }
+    
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -358,8 +360,13 @@ if ($object->event) {
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail($topomojo, $topomojo->duration);
 
+    if ($object->topomojo->showcontentlicense) {
+        $license_id = $object->topomojo->contentlicense;
+        $license_info = license_manager::get_license_by_shortname($license_id);
+    }
+
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0]);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
 }
 
 echo $renderer->footer();

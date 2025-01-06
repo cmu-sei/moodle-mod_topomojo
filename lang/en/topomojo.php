@@ -144,7 +144,7 @@ $string['maxdeploysreached'] = 'You have reached the maximum number of deploymen
 $string['finalattempt'] = "Notice: This is your final submission for this challenge.";
 $string['currentlydeployedlabs'] = 'Currently Deployed Labs';
 $string['contentlicense'] = 'Content License';
-$string['contentlicense_help'] = 'Add the content license tied to this content.”';
+$string['contentlicense_help'] = 'Select the appropriate content license associated with this content or lab from the dropdown menu.';
 $string['showcontentlicense'] = 'Display Content License to Students';
 $string['showcontentlicense_help'] = 'If checked, the content license text will be visible to students on the activity page.';
 
