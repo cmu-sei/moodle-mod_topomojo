@@ -246,7 +246,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $licenses = license_manager::get_licenses();
         if ($licenses) {
             foreach ($licenses as $license) {
-                $license_options[$license->name] = $license->fullname;
+                $license_options[$license->shortname] = $license->fullname;
             }
         } else {
             debugging('No licenses found.', DEBUG_DEVELOPER);
@@ -257,8 +257,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
         
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'topomojo'));
-        $mform->setType('showcontentlicense', PARAM_BOOL);
-        $mform->setDefault('showcontentlicense', 0);
+        //$mform->setType('showcontentlicense', PARAM_BOOL);
+        //$mform->setDefault('showcontentlicense', 0);
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'topomojo');
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
@@ -591,6 +591,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         if (!$data->embed) {
             $data->embed = 0;
+        }
+
+        if (!isset($data->showcontentlicense)) {
+            $data->showcontentlicense = 0; // Checkbox unchecked, set to 0.
         }
 
         $selectedworkspace = null;

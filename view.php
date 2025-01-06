@@ -101,7 +101,9 @@ $object->event = get_active_event($history);
 $renderer = $object->renderer;
 echo $renderer->header();
 
-var_dump($object->topomojo);
+if ($object->topomojo->showcontentlicense) {
+    
+}
 
 //get current deployed workspaces
 $managername = get_config('topomojo', 'managername');
