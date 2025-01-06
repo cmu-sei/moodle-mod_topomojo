@@ -45,6 +45,12 @@ DM24-1175
             }
 }}
 
+{{#license_fullname}}
+<div class="license-info">
+    <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
+</div>
+{{/license_fullname}}
+
 <form id="start_form" action="{{url}}" method="post">
     <input id="event" type="hidden" name="event" value=""/>
     <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />

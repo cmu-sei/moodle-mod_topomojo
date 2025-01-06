@@ -51,6 +51,7 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_login();
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/tag/lib.php");
+require_once("$CFG->dirroot/lib/licenselib.php");
 
 use mod_topomojo\topomojo;
 
@@ -242,6 +243,24 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('variant', '1');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
+        $licenses = license_manager::get_licenses();
+        if ($licenses) {
+            foreach ($licenses as $license) {
+                $license_options[$license->shortname] = $license->fullname;
+            }
+        } else {
+            debugging('No licenses found.', DEBUG_DEVELOPER);
+        }
+
+        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'topomojo'), $license_options);
+        $mform->setType('contentlicense', PARAM_TEXT);
+        $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
+        
+        $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'topomojo'));
+        //$mform->setType('showcontentlicense', PARAM_BOOL);
+        //$mform->setDefault('showcontentlicense', 0);
+        $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'topomojo');
+
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
         $options = [get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo')];
@@ -308,6 +327,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
         $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
+        $mform->setDefault('importchallenge', '1');
 
         // TODO this affects the submissions option
         $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
@@ -571,6 +591,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         if (!$data->embed) {
             $data->embed = 0;
+        }
+
+        if (!isset($data->showcontentlicense)) {
+            $data->showcontentlicense = 0; // Checkbox unchecked, set to 0.
         }
 
         $selectedworkspace = null;
