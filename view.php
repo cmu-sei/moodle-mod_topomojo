@@ -101,6 +101,8 @@ $object->event = get_active_event($history);
 $renderer = $object->renderer;
 echo $renderer->header();
 
+var_dump($object->topomojo);
+
 //get current deployed workspaces
 $managername = get_config('topomojo', 'managername');
 $gamespacelimit = get_gamespace_limit($object->userauth, $managername);
