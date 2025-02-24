@@ -504,7 +504,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
         // TopoMojo savepoint reached.
-        upgrade_mod_savepoint(true, 2024110111, 'topomojo');
+        upgrade_mod_savepoint(true, 2025022400, 'topomojo');
     }
     if ($oldversion < 2025022400) {
         // Define field contentlicense to be added to topomojo.
@@ -516,7 +516,7 @@ function xmldb_topomojo_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
         // TopoMojo savepoint reached.
-        upgrade_mod_savepoint(true, 2025010602, 'topomojo');
+        upgrade_mod_savepoint(true, 2025022400, 'topomojo');
     }   
 
     return true;
