@@ -47,6 +47,7 @@ DM24-1175
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/mod/topomojo/backup/moodle2/backup_topomojo_stepslib.php');
+require_once($CFG->dirroot . '/mod/topomojo/backup/moodle2/backup_topomojo_settingslib.php');
 
 /**
  * Provides all the settings and steps to perform one complete backup of the activity
@@ -75,13 +76,11 @@ class backup_topomojo_activity_task extends backup_activity_task {
 
         $base = preg_quote ( $CFG->wwwroot, "/" );
 
-        // Link to the list of TOPOMOJO instances.
-        $search = "/(" . $base . "\/mod\/vpl\/index.php\?id\=)([0-9]+)/";
-        $content = preg_replace ( $search, '$@TOPOMOJOINDEX*$2@$', $content );
+        $search="/(".$base."\/mod\/topomojo\/index.php\?id\=)([0-9]+)/";
+        $content= preg_replace($search, '$@TOPOMOJOINDEX*$2@$', $content);
 
-        // Link to TOPOMOJO view by moduleid.
-        $search = "/(" . $base . "\/mod\/vpl\/view.php\?id\=)([0-9]+)/";
-        $content = preg_replace ( $search, '$@TOPOMOJOVIEWBYID*$2@$', $content );
+        $search="/(".$base."\/mod\/topomojo\/view.php\?id\=)([0-9]+)/";
+        $content= preg_replace($search, '$@TOPOMOJOVIEWBYID*$2@$', $content);
 
         return $content;
     }
