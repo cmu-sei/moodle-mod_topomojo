@@ -497,7 +497,7 @@ function xmldb_topomojo_upgrade($oldversion) {
     if ($oldversion < 2025022400) {
         // Define field contentlicense to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('contentlicense', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, 'duration');
+        $field = new xmldb_field('contentlicense', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, 'submissions');
     
         // Conditionally launch add field contentlicense.
         if (!$dbman->field_exists($table, $field)) {
@@ -509,7 +509,7 @@ function xmldb_topomojo_upgrade($oldversion) {
     if ($oldversion < 2025022400) {
         // Define field contentlicense to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('showcontentlicense', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'duration');
+        $field = new xmldb_field('showcontentlicense', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'submissions');
     
         // Conditionally launch add field contentlicense.
         if (!$dbman->field_exists($table, $field)) {
