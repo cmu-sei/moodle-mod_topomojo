@@ -56,9 +56,15 @@ class backup_topomojo_activity_structure_step extends backup_activity_structure_
 
         // Define each element separated
         $topomojo = new backup_nested_element('topomojo', array('id'), array(
-            'name', 'intro', 'introformat', 'workspaceid', 'vmapp',
+            'name', 'intro', 'introformat', 'workspaceid', 'embed',
             'clock', 'extendevent', 'timeopen', 'timeclose', 'grade',
-            'grademethod', 'timecreated', 'timemodified'));
+            'grademethod', 'timecreated', 'timemodified', 'reviewattempt',
+            'reviewcorrectness', 'reviewmarks', 'reviewspecificfeedback',
+            'reviewgeneralfeedback', 'reviewrightanswer', 'reviewoverallfeedback',
+            'reviewmanualcomment', 'questionorder', 'shuffleanswers',
+            'preferredbehaviour', 'duration', 'importchallenge', 'endlab',
+            'variant', 'attempts', 'submissions', 'contentlicense',
+            'showcontentlicense'));
 
 
         // Build the tree
