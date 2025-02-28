@@ -219,9 +219,52 @@ class questionmanager {
         $qrecord = $DB->get_record('question', ['id' => $questionid], '*', MUST_EXIST);
         $question->points = number_format($qrecord->defaultmark, 2);
 
-        $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
+	$topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
+
+        // TODO determine if quiz_slots is equivalent to topomojo_questions
+	$slotid = $topomojoquestionid;
+	// Update or insert record in question_reference table.
+        $sql = "SELECT DISTINCT qr.id, qr.itemid
+              FROM {question} q
+              JOIN {question_versions} qv ON q.id = qv.questionid
+              JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid AND qr.version = qv.version
+              JOIN {topomojo_questions} qs ON qs.id = qr.itemid
+             WHERE q.id = ?
+               AND qs.id = ?
+               AND qr.component = ?
+               AND qr.questionarea = ?";
+        $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_quiz', 'slot']);
+
+       // TODO add question_reference
+       if (!$qreferenceitem) {
+            // Create a new reference record for questions created already.
+            $questionreferences = new stdClass();
+            $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
+            $questionreferences->component = 'mod_topomojo';
+            $questionreferences->questionarea = 'slot';
+            $questionreferences->itemid = $slotid;
+            $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
+            $questionreferences->version = null; // Always latest.
+            $DB->insert_record('question_references', $questionreferences);
+        } else if ($qreferenceitem->itemid === 0 || $qreferenceitem->itemid === null) {
+            $questionreferences = new stdClass();
+            $questionreferences->id = $qreferenceitem->id;
+            $questionreferences->itemid = $slotid;
+            $DB->update_record('question_references', $questionreferences);
+        } else {
+            // If the reference record exits for another quiz.
+            $questionreferences = new stdClass();
+            $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
+            $questionreferences->component = 'mod_topomojo';
+            $questionreferences->questionarea = 'slot';
+            $questionreferences->itemid = $slotid;
+            $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
+            $questionreferences->version = null; // Always latest.
+            $DB->insert_record('question_references', $questionreferences);
+        }
 
         // If we get here return true
         return true;
