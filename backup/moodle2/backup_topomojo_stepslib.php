@@ -48,11 +48,9 @@ defined('MOODLE_INTERNAL') || die;
  /**
  * Define the complete topomojo structure for backup, with file and id annotations
  */
-class backup_topomojo_activity_structure_step extends backup_activity_structure_step {
+class backup_topomojo_activity_structure_step extends backup_questions_activity_structure_step {
 
     protected function define_structure() {
-
-        //the topomojo module stores no user info
 
         // Define each element separated
         $topomojo = new backup_nested_element('topomojo', array('id'), array(
@@ -65,13 +63,23 @@ class backup_topomojo_activity_structure_step extends backup_activity_structure_
             'preferredbehaviour', 'duration', 'importchallenge', 'endlab',
             'variant', 'attempts', 'submissions', 'contentlicense',
             'showcontentlicense'));
+        $this->get_logger()->process("topomojo activity settings added", backup::LOG_DEBUG);
 
+        $qinstances = new backup_nested_element('question_instances');
+        $qinstance = new backup_nested_element('question_instance', ['id'],
+                ['topomojoid', 'questionid', 'points']);
+        //element, component, questionarea
+        $this->add_question_references($qinstance, 'mod_topomojo', 'slot');
+        $this->add_question_set_references($qinstance, 'mod_topomojo', 'questionid');
+        $this->get_logger()->process("topomojo questions added", backup::LOG_DEBUG);
 
         // Build the tree
-        //nothing here for topomojos
+        $topomojo->add_child($qinstances);
+        $qinstances->add_child($qinstance);
 
         // Define sources
         $topomojo->set_source_table('topomojo', array('id' => backup::VAR_ACTIVITYID));
+        $qinstance->set_source_table('topomojo_questions', ['topomojoid' => backup::VAR_ACTIVITYID]);
 
         // Define id annotations
         //module has no id annotations
