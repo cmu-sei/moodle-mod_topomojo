@@ -56,6 +56,13 @@ class restore_topomojo_activity_structure_step extends restore_activity_structur
         $paths = array();
         $paths[] = new restore_path_element('topomojo', '/activity/topomojo');
 
+        $quizquestioninstance = new restore_path_element('quiz_question_instance',
+            '/activity/quiz/question_instances/question_instance');
+        $paths[] = $quizquestioninstance;
+
+        $this->add_question_references($quizquestioninstance, $paths);
+        $this->add_question_set_references($quizquestioninstance, $paths);
+
         // Return the paths wrapped into standard activity structure
         return $this->prepare_activity_structure($paths);
     }
@@ -70,8 +77,24 @@ class restore_topomojo_activity_structure_step extends restore_activity_structur
         // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
         // See MDL-9367.
 
-	//TODO time setting, behaviour settings, display settings
+        // time setting
+        $data->timeopen = $this->apply_date_offset($data->timeopen);
+        $data->timeclose = $this->apply_date_offset($data->timeclose);
 
+        // TODO set/test default behaviour
+        if (!isset($data->preferredbehaviour)) {
+            if (empty($data->optionflags)) {
+                $data->preferredbehaviour = 'deferredfeedback';
+            } else if (empty($data->penaltyscheme)) {
+                $data->preferredbehaviour = 'adaptivenopenalty';
+            } else {
+                $data->preferredbehaviour = 'adaptive';
+            }
+            unset($data->optionflags);
+            unset($data->penaltyscheme);
+        }
+
+        // TODO test review settings
 
         // insert the topomojo record
         $newitemid = $DB->insert_record('topomojo', $data);
