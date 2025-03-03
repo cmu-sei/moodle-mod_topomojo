@@ -49,19 +49,26 @@ DM24-1175
 /**
  * Structure step to restore one topomojo activity
  */
-class restore_topomojo_activity_structure_step extends restore_activity_structure_step {
+class restore_topomojo_activity_structure_step extends restore_questions_activity_structure_step {
+
+    // TODO will have to implode this to insert it into the db
+    private $questionorder = array();
 
     protected function define_structure() {
 
         $paths = array();
         $paths[] = new restore_path_element('topomojo', '/activity/topomojo');
 
-        $quizquestioninstance = new restore_path_element('quiz_question_instance',
-            '/activity/quiz/question_instances/question_instance');
+        $quizquestioninstance = new restore_path_element('topomojo_question_instance',
+            '/activity/topomojo/question_instances/question_instance');
         $paths[] = $quizquestioninstance;
 
-        $this->add_question_references($quizquestioninstance, $paths);
-        $this->add_question_set_references($quizquestioninstance, $paths);
+        if ($this->task->get_old_moduleversion() < 2025022800) {
+            // no references to restore
+        } else {
+            $this->add_question_references($quizquestioninstance, $paths);
+            $this->add_question_set_references($quizquestioninstance, $paths);
+        }
 
         // Return the paths wrapped into standard activity structure
         return $this->prepare_activity_structure($paths);
@@ -80,6 +87,13 @@ class restore_topomojo_activity_structure_step extends restore_activity_structur
         // time setting
         $data->timeopen = $this->apply_date_offset($data->timeopen);
         $data->timeclose = $this->apply_date_offset($data->timeclose);
+
+        /*
+        if (property_exists($data, 'questions')) {
+            // Needed by {@link process_quiz_attempt_legacy}, in which case it will be present.
+            $this->oldquizlayout = $data->questions;
+        }
+         */
 
         // TODO set/test default behaviour
         if (!isset($data->preferredbehaviour)) {
@@ -102,8 +116,121 @@ class restore_topomojo_activity_structure_step extends restore_activity_structur
         $this->apply_activity_instance($newitemid);
     }
 
+    protected function inform_new_usage_id($newusageid) {
+        global $DB;
+
+        return;
+    }
+
     protected function after_execute() {
+        global $DB;
+
+        parent::after_execute();
         // Add topomojo related files, no need to match by itemname (just internally handled context)
         $this->add_related_files('mod_topomojo', 'intro', null);
+
+        $module = $DB->get_record('topomojo', ['id' => $this->get_new_parentid('topomojo')]);
+        $module->questionorder = implode(",", $this->questionorder);
+        $DB->update_record('topomojo', $module);
+
     }
+
+    /**
+     * Process question slots.
+     *
+     * @param stdClass|array $data
+     */
+    protected function process_topomojo_question_instance($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->topomojoid = $this->get_new_parentid('topomojo');
+
+        $newitemid = $DB->insert_record('topomojo_questions', $data);
+        // Add mapping, restore of slot tags (for random questions) need it.
+        $this->set_mapping('topomojo_question_instance', $oldid, $newitemid);
+        //TODO questionorder needs to get updated with $newitemid
+        $this->questionorder[] = $newitemid;
+
+        if ($this->task->get_old_moduleversion() < 2025022800) {
+            $data->id = $newitemid;
+            $this->process_topomojo_question_legacy_instance($data);
+        }
+
+    }
+
+    /**
+     * Process the data for pre 4.0 quiz data where the question_references and question_set_references table introduced.
+     *
+     * @param stdClass|array $data
+     */
+    protected function process_topomojo_question_legacy_instance($data) {
+        global $DB;
+
+        $questionid = $this->get_mappingid('question', $data->questionid);
+        $sql = 'SELECT qbe.id as questionbankentryid,
+                       qc.contextid as questioncontextid,
+                       qc.id as category,
+                       qv.version,
+                       q.qtype,
+                       q.id as questionid
+                  FROM {question} q
+                  JOIN {question_versions} qv ON qv.questionid = q.id
+                  JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+                  JOIN {question_categories} qc ON qc.id = qbe.questioncategoryid
+                 WHERE q.id = ?';
+        $question = $DB->get_record_sql($sql, [$questionid]);
+        $module = $DB->get_record('topomojo', ['id' => $data->topomojoid]);
+        if ($question->qtype === 'random') {
+            // Set reference data.
+            $questionsetreference = new stdClass();
+            $questionsetreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
+                "topomojo", $module->id, $module->course)->id)->id;
+            $questionsetreference->component = 'mod_topomojo';
+            $questionsetreference->questionarea = 'slot';
+            $questionsetreference->itemid = $data->id;
+            // If, in the orginal quiz that was backed up, this random question was pointing to a
+            // category in the quiz question bank, then (for reasons explained in {@see restore_move_module_questions_categories})
+            // right now, $question->questioncontextid will incorrectly point to the course contextid.
+            // This will get fixed up later in restore_move_module_questions_categories
+            // as part of moving the question categories to the right place.
+            $questionsetreference->questionscontextid = $question->questioncontextid;
+            $filtercondition = new stdClass();
+            $filtercondition->questioncategoryid = $question->category;
+            $filtercondition->includingsubcategories = $data->includingsubcategories ?? false;
+            $questionsetreference->filtercondition = json_encode($filtercondition);
+            $DB->insert_record('question_set_references', $questionsetreference);
+            $this->oldquestionids[$question->questionid] = 1;
+        } else {
+            // Reference data.
+            $questionreference = new \stdClass();
+            $questionreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
+                "topomojo", $module->id, $module->course)->id)->id;
+            $questionreference->component = 'mod_topomojo';
+            $questionreference->questionarea = 'slot';
+            $questionreference->itemid = $data->id;
+            $questionreference->questionbankentryid = $question->questionbankentryid;
+            $questionreference->version = null; // Default to Always latest.
+            $DB->insert_record('question_references', $questionreference);
+        }
+    }
+
+    /**
+     * Process question references which replaces the direct connection to quiz slots to question.
+     *  
+     * @param array $data the data from the XML file.
+     */
+    public function process_question_reference($data) {
+        global $DB;
+        $data = (object) $data;
+        $data->usingcontextid = $this->get_mappingid('context', $data->usingcontextid);
+        $data->itemid = $this->get_new_parentid('topomojo_question_instance');
+        if ($entry = $this->get_mappingid('question_bank_entry', $data->questionbankentryid)) {
+            $data->questionbankentryid = $entry;
+        }   
+        $DB->insert_record('question_references', $data);
+    }
+
 }
