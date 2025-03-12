@@ -498,7 +498,15 @@ function xmldb_topomojo_upgrade($oldversion) {
         // Define field contentlicense to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('contentlicense', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, 'submissions');
-    
+
+        // Conditionally launch add field contentlicense.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field contentlicense to be added to topomojo.
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('showcontentlicense', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'submissions');
+
         // Conditionally launch add field contentlicense.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -506,18 +514,6 @@ function xmldb_topomojo_upgrade($oldversion) {
         // TopoMojo savepoint reached.
         upgrade_mod_savepoint(true, 2025022402, 'topomojo');
     }
-    if ($oldversion < 2025022400) {
-        // Define field contentlicense to be added to topomojo.
-        $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('showcontentlicense', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'submissions');
-    
-        // Conditionally launch add field contentlicense.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        // TopoMojo savepoint reached.
-        upgrade_mod_savepoint(true, 2025022402, 'topomojo');
-    }   
 
     return true;
 }
