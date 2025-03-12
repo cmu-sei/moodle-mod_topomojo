@@ -223,8 +223,31 @@ class questionmanager {
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
 
-        // Ensure the question is registered in question bank entries with the specified category
-        $categoryid = 8;
+        // Get the course context ID dynamically
+        $courseid = $this->object->course->id;
+        $contextid = \context_course::instance($courseid)->id;
+
+        // Find the 'top' category for this course context
+        $category = $DB->get_record('question_categories', [
+            'contextid' => $contextid,
+            'name' => 'top'
+        ], 'id');
+
+        // If no 'top' category exists, fallback to the default category for this course
+        if (!$category) {
+            debugging("No 'top' category found for course $courseid. Using default category.", DEBUG_DEVELOPER);
+            $category = $DB->get_record('question_categories', [
+                'contextid' => $contextid
+            ], 'id', IGNORE_MULTIPLE);
+        }
+
+        // Ensure we have a valid category ID
+        if (!$category) {
+            debugging("Error: No valid question category found for course $courseid.", DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $categoryid = $category->id;
 
         $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
         if (!$qbankentry) {
@@ -233,7 +256,6 @@ class questionmanager {
             $qbankentry->name = $qrecord->name;
             $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
         } else {
-            // If the question exists, update its category if needed
             if ($qbankentry->questioncategoryid != $categoryid) {
                 $qbankentry->questioncategoryid = $categoryid;
                 $DB->update_record('question_bank_entries', $qbankentry);
