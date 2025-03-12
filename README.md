@@ -25,7 +25,7 @@ The **TopoMojo Plugin for Moodle** is an activity plugin that integrates TopoMoj
 
 ## Requirements
 
-1. Moodle 3.x or above.
+1. Moodle 4.x or above.
 2. TopoMojo deployed and operational.
 3. [TopoMojo Question Type plugin](https://github.com/cmu-sei/moodle-qtype_mojomatch) installed.
 4. [TopoMojo Question Behavior plugin](https://github.com/cmu-sei/moodle-qbehaviour_mojomatch) installed.
