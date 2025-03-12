@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -207,25 +207,25 @@ class questionmanager {
      */
     public function add_question($questionid) {
         global $DB;
-    
+
         if ($this->is_question_already_present($questionid)) {
             debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
             return false;
         }
-    
+
         $question = new \stdClass();
         $question->topomojoid = $this->object->topomojo->id;
         $question->questionid = $questionid;
         $qrecord = $DB->get_record('question', ['id' => $questionid], '*', MUST_EXIST);
         $question->points = number_format($qrecord->defaultmark, 2);
-    
+
         $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
-    
+
         $this->update_questionorder('addquestion', $topomojoquestionid);
-    
+
         // Ensure the question is registered in question bank entries with the specified category
         $categoryid = 8;
-    
+
         $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
         if (!$qbankentry) {
             $qbankentry = new stdClass();
@@ -239,10 +239,10 @@ class questionmanager {
                 $DB->update_record('question_bank_entries', $qbankentry);
             }
         }
-    
+
         // TODO determine if quiz_slots is equivalent to topomojo_questions
         $slotid = $topomojoquestionid;
-        
+
         // Update or insert record in question_reference table.
         $sql = "SELECT DISTINCT qr.id, qr.itemid
               FROM {question} q
@@ -255,7 +255,7 @@ class questionmanager {
                AND qr.component = ?
                AND qr.questionarea = ?";
         $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_quiz', 'slot']);
-    
+
         // TODO add question_reference
         if (!$qreferenceitem) {
             // Create a new reference record for questions created already.
@@ -283,12 +283,12 @@ class questionmanager {
             $questionreferences->version = null; // Always latest.
             $DB->insert_record('question_references', $questionreferences);
         }
-    
+
         // If we get here return true
         debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo quiz.", DEBUG_DEVELOPER);
         return true;
     }
-    
+
 
     /**
      * Moves a question on the question order for this quiz
@@ -766,24 +766,23 @@ class questionmanager {
             // Log the question object for debugging
             debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
             debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
-        
+
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
                 debugging("Adding question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
-        
+
                 // Create topomojo question and add it to the array if questiontext is not null
                 $topomojoquestion = new \mod_topomojo\topomojo_question(
                     $topomojoqid,
                     $this->topomojoquestions[$topomojoqid]->points,
                     $questions[$questionid]
                 );
-                $qbankorderedquestions[$topomojoqid] = $topomojoquestion; 
-                
+                $qbankorderedquestions[$topomojoqid] = $topomojoquestion;
             } else {
                 debugging("Skipping question with ID {$questionid} because questiontext is null or empty", DEBUG_DEVELOPER);
             }
         }
-        
+
 
         $this->qbankorderedquestions = $qbankorderedquestions;
     }
