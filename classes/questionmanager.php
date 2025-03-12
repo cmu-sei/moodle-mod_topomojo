@@ -207,25 +207,43 @@ class questionmanager {
      */
     public function add_question($questionid) {
         global $DB;
-
+    
         if ($this->is_question_already_present($questionid)) {
             debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
             return false;
         }
-
+    
         $question = new \stdClass();
         $question->topomojoid = $this->object->topomojo->id;
         $question->questionid = $questionid;
         $qrecord = $DB->get_record('question', ['id' => $questionid], '*', MUST_EXIST);
         $question->points = number_format($qrecord->defaultmark, 2);
-
-	$topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
-
+    
+        $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
+    
         $this->update_questionorder('addquestion', $topomojoquestionid);
-
+    
+        // Ensure the question is registered in question bank entries with the specified category
+        $categoryid = 8;
+    
+        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
+        if (!$qbankentry) {
+            $qbankentry = new stdClass();
+            $qbankentry->questioncategoryid = $categoryid;
+            $qbankentry->name = $qrecord->name;
+            $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
+        } else {
+            // If the question exists, update its category if needed
+            if ($qbankentry->questioncategoryid != $categoryid) {
+                $qbankentry->questioncategoryid = $categoryid;
+                $DB->update_record('question_bank_entries', $qbankentry);
+            }
+        }
+    
         // TODO determine if quiz_slots is equivalent to topomojo_questions
-	$slotid = $topomojoquestionid;
-	// Update or insert record in question_reference table.
+        $slotid = $topomojoquestionid;
+        
+        // Update or insert record in question_reference table.
         $sql = "SELECT DISTINCT qr.id, qr.itemid
               FROM {question} q
               JOIN {question_versions} qv ON q.id = qv.questionid
@@ -237,9 +255,9 @@ class questionmanager {
                AND qr.component = ?
                AND qr.questionarea = ?";
         $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_quiz', 'slot']);
-
-       // TODO add question_reference
-       if (!$qreferenceitem) {
+    
+        // TODO add question_reference
+        if (!$qreferenceitem) {
             // Create a new reference record for questions created already.
             $questionreferences = new stdClass();
             $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
@@ -255,7 +273,7 @@ class questionmanager {
             $questionreferences->itemid = $slotid;
             $DB->update_record('question_references', $questionreferences);
         } else {
-            // If the reference record exits for another quiz.
+            // If the reference record exists for another quiz.
             $questionreferences = new stdClass();
             $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
             $questionreferences->component = 'mod_topomojo';
@@ -265,10 +283,12 @@ class questionmanager {
             $questionreferences->version = null; // Always latest.
             $DB->insert_record('question_references', $questionreferences);
         }
-
+    
         // If we get here return true
+        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo quiz.", DEBUG_DEVELOPER);
         return true;
     }
+    
 
     /**
      * Moves a question on the question order for this quiz
