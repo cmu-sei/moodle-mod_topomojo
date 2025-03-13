@@ -296,7 +296,7 @@ function topomojo_delete_all_attempts($topomojo) {
  */
 function topomojo_questions_in_use($questionids) {
     return question_engine::questions_in_use($questionids,
-            new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid');
+            new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid'));
 }
 
 /**
