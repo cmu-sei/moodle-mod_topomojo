@@ -78,8 +78,8 @@ class question_name_text_column extends \qbank_viewquestionname\viewquestionname
         $labelfor = $this->label_for($question);
         if ($labelfor) {
             echo \html_writer::start_tag('label', ['for' => $labelfor]);
-        }
-        echo topomojo_question_tostring($question, false, true, true, $question->tags);
+	}
+	echo shorten_text(format_string($question->name), 100);
         if ($labelfor) {
             echo \html_writer::end_tag('label');
         }
