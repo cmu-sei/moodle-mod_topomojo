@@ -40,12 +40,12 @@ class qubaids_for_topomojo extends \qubaid_join {
      * @param bool $onlyfinished Whether to only include finished attempts or not
      */
     public function __construct(int $topomojoid, bool $includepreviews = true, bool $onlyfinished = false) {
-        $where = 'topomojoa.topomojo = :topomojoatopomojo';
+        $where = 'topomojoa.topomojoid = :topomojoatopomojo';
         $params = ['topomojoatopomojo' => $topomojoid];
 
-        if (!$includepreviews) {
-            $where .= ' AND preview = 0';
-        }
+        //if (!$includepreviews) {
+        //    $where .= ' AND preview = 0';
+        //}
 
         if ($onlyfinished) {
             $where .= ' AND state = :statefinished';
