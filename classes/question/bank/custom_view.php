@@ -193,14 +193,14 @@ class custom_view extends \core_question\local\bank\view {
      */
     protected function create_new_question_form($category, $canadd): void {
         global $CFG;
-        echo '<div class="createnewquestion">';
+        echo \html_writer::start_tag('div', ['class' => 'createnewquestion']);
         if ($canadd) {
             $this->create_new_question_button($category->id, $this->editquestionurl->params(),
                 get_string('createnewquestion', 'question'));
         } else {
             print_string('nopermissionadd', 'question');
         }
-        echo '</div>';
+        \html_writer::end_tag('div');
     }
 
     /**
@@ -233,9 +233,9 @@ class custom_view extends \core_question\local\bank\view {
         echo $OUTPUT->single_button($url, $caption, 'get', ['disabled' => $disabled, 'title' => $tooltip]);
 
         if (!$choiceformprinted) {
-            echo '<div id="qtypechoicecontainer">';
+            echo \html_writer::start_tag('div', ['id' => 'qtypechoicecontainer']);
             echo print_choose_qtype_to_add_form([], $enabledtypes);
-            echo "</div>\n";
+            echo \html_writer::end_tag('div');
             $choiceformprinted = true;
         }
     }
