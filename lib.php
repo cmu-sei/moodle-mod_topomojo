@@ -256,7 +256,7 @@ function topomojo_delete_instance($id) {
     $topomojo = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
 
     // Delete all attempts
-    // topomojo_delete_all_attempts($topomojo);
+    topomojo_delete_all_attempts($topomojo);
  
     $DB->delete_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
 
@@ -282,7 +282,7 @@ function topomojo_delete_instance($id) {
  */
 function topomojo_delete_all_attempts($topomojo) {
     global $CFG, $DB;
-    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+    //require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
     question_engine::delete_questions_usage_by_activities(new qubaids_for_topomojo($topomojo->id));
     $DB->delete_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
     $DB->delete_records('topomojo_grades', ['topomojoid' => $topomojo->id]);
