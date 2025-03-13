@@ -289,6 +289,17 @@ function topomojo_delete_all_attempts($topomojo) {
 }
 
 /**
+ * Standard callback used by questions_in_use.
+ *
+ * @param array $questionids of question ids.
+ * @return bool whether any of these questions are used by any instance of this module.
+ */
+function topomojo_questions_in_use($questionids) {
+    return question_engine::questions_in_use($questionids,
+            new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid');
+}
+
+/**
  * Given a course_module object, this function returns any
  * "extra" information that may be needed when printing
  * this activity in a course listing.
