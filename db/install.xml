@@ -76,12 +76,11 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The time this attempt was modified"/>
         <FIELD NAME="launchpointurl" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The launchpointurl for this gamespace"/>
         <FIELD NAME="layout" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="the layout for this particular attempt"/>
-        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key reference to the question_usage that holds the details of the the question_attempts that make up this quiz attempt."/>
+        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Reference to the question_usage that holds the details of the the question_attempts that make up this quiz attempt."/>
         <FIELD NAME="variant" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The variant of the lab. Defaults to 0."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="questionusageid" TYPE="foreign-unique" FIELDS="questionusageid" REFTABLE="question_usages" REFFIELDS="id" COMMENT="Foreign key referencing the question_usages table."/>
       </KEYS>
     </TABLE>
     <TABLE NAME="topomojo_questions" COMMENT="table to hold question information for topomojo quizzes">
