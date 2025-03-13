@@ -209,7 +209,7 @@ class questionmanager {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-            debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
+            debugging("Question with ID $questionid is already present, it cannot be added", DEBUG_DEVELOPER);
             return false;
         }
 
@@ -791,7 +791,7 @@ class questionmanager {
 
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
-                debugging("Adding question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
+                debugging("Updating questionbankorder to have question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
 
                 // Create topomojo question and add it to the array if questiontext is not null
                 $topomojoquestion = new \mod_topomojo\topomojo_question(
@@ -892,7 +892,7 @@ class questionmanager {
         $message = '';
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
-            debugging("Adding $count question(s) for variant $variant", DEBUG_DEVELOPER);
+            debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
             // TODO maybe we track the number of questions and make sure that it matches?
             //$type = 'success';
             //$message = get_string('importsuccess', 'topomojo');
@@ -908,7 +908,7 @@ class questionmanager {
                     $questionid = $rec->questionid;
                 }
                 if (!$qexists) {
-                    debugging("adding new question to database", DEBUG_DEVELOPER);
+                    debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
                     //echo "<br>adding new question<br>";
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {
@@ -980,7 +980,7 @@ class questionmanager {
                 if ($questionid && $addtoquiz) {
                     // attempt to add question to topomojo quiz
                     if (!$this->add_question($questionid)) {
-                        debugging("could not add question $questionid - it may be present already", DEBUG_DEVELOPER);
+                        debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
                         //$type = 'warning';
                         //$message = get_string('importprevious', 'topomojo');
                         //$message .= "<br>could not add question $questionid - is it already present?";
