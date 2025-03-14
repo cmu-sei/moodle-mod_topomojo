@@ -271,6 +271,7 @@ function topomojo_delete_instance($id) {
 
     // Delete grade from database
     topomojo_grade_item_delete($topomojo);
+
     // We must delete the module record after we delete the grade item.
     $DB->delete_records('topomojo', ['id' => $topomojo->id]);
 
@@ -287,6 +288,8 @@ function topomojo_delete_references($topomojoid): void {
 
     $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
     $context = context_module::instance($cm->id);
+
+    debugging("topomojo_delete_references usingcontextid $context->id", DEBUG_DEVELOPER);
 
     $conditions = [
         'usingcontextid' => $context->id,
