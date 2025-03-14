@@ -257,7 +257,9 @@ function topomojo_delete_instance($id) {
 
     // Delete all attempts
     topomojo_delete_all_attempts($topomojo);
- 
+
+    topomojo_delete_references($topomojo->id);
+
     $DB->delete_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
 
     // Delete calander events
@@ -273,6 +275,27 @@ function topomojo_delete_instance($id) {
     $DB->delete_records('topomojo', ['id' => $topomojo->id]);
 
     return true;
+}
+
+/**
+ * Delete all question references for a topomojo.
+ *
+ * @param int $topomojoid The id of topomojo.
+ */
+function topomojo_delete_references($topomojoid): void {
+    global $DB;
+
+    $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
+    $context = context_module::instance($cm->id);
+
+    $conditions = [
+        'usingcontextid' => $context->id,
+        'component' => 'mod_topomojo',
+        'questionarea' => 'slot',
+    ];
+
+    $DB->delete_records('question_references', $conditions);
+    $DB->delete_records('question_set_references', $conditions);
 }
 
 /**

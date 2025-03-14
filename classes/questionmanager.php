@@ -44,7 +44,7 @@ use stdClass;
  /**
   * Question manager class
   *
-  * Provides utility functions to manage questions for a quiz
+  * Provides utility functions to manage questions for a topomojo
   *
   * Basically this class provides an interface to internally map the questions added to a topomojo quiz to
   * questions in the question bank.  calling get_questions() will return an ordered array of question objects
@@ -178,7 +178,7 @@ class questionmanager {
     }
 
     /**
-     * Delete a question on the quiz
+     * Delete a question on the topomojo
      *
      * @param int $questionid The topomojo questionid to delete
      *
@@ -199,7 +199,7 @@ class questionmanager {
         return true;
     }
     /**
-     * Add a question on the quiz
+     * Add a question on the topomojo
      *
      * @param int $questionid The topomojo questionid to delete
      *
@@ -262,7 +262,7 @@ class questionmanager {
             }
         }
 
-        // TODO determine if quiz_slots is equivalent to topomojo_questions
+        // quiz_slots is equivalent to topomojo_questions
         $slotid = $topomojoquestionid;
 
         // Update or insert record in question_reference table.
@@ -276,9 +276,9 @@ class questionmanager {
                AND qs.id = ?
                AND qr.component = ?
                AND qr.questionarea = ?";
-        $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_quiz', 'slot']);
+        $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_topomojo', 'slot']);
 
-        // TODO add question_reference
+        // add question_reference
         if (!$qreferenceitem) {
             // Create a new reference record for questions created already.
             $questionreferences = new stdClass();
@@ -295,7 +295,7 @@ class questionmanager {
             $questionreferences->itemid = $slotid;
             $DB->update_record('question_references', $questionreferences);
         } else {
-            // If the reference record exists for another quiz.
+            // If the reference record exists for another topomojo.
             $questionreferences = new stdClass();
             $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
             $questionreferences->component = 'mod_topomojo';
@@ -307,13 +307,13 @@ class questionmanager {
         }
 
         // If we get here return true
-        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo quiz.", DEBUG_DEVELOPER);
+        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
         return true;
     }
 
 
     /**
-     * Moves a question on the question order for this quiz
+     * Moves a question on the question order for this topomojo 
      *
      * @param string $direction 'up'||'down'
      * @param int $questionid The topomojo questionid
