@@ -252,6 +252,7 @@ class questionmanager {
 
         $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
         if (!$qbankentry) {
+            debugging("no question_bank_entries found for $questionid", DEBUG_DEVELOPER);
             $qbankentry = new stdClass();
             $qbankentry->questioncategoryid = $categoryid;
             $qbankentry->name = $qrecord->name;
@@ -259,6 +260,7 @@ class questionmanager {
         } else {
             if ($qbankentry->questioncategoryid != $categoryid) {
                 $qbankentry->questioncategoryid = $categoryid;
+                debugging("changing question bank entry questioncategoryid from $qbankentry->questioncategoryid to $categoryid", DEBUG_DEVELOPER);
                 $DB->update_record('question_bank_entries', $qbankentry);
             }
         }
@@ -787,8 +789,8 @@ class questionmanager {
         $qbankorderedquestions = [];
         foreach ($orderedquestionids as $topomojoqid => $questionid) {
             // Log the question object for debugging
-            debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
-            debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
+            //debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
+            //debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
 
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
@@ -805,7 +807,6 @@ class questionmanager {
                 debugging("Skipping question with ID {$questionid} because questiontext is null or empty", DEBUG_DEVELOPER);
             }
         }
-
 
         $this->qbankorderedquestions = $qbankorderedquestions;
     }
@@ -907,6 +908,7 @@ class questionmanager {
                 if ($rec) {
                     $qexists = 1;
                     $questionid = $rec->questionid;
+                    debugging("question $questionid already exists in the db", DEBUG_DEVELOPER);
                 }
                 if (!$qexists) {
                     debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
@@ -977,6 +979,7 @@ class questionmanager {
                     $saq->save_defaults_for_new_questions($form);
                     $newq = $saq->save_question($q, $form);
                     $questionid = $newq->id;
+                    debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                 }
                 if ($questionid && $addtoquiz) {
                     // attempt to add question to topomojo quiz
