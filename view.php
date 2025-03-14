@@ -109,7 +109,7 @@ $current_deployed_gamespaces = $DB->count_records('topomojo_attempts', [
     'state' => 10
 ]);
 
-if ($current_deployed_gamespaces >= $gamespacelimit) {
+if ($current_deployed_gamespaces >= $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
