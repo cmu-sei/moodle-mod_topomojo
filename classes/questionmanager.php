@@ -198,10 +198,11 @@ class questionmanager {
         // If we get here return true
         return true;
     }
+
     /**
      * Add a question on the topomojo
      *
-     * @param int $questionid The topomojo questionid to delete
+     * @param int $questionid The topomojo questionid to add
      *
      * @return bool
      */
