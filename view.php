@@ -251,6 +251,7 @@ if ($object->event) {
 
 // Pull values from the settings
 $embed = $topomojo->embed;
+$license_info = null;
 
 $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();
