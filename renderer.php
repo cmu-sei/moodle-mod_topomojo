@@ -701,31 +701,42 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $url = get_config('topomojo', 'topomojobaseurl');
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
-        //$markdown = "![page2-nestednetworkdiagram.jpg](/docs/6a4d6fa4-1147-47b9-ae76-7d914854f717/page2-nestednetworkdiagram.jpg)";
-        // Match the pattern for markdown images
+        //Match the pattern for markdown images
         $pattern = '/(!\[.*\]\()(.*\))/i';
         $replace = '${1}' . $url . '/${2}';
         foreach ($lines as $line) {
             $clean = preg_replace($pattern, $replace, $line);
-            array_push($cleanlines, $clean);
+            $cleanlines[] = $clean;
         }
+
         $markdown = implode("\n", $cleanlines);
 
-        //$options['nocache'] = true;
-        $options['trusted'] = true;
-        $options['noclean'] = true;
+        // Process markdown inside html tags
+        $htmlTagsToProcess = ['p', 'summary', 'details'];
+        foreach ($htmlTagsToProcess as $tag) {
+            $markdown = preg_replace_callback("/<{$tag}>(.*?)<\/{$tag}>/is", function ($matches) use ($tag) {
+                $inner = $matches[1];
+                $rendered = format_text($inner, FORMAT_MARKDOWN, [
+                    'trusted' => true,
+                    'noclean' => true,
+                    'filter' => false
+                ]);
+                return "<$tag>$rendered</$tag>";
+            }, $markdown);
+        }
+
+        $options = [
+            'trusted' => true,
+            'noclean' => true,
+            'filter' => false
+        ];
 
         $cleaned = format_text($markdown, FORMAT_MARKDOWN, $options);
-        $url = get_config('topomojo', 'topomojobaseurl');
 
         // Add classes
         $cleaned = str_replace("img src=", "img class=\"tm-img-fluid tm-rounded\" src=", $cleaned);
 
-        // Risky due to lack of verification of img...
-        //$cleaned = str_replace("src=\"/docs/", "src=\"" . $url . "/docs/", $cleaned, $i);
-
         return $cleaned;
     }
+
 }
-
-
