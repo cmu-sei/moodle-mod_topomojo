@@ -499,7 +499,6 @@ function topomojo_get_user_grades($topomojo, $userid = 0) {
  * @return void
  */
 function topomojo_extend_settings_navigation($settingsnav, $context) {
-    global $PAGE;
 
     $keys = $context->get_children_key_list();
     $beforekey = null;
@@ -510,20 +509,20 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $beforekey = $keys[$i + 1];
     }
 
-    $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $PAGE->cm->id]);
+    $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $settingsnav->get_page()->cm->id]);
     $node = navigation_node::create(get_string('challengetext', 'mod_topomojo'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING, null, 'mod_topomojo_challenge', new pix_icon('i/grades', 'grades'));
     $context->add_node($node, $beforekey);
 
-    $url = new moodle_url('/mod/topomojo/review.php', ['id' => $PAGE->cm->id]);
+    $url = new moodle_url('/mod/topomojo/review.php', ['id' => $settingsnav->get_page()->cm->id]);
     $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
             new moodle_url($url),
             navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
     $context->add_node($node, $beforekey);
 
-    if (has_capability('mod/topomojo:manage', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $PAGE->cm->id]);
+    if (has_capability('mod/topomojo:manage', $settingsnav->get_page()->cm->context)) {
+        $url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $settingsnav->get_page()->cm->id]);
         $node = navigation_node::create(get_string('questions', 'mod_topomojo'),
                 new moodle_url($url),
                 navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));

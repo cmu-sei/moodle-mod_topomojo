@@ -48,6 +48,8 @@ DM24-1175
 <div class="alert alert-warning">{{# str }} finalattempt, mod_topomojo {{/ str }}</div>
 {{/showWarning}}
 
+<div class="alert alert-warning">{{#str}} responsesnotsaved, mod_topomojo {{/str}}</div>
+
 {{#endlab}}
 <div class="alert alert-warning">{{# str }} endlabmessage, mod_topomojo {{/ str }}</div>
 {{/endlab}}
@@ -59,3 +61,19 @@ DM24-1175
 <div id="topomojo-markdown">
 {{{markdown}}}
 </div>
+
+<script>
+let quizSubmitted = false;
+
+document.addEventListener('submit', function () {
+    quizSubmitted = true;
+});
+
+window.addEventListener('beforeunload', function (e) {
+    if (!quizSubmitted) {
+        e.preventDefault();
+        e.returnValue = "You haven't submitted the quiz yet. Are you sure you want to leave?";
+    }
+});
+</script>
+

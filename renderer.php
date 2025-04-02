@@ -68,6 +68,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
+        $data->questionorder = $topomojo->questionorder;
         $data->code = $code;
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
         $data->duration = $duration / 60;

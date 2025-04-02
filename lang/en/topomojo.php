@@ -273,6 +273,8 @@ $string['questionmoveup'] = 'Move question {$a} up';
 
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
+$string['challengeaccessnotice'] = 'Notice: Please access the Challenge questions in a new tab.';
+$string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you navigate away from this page.';
 
 // Global Search
 $string['search:activity'] = 'TopoMojo - activity information';
