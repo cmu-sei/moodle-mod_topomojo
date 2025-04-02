@@ -109,7 +109,7 @@ $current_deployed_gamespaces = $DB->count_records('topomojo_attempts', [
     'state' => 10
 ]);
 
-if ($current_deployed_gamespaces >= $gamespacelimit) {
+if ($current_deployed_gamespaces >= $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -251,6 +251,7 @@ if ($object->event) {
 
 // Pull values from the settings
 $embed = $topomojo->embed;
+$license_info = null;
 
 $grader = new \mod_topomojo\utils\grade($object);
 $gradepass = $grader->get_grade_item_passing_grade();

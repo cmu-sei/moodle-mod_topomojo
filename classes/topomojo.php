@@ -144,13 +144,14 @@ class topomojo {
             // skip this initialization during cron task
             $this->renderer->init($this, $pageurl, $pagevars);
             if (str_contains($pageurl->get_path(), "edit.php")) {
-                    $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
-            } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
-                    (str_contains($pageurl->get_path(), "challenge.php")) ||
-                    (str_contains($pageurl->get_path(), "viewattempt.php"))) {
+                $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+	    } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
+		    (str_contains($pageurl->get_path(), "challenge.php")) ||
+		    (str_contains($pageurl->get_path(), "viewattempt.php"))) {
+		// if there are questions added to the challenge, load questionmanager on the other pages
                 if (isset($this->topomojo->questionorder)) {
                         $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
-                    }
+                }
             }
             $this->userauth = setup();
         }

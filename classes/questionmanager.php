@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,7 +44,7 @@ use stdClass;
  /**
   * Question manager class
   *
-  * Provides utility functions to manage questions for a quiz
+  * Provides utility functions to manage questions for a topomojo
   *
   * Basically this class provides an interface to internally map the questions added to a topomojo quiz to
   * questions in the question bank.  calling get_questions() will return an ordered array of question objects
@@ -178,7 +178,7 @@ class questionmanager {
     }
 
     /**
-     * Delete a question on the quiz
+     * Delete a question on the topomojo
      *
      * @param int $questionid The topomojo questionid to delete
      *
@@ -198,10 +198,11 @@ class questionmanager {
         // If we get here return true
         return true;
     }
+
     /**
-     * Add a question on the quiz
+     * Add a question on the topomojo
      *
-     * @param int $questionid The topomojo questionid to delete
+     * @param int $questionid The topomojo questionid to add
      *
      * @return bool
      */
@@ -209,7 +210,7 @@ class questionmanager {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-            debugging("questions is already present, cannot be added", DEBUG_DEVELOPER);
+            debugging("Question with ID $questionid is already present, it cannot be added", DEBUG_DEVELOPER);
             return false;
         }
 
@@ -223,12 +224,99 @@ class questionmanager {
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
 
+        // Get the course context ID dynamically
+        $courseid = $this->object->course->id;
+        $contextid = \context_course::instance($courseid)->id;
+
+        // Find the 'top' category for this course context
+        $category = $DB->get_record('question_categories', [
+            'contextid' => $contextid,
+            'name' => 'top'
+        ], 'id');
+
+        // If no 'top' category exists, fallback to the default category for this course
+        if (!$category) {
+            debugging("No 'top' category found for course $courseid. Using default category.", DEBUG_DEVELOPER);
+            $category = $DB->get_record('question_categories', [
+                'contextid' => $contextid
+            ], 'id', IGNORE_MULTIPLE);
+        }
+
+        // Ensure we have a valid category ID
+        if (!$category) {
+            debugging("Error: No valid question category found for course $courseid.", DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $categoryid = $category->id;
+
+        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
+        if (!$qbankentry) {
+            debugging("no question_bank_entries found for $questionid", DEBUG_DEVELOPER);
+            $qbankentry = new stdClass();
+            $qbankentry->questioncategoryid = $categoryid;
+            $qbankentry->name = $qrecord->name;
+            $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
+        } else {
+            if ($qbankentry->questioncategoryid != $categoryid) {
+                $qbankentry->questioncategoryid = $categoryid;
+                debugging("changing question bank entry questioncategoryid from $qbankentry->questioncategoryid to $categoryid", DEBUG_DEVELOPER);
+                $DB->update_record('question_bank_entries', $qbankentry);
+            }
+        }
+
+        // quiz_slots is equivalent to topomojo_questions
+        $slotid = $topomojoquestionid;
+
+        // Update or insert record in question_reference table.
+        $sql = "SELECT DISTINCT qr.id, qr.itemid
+              FROM {question} q
+              JOIN {question_versions} qv ON q.id = qv.questionid
+              JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
+              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid AND qr.version = qv.version
+              JOIN {topomojo_questions} qs ON qs.id = qr.itemid
+             WHERE q.id = ?
+               AND qs.id = ?
+               AND qr.component = ?
+               AND qr.questionarea = ?";
+        $qreferenceitem = $DB->get_record_sql($sql, [$questionid, $slotid, 'mod_topomojo', 'slot']);
+
+        // add question_reference
+        if (!$qreferenceitem) {
+            // Create a new reference record for questions created already.
+            $questionreferences = new stdClass();
+            $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
+            $questionreferences->component = 'mod_topomojo';
+            $questionreferences->questionarea = 'slot';
+            $questionreferences->itemid = $slotid;
+            $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
+            $questionreferences->version = null; // Always latest.
+            $DB->insert_record('question_references', $questionreferences);
+        } else if ($qreferenceitem->itemid === 0 || $qreferenceitem->itemid === null) {
+            $questionreferences = new stdClass();
+            $questionreferences->id = $qreferenceitem->id;
+            $questionreferences->itemid = $slotid;
+            $DB->update_record('question_references', $questionreferences);
+        } else {
+            // If the reference record exists for another topomojo.
+            $questionreferences = new stdClass();
+            $questionreferences->usingcontextid = \context_module::instance($this->gettopomojo()->cm->id)->id;
+            $questionreferences->component = 'mod_topomojo';
+            $questionreferences->questionarea = 'slot';
+            $questionreferences->itemid = $slotid;
+            $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
+            $questionreferences->version = null; // Always latest.
+            $DB->insert_record('question_references', $questionreferences);
+        }
+
         // If we get here return true
+        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
         return true;
     }
 
+
     /**
-     * Moves a question on the question order for this quiz
+     * Moves a question on the question order for this topomojo 
      *
      * @param string $direction 'up'||'down'
      * @param int $questionid The topomojo questionid
@@ -701,26 +789,24 @@ class questionmanager {
         $qbankorderedquestions = [];
         foreach ($orderedquestionids as $topomojoqid => $questionid) {
             // Log the question object for debugging
-            debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
-            debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
-        
+            //debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
+            //debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
+
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
-                debugging("Adding question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
-        
+                debugging("Updating questionbankorder to have question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
+
                 // Create topomojo question and add it to the array if questiontext is not null
                 $topomojoquestion = new \mod_topomojo\topomojo_question(
                     $topomojoqid,
                     $this->topomojoquestions[$topomojoqid]->points,
                     $questions[$questionid]
                 );
-                $qbankorderedquestions[$topomojoqid] = $topomojoquestion; 
-                
+                $qbankorderedquestions[$topomojoqid] = $topomojoquestion;
             } else {
                 debugging("Skipping question with ID {$questionid} because questiontext is null or empty", DEBUG_DEVELOPER);
             }
         }
-        
 
         $this->qbankorderedquestions = $qbankorderedquestions;
     }
@@ -808,7 +894,7 @@ class questionmanager {
         $message = '';
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
-            debugging("Adding $count question(s) for variant $variant", DEBUG_DEVELOPER);
+            debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
             // TODO maybe we track the number of questions and make sure that it matches?
             //$type = 'success';
             //$message = get_string('importsuccess', 'topomojo');
@@ -822,9 +908,10 @@ class questionmanager {
                 if ($rec) {
                     $qexists = 1;
                     $questionid = $rec->questionid;
+                    debugging("question $questionid already exists in the db", DEBUG_DEVELOPER);
                 }
                 if (!$qexists) {
-                    debugging("adding new question to database", DEBUG_DEVELOPER);
+                    debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
                     //echo "<br>adding new question<br>";
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {
@@ -892,11 +979,12 @@ class questionmanager {
                     $saq->save_defaults_for_new_questions($form);
                     $newq = $saq->save_question($q, $form);
                     $questionid = $newq->id;
+                    debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                 }
                 if ($questionid && $addtoquiz) {
                     // attempt to add question to topomojo quiz
                     if (!$this->add_question($questionid)) {
-                        debugging("could not add question $questionid - it may be present already", DEBUG_DEVELOPER);
+                        debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
                         //$type = 'warning';
                         //$message = get_string('importprevious', 'topomojo');
                         //$message .= "<br>could not add question $questionid - is it already present?";

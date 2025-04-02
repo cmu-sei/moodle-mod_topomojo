@@ -45,6 +45,8 @@ DM24-1175
 // This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
+use mod_topomojo\question\qubaids_for_topomojo;
+
 /**
  * List of features supported in topomojo module
  * @param string $feature FEATURE_xx constant for requested feature
@@ -253,6 +255,13 @@ function topomojo_delete_instance($id) {
     global $DB;
     $topomojo = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
 
+    // Delete all attempts
+    topomojo_delete_all_attempts($topomojo);
+
+    topomojo_delete_references($topomojo->id);
+
+    $DB->delete_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+
     // Delete calander events
     $events = $DB->get_records('event', ['modulename' => 'topomojo', 'instance' => $topomojo->id]);
     foreach ($events as $event) {
@@ -263,11 +272,57 @@ function topomojo_delete_instance($id) {
     // Delete grade from database
     topomojo_grade_item_delete($topomojo);
 
-    // Note: all context files are deleted automatically
-
+    // We must delete the module record after we delete the grade item.
     $DB->delete_records('topomojo', ['id' => $topomojo->id]);
 
     return true;
+}
+
+/**
+ * Delete all question references for a topomojo.
+ *
+ * @param int $topomojoid The id of topomojo.
+ */
+function topomojo_delete_references($topomojoid): void {
+    global $DB;
+
+    $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
+    $context = context_module::instance($cm->id);
+
+    debugging("topomojo_delete_references usingcontextid $context->id", DEBUG_DEVELOPER);
+
+    $conditions = [
+        'usingcontextid' => $context->id,
+        'component' => 'mod_topomojo',
+        'questionarea' => 'slot',
+    ];
+
+    $DB->delete_records('question_references', $conditions);
+    $DB->delete_records('question_set_references', $conditions);
+}
+
+/**
+ * Delete all the attempts belonging to a topomojo.
+ *
+ * @param stdClass $topomojo The topomojo object.
+ */
+function topomojo_delete_all_attempts($topomojo) {
+    global $CFG, $DB;
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+    question_engine::delete_questions_usage_by_activities(new qubaids_for_topomojo($topomojo->id));
+    $DB->delete_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+    $DB->delete_records('topomojo_grades', ['topomojoid' => $topomojo->id]);
+}
+
+/**
+ * Standard callback used by questions_in_use.
+ *
+ * @param array $questionids of question ids.
+ * @return bool whether any of these questions are used by any instance of this module.
+ */
+function topomojo_questions_in_use($questionids) {
+    return question_engine::questions_in_use($questionids,
+            new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid'));
 }
 
 /**

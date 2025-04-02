@@ -138,8 +138,10 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $data->markdown = $this->clean_markdown($markdown);
 
-        $data->license_fullname = $content_license->fullname;
-        $data->license_source = $content_license->source;
+        if ($content_license) {
+            $data->license_fullname = $content_license->fullname;
+            $data->license_source = $content_license->source;
+        }
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/startform', $data);
