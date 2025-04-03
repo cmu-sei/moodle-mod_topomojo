@@ -270,6 +270,7 @@ $string['importprevious'] = 'Questions from TopoMojo have aleady been added';
 $string['invalid_point'] = 'Invalid point value entered for question';
 $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
+$string['invalid_points'] = 'Invalid point value';
 
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
