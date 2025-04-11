@@ -126,11 +126,11 @@ function list_events($client, $name) {
  * Filters events to include only those managed by a specific user.
  *
  * This function processes a list of events and filters them based on the manager's name.
- * Only events managed by "Adam Welle" are included in the resulting array.
+ * Only events managed by the set manager are included in the resulting array.
  *
  * @param array $events An array of events to filter. Each event should be an associative array with a 'managerName' key.
  *
- * @return array An array of events where the 'managerName' is "Adam Welle".
+ * @return array An array of events where the 'managerName is set in the plugin settings.
  * If no events match or if the input is not an array, an empty array is returned.
  */
 function moodle_events($events) {
