@@ -705,12 +705,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
         //Match the pattern for markdown images
-        $pattern = '/(!\[.*\]\()(.*\))/i';
+        // Match markdown images and skip ones where the URL already starts with 'http' or 'https'
+        $pattern = '/(!\[.*\]\()(?!https?:\/\/)(.*\))/i';
         $replace = '${1}' . $url . '/${2}';
+
         foreach ($lines as $line) {
             $clean = preg_replace($pattern, $replace, $line);
             $cleanlines[] = $clean;
         }
+
 
         $markdown = implode("\n", $cleanlines);
 
