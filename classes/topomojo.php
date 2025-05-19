@@ -522,4 +522,18 @@ class topomojo {
         return  $canreviewattempt;
     }
 
+    public function delete_all_attempts_and_grades() {
+        global $DB;
+    
+        // Delete all attempts linked to this activity
+        $DB->delete_records('topomojo_attempts', ['topomojoid' => $this->topomojo->id]);
+    
+        // Delete all grades linked to this activity
+        $DB->delete_records('topomojo_grades', ['topomojoid' => $this->topomojo->id]);
+    
+        // Remove grades from Moodle gradebook
+        require_once($GLOBALS['CFG']->libdir . '/gradelib.php');
+        grade_update('mod/topomojo', $this->course->id, 'mod', 'topomojo', $this->topomojo->id, 0, null, ['deleted' => 1]);
+    }
+
 }

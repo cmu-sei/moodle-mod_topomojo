@@ -123,6 +123,56 @@ function list_events($client, $name) {
 }
 
 /**
+ * Retrieves all active events from the TopoMojo gamespaces endpoint.
+ *
+ * This function sends a GET request to the TopoMojo API to fetch all active gamespaces
+ * (events), regardless of their name. It handles HTTP errors and JSON decoding, and returns
+ * a sorted array of active events.
+ *
+ * @param curl $client The cURL client instance used to make the API request.
+ *
+ * @return array An array of active events. If none are found or the request fails, an empty array is returned.
+ *
+ * @throws moodle_exception If the cURL client is null or not provided.
+ */
+function list_all_active_events($client) {
+    if ($client == null) {
+        throw new moodle_exception('error with userauth');
+        return;
+    }
+
+    // Use a generic search term or empty if API allows it
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false"
+         . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
+         . "&WantsActive=true";
+
+    $response = $client->get($url);
+
+    if ($client->info['http_code'] !== 200 || !$response) {
+        debugging('Failed request to: ' . $url, DEBUG_DEVELOPER);
+        return;
+    }
+
+    $r = json_decode($response, true);
+    if (!$r) {
+        debugging("could not decode json $url", DEBUG_DEVELOPER);
+        return;
+    }
+
+    $matches = [];
+    foreach ($r as $event) {
+        if (!empty($event['isActive'])) {
+            $matches[] = $event;
+        }
+    }
+
+    debugging("list_all_active_events found " . count($matches) . " active events", DEBUG_DEVELOPER);
+
+    usort($matches, 'whenCreated');
+    return $matches;
+}
+
+/**
  * Filters events to include only those managed by a specific user.
  *
  * This function processes a list of events and filters them based on the manager's name.
@@ -1176,5 +1226,5 @@ class mod_topomojo_display_options extends question_display_options {
         } else {
             return $whennotset;
         }
-    }
+    }  
 }

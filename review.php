@@ -94,9 +94,16 @@ $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
 // $renderer->display_return_form($returnurl, $id);
 
+if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
+    $object->delete_all_attempts_and_grades();
+    \core\notification::success(get_string('attemptsdeleted', 'mod_topomojo'));
+}
+
 if ($object->is_instructor()) {
     $attempts = $object->getall_attempts('closed', $review = true);
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+    $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1]);
+    echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post');
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');
