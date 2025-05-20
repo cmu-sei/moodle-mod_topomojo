@@ -281,3 +281,6 @@ $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you 
 $string['search:activity'] = 'TopoMojo - activity information';
 
 $string['interestslist'] = 'list test';
+
+$string['deleteallattempts'] = 'Delete all attempts and grades';
+$string['attemptsdeleted'] = 'All attempts and grades have been deleted.';

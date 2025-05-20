@@ -102,28 +102,14 @@ $object->event = get_active_event($history);
 $renderer = $object->renderer;
 echo $renderer->header();
 
-//get current deployed workspaces
-$managername = get_config('topomojo', 'managername');
-$gamespacelimit = get_gamespace_limit($object->userauth, $managername);
-$current_deployed_gamespaces = $DB->count_records('topomojo_attempts', [
-    'state' => 10
-]);
-
-if ($current_deployed_gamespaces >= $gamespacelimit && $gamespacelimit != 0) {
-    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
-    $markdowncutline = "<<!-- cut -->>";
-    $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail_max_gamespaces($topomojo, $parts[0]);
-    echo $renderer->footer();
-    exit;
-}
+$userid = $USER->id;
 
 // Get active attempt for user: true/false
 $activeattempt = $object->get_open_attempt();
 
-$userid = $USER->id;
-
 $max_attempts = $topomojo->attempts;
+
+// Getting completed attempts by user
 $current_attempt_count = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
@@ -140,30 +126,54 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
     exit;
 }
 
+//Getting manager name
+$managername = get_config('topomojo', 'managername');
+
+//Getting gamespace limit for that manager in topomojo
+$gamespacelimit = get_gamespace_limit($object->userauth, $managername);
+
+//Getting all active events without filters
+$allActiveEvents = list_all_active_events($object->userauth);
+
+//Count of all active events
+$all_active_current_deployed_count  = count($allActiveEvents);
+
+//Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
+if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdowncutline = "<<!-- cut -->>";
+    $parts = preg_split($markdowncutline, $markdown);
+    $renderer->display_detail_max_gamespaces($topomojo, $parts[0]);
+    echo $renderer->footer();
+    exit;
+}
+
+$activeUserEvents = [];
+
+//Getting active user event for specific user
+$activeUserEvents = user_events($object->userauth, $allActiveEvents);
+//Count of those active user events
+$user_current_deployed_count  = count($activeUserEvents);
+
+//Getting max deployed lab for each user in moodle
 $max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
-$current_deployed_count = $DB->count_records('topomojo_attempts', [
-    'userid' => $userid,
-    'state' => 10
-]);
 
-$workspaces_deployed = $DB->get_fieldset_select('topomojo_attempts', 'workspaceid', 'userid = ? AND state = ?', [$userid, 10]);
+$lab_names =  [];
+$lab_ids = [];
 
-// Check if any workspaces were found
-if (!empty($workspaces_deployed)) {
-    list($in_sql, $in_params) = $DB->get_in_or_equal($workspaces_deployed, SQL_PARAMS_QM);
-    $sql = "SELECT DISTINCT name FROM {topomojo} WHERE workspaceid " . $in_sql;
-    $lab_names = $DB->get_fieldset_sql($sql, $in_params);
-} else {
-    $lab_names = [];
+//Getting workspace names and ids
+foreach ($activeUserEvents as $event) {
+    $lab_names[] = $event['name'];
+    $lab_ids[] = $event['workspaceId'];
 }
 
 //If the maximum deployed labs are reached, display the deployed labs template and exit
-if (!in_array($topomojo->workspaceid, $workspaces_deployed) && $current_deployed_count >= $max_deployed_labs) {
+if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count >= $max_deployed_labs) {
     // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $current_deployed_count, $parts[0], $lab_names);
+    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $user_current_deployed_count, $parts[0], $lab_names);
     echo $renderer->footer();
     exit;
 }
