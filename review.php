@@ -95,7 +95,7 @@ echo $renderer->header();
 // $renderer->display_return_form($returnurl, $id);
 
 if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
-    $object->delete_all_attempts_and_grades();
+    topomojo_delete_all_attempts($topomojo);
     \core\notification::success(get_string('attemptsdeleted', 'mod_topomojo'));
 }
 
