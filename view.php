@@ -107,12 +107,27 @@ $userid = $USER->id;
 //get current deployed workspaces
 $managername = get_config('topomojo', 'managername');
 $gamespacelimit = get_gamespace_limit($object->userauth, $managername);
-$current_deployed_gamespaces = $DB->count_records('topomojo_attempts', [
-    'state' => 10,
-    'userid' => $userid
-]);
 
-if ($current_deployed_gamespaces >= $gamespacelimit && $gamespacelimit != 0) {
+
+$allActiveEvents = list_all_active_events($object->userauth);
+
+$activeUserEvents = [];
+
+$activeUserEvents = user_events($object->userauth, $allActiveEvents);
+
+//Getting current deployed count
+$current_deployed_count  = count($activeUserEvents);
+$max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
+
+$lab_names =  [];
+$lab_ids = [];
+
+foreach ($activeUserEvents as $event) {
+    $lab_names[] = $event['name'];
+    $lab_ids[] = $event['workspaceId'];
+}
+
+if ($current_deployed_count >= $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -143,50 +158,6 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
     exit;
 }
 
-$auth = setup();
-$activeEventIds = [];
-
-$allActiveEvents = list_all_active_events($object->userauth);
-
-//Getting all active events id
-foreach ($allActiveEvents  as $event) {
-    $activeEventIds[] = $event['id'];
-}
-
-$allEventDetails = [];
-
-//Getting details for event ids
-foreach ($activeEventIds as $id) {
-    $eventDetail = get_event($auth, $id);
-    $allEventDetails[] = $eventDetail;
-}
-
-$username = $USER->username;
-$activeUserEvents = [];
-//Filtering events by player name
-foreach ($allEventDetails as $event) {
-    if (!empty($event->players) && is_array($event->players)) {
-        foreach ($event->players as $player) {
-            if (isset($player->subjectName) && $player->subjectName === $username) {
-                $activeUserEvents[] = $event;
-                break;
-            }
-        }
-    }
-}
-
-
-//Getting current deployed count
-$current_deployed_count  = count($activeUserEvents);
-$max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
-
-$lab_names =  [];
-$lab_ids = [];
-
-foreach ($activeUserEvents as $event) {
-    $lab_names[] = $event->name;
-    $lab_ids[] = $event->workspaceId;
-}
 
 //If the maximum deployed labs are reached, display the deployed labs template and exit
 if (!in_array($topomojo->workspaceid, $lab_ids) && $current_deployed_count >= $max_deployed_labs) {
