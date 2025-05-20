@@ -150,10 +150,10 @@ if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0
 
 $activeUserEvents = [];
 
-//Getting active user event for specific player
+//Getting active user event for specific user
 $activeUserEvents = user_events($object->userauth, $allActiveEvents);
 //Count of those active user events
-$player_current_deployed_count  = count($activeUserEvents);
+$user_current_deployed_count  = count($activeUserEvents);
 
 //Getting max deployed lab for each user in moodle
 $max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
@@ -168,12 +168,12 @@ foreach ($activeUserEvents as $event) {
 }
 
 //If the maximum deployed labs are reached, display the deployed labs template and exit
-if (!in_array($topomojo->workspaceid, $lab_ids) && $player_current_deployed_count >= $max_deployed_labs) {
+if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count >= $max_deployed_labs) {
     // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $player_current_deployed_count, $parts[0], $lab_names);
+    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $user_current_deployed_count, $parts[0], $lab_names);
     echo $renderer->footer();
     exit;
 }

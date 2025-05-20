@@ -98,7 +98,7 @@ $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevar
 // Get current state of workspace
 $allevents = list_events($object->userauth, $object->topomojo->name); // events for workspace
 $eventsmoodle = moodle_events($allevents); // events for moodle bot
-$history = user_events($object->userauth, $eventsmoodle); // events for this user/player
+$history = user_events($object->userauth, $eventsmoodle); // events for this user
 $object->event = get_active_event($history);
 
 // Get active attempt for user: true/false
