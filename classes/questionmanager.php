@@ -878,41 +878,69 @@ class questionmanager {
 
         // Remove mojomatch questions from other variants from the quiz
         $currentquestions = $this->get_questions();
-        foreach ($currentquestions as $tq) {
-            $q = $tq->getQuestion();
-            if ($q->qtype == "mojomatch") {
-                $qoptions = $DB->get_record('qtype_mojomatch_options',
-                        ['questionid' => $q->id]);
-                if (($qoptions->variant != $variant) ||
-                            ($qoptions->workspaceid != $object->topomojo->workspaceid)) {
-                        $this->delete_question($tq->getId());
-                }
+
+        // Step 1: Build list of actual questions in topomojo
+        $expected_questiontexts = [];
+        foreach ($challenge->variants[$variant]->sections as $section) {
+            foreach ($section->questions as $q) {
+                $expected_questiontexts[] = trim(strip_tags($q->text));
             }
         }
+
+        // Step 2: Delete moodle activity questions if they do not match those in topomojo
+        foreach ($currentquestions as $tq) {
+            $q = $tq->getQuestion();
+            if ($q->qtype !== "mojomatch") {
+                continue;
+            }
+
+            $cleantext = trim(strip_tags($q->questiontext));
+
+            if (!in_array($cleantext, $expected_questiontexts)) {
+                debugging("Deleting question '{$q->name}' (not part of current challenge)", DEBUG_DEVELOPER);
+                $this->delete_question($tq->getId());
+            }
+        }
+
         $questionnumber = 0;
         $type = 'info';
         $message = '';
+
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
             debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
-            // TODO maybe we track the number of questions and make sure that it matches?
-            //$type = 'success';
-            //$message = get_string('importsuccess', 'topomojo');
+
             foreach ($section->questions as $question) {
                 $questionnumber++;
                 $questionid = 0;
                 $qexists = 0;
-                // Match on name too
-                $sql = "select * from {qtype_mojomatch_options} where " . $DB->sql_compare_text('workspaceid') . " = ? and variant = ? and qorder = ?";
-                $rec = $DB->get_record_sql($sql, array($object->topomojo->workspaceid, $variant, $questionnumber));
+
+                $cleantext = trim(strip_tags($question->text));
+
+                // Match on question text + variant + workspce
+                $sql = "SELECT q.id AS questionid
+                    FROM {question} q
+                    JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
+                    WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
+                      AND o.workspaceid = :workspaceid
+                      AND o.variant = :variant";
+
+                $params = [
+                    'questiontext' => $cleantext,
+                    'workspaceid' => $object->topomojo->workspaceid,
+                    'variant' => $variant
+                ];
+
+                $rec = $DB->get_record_sql($sql, $params);
                 if ($rec) {
                     $qexists = 1;
                     $questionid = $rec->questionid;
-                    debugging("question $questionid already exists in the db", DEBUG_DEVELOPER);
                 }
+
+                // Create a new question if it doesn't exist
                 if (!$qexists) {
                     debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
-                    //echo "<br>adding new question<br>";
+
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {
                         /*
@@ -941,6 +969,7 @@ class questionmanager {
                         $message .= "<br>we need to handle mojomatch type $question->grader";
                         break;
                     }
+
                     $q = new stdClass();
                     $saq = new \qtype_mojomatch();
                     $cat = question_get_default_category($context->id);
@@ -985,14 +1014,9 @@ class questionmanager {
                     // attempt to add question to topomojo quiz
                     if (!$this->add_question($questionid)) {
                         debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
-                        //$type = 'warning';
-                        //$message = get_string('importprevious', 'topomojo');
-                        //$message .= "<br>could not add question $questionid - is it already present?";
-                        //$renderer->setMessage($type, $message);
                     }
                 }
             }
-            //echo "done listing questions in section<br>";
             if ($message) {
                 $this->renderer->setMessage($type, $message);
             }
