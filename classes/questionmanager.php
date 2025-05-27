@@ -857,6 +857,32 @@ class questionmanager {
         }
     }
 
+    public function detect_mismatched_questions($object, $variant, $challenge) {
+        $mismatched_questions = [];
+    
+        $currentquestions = $this->get_questions();
+    
+        // Build expected list from challenge variant
+        $expected_texts = [];
+        foreach ($challenge->variants[$variant]->sections as $section) {
+            foreach ($section->questions as $q) {
+                $expected_texts[] = trim(strip_tags($q->text));
+            }
+        }
+    
+        foreach ($currentquestions as $tq) {
+            $q = $tq->getQuestion();
+            if ($q->qtype !== 'mojomatch') continue;
+    
+            $cleantext = trim(strip_tags($q->questiontext));
+            if (!in_array($cleantext, $expected_texts)) {
+                $mismatched_questions[] = $q->name;
+            }
+        }
+    
+        return $mismatched_questions;
+    }
+
     /**
      * Processes and updates questions for a specific variant and challenge, adding them to the quiz if necessary.
      *
@@ -1022,6 +1048,41 @@ class questionmanager {
             }
         }
     }
+
+    public function notify_instructors_of_mismatch($cm, $mismatched, $activityname) {
+        // Get users with the 'mod/topomojo:manage' capability (typically teachers/admins)
+        $context = \context_module::instance($cm->id); // Context of the TopoMojo activity
+        $capability = 'mod/topomojo:manage';
+
+        $users = get_users_by_capability($context, $capability, 'u.*', 'u.lastname ASC');  
+    
+        if (!$users) {
+            debugging("No instructors found to notify for mismatched questions.");
+            return;
+        }
+    
+        $subject = "TopoMojo question mismatch in '{$activityname}'";
+        $body = "The following questions were removed from the activity '{$activityname}' because they no longer match the current TopoMojo challenge:\n\n";
+        $body .= implode("\n", $mismatched);
+        $body .= "\n\nPlease review the updated question list.";
+    
+        foreach ($users as $user) {
+            $eventdata = new \core\message\message();
+            $eventdata->notification      = 1;
+            $eventdata->component         = 'mod_topomojo';
+            $eventdata->name              = 'notification';
+            $eventdata->userfrom          = \core_user::get_noreply_user();
+            $eventdata->userto            = $user;
+            $eventdata->subject           = $subject;
+            $eventdata->fullmessage       = $body;
+            $eventdata->fullmessageformat = FORMAT_PLAIN;
+            $eventdata->fullmessagehtml   = nl2br(s($body));
+            $eventdata->smallmessage      = $subject;
+            $eventdata->notification      = 1;
+            $result = message_send($eventdata);
+        }
+    }
+    
 }
 
 
