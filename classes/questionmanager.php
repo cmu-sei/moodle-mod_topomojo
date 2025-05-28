@@ -925,21 +925,49 @@ class questionmanager {
 
         // Step 2: Delete moodle activity questions if they do not match those in topomojo
         $mismatched_questions = [];
+        $deleted_questiontexts = [];
 
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
             if ($q->qtype !== "mojomatch") {
                 continue;
             }
-
+        
             $cleantext = trim(strip_tags($q->questiontext));
-
+            $questionid = $q->id;
+        
+            // Check if question text exists in TopoMojo
             if (!in_array($cleantext, $expected_questiontexts)) {
                 $mismatched_questions[] = $q->name;
                 debugging("Deleting question '{$q->name}' (not part of current challenge)", DEBUG_DEVELOPER);
                 $this->delete_question($tq->getId());
+                question_delete_question($questionid);
+                continue;
             }
-        }
+        
+            // Check if answer matches
+            $expected_answer = null;
+            foreach ($challenge->variants[$variant]->sections as $section) {
+                foreach ($section->questions as $topoq) {
+                    if (trim(strip_tags($topoq->text)) === $cleantext) {
+                        $expected_answer = trim($topoq->answer);
+                        break 2;
+                    }
+                }
+            }
+        
+            if ($expected_answer !== null) {
+                $storedanswer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
+        
+                if (trim($storedanswer) !== $expected_answer) {
+                    $mismatched_questions[] = $q->name;
+                    $deleted_questiontexts[] = $cleantext;
+                    debugging("Deleting question '{$q->name}' (answer mismatch)", DEBUG_DEVELOPER);
+                    $this->delete_question($tq->getId());
+                    question_delete_question($questionid);
+                }
+            }
+        }        
         
         if (!empty($mismatched_questions)) {
             $this->notify_instructors_of_mismatch($object->cm, $object->topomojo->name);
@@ -959,26 +987,49 @@ class questionmanager {
                 $qexists = 0;
 
                 $cleantext = trim(strip_tags($question->text));
+                if (in_array($cleantext, $deleted_questiontexts)) {
+                    // Force creation of a new question if found in the array
+                    $qexists = 0;
+                } else {
+                    $sql = "SELECT q.id AS questionid
+                        FROM {question} q
+                        JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
+                        WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
+                          AND o.workspaceid = :workspaceid
+                          AND o.variant = :variant";
+                
+                    $params = [
+                        'questiontext' => $cleantext,
+                        'workspaceid' => $object->topomojo->workspaceid,
+                        'variant' => $variant
+                    ];
+                
+                    $rec = $DB->get_record_sql($sql, $params);
+                    if ($rec) {
+                        $qexists = 1;
+                        $questionid = $rec->questionid;
+                    }
+                }                
 
                 // Match on question text + variant + workspce
-                $sql = "SELECT q.id AS questionid
-                    FROM {question} q
-                    JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
-                    WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
-                      AND o.workspaceid = :workspaceid
-                      AND o.variant = :variant";
+                // $sql = "SELECT q.id AS questionid
+                //     FROM {question} q
+                //     JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
+                //     WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
+                //       AND o.workspaceid = :workspaceid
+                //       AND o.variant = :variant";
 
-                $params = [
-                    'questiontext' => $cleantext,
-                    'workspaceid' => $object->topomojo->workspaceid,
-                    'variant' => $variant
-                ];
+                // $params = [
+                //     'questiontext' => $cleantext,
+                //     'workspaceid' => $object->topomojo->workspaceid,
+                //     'variant' => $variant
+                // ];
 
-                $rec = $DB->get_record_sql($sql, $params);
-                if ($rec) {
-                    $qexists = 1;
-                    $questionid = $rec->questionid;
-                }
+                // $rec = $DB->get_record_sql($sql, $params);
+                // if ($rec) {
+                //     $qexists = 1;
+                //     $questionid = $rec->questionid;
+                // }
 
                 // Create a new question if it doesn't exist
                 if (!$qexists) {
