@@ -108,18 +108,26 @@ $userid = $USER->id;
 $activeattempt = $object->get_open_attempt();
 
 $max_attempts = $topomojo->attempts;
-
 $variant = $object->topomojo->variant -1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
 // Only check if challenge is valid
 if ($challenge && isset($challenge->variants[$variant])) {
-    $qm = $object->get_question_manager();
-    $mismatches = $qm->detect_mismatched_questions($object, $variant, $challenge);
-
-    if (!empty($mismatches)) {
-        $qm->notify_instructors_of_mismatch($cm, $mismatches, $topomojo->name);
-    }
+    if (method_exists($object, 'get_question_manager')) {
+        try {
+            $qm = $object->get_question_manager();
+    
+            if ($qm instanceof \mod_topomojo\questionmanager) {
+                $mismatches = $qm->detect_mismatched_questions($object, $variant, $challenge);
+    
+                if (!empty($mismatches)) {
+                    $qm->notify_instructors_of_mismatch($cm, $topomojo->name);
+                }
+            }
+        } catch (Throwable $e) {
+            debugging("Skipping question mismatch check: " . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }    
 }
 
 

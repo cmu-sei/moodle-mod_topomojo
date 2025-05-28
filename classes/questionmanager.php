@@ -856,17 +856,17 @@ class questionmanager {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');
         }
     }
-
+  
     public function detect_mismatched_questions($object, $variant, $challenge) {
-        $mismatched_questions = [];
+        global $DB;
     
+        $mismatched = [];
         $currentquestions = $this->get_questions();
     
-        // Build expected list from challenge variant
-        $expected_texts = [];
+        $expected = [];
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
-                $expected_texts[] = trim(strip_tags($q->text));
+                $expected[trim(strip_tags($q->text))] = trim($q->answer);
             }
         }
     
@@ -874,14 +874,24 @@ class questionmanager {
             $q = $tq->getQuestion();
             if ($q->qtype !== 'mojomatch') continue;
     
-            $cleantext = trim(strip_tags($q->questiontext));
-            if (!in_array($cleantext, $expected_texts)) {
-                $mismatched_questions[] = $q->name;
+            $questiontext = trim(strip_tags($q->questiontext));
+            $questionid = $q->id;
+    
+            $answer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
+            var_dump($answer);
+    
+            if (!isset($expected[$questiontext]) || $expected[$questiontext] !== trim($answer)) {
+                $mismatched[] = [
+                    'id' => $tq->getId(),
+                    'questiontext' => $questiontext,
+                    'name' => $q->name
+                ];
             }
         }
     
-        return $mismatched_questions;
-    }
+        return $mismatched;
+    }    
+
 
     /**
      * Processes and updates questions for a specific variant and challenge, adding them to the quiz if necessary.
@@ -914,6 +924,8 @@ class questionmanager {
         }
 
         // Step 2: Delete moodle activity questions if they do not match those in topomojo
+        $mismatched_questions = [];
+
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
             if ($q->qtype !== "mojomatch") {
@@ -923,10 +935,15 @@ class questionmanager {
             $cleantext = trim(strip_tags($q->questiontext));
 
             if (!in_array($cleantext, $expected_questiontexts)) {
+                $mismatched_questions[] = $q->name;
                 debugging("Deleting question '{$q->name}' (not part of current challenge)", DEBUG_DEVELOPER);
                 $this->delete_question($tq->getId());
             }
         }
+        
+        if (!empty($mismatched_questions)) {
+            $this->notify_instructors_of_mismatch($object->cm, $object->topomojo->name);
+        }        
 
         $questionnumber = 0;
         $type = 'info';
@@ -1049,7 +1066,7 @@ class questionmanager {
         }
     }
 
-    public function notify_instructors_of_mismatch($cm, $mismatched, $activityname) {
+    public function notify_instructors_of_mismatch($cm, $activityname) {
         // Get users with the 'mod/topomojo:manage' capability (typically teachers/admins)
         $context = \context_module::instance($cm->id); // Context of the TopoMojo activity
         $capability = 'mod/topomojo:manage';
@@ -1061,10 +1078,9 @@ class questionmanager {
             return;
         }
     
-        $subject = "TopoMojo question mismatch in '{$activityname}'";
-        $body = "The following questions were removed from the activity '{$activityname}' because they no longer match the current TopoMojo challenge:\n\n";
-        $body .= implode("\n", $mismatched);
-        $body .= "\n\nPlease review the updated question list.";
+        $subject = "TopoMojo question mismatch in '{$activityname}' activity.";
+        $body = "\n\nPlease review the activity question/answer list, ";
+        $body .= "it no longer matches the current question list from the TopoMojo challenge:\n\n";
     
         foreach ($users as $user) {
             $eventdata = new \core\message\message();
