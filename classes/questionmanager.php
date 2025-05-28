@@ -913,6 +913,7 @@ class questionmanager {
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
         $currentquestions = $this->get_questions();
 
+         // Step 1: Get questions from topomojo
         $expected_questiontexts = [];
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
@@ -920,10 +921,10 @@ class questionmanager {
             }
         }
 
-        // Step 2: Delete moodle activity questions if they do not match those in topomojo
         $mismatched_questions = [];
         $deleted_questiontexts = [];
 
+        // Step 2: Delete moodle activity questions if they do not match those in topomojo
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
             if ($q->qtype !== "mojomatch") {
@@ -942,7 +943,7 @@ class questionmanager {
                 continue;
             }
         
-            // Check if answer matches
+            // Get answer from topomojo
             $expected_answer = null;
             foreach ($challenge->variants[$variant]->sections as $section) {
                 foreach ($section->questions as $topoq) {
@@ -952,7 +953,8 @@ class questionmanager {
                     }
                 }
             }
-        
+
+            // Get answer from moodle db and compare it with topomojo, if they do not match, delete question
             if ($expected_answer !== null) {
                 $storedanswer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
         
@@ -974,6 +976,7 @@ class questionmanager {
         $type = 'info';
         $message = '';
 
+        // Add new questions when necessary, if found in array (answers), or if question texts do not match
         foreach ($challenge->variants[$variant]->sections as $section) {
             $count = count($section->questions);
             debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
@@ -1006,27 +1009,7 @@ class questionmanager {
                         $qexists = 1;
                         $questionid = $rec->questionid;
                     }
-                }                
-
-                // Match on question text + variant + workspce
-                // $sql = "SELECT q.id AS questionid
-                //     FROM {question} q
-                //     JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
-                //     WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
-                //       AND o.workspaceid = :workspaceid
-                //       AND o.variant = :variant";
-
-                // $params = [
-                //     'questiontext' => $cleantext,
-                //     'workspaceid' => $object->topomojo->workspaceid,
-                //     'variant' => $variant
-                // ];
-
-                // $rec = $DB->get_record_sql($sql, $params);
-                // if ($rec) {
-                //     $qexists = 1;
-                //     $questionid = $rec->questionid;
-                // }
+                }
 
                 // Create a new question if it doesn't exist
                 if (!$qexists) {
@@ -1034,26 +1017,12 @@ class questionmanager {
 
                     $form = new stdClass();
                     if ($question->grader == 'matchAll') {
-                        /*
-                        question.IsCorrect = a.Intersect(
-                            b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
-                        ).ToArray().Length == a.Length;
-                        */
                         $form->matchtype = '1'; // matchall
                     } else if ($question->grader == 'matchAny') {
-                        /*
-                        question.IsCorrect = a.Contains(c);
-                        */
                         $form->matchtype = '2'; // matchany
                     } else if ($question->grader == 'matchAlpha') {
-                        /*
-                        question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
-                        */
                         $form->matchtype = '0'; // matchalpha
                     } else if ($question->grader == 'match') {
-                        /*
-                         question.IsCorrect = a.First().Equals(c);
-                        */
                         $form->matchtype = '3'; // match
                     } else {
                         $type = 'warning';
