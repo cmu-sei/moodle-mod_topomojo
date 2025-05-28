@@ -911,11 +911,8 @@ class questionmanager {
     public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
-
-        // Remove mojomatch questions from other variants from the quiz
         $currentquestions = $this->get_questions();
 
-        // Step 1: Build list of actual questions in topomojo
         $expected_questiontexts = [];
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
