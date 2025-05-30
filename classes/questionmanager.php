@@ -968,7 +968,6 @@ class questionmanager {
         }        
         
         if (!empty($mismatched_questions) || empty($currentquestions)) {
-            $this->notify_instructors_of_mismatch($object->cm, $object->topomojo->name);
             $questionnumber = 0;
             $type = 'info';
             $message = '';
@@ -1071,9 +1070,12 @@ class questionmanager {
                     }
                     if (!$qexists && $questionid && $addtoquiz) {
                         // attempt to add question to topomojo quiz
-                        if (!$this->add_question($questionid)) {
+                        if ($this->add_question($questionid)) {
+                            \core\notification::success(get_string('questionsynced', 'topomojo'));
+                        } else {
                             debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
-                        }
+                            \core\notification::error(get_string('questionaddfailed', 'topomojo'));
+                        }                        
                     }
                 }
                 if ($message) {
