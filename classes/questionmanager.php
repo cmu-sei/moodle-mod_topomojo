@@ -856,6 +856,41 @@ class questionmanager {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');
         }
     }
+  
+    public function detect_mismatched_questions($object, $variant, $challenge) {
+        global $DB;
+    
+        $mismatched = [];
+        $currentquestions = $this->get_questions();
+    
+        $expected = [];
+        foreach ($challenge->variants[$variant]->sections as $section) {
+            foreach ($section->questions as $q) {
+                $expected[trim(strip_tags($q->text))] = trim($q->answer);
+            }
+        }
+    
+        foreach ($currentquestions as $tq) {
+            $q = $tq->getQuestion();
+            if ($q->qtype !== 'mojomatch') continue;
+    
+            $questiontext = trim(strip_tags($q->questiontext));
+            $questionid = $q->id;
+    
+            $answer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
+    
+            if (!isset($expected[$questiontext]) || $expected[$questiontext] !== trim($answer)) {
+                $mismatched[] = [
+                    'id' => $tq->getId(),
+                    'questiontext' => $questiontext,
+                    'name' => $q->name
+                ];
+            }
+        }
+    
+        return $mismatched;
+    }    
+
 
     /**
      * Processes and updates questions for a specific variant and challenge, adding them to the quiz if necessary.
@@ -875,129 +910,214 @@ class questionmanager {
     public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
-
-        // Remove mojomatch questions from other variants from the quiz
         $currentquestions = $this->get_questions();
+
+         // Step 1: Get questions from topomojo
+        $expected_questiontexts = [];
+        foreach ($challenge->variants[$variant]->sections as $section) {
+            foreach ($section->questions as $q) {
+                $expected_questiontexts[] = trim(strip_tags($q->text));
+            }
+        }
+
+        $mismatched_questions = [];
+        $deleted_questiontexts = [];
+
+        // Step 2: Delete moodle activity questions if they do not match those in topomojo
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
-            if ($q->qtype == "mojomatch") {
-                $qoptions = $DB->get_record('qtype_mojomatch_options',
-                        ['questionid' => $q->id]);
-                if (($qoptions->variant != $variant) ||
-                            ($qoptions->workspaceid != $object->topomojo->workspaceid)) {
-                        $this->delete_question($tq->getId());
+            if ($q->qtype !== "mojomatch") {
+                continue;
+            }
+        
+            $cleantext = trim(strip_tags($q->questiontext));
+            $questionid = $q->id;
+        
+            // Check if question text exists in TopoMojo
+            if (!in_array($cleantext, $expected_questiontexts)) {
+                $mismatched_questions[] = $q->name;
+                debugging("Deleting question '{$q->name}' (not part of current challenge)", DEBUG_DEVELOPER);
+                $this->delete_question($tq->getId());
+                question_delete_question($questionid);
+                continue;
+            }
+        
+            // Get answer from topomojo
+            $expected_answer = null;
+            foreach ($challenge->variants[$variant]->sections as $section) {
+                foreach ($section->questions as $topoq) {
+                    if (trim(strip_tags($topoq->text)) === $cleantext) {
+                        $expected_answer = trim($topoq->answer);
+                        break 2;
+                    }
                 }
             }
-        }
-        $questionnumber = 0;
-        $type = 'info';
-        $message = '';
-        foreach ($challenge->variants[$variant]->sections as $section) {
-            $count = count($section->questions);
-            debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
-            // TODO maybe we track the number of questions and make sure that it matches?
-            //$type = 'success';
-            //$message = get_string('importsuccess', 'topomojo');
-            foreach ($section->questions as $question) {
-                $questionnumber++;
-                $questionid = 0;
-                $qexists = 0;
-                // Match on name too
-                $sql = "select * from {qtype_mojomatch_options} where " . $DB->sql_compare_text('workspaceid') . " = ? and variant = ? and qorder = ?";
-                $rec = $DB->get_record_sql($sql, array($object->topomojo->workspaceid, $variant, $questionnumber));
-                if ($rec) {
-                    $qexists = 1;
-                    $questionid = $rec->questionid;
-                    debugging("question $questionid already exists in the db", DEBUG_DEVELOPER);
+
+            // Get answer from moodle db and compare it with topomojo, if they do not match, delete question
+            if ($expected_answer !== null) {
+                $storedanswer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
+        
+                if (trim($storedanswer) !== $expected_answer) {
+                    $mismatched_questions[] = $q->name;
+                    $deleted_questiontexts[] = $cleantext;
+                    debugging("Deleting question '{$q->name}' (answer mismatch)", DEBUG_DEVELOPER);
+                    $this->delete_question($tq->getId());
+                    question_delete_question($questionid);
                 }
-                if (!$qexists) {
-                    debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
-                    //echo "<br>adding new question<br>";
-                    $form = new stdClass();
-                    if ($question->grader == 'matchAll') {
-                        /*
-                        question.IsCorrect = a.Intersect(
-                            b.Split(new char[] { ' ', ',', ';', ':', '|'}, StringSplitOptions.RemoveEmptyEntries)
-                        ).ToArray().Length == a.Length;
-                        */
-                        $form->matchtype = '1'; // matchall
-                    } else if ($question->grader == 'matchAny') {
-                        /*
-                        question.IsCorrect = a.Contains(c);
-                        */
-                        $form->matchtype = '2'; // matchany
-                    } else if ($question->grader == 'matchAlpha') {
-                        /*
-                        question.IsCorrect = a.First().WithoutSymbols().Equals(c.WithoutSymbols());
-                        */
-                        $form->matchtype = '0'; // matchalpha
-                    } else if ($question->grader == 'match') {
-                        /*
-                         question.IsCorrect = a.First().Equals(c);
-                        */
-                        $form->matchtype = '3'; // match
-                    } else {
-                        $type = 'warning';
-                        $message .= "<br>we need to handle mojomatch type $question->grader";
-                        break;
-                    }
-                    $q = new stdClass();
-                    $saq = new \qtype_mojomatch();
-                    $cat = question_get_default_category($context->id);
-                    $q->qtype = 'mojomatch';
-                    $form->category = $cat->id;
-                    $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
-                    $form->questiontext['text'] = $question->text;
-                    $form->questiontext['format'] = '0'; //TODO find out nonhtml
-                    $form->defaultmark = 1;
-                    if (is_numeric($question->weight)) {
-                        if (floor($question->weight) != $question->weight) {
-                            $form->defaultmark = $question->weight * 10;
-                        } else {
-                            $form->defaultmark = $question->weight;
+            }
+        }        
+        
+        if (!empty($mismatched_questions) || empty($currentquestions)) {
+            $questionnumber = 0;
+            $type = 'info';
+            $message = '';
+
+            // Add new questions when necessary, if found in array (answers), or if question texts do not match
+            foreach ($challenge->variants[$variant]->sections as $section) {
+                $count = count($section->questions);
+                debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
+
+                foreach ($section->questions as $question) {
+                    $questionnumber++;
+                    $cleantext = trim(strip_tags($question->text));
+
+                    $qexists    = 0;
+                    $questionid = 0;
+
+                    // ─── do not recycle anything when quiz is still empty ───────────
+                    if (!empty($currentquestions) && !in_array($cleantext, $deleted_questiontexts, true)) {
+
+                        // try to find *exact* match (text + answer + workspace + variant)
+                        $sql = "SELECT q.id AS questionid
+                                FROM {question} q
+                                JOIN {qtype_mojomatch_options} o ON q.id = o.questionid
+                                JOIN {question_answers}        qa ON qa.question = q.id
+                                WHERE " . $DB->sql_compare_text('q.questiontext') . " = " . $DB->sql_compare_text(':questiontext') . "
+                                AND qa.answer        = :answer
+                                AND o.workspaceid    = :workspaceid
+                                AND o.variant        = :variant";
+                        $params = [
+                            'questiontext' => $cleantext,
+                            'answer'       => trim($question->answer),
+                            'workspaceid'  => $object->topomojo->workspaceid,
+                            'variant'      => $variant
+                        ];
+
+                        if ($rec = $DB->get_record_sql($sql, $params)) {
+                            $qexists    = 1;
+                            $questionid = $rec->questionid;
                         }
                     }
-                    if ($form->defaultmark == 0) {
+
+                    // Create a new question if it doesn't exist
+                    if (!$qexists) {
+                        debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
+
+                        $form = new stdClass();
+                        if ($question->grader == 'matchAll') {
+                            $form->matchtype = '1'; // matchall
+                        } else if ($question->grader == 'matchAny') {
+                            $form->matchtype = '2'; // matchany
+                        } else if ($question->grader == 'matchAlpha') {
+                            $form->matchtype = '0'; // matchalpha
+                        } else if ($question->grader == 'match') {
+                            $form->matchtype = '3'; // match
+                        } else {
+                            $type = 'warning';
+                            $message .= "<br>we need to handle mojomatch type $question->grader";
+                            break;
+                        }
+
+                        $q = new stdClass();
+                        $saq = new \qtype_mojomatch();
+                        $cat = question_get_default_category($context->id);
+                        $q->qtype = 'mojomatch';
+                        $form->category = $cat->id;
+                        $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
+                        $form->questiontext['text'] = $question->text;
+                        $form->questiontext['format'] = '0'; //TODO find out nonhtml
                         $form->defaultmark = 1;
+                        if (is_numeric($question->weight)) {
+                            if (floor($question->weight) != $question->weight) {
+                                $form->defaultmark = $question->weight * 10;
+                            } else {
+                                $form->defaultmark = $question->weight;
+                            }
+                        }
+                        if ($form->defaultmark == 0) {
+                            $form->defaultmark = 1;
+                        }
+                        $form->usecase = '0'; // Case sensitive, topomojo does tolower() on responses
+                        $form->answer = [$question->answer];
+                        $form->fraction = ['1'];
+                        $form->feedback[0] = ['text' => '', 'format' => '1'];
+                        $form->variant = $variant;
+                        $form->workspaceid = $object->topomojo->workspaceid;
+                        $form->transforms = 0;
+                        $form->qorder = $questionnumber;
+
+                        // TODO check for hint and add as feedback
+
+                        if (preg_match('/##.*##/', $question->answer)) {
+                            $form->transforms = 1;
+                            $form->feedback[0] = ['text' => 'This answer is randomly generated at runtime.', 'format' => '1'];
+                        }
+
+                        $saq->save_defaults_for_new_questions($form);
+                        $newq = $saq->save_question($q, $form);
+                        $questionid = $newq->id;
+                        debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
-                    $form->usecase = '0'; // Case sensitive, topomojo does tolower() on responses
-                    $form->answer = [$question->answer];
-                    $form->fraction = ['1'];
-                    $form->feedback[0] = ['text' => '', 'format' => '1'];
-                    $form->variant = $variant;
-                    $form->workspaceid = $object->topomojo->workspaceid;
-                    $form->transforms = 0;
-                    $form->qorder = $questionnumber;
-
-                    // TODO check for hint and add as feedback
-
-                    if (preg_match('/##.*##/', $question->answer)) {
-                        $form->transforms = 1;
-                        $form->feedback[0] = ['text' => 'This answer is randomly generated at runtime.', 'format' => '1'];
+                    if (!$qexists && $questionid && $addtoquiz) {
+                        // attempt to add question to topomojo quiz
+                        if ($this->add_question($questionid)) {
+                            \core\notification::success(get_string('questionsynced', 'topomojo'));
+                        } else {
+                            debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
+                            \core\notification::error(get_string('questionaddfailed', 'topomojo'));
+                        }                        
                     }
-
-                    $saq->save_defaults_for_new_questions($form);
-                    $newq = $saq->save_question($q, $form);
-                    $questionid = $newq->id;
-                    debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                 }
-                if ($questionid && $addtoquiz) {
-                    // attempt to add question to topomojo quiz
-                    if (!$this->add_question($questionid)) {
-                        debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
-                        //$type = 'warning';
-                        //$message = get_string('importprevious', 'topomojo');
-                        //$message .= "<br>could not add question $questionid - is it already present?";
-                        //$renderer->setMessage($type, $message);
-                    }
+                if ($message) {
+                    $this->renderer->setMessage($type, $message);
                 }
             }
-            //echo "done listing questions in section<br>";
-            if ($message) {
-                $this->renderer->setMessage($type, $message);
-            }
+            }        
+    }
+
+    public function notify_instructors_of_mismatch($cm, $activityname) {
+        // Get users with the 'mod/topomojo:manage' capability (typically teachers/admins)
+        $context = \context_module::instance($cm->id); // Context of the TopoMojo activity
+        $capability = 'mod/topomojo:manage';
+
+        $users = get_users_by_capability($context, $capability, 'u.*', 'u.lastname ASC');  
+    
+        if (!$users) {
+            debugging("No instructors found to notify for mismatched questions.");
+            return;
+        }
+    
+        $subject = "TopoMojo question mismatch in '{$activityname}' activity.";
+        $body = "\n\nPlease review the activity question/answer list, ";
+        $body .= "it no longer matches the current question list from the TopoMojo challenge:\n\n";
+    
+        foreach ($users as $user) {
+            $eventdata = new \core\message\message();
+            $eventdata->notification      = 1;
+            $eventdata->component         = 'mod_topomojo';
+            $eventdata->name              = 'notification';
+            $eventdata->userfrom          = \core_user::get_noreply_user();
+            $eventdata->userto            = $user;
+            $eventdata->subject           = $subject;
+            $eventdata->fullmessage       = $body;
+            $eventdata->fullmessageformat = FORMAT_PLAIN;
+            $eventdata->fullmessagehtml   = nl2br(s($body));
+            $eventdata->smallmessage      = $subject;
+            $eventdata->notification      = 1;
+            $result = message_send($eventdata);
         }
     }
+    
 }
 
 

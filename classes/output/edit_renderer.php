@@ -79,6 +79,7 @@ class edit_renderer extends \plugin_renderer_base {
 
 	// Question Bank
         if ($this->hasattempts) {
+            \core\notification::warning(get_string('cannoteditafterattempts', 'topomojo'));
             echo \html_writer::start_div('inline-block span6');
             echo \html_writer::tag('h2', get_string('questionbank', 'question'));
             echo \html_writer::tag('p', get_string('cannoteditafterattempts', 'topomojo'));
