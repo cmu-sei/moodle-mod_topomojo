@@ -155,10 +155,8 @@ $managername = get_config('topomojo', 'managername');
 $gamespacelimit = get_gamespace_limit($object->userauth, $managername);
 
 //Getting all active events without filters
-$allActiveEvents = list_all_active_events($object->userauth);
-
-//Count of all active events
-$all_active_current_deployed_count  = count($allActiveEvents);
+$allActiveEvents = list_all_active_events($object->userauth) ?? [];
+$all_active_current_deployed_count = count($allActiveEvents);
 
 //Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
 if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
