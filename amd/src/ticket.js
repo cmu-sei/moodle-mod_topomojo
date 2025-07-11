@@ -31,11 +31,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
             // TODO listen for onlick on each of the vm buttons
             var consoleButtons = document.getElementsByClassName('console');
             if (consoleButtons) {
-                //console.log("we have buttons");
+                // Console.log("we have buttons");
                 consoleButtons.forEach(function(button) {
-                    //console.log("setting onclick function hook for " + button.id);
+                    // Console.log("setting onclick function hook for " + button.id);
                     button.onclick = function() {
-                        //console.log('need to get ticket for button: ' + button.innerText);
+                        // Console.log('need to get ticket for button: ' + button.innerText);
                         $.ajax({
                             url: config.wwwroot + '/mod/topomojo/getticket.php',
                             type: 'POST',
@@ -49,9 +49,9 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                             },
                             success: function(result) {
                                 var ticket = result.ticket;
-                                //console.log('got ticket ' + ticket);
+                                // Console.log('got ticket ' + ticket);
                                 var url = button.id + '&t=' + ticket;
-                                //console.log("opening url: " + url);
+                                // Console.log("opening url: " + url);
                                 window.open(url, "_blank");
                             },
                             error: function(request) {

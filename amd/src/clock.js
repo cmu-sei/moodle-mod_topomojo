@@ -94,7 +94,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 var timer = document.getElementById('timer');
                 if (timer) {
                     timer.className = "alert alert-success";
-                    timer.innerHTML = "Timer: " +  hours.toString().padStart(2, '0') +
+                    timer.innerHTML = "Timer: " + hours.toString().padStart(2, '0') +
                         ":" + minutes.toString().padStart(2, '0') + ":" +
                         seconds.toString().padStart(2, '0');
                 }
