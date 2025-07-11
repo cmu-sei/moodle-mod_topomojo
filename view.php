@@ -298,7 +298,7 @@ if ($object->event) {
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
         // If VMs array is missing or not valid, display error and stop further processing
-        print_error("no vms");
+        debugging("no vms", DEBUG_DEVELOPER);
         stop_event($object->userauth, $object->event->id);
         topomojo_end($cm, $context, $topomojo);
 
