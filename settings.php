@@ -73,11 +73,29 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/topomojobaseurl',
         get_string('topomojobaseurl', 'topomojo'), get_string('configtopomojobaseurl', 'topomojo'), "", PARAM_URL, 60));
 
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/enableapikey',
+        get_string('enableapikey', 'topomojo'),
+        get_string('configenableapikey', 'topomojo'),
+        0
+    ));
+
     $settings->add(new admin_setting_configtext('topomojo/apikey',
         get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
 
+    $settings->hide_if('topomojo/apikey', 'topomojo/enableapikey', 'notchecked', 1);
+
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/enablemanagername',
+        get_string('enablemanagername', 'topomojo'),
+        get_string('configenablemanagername', 'topomojo'),
+        0
+    ));
+
     $settings->add(new admin_setting_configtext('topomojo/managername',
         get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+    
+    $settings->hide_if('topomojo/managername', 'topomojo/enablemanagername', 'notchecked', 1);
     
     $settings->add(new admin_setting_configtext('topomojo/maxattempts', 
         get_string('maxattemptlabel', 'topomojo'), get_string('maxattemptdesc', 'topomojo'), 10, PARAM_INT));

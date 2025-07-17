@@ -96,6 +96,10 @@ $string['filterworkspaces'] = 'Filter Workspaces';
 $string['configfilterworkspaces'] = 'Filter workspaces based on audience';
 $string['audiencefilter'] = 'Audience Filter';
 $string['configaudiencefilter'] = 'Specify the target audience for filtering workspaces.';
+$string['enableapikey'] = 'Enable External API Key';
+$string['configenableapikey'] = 'Enable API key-based integration with external system.';
+$string['enablemanagername'] = 'Enable External Manager User';
+$string['configenablemanagername'] = 'Enable external manager for integration with external system.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
