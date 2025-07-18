@@ -56,13 +56,111 @@ require_once($CFG->libdir . '/questionlib.php');
  * @return curl The configured cURL client instance.
  */
 function setup() {
-        $client = new curl;
+    $client = new curl();
+
+    // Check if external (config-stored) API key is enabled
+    if (get_config('topomojo', 'enableapikey')) {
         $xapikey = get_config('topomojo', 'apikey');
-        $topoheaders = array('x-api-key: ' . $xapikey, 'content-type: application/json');
-        $client->setHeader($topoheaders);
-        //debugging("api key $xapikey", DEBUG_DEVELOPER);
-        return $client;
+
+        if (empty($xapikey)) {
+            debugging("TopoMojo API key is enabled but not set in config.", DEBUG_DEVELOPER);
+            return null;
+        }
+    } else {
+        // Dynamically create a manager user and generate their key
+        $managerUser = create_manager_user();
+        if (!$managerUser || empty($managerUser->id)) {
+            debugging("Failed to create TopoMojo manager user.", DEBUG_DEVELOPER);
+            return null;
+        }
+
+        $xapikey = generate_api_key($managerUser->id);
+        if (!$xapikey) {
+            debugging("Failed to generate API key for manager user.", DEBUG_DEVELOPER);
+            return null;
+        }
+    }
+
+    // Set headers and return configured client
+    $headers = [
+        'x-api-key: ' . $xapikey,
+        'Content-Type: application/json'
+    ];
+    $client->setHeader($headers);
+
+    return $client;
 }
+
+function create_manager_user() {
+    global $USER;
+
+    $client = new curl();
+    $url = get_config('topomojo', 'topomojoapiurl') . "/user";
+
+    // Assume the current Moodle user is trusted by TopoMojo
+    $headers = [
+        'Content-Type: application/json'
+        // No x-api-key or Authorization needed
+    ];
+    $client->setHeader($headers);
+
+    $payload = [
+        "id" => "bot-moodle-prod",
+        "name" => "bot-moodle-prod",
+        "scope" => "moodle",
+        "workspaceLimit" => 0,
+        "gamespaceLimit" => 100,
+        "gamespaceMaxMinutes" => 240,
+        "gamespaceCleanupGraceMinutes" => 0,
+        "role" => "administrator",
+        "isAdmin" => true,
+        "isObserver" => true,
+        "isCreator" => true,
+        "isBuilder" => true
+    ];
+
+    $json = json_encode($payload);
+    $client->setopt(['CURLOPT_POSTFIELDS' => $json]);
+
+    $response = $client->post($url, $json);
+    if (!$response || $client->info['http_code'] !== 200) {
+        debugging("Failed to create TopoMojo user (HTTP {$client->info['http_code']})", DEBUG_DEVELOPER);
+        return null;
+    }
+
+    $user = json_decode($response);
+    return $user ?: null;
+}
+
+/**
+ * Generates an API key for a given TopoMojo user ID.
+ *
+ * This function makes a POST request to the TopoMojo API to generate a new API key
+ * for the specified user ID.
+ *
+ * @param string $userid The ID of the user to generate the API key for.
+ * @return string|null The generated API key, or null on failure.
+ */
+function generate_api_key($userid) {
+    $client = new curl();
+    $url = get_config('topomojo', 'topomojoapiurl') . "/apikey/" . urlencode($userid);
+
+    $headers = [
+        'Content-Type: application/json'
+        // No auth header needed if request is already trusted
+    ];
+    $client->setHeader($headers);
+
+    $response = $client->post($url);
+    if (!$response || $client->info['http_code'] !== 200) {
+        debugging("Failed to generate API key for $userid (HTTP {$client->info['http_code']})", DEBUG_DEVELOPER);
+        return null;
+    }
+
+    $keydata = json_decode($response);
+    return !empty($keydata->value) ? $keydata->value : null;
+}
+
 
 /**
  * Retrieves and filters events from the gamespaces endpoint.
@@ -190,7 +288,12 @@ function moodle_events($events) {
         return;
     }
     foreach ($events as $event) {
-        $managername = get_config('topomojo', 'managername');
+        $externalManagerName = get_config('topomojo', 'enablemanagername');
+        if ($externalManagerName) {
+            $managername = get_config('topomojo', 'managername');
+        } else {
+            $managername = 'bot-moodle-prod';
+        }
         if ($event['managerName'] == $managername) {
             array_push($eventsmoodle, $event);
         }

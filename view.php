@@ -150,7 +150,12 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
 }
 
 //Getting manager name
-$managername = get_config('topomojo', 'managername');
+$externalManagerName = get_config('topomojo', 'enablemanagername');
+if ($externalManagerName) {
+    $managername = get_config('topomojo', 'managername');
+} else {
+    $managername = 'bot-moodle-prod';
+}
 
 //Getting gamespace limit for that manager in topomojo
 $gamespacelimit = get_gamespace_limit($object->userauth, $managername);
