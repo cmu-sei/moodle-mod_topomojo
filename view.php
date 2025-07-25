@@ -97,7 +97,7 @@ $object = new topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 // Get current state of workspace
 $allevents = list_events(client: $object->userauth, name: $object->topomojo->name);
-$eventsmoodle = moodle_events(events: $allevents);
+$eventsmoodle = moodle_events($object->userauth, events: $allevents);
 $history = user_events($object->userauth, events: $eventsmoodle);
 $object->event = get_active_event($history);
 $renderer = $object->renderer;
@@ -149,16 +149,8 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
     exit;
 }
 
-//Getting manager name
-$externalManagerName = get_config('topomojo', 'enablemanagername');
-if ($externalManagerName) {
-    $managername = get_config('topomojo', 'managername');
-} else {
-    $managername = 'bot-moodle-prod';
-}
-
 //Getting gamespace limit for that manager in topomojo
-$gamespacelimit = get_gamespace_limit($object->userauth, $managername);
+$gamespacelimit = get_gamespace_limit($object->userauth);
 
 //Getting all active events without filters
 $allActiveEvents = list_all_active_events($object->userauth) ?? [];

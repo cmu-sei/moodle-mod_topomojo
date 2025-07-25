@@ -46,10 +46,10 @@ DM24-1175
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2025071100;
+$plugin->version = 2025072500;
 
 // This is the version of Moodle this plugin requires.
-$plugin->requires = 2025041401;
+$plugin->requires = 2025041400;
 
 // This is the component name of the plugin - it always starts with 'component_'
 $plugin->component = 'mod_topomojo';

@@ -56,109 +56,53 @@ require_once($CFG->libdir . '/questionlib.php');
  * @return curl The configured cURL client instance.
  */
 function setup() {
-    $client = new curl();
-
-    // Check if external (config-stored) API key is enabled
     if (get_config('topomojo', 'enableapikey')) {
+        // Use external API key
         $xapikey = get_config('topomojo', 'apikey');
 
         if (empty($xapikey)) {
             debugging("TopoMojo API key is enabled but not set in config.", DEBUG_DEVELOPER);
             return null;
         }
+
+        $client = new curl();
+        $headers = [
+            'x-api-key: ' . $xapikey,
+            'Content-Type: application/json'
+        ];
+        $client->setHeader($headers);
+
+        return $client;
+
     } else {
-        // Dynamically create a manager user and generate their key
-        $managerUser = create_manager_user();
-        if (!$managerUser || empty($managerUser->id)) {
-            debugging("Failed to create TopoMojo manager user.", DEBUG_DEVELOPER);
+        // Use OAuth2 system client
+        if (get_config('topomojo', 'enableoauth')) {
+            $issuerid = get_config('topomojo', 'issuerid');
+        }
+        if (empty($issuerid)) {
+            debugging("OAuth2 issuer not set and API key is disabled.", DEBUG_DEVELOPER);
             return null;
         }
 
-        $xapikey = generate_api_key($managerUser->id);
-        if (!$xapikey) {
-            debugging("Failed to generate API key for manager user.", DEBUG_DEVELOPER);
+        $issuer = \core\oauth2\api::get_issuer($issuerid);
+        if (!$issuer) {
+            debugging("Unable to load OAuth2 issuer with ID {$issuerid}", DEBUG_DEVELOPER);
             return null;
         }
+
+        try {
+            $client = \core\oauth2\api::get_system_oauth_client($issuer);
+            if (!$client) {
+                debugging("Failed to initialize system OAuth2 client.", DEBUG_DEVELOPER);
+                return null;
+            }
+        } catch (Exception $e) {
+            debugging("OAuth2 client error: " . $e->getMessage(), DEBUG_DEVELOPER);
+            return null;
+        }
+
+        return $client;
     }
-
-    // Set headers and return configured client
-    $headers = [
-        'x-api-key: ' . $xapikey,
-        'Content-Type: application/json'
-    ];
-    $client->setHeader($headers);
-
-    return $client;
-}
-
-function create_manager_user() {
-    global $USER;
-
-    $client = new curl();
-    $url = get_config('topomojo', 'topomojoapiurl') . "/user";
-
-    // Assume the current Moodle user is trusted by TopoMojo
-    $headers = [
-        'Content-Type: application/json'
-        // No x-api-key or Authorization needed
-    ];
-    $client->setHeader($headers);
-
-    $payload = [
-        "id" => "bot-moodle-prod",
-        "name" => "bot-moodle-prod",
-        "scope" => "moodle",
-        "workspaceLimit" => 0,
-        "gamespaceLimit" => 100,
-        "gamespaceMaxMinutes" => 240,
-        "gamespaceCleanupGraceMinutes" => 0,
-        "role" => "administrator",
-        "isAdmin" => true,
-        "isObserver" => true,
-        "isCreator" => true,
-        "isBuilder" => true
-    ];
-
-    $json = json_encode($payload);
-    $client->setopt(['CURLOPT_POSTFIELDS' => $json]);
-
-    $response = $client->post($url, $json);
-    if (!$response || $client->info['http_code'] !== 200) {
-        debugging("Failed to create TopoMojo user (HTTP {$client->info['http_code']})", DEBUG_DEVELOPER);
-        return null;
-    }
-
-    $user = json_decode($response);
-    return $user ?: null;
-}
-
-/**
- * Generates an API key for a given TopoMojo user ID.
- *
- * This function makes a POST request to the TopoMojo API to generate a new API key
- * for the specified user ID.
- *
- * @param string $userid The ID of the user to generate the API key for.
- * @return string|null The generated API key, or null on failure.
- */
-function generate_api_key($userid) {
-    $client = new curl();
-    $url = get_config('topomojo', 'topomojoapiurl') . "/apikey/" . urlencode($userid);
-
-    $headers = [
-        'Content-Type: application/json'
-        // No auth header needed if request is already trusted
-    ];
-    $client->setHeader($headers);
-
-    $response = $client->post($url);
-    if (!$response || $client->info['http_code'] !== 200) {
-        debugging("Failed to generate API key for $userid (HTTP {$client->info['http_code']})", DEBUG_DEVELOPER);
-        return null;
-    }
-
-    $keydata = json_decode($response);
-    return !empty($keydata->value) ? $keydata->value : null;
 }
 
 
@@ -281,21 +225,29 @@ function list_all_active_events($client) {
  * @return array An array of events where the 'managerName is set in the plugin settings.
  * If no events match or if the input is not an array, an empty array is returned.
  */
-function moodle_events($events) {
+function moodle_events($client, $events) {
+    if ($client == null) {
+        debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
+        return;
+    }
+
     $eventsmoodle = [];
     if (!is_array($events)) {
         debugging("no events to parse in eventsmoodle", DEBUG_DEVELOPER);
         return;
     }
     foreach ($events as $event) {
-        $externalManagerName = get_config('topomojo', 'enablemanagername');
-        if ($externalManagerName) {
+        if (get_config('topomojo', 'enablemanagername')) {
             $managername = get_config('topomojo', 'managername');
+             if ($event['managerName'] == $managername) {
+                array_push($eventsmoodle, $event);
+            }
         } else {
-            $managername = 'bot-moodle-prod';
-        }
-        if ($event['managerName'] == $managername) {
-            array_push($eventsmoodle, $event);
+            $userinfo = $client->get_userinfo();
+            $managerId = $userinfo['idnumber'];
+            if ($event['managerId'] == $managerId) {
+                array_push($eventsmoodle, $event);
+            }
         }
     }
     //debugging("found " . count($eventsmoodle) . " events started by moodle", DEBUG_DEVELOPER);
@@ -571,27 +523,36 @@ function get_markdown($client, $id) {
     return $response;
 }
 
-function get_gamespace_limit($client, $managername) {
+function get_gamespace_limit($client) {
 
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
         return;
     }
 
-    // Base URL from configuration and construct endpoint with the term parameter
     $base_url = get_config('topomojo', 'topomojoapiurl');
-    $url = $base_url . "/users?Term=" . urlencode($managername);
 
-    // Set the Authorization header for the request
-    $headers = [
-        'accept: text/plain',
-        'Authorization: Bearer ' . get_config('topomojo', 'apikey')
-    ];
+    if (get_config('topomojo', 'enableapikey') && get_config('topomojo', 'enablemanagername')) {
+        $xapikey = get_config('topomojo', 'apikey');
+        $managername = get_config('topomojo', 'managername');
+
+        $url = $base_url . "/users?Term=" . urlencode($managername);
+
+        // Set the Authorization header for the request
+        $headers = [
+            'accept: text/plain',
+            'Authorization: Bearer ' . get_config('topomojo', 'apikey')
+        ];
+    } else {
+        $userinfo = $client->get_userinfo();
+        $managerId = $userinfo['idnumber'];
+
+        // Base URL from configuration and construct endpoint with the term parameter
+        $url = $base_url . "/user/" . $managerId;
+    }
 
     // Perform the GET request
-    $response = $client->get($url, [
-        'headers' => $headers
-    ]);
+    $response = $client->get($url);
 
     // Decode the JSON response
     $response_data = json_decode($response);
@@ -602,8 +563,8 @@ function get_gamespace_limit($client, $managername) {
         return;
     }
 
-    if (isset($response_data[0]->gamespaceLimit)) {
-        return $response_data[0]->gamespaceLimit;
+    if (isset($response_data->gamespaceLimit)) {
+        return $response_data->gamespaceLimit;
     } else {
         debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
         return null;
@@ -662,6 +623,13 @@ function start_event($client, $id, $topomojo) {
     //print_r($json);
 
     $client->setopt(['CURLOPT_POSTFIELDS' => $json]);
+
+    $headers = [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($json)
+    ];
+
+    $client->setHeader($headers);
 
     $response = $client->post($url, $json);
 
