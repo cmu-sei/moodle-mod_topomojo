@@ -56,13 +56,55 @@ require_once($CFG->libdir . '/questionlib.php');
  * @return curl The configured cURL client instance.
  */
 function setup() {
-        $client = new curl;
+    if (get_config('topomojo', 'enableapikey')) {
+        // Use external API key
         $xapikey = get_config('topomojo', 'apikey');
-        $topoheaders = array('x-api-key: ' . $xapikey, 'content-type: application/json');
-        $client->setHeader($topoheaders);
-        //debugging("api key $xapikey", DEBUG_DEVELOPER);
+
+        if (empty($xapikey)) {
+            debugging("TopoMojo API key is enabled but not set in config.", DEBUG_DEVELOPER);
+            return null;
+        }
+
+        $client = new curl();
+        $headers = [
+            'x-api-key: ' . $xapikey,
+            'Content-Type: application/json'
+        ];
+        $client->setHeader($headers);
+
         return $client;
+
+    } else {
+        // Use OAuth2 system client
+        if (get_config('topomojo', 'enableoauth')) {
+            $issuerid = get_config('topomojo', 'issuerid');
+        }
+        if (empty($issuerid)) {
+            debugging("OAuth2 issuer not set and API key is disabled.", DEBUG_DEVELOPER);
+            return null;
+        }
+
+        $issuer = \core\oauth2\api::get_issuer($issuerid);
+        if (!$issuer) {
+            debugging("Unable to load OAuth2 issuer with ID {$issuerid}", DEBUG_DEVELOPER);
+            return null;
+        }
+
+        try {
+            $client = \core\oauth2\api::get_system_oauth_client($issuer);
+            if (!$client) {
+                debugging("Failed to initialize system OAuth2 client.", DEBUG_DEVELOPER);
+                return null;
+            }
+        } catch (Exception $e) {
+            debugging("OAuth2 client error: " . $e->getMessage(), DEBUG_DEVELOPER);
+            return null;
+        }
+
+        return $client;
+    }
 }
+
 
 /**
  * Retrieves and filters events from the gamespaces endpoint.
@@ -183,16 +225,29 @@ function list_all_active_events($client) {
  * @return array An array of events where the 'managerName is set in the plugin settings.
  * If no events match or if the input is not an array, an empty array is returned.
  */
-function moodle_events($events) {
+function moodle_events($client, $events) {
+    if ($client == null) {
+        debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
+        return;
+    }
+
     $eventsmoodle = [];
     if (!is_array($events)) {
         debugging("no events to parse in eventsmoodle", DEBUG_DEVELOPER);
         return;
     }
     foreach ($events as $event) {
-        $managername = get_config('topomojo', 'managername');
-        if ($event['managerName'] == $managername) {
-            array_push($eventsmoodle, $event);
+        if (get_config('topomojo', 'enablemanagername')) {
+            $managername = get_config('topomojo', 'managername');
+             if ($event['managerName'] == $managername) {
+                array_push($eventsmoodle, $event);
+            }
+        } else {
+            $userinfo = $client->get_userinfo();
+            $managerId = $userinfo['idnumber'];
+            if ($event['managerId'] == $managerId) {
+                array_push($eventsmoodle, $event);
+            }
         }
     }
     //debugging("found " . count($eventsmoodle) . " events started by moodle", DEBUG_DEVELOPER);
@@ -468,27 +523,36 @@ function get_markdown($client, $id) {
     return $response;
 }
 
-function get_gamespace_limit($client, $managername) {
+function get_gamespace_limit($client) {
 
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
         return;
     }
 
-    // Base URL from configuration and construct endpoint with the term parameter
     $base_url = get_config('topomojo', 'topomojoapiurl');
-    $url = $base_url . "/users?Term=" . urlencode($managername);
 
-    // Set the Authorization header for the request
-    $headers = [
-        'accept: text/plain',
-        'Authorization: Bearer ' . get_config('topomojo', 'apikey')
-    ];
+    if (get_config('topomojo', 'enableapikey') && get_config('topomojo', 'enablemanagername')) {
+        $xapikey = get_config('topomojo', 'apikey');
+        $managername = get_config('topomojo', 'managername');
+
+        $url = $base_url . "/users?Term=" . urlencode($managername);
+
+        // Set the Authorization header for the request
+        $headers = [
+            'accept: text/plain',
+            'Authorization: Bearer ' . get_config('topomojo', 'apikey')
+        ];
+    } else {
+        $userinfo = $client->get_userinfo();
+        $managerId = $userinfo['idnumber'];
+
+        // Base URL from configuration and construct endpoint with the term parameter
+        $url = $base_url . "/user/" . $managerId;
+    }
 
     // Perform the GET request
-    $response = $client->get($url, [
-        'headers' => $headers
-    ]);
+    $response = $client->get($url);
 
     // Decode the JSON response
     $response_data = json_decode($response);
@@ -499,8 +563,8 @@ function get_gamespace_limit($client, $managername) {
         return;
     }
 
-    if (isset($response_data[0]->gamespaceLimit)) {
-        return $response_data[0]->gamespaceLimit;
+    if (isset($response_data->gamespaceLimit)) {
+        return $response_data->gamespaceLimit;
     } else {
         debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
         return null;
@@ -559,6 +623,13 @@ function start_event($client, $id, $topomojo) {
     //print_r($json);
 
     $client->setopt(['CURLOPT_POSTFIELDS' => $json]);
+
+    $headers = [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($json)
+    ];
+
+    $client->setHeader($headers);
 
     $response = $client->post($url, $json);
 

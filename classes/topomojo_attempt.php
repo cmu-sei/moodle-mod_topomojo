@@ -505,7 +505,7 @@ class topomojo_attempt {
                 return true;
             } else {
                 // TODO maybe add button to go back
-                print_error("value entered is not in range");
+                debugging("value entered is not in range", DEBUG_DEVELOPER);
             }
         }
 

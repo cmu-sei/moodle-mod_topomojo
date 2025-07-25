@@ -51,6 +51,31 @@ require_once("$CFG->dirroot/tag/lib.php");
 // we are looking at the admin settings pages.
 if ($ADMIN->fulltree) {
     // General settings
+    // Fetch all available OAuth2 issuers.
+    $oauth_options = [];
+    $issuers = \core\oauth2\api::get_all_issuers();
+    if ($issuers) {
+        foreach ($issuers as $issuer) {
+            $oauth_options[$issuer->get('id')] = s($issuer->get('name'));
+        }
+    }
+
+    // Add OAuth issuer setting.
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/enableoauth',
+        get_string('enableoauth', 'topomojo'),
+        get_string('configenableoauth', 'topomojo'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configselect('topomojo/issuerid',
+        get_string('issuerid', 'topomojo'),
+        get_string('configissuerid', 'topomojo'),
+        0,
+        $oauth_options));
+
+    $settings->hide_if('topomojo/issuerid', 'topomojo/enableoauth', 'notchecked', 1);
+
     $options = [get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo')];
     $settings->add(new admin_setting_configselect('topomojo/embed',
         get_string('embed', 'topomojo'), get_string('configembed', 'topomojo'), 1, $options));
@@ -73,11 +98,29 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/topomojobaseurl',
         get_string('topomojobaseurl', 'topomojo'), get_string('configtopomojobaseurl', 'topomojo'), "", PARAM_URL, 60));
 
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/enableapikey',
+        get_string('enableapikey', 'topomojo'),
+        get_string('configenableapikey', 'topomojo'),
+        0
+    ));
+
     $settings->add(new admin_setting_configtext('topomojo/apikey',
         get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
 
+    $settings->hide_if('topomojo/apikey', 'topomojo/enableapikey', 'notchecked', 1);
+
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/enablemanagername',
+        get_string('enablemanagername', 'topomojo'),
+        get_string('configenablemanagername', 'topomojo'),
+        0
+    ));
+
     $settings->add(new admin_setting_configtext('topomojo/managername',
         get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+    
+    $settings->hide_if('topomojo/managername', 'topomojo/enablemanagername', 'notchecked', 1);
     
     $settings->add(new admin_setting_configtext('topomojo/maxattempts', 
         get_string('maxattemptlabel', 'topomojo'), get_string('maxattemptdesc', 'topomojo'), 10, PARAM_INT));
