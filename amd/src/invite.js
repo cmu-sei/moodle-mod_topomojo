@@ -31,29 +31,31 @@ define(['jquery', 'core/config', 'core/log', 'core/modal'], function($, config, 
             if (copyButton) {
                 copyButton.onclick = function() {
                     var textElement = document.getElementById("invitationlinkurl");
-                    // Grab visible text reliably
-                    var text = textElement.innerText || textElement.textContent || textElement.value || '';
-                
+                    var text = textElement?.innerText || textElement?.textContent || textElement?.value || '';
+
+                    var tempInput = document.createElement("input");
+                    tempInput.style.position = "absolute";
+                    tempInput.style.left = "-9999px";
+                    tempInput.value = text;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+
                     try {
                         var successful = document.execCommand('copy');
                         document.body.removeChild(tempInput);
-                
-                        if (successful) {
-                            Modal.create({
-                                title: 'Invitation Link Copied to Clipboard',
-                                body: text,
-                                removeOnClose: true,
-                                show: true
-                            }).catch(function(err) {
-                                log.debug(err);
-                            });
-                        } else {
-                            throw new Error('execCommand copy failed');
-                        }
+
+                        Modal.create({
+                            title: successful ? 'Invitation Link Copied to Clipboard' : 'Please Copy Invitation Link',
+                            body: text,
+                            removeOnClose: true,
+                            show: true
+                        }).catch(function(err) {
+                            log.debug(err);
+                        });
                     } catch (err) {
                         document.body.removeChild(tempInput);
-                        log.debug('Fallback copy method failed:', err);
-                
+                        log.debug('Clipboard copy failed:', err);
+
                         Modal.create({
                             title: 'Please Copy Invitation Link',
                             body: text,
@@ -63,7 +65,7 @@ define(['jquery', 'core/config', 'core/log', 'core/modal'], function($, config, 
                             log.debug(err);
                         });
                     }
-                };                
+                };
             }
 
             var generateButton = document.getElementById('generate_invite');
