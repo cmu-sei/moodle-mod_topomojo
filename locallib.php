@@ -120,7 +120,7 @@ function setup() {
  *
  * @throws moodle_exception If the cURL client is null.
  */
-function list_events($client, $name) {
+function list_events($client, $workspaceid) {
     //debugging("listing events", DEBUG_DEVELOPER);
     if ($client == null) {
         throw new moodle_exception('error with userauth');
@@ -128,10 +128,7 @@ function list_events($client, $name) {
     }
 
     // Web request
-    //echo $name . "<br>";
-    //$url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode("Wireless") . "&Filter=all";
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($name) . "&WantsActive=true";
-    //echo "GET $url<br>";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($workspaceid) . "&WantsActive=true";
 
     $response = $client->get($url);
 
@@ -153,8 +150,8 @@ function list_events($client, $name) {
     $matches = [];
     foreach ($r as $event) {
         // Filter by name
-        $name = preg_replace('/ - \d+$/', '', $name); ///CHECK THIS - 0 IS BEING ADDED TO THE NAME DON'T KNOW WHY
-        if (($event['name'] === $name) && ($event['isActive'])) {
+        // $name = preg_replace('/ - \d+$/', '', $name); ///CHECK THIS - 0 IS BEING ADDED TO THE NAME DON'T KNOW WHY
+        if (($event['workspaceId'] === $workspaceid) && ($event['isActive'])) {
             array_push($matches, $event);
         }
     }
@@ -555,7 +552,7 @@ function get_gamespace_limit($client) {
     $response = $client->get($url);
 
     // Decode the JSON response
-    $response_data = json_decode($response);
+    $response_data = json_decode($response, true);
 
     // Check if decoding was successful
     if (!$response_data) {
@@ -563,8 +560,8 @@ function get_gamespace_limit($client) {
         return;
     }
 
-    if (isset($response_data->gamespaceLimit)) {
-        return $response_data->gamespaceLimit;
+    if (isset($response_data[0]['gamespaceLimit'])) {
+        return $response_data[0]['gamespaceLimit'];
     } else {
         debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
         return null;
