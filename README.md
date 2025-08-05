@@ -56,6 +56,10 @@ Access configurable global settings in Moodle by navigating to **Site Administra
 
 #### General Settings
 
+**Enable Oauth2 System Account:** Enables the use of the Oauth2 system account for integration with Topomojo. This will remove the requirement of apikeys.
+
+**Issuer Id:** Oauth2 Issuer ID for Applications. Select the desired issuer to be used from the dropdown.
+
 **Display Mode:** Determines how labs will be displayed in Moodle.
 
 - *Embed Lab inside Moodle:* The lab will appear embedded within a Moodle activity page. This is the default.
@@ -67,7 +71,7 @@ Access configurable global settings in Moodle by navigating to **Site Administra
 - *Searchable:* Enables a search box for quickly finding workspaces. This is the default.
 - *Manual:* Requires manual entry of a workspace ID.
 
-**Filter Workspaces:** Enables filtering of available workspaces based on audience tags. The default is **No**. When enabled, an additional option, the  **Audience Filter** becomes available. 
+**Filter Workspaces:** Enables filtering of available workspaces based on audience tags. The default is **No**. When enabled, an additional option, the  **Audience Filter** becomes available.
 
 **Audience Filter:** Enter the tag or audience criteria for filtering workspaces.
 
@@ -79,11 +83,15 @@ By default, all of these fields are empty and should be completed during the set
 
 **TopoMojo Base URL:** The base URL of the TopoMojo server used for linking and embedding (e.g., `https://topomojo.example.com`).
 
+**Enable External API Key:** If the use of the Oauth2 system account is not desired, check this option to enable the use of an API key.
+
 **API Key:** The authentication key required for secure communication between Moodle and TopoMojo. This key is issued by the TopoMojo administrator.
+
+**Enable External Manager User:** If the use of the Oauth2 system account is not desired, check this option to set the manager name that holds the API key set.
 
 **Manager Name:** Specifies the manager name used for identifying the TopoMojo API integration instance.
 
-![general settings](img/general-settings.png)
+![general settings](img/general-settings-v2.png)
 
 #### Limits and Constraints
 
