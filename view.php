@@ -96,7 +96,7 @@ $pagevars['pageurl'] = $pageurl;
 $object = new topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 // Get current state of workspace
-$allevents = list_events(client: $object->userauth, name: $object->topomojo->name);
+$allevents = list_events($object->userauth, $object->topomojo->workspaceid);
 $eventsmoodle = moodle_events($object->userauth, events: $allevents);
 $history = user_events($object->userauth, events: $eventsmoodle);
 $object->event = get_active_event($history);
@@ -153,7 +153,7 @@ if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
 $gamespacelimit = get_gamespace_limit($object->userauth);
 
 //Getting all active events without filters
-$allActiveEvents = list_all_active_events($object->userauth) ?? [];
+$allActiveEvents = list_all_active_events($object->userauth);
 $all_active_current_deployed_count = count($allActiveEvents);
 
 //Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
