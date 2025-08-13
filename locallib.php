@@ -128,7 +128,7 @@ function list_events($client, $workspaceid) {
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . rawurlencode($workspaceid) . "&WantsActive=true";
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . $workspaceid . "&WantsActive=true";
 
     $response = $client->get($url);
 
