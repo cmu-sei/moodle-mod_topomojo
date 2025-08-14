@@ -96,7 +96,7 @@ $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 // Get current state of workspace
-$allevents = list_events($object->userauth, $object->topomojo->name); // events for workspace
+$allevents = list_events($object->userauth, $object->topomojo->workspaceid); // events for workspace
 $eventsmoodle = moodle_events($object->userauth, $allevents); // events for moodle bot
 $history = user_events($object->userauth, $eventsmoodle); // events for this user
 $object->event = get_active_event($history);
