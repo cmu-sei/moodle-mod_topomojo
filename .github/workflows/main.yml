@@ -47,11 +47,13 @@ jobs:
                   NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
               fi
               sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" topomojo/version.php
+              cd ./topomojo
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
-              git add topomojo/version.php
+              git add version.php
               git commit -m "Updating version to $NEWVERSION"
               git push
+              cd ..
           fi
           zip -r mod_topomojo_$NEWVERSION.zip topomojo/ -x  "topomojo/*.git*"
           echo "artifact_version=$NEWVERSION" >> $GITHUB_ENV
