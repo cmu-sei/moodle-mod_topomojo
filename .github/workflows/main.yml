@@ -31,11 +31,28 @@ jobs:
       
       - name: package
         run: |
-          NEWVERSION=$(grep "plugin->version" topomojo/version.php | sed -e "s/.*= \(.*\);.*/\1/")
+          OLDRELEASE=${{ steps.topomojo.outputs.release }}
+          PREVIOUSVERSION=$(grep "plugin->version" topomojo/version.php | sed -e "s/.*= \(.*\);.*/\1/")
+          if [ $OLDRELEASE -ne $PREVIOUSVERSION ];
+              NEWVERSION=$PREVIOUSVERSION
+          else
+              OLDDATE=`echo $PREVIOUSVERSION | cut -b 1-8`
+              NEWDATE=`date +%Y%m%d`
+              if [ $OLDDATE -ne $NEWDATE ]; then
+                  NEWVERSION=$NEWDATE\00
+              else
+                  OLDVERS=`echo $PREVIOUSVERSION | cut -b 9-10`
+                  OLDVERS=${OLDVERS#0}
+                  let NEWVERS=(OLDVERS + 1)
+                  NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
+              fi
+              sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" topomojo/version.php
+              git add topomojo/version.php
+              git commit -m "Updating version to $NEWVERSION"
+          fi
           zip -r mod_topomojo_$NEWVERSION.zip topomojo/ -x  "topomojo/*.git*"
           echo "artifact_version=$NEWVERSION" >> $GITHUB_ENV
           echo "artifact_name=mod_topomojo_$NEWVERSION" >> $GITHUB_ENV
-          
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
