@@ -31,19 +31,7 @@ jobs:
       
       - name: package
         run: |
-          OLDVERSION=${{ steps.topomojo.outputs.release }}
-          OLDDATE=`echo $OLDVERSION | cut -b 1-8`
-          NEWDATE=`date +%Y%m%d`
-          if [ $OLDDATE -ne $NEWDATE ]; then
-              NEWVERSION=$NEWDATE\01
-          else
-              OLDVERS=`echo $OLDVERSION | cut -b 9-10`
-              OLDVERS=${OLDVERS#0}
-              let NEWVERS=(OLDVERS + 1)
-              NEWVERSION=$OLDDATE`printf %02d $NEWVERS`
-          fi
-          PREVIOUSVERSION=$(grep "plugin->version" topomojo/version.php | sed -e "s/.*= \(.*\);.*/\1/")
-          sed -i "s#$PREVIOUSVERSION#$NEWVERSION#" topomojo/version.php
+          NEWVERSION=$(grep "plugin->version" topomojo/version.php | sed -e "s/.*= \(.*\);.*/\1/")
           zip -r mod_topomojo_$NEWVERSION.zip topomojo/ -x  "topomojo/*.git*"
           echo "artifact_version=$NEWVERSION" >> $GITHUB_ENV
           echo "artifact_name=mod_topomojo_$NEWVERSION" >> $GITHUB_ENV
