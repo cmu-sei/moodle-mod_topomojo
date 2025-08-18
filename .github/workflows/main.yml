@@ -33,7 +33,7 @@ jobs:
         run: |
           OLDRELEASE=${{ steps.topomojo.outputs.release }}
           PREVIOUSVERSION=$(grep "plugin->version" topomojo/version.php | sed -e "s/.*= \(.*\);.*/\1/")
-          if [ $OLDRELEASE -ne $PREVIOUSVERSION ];
+          if [ $OLDRELEASE -ne $PREVIOUSVERSION ]; then
               NEWVERSION=$PREVIOUSVERSION
           else
               OLDDATE=`echo $PREVIOUSVERSION | cut -b 1-8`
