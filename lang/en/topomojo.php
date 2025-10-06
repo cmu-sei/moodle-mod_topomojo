@@ -295,3 +295,5 @@ $string['attemptsdeleted'] = 'All attempts and grades have been deleted.';
 $string['messageprovider:notification'] = 'TopoMojo question mismatch notification';
 $string['questionsynced'] = 'The question list has been successfully updated to match TopoMojo.';
 $string['questionaddfailed'] = 'Failed to update the question list.';
+$string['task_rotate_labofday'] = 'Rotate “Lab of the Day” link';
+
