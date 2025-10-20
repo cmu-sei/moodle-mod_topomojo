@@ -255,11 +255,16 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'topomojo'), $license_options);
         $mform->setType('contentlicense', PARAM_TEXT);
         $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
-        
+
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'topomojo'));
         //$mform->setType('showcontentlicense', PARAM_BOOL);
         //$mform->setDefault('showcontentlicense', 0);
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'topomojo');
+
+        $mform->addElement('advcheckbox', 'isfeatured', get_string('featuredlab', 'mod_topomojo'));
+        $mform->setType('isfeatured', PARAM_BOOL);
+        $mform->setDefault('isfeatured', 0);
+        $mform->addHelpButton('isfeatured', 'featuredlab', 'mod_topomojo');
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 

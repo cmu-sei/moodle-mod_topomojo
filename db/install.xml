@@ -40,6 +40,7 @@
         <FIELD NAME="submissions" TYPE="int" LENGTH="6" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The maximum number of challenge submissions a student is allowed."/>
         <FIELD NAME="contentlicense" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="License information for content in TopoMojo"/>
         <FIELD NAME="showcontentlicense" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether to show the content license (1 = show, 0 = hide)"/>
+        <FIELD NAME="isfeatured" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" COMMENT="1 if this activity is the Featured Lab"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

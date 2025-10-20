@@ -132,9 +132,15 @@ function topomojo_add_instance($topomojo, $mform) {
     $topomojo->created = time();
     $topomojo->grade = 100; // Default
     $topomojo->id = $DB->insert_record('topomojo', $topomojo);
+    $topomojo->isfeatured = empty($topomojo->isfeatured) ? 0 : 1;
 
     // Do the processing required after an add or an update.
     topomojo_after_add_or_update($topomojo);
+
+    // If this one is featured, clear the flag on all others (single featured at a time).
+    if (!empty($topomojo->isfeatured)) {
+        $DB->execute("UPDATE {topomojo} SET isfeatured = 0 WHERE id <> ?", [$topomojo->id]);
+    }
 
     return $topomojo->id;
 }
@@ -163,10 +169,16 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
 
     // Update the database.
     $topomojo->id = $topomojo->instance;
+    $topomojo->isfeatured = empty($topomojo->isfeatured) ? 0 : 1;
     $DB->update_record('topomojo', $topomojo);
 
     // Do the processing required after an add or an update.
     topomojo_after_add_or_update($topomojo);
+
+    // If this one is featured, clear the flag on all others.
+    if (!empty($topomojo->isfeatured)) {
+        $DB->execute("UPDATE {topomojo} SET isfeatured = 0 WHERE id <> ?", [$topomojo->id]);
+    }
 
     // Do the processing required after an add or an update.
     return true;
@@ -583,4 +595,5 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
                 navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));
         $context->add_node($node, $beforekey);
     }
+
 }

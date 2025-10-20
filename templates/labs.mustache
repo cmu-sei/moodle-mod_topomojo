@@ -1,0 +1,76 @@
+{{! Flat card list with course label inside each card }}
+
+<div style="margin:16px 0;border:1px solid #e5e7eb;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(2,6,23,.06);overflow:hidden;">
+  <div style="display:flex;align-items:center;gap:12px;padding:16px;background:linear-gradient(135deg,#dbeafe,#f8fafc);border-bottom:1px solid #dbeafe;">
+    <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#60a5fa,#2563eb);display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:22px;color:#fff;">🎮</span>
+    </div>
+    <div>
+      <div style="font-size:22px;font-weight:800;color:#0f172a;">{{title}}</div>
+    </div>
+  </div>
+
+  <div style="padding:18px;background:#f8fafc;">
+    {{#hascards}}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(560px,1fr));gap:16px;">
+        {{#cards}}
+          <div style="border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 6px 14px rgba(2,6,23,.05);padding:16px;display:flex;gap:12px;">
+            <!-- icon -->
+            <div style="width:42px;height:42px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
+              <img src="{{iconurl}}" alt="" style="width:24px;height:24px;">
+            </div>
+
+            <!-- body -->
+            <div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;">
+              <!-- lab title -->
+              <div style="font-weight:800;line-height:1.25;margin-bottom:6px;">
+                <a href="{{url}}" style="color:#1d4ed8;text-decoration:none;">{{name}}</a>
+              </div>
+
+              <!-- course pill (icon + name inside) -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <a href="{{courseurl}}" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#0f172a;text-decoration:none;background:#e2e8f0;border:1px solid #cbd5e1;border-radius:999px;padding:4px 10px;">
+                  <span style="font-size:12px;">🎓</span>
+                  <span>{{coursename}}</span>
+                </a>
+              </div>
+
+              <!-- tags -->
+              {{#hastags}}
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;">
+                  {{#tags}}
+                    <span style="font-size:12px;line-height:1.35;color:#334155;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;padding:6px 10px;display:inline-block;">
+                      📌 {{name}}
+                    </span>
+                  {{/tags}}
+                </div>
+              {{/hastags}}
+
+              <!-- competencies -->
+              {{#hascompetencies}}
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;">
+                  {{#competencies}}
+                    <span style="font-size:12px;line-height:1.35;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;padding:6px 10px;display:inline-block;">
+                      🎯 {{name}}
+                    </span>
+                  {{/competencies}}
+                </div>
+              {{/hascompetencies}}
+
+              <!-- View button (compact) -->
+              <div style="margin-top:auto;padding-top:8px;">
+                <a href="{{url}}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;border:1px solid #c7d2fe;background:#eef2ff;color:#1e40af;">
+                  ▶ View Lab
+                </a>
+              </div>
+            </div>
+          </div>
+        {{/cards}}
+      </div>
+    {{/hascards}}
+
+    {{^hascards}}
+      <div style="padding:16px;color:#64748b;">{{#str}} noactivitiesmapped, mod_topomojo {{/str}}</div>
+    {{/hascards}}
+  </div>
+</div>

@@ -297,3 +297,20 @@ $string['questionsynced'] = 'The question list has been successfully updated to 
 $string['questionaddfailed'] = 'Failed to update the question list.';
 $string['task_rotate_labofday'] = 'Rotate “Lab of the Day” link';
 
+// Labs Display
+$string['labslist']     = 'All TopoMojo Labs';
+$string['col_course']   = 'Course';
+$string['col_activity'] = 'Activity';
+$string['nolabs']       = 'No TopoMojo activities found.';
+
+// TopoMojo Middle Page
+$string['topomojo']     = 'TopoMojo';
+$string['topomojo_viewall'] = 'View all TopoMojo Labs';
+$string['topomojo_viewall_desc'] = 'Browse all TopoMojo labs across the site.';
+$string['topomojo_lod'] = 'Lab of the Day';
+$string['topomojo_lod_desc'] = 'See today’s featured lab.';
+
+// Lab of Day
+$string['featuredlab'] = 'Lab of the Day';
+$string['viewcourse'] = 'View course';
+
