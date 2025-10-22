@@ -493,30 +493,28 @@ function get_gamespace_challenge($client, $id) {
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
 function get_markdown($client, $id) {
-    global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
     $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
-    //echo "GET $url<br>";
-
     $response = $client->get($url);
 
-    // TODO handle network error
-
-    if ($client->info['http_code'] !== 200) {
-        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        //print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
-        throw new moodle_exception($client->info['http_code'] . " for $url");
+    if ($client->info['http_code'] !== 200 || $response === false) {
+        throw new moodle_exception(($client->info['http_code'] ?? '0') . " for $url");
     }
 
-    if (!$response) {
-        debugging('no response received by get_document', DEBUG_DEVELOPER);
+    $ctype = $client->info['content_type'] ?? '';
+
+    // Case 1: server returns JSON (either a bare JSON string, or an object with a field)
+    if (stripos($ctype, 'application/json') !== false) {
+        $decoded = json_decode($response, true);
+        if (is_string($decoded)) {
+            return $decoded;
+        }
     }
 
+    // Case 2: plain text response
     return $response;
 }
 
