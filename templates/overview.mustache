@@ -1,0 +1,81 @@
+<div style="margin:16px 0;border:1px solid #e5e7eb;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(2,6,23,.06);overflow:hidden;">
+
+  <div style="display:flex;align-items:center;gap:12px;padding:16px;background:linear-gradient(135deg,#dbeafe,#f8fafc);border-bottom:1px solid #dbeafe;">
+    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#60a5fa,#2563eb);display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:22px;color:#fff;">🎮</span>
+    </div>
+    <div>
+      <div style="font-size:24px;font-weight:800;color:#0f172a;">{{#str}} topomojo, mod_topomojo {{/str}}</div>
+    </div>
+  </div>
+
+  <!-- Headings + Bullets -->
+  <div style="padding:16px 18px 4px;font-size:15px;line-height:1.6;color:#334155;">
+    <h3 style="margin:0 0 6px;font-size:16px;color:#0f172a;">Overview</h3>
+    <p style="margin:0 0 12px;">
+      TopoMojo is the platform behind IMCITE's hands-on cybersecurity labs. Instructors build labs in <em>workspaces</em>; when you launch from Moodle you get an isolated <em>gamespace</em>, so nothing you do changes the original.
+    </p>
+
+    <h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">On this page</h3>
+    <ul style="margin:0 0 12px 18px;padding:0;">
+      <li><strong>View all TopoMojo Labs</strong> to browse everything you have access to.</li>
+      <li>Jump into the rotating <strong>Lab of the Day</strong> for a quick, curated pick.</li>
+      <li>Open a lab’s Moodle activity and click <strong>Launch Lab</strong> to start your gamespace and follow the built-in guide.</li>
+    </ul>
+
+    <h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">While in a lab</h3>
+    <ul style="margin:0 0 12px 18px;padding:0;">
+      <li><strong>Timer</strong> counts down your session; use <strong>Extend Lab</strong> if enabled.</li>
+      <li><strong>End Lab</strong> cleanly shuts the lab down when you’re finished.</li>
+      <li><strong>Generate Invite</strong> lets a collaborator join your current run.</li>
+      <li>The <strong>Challenge</strong> tab contains graded questions; <strong>Review Activity Attempts</strong> shows history and scores.</li>
+    </ul>
+
+    <h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">Tips</h3>
+    <ul style="margin:0 8px 0 18px;padding:0;">
+      <li>Read the guide first to understand the topology and goals.</li>
+      <li>Watch the timer and extend before it hits zero (if allowed).</li>
+      <li>End the lab when finished to free resources.</li>
+    </ul>
+  </div>
+
+  <div style="padding:18px;background:#f8fafc;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;align-items:stretch;">
+
+      <a href="{{all_url}}" style="text-decoration:none;color:inherit;">
+        <div style="height:100%;display:flex;gap:14px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;box-shadow:0 8px 20px rgba(2,6,23,.05);padding:18px;">
+          <div style="flex:0 0 auto;width:56px;height:56px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:center;">
+            <img src="{{icon}}" alt="{{#str}} topomojo, mod_topomojo {{/str}}" style="width:28px;height:28px;">
+          </div>
+          <div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;">
+            <div style="font-size:22px;font-weight:800;color:#0f172a;line-height:1.25;">{{#str}} topomojo_viewall, mod_topomojo {{/str}}</div>
+            <div style="margin-top:6px;font-size:15px;color:#334155;">{{#str}} topomojo_viewall_desc, mod_topomojo {{/str}}</div>
+            <div style="margin-top:auto;padding-top:12px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px;line-height:1;background:#1d4ed8;border:1px solid #1d4ed8;color:#fff;">
+                ▶ {{#str}} view {{/str}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="{{lod_url}}" style="text-decoration:none;color:inherit;">
+        <div style="height:100%;display:flex;gap:14px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;box-shadow:0 8px 20px rgba(2,6,23,.05);padding:18px;">
+          <div style="flex:0 0 auto;width:56px;height:56px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:center;">
+            <img src="{{icon}}" alt="{{#str}} topomojo, mod_topomojo {{/str}}" style="width:28px;height:28px;">
+          </div>
+          <div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;">
+            <div style="font-size:22px;font-weight:800;color:#0f172a;line-height:1.25;">{{#str}} topomojo_lod, mod_topomojo {{/str}}</div>
+            <div style="margin-top:6px;font-size:15px;color:#334155;">{{#str}} topomojo_lod_desc, mod_topomojo {{/str}}</div>
+            <div style="margin-top:auto;padding-top:12px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-weight:700;font-size:13px;line-height:1;background:#1d4ed8;border:1px solid #1d4ed8;color:#fff;">
+                ▶ {{#str}} view {{/str}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>
