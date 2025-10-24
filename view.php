@@ -357,14 +357,16 @@ if ($object->event) {
                 if (is_array($vm)) {
                     if ($vm['isVisible']) {
                         $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                "/mks/?f=1&s=" . $vm['isolationId'] . "&v=" . $vm['name'];
+                            "/c?name=" . rawurlencode($vm['name']) .
+                            "&sessionId=" . rawurlencode($vm['isolationId']);
                         $vmdata['name'] = $vm['name'];
                         array_push($vmlist, $vmdata);
                     }
                 } else {
                     if ($vm->isVisible) {
                         $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                                "/mks/?f=1&s=" . $vm->isolationId . "&v=" . $vm->name;
+                            "/c?name=" . rawurlencode($vm->name) .
+                            "&sessionId=" . rawurlencode($vm->isolationId);
                         $vmdata['name'] = $vm->name;
                         array_push($vmlist, $vmdata);
                     }
