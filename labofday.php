@@ -13,8 +13,6 @@ $PAGE->set_title(get_string('featuredlab', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
 // Breadcrumbs
-$PAGE->navbar->ignore_active(true);
-$PAGE->navbar->add(get_string('home'), new moodle_url('/'));
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->navbar->add(get_string('featuredlab', 'mod_topomojo'), $PAGE->url);
 

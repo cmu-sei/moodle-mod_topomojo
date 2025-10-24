@@ -11,7 +11,6 @@ $PAGE->set_title(get_string('topomojo', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
 // Breadcrumbs: Home / TopoMojo.
-$PAGE->navbar->add(get_string('home'), new moodle_url('/'));
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), $PAGE->url);
 
 $context = [
