@@ -151,6 +151,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
         // TODO remove ability to edit the description and just show the select and dropdown
         // $mform->removeElement('introeditor');
         $mform->addElement('header', 'general', get_string('general', 'form'));
+        $mform->addElement('text', 'name', get_string('name'));
+        $mform->setType('name', PARAM_TEXT);
+        $mform->addRule('name', null, 'required', null, 'client');
+
 
         if ($topomojoconfig->autocomplete < 2) {
             // Pull list from topomojo.
@@ -605,7 +609,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $selectedworkspace = null;
         if (is_array($this->workspaces)) {
             $selectedworkspace = array_search($data->workspaceid, array_column($this->workspaces, 'id'), true);
-            $data->name = $this->workspaces[$selectedworkspace]->name;
+            // If there is no user-provided name, seed it from TopoMojo.
+            if (empty($this->current->instance) && empty($data->name)) {
+                $data->name = $this->workspaces[$selectedworkspace]->name;
+            }
             // TODO make a setting to determine whether we pull this from topomojo or set it in moodle
             if ($usetopomojointro) {
                 $description = $this->workspaces[$selectedworkspace]->description;
