@@ -353,24 +353,29 @@ if ($object->event) {
             $jsoptions = ['id' => $object->event->id];
             $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
 
+            $baseurl = get_config('topomojo', 'topomojobaseurl');
+            $usecf  = (int) get_config('topomojo', 'usingconsoleforge');
+
+            $vmlist = [];
             foreach ($object->event->vms as $vm) {
-                if (is_array($vm)) {
-                    if ($vm['isVisible']) {
-                        $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                            "/c?name=" . rawurlencode($vm['name']) .
-                            "&sessionId=" . rawurlencode($vm['isolationId']);
-                        $vmdata['name'] = $vm['name'];
-                        array_push($vmlist, $vmdata);
-                    }
+                $isVisible   = is_array($vm) ? $vm['isVisible']   : $vm->isVisible;
+                if (!$isVisible) { continue; }
+
+                $name        = is_array($vm) ? $vm['name']        : $vm->name;
+                $isolationId = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
+
+                if ($usecf) {
+                    // ConsoleForge-style
+                    $vmdata['url'] = $baseurl . '/c?name=' . rawurlencode($name)
+                                            . '&sessionId=' . rawurlencode($isolationId);
                 } else {
-                    if ($vm->isVisible) {
-                        $vmdata['url'] = get_config('topomojo', 'topomojobaseurl') .
-                            "/c?name=" . rawurlencode($vm->name) .
-                            "&sessionId=" . rawurlencode($vm->isolationId);
-                        $vmdata['name'] = $vm->name;
-                        array_push($vmlist, $vmdata);
-                    }
+                    // Legacy /mks style
+                    $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationId)
+                                            . '&v=' . rawurlencode($name);
                 }
+
+                $vmdata['name'] = $name;
+                $vmlist[] = $vmdata;
             }
 
             $renderer->display_embed_page($object->event->markdown, $vmlist);

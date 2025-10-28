@@ -99,6 +99,13 @@ if ($ADMIN->fulltree) {
         get_string('topomojobaseurl', 'topomojo'), get_string('configtopomojobaseurl', 'topomojo'), "", PARAM_URL, 60));
 
     $settings->add(new admin_setting_configcheckbox(
+        'topomojo/usingconsoleforge',
+        get_string('usingconsoleforge', 'topomojo'),
+        get_string('configusingconsoleforge', 'topomojo'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
         'topomojo/enableapikey',
         get_string('enableapikey', 'topomojo'),
         get_string('configenableapikey', 'topomojo'),

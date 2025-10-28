@@ -315,3 +315,5 @@ $string['featuredlab'] = 'Lab of the Day';
 $string['viewcourse'] = 'View course';
 $string['noactivitiesmapped'] = 'No activities were found on the site.';
 
+$string['usingconsoleforge'] = 'Using ConsoleForge?';
+$string['configusingconsoleforge'] = 'Enable if you are using a new version of TopoMojo.';
