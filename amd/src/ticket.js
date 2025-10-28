@@ -49,10 +49,16 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                             },
                             success: function(result) {
                                 var ticket = result.ticket;
-                                // Console.log('got ticket ' + ticket);
-                                var url = button.id + '&t=' + ticket;
-                                // Console.log("opening url: " + url);
-                                window.open(url, "_blank");
+                                var baseUrl = button.id;
+                                var urlWithTicket;
+
+                                if (baseUrl.indexOf('/mks/') !== -1) {
+                                    urlWithTicket = baseUrl + '&t=' + encodeURIComponent(ticket);
+                                } else {
+                                    urlWithTicket = baseUrl + '&token=' + encodeURIComponent(ticket);
+                                }
+
+                                window.open(urlWithTicket, '_blank');
                             },
                             error: function(request) {
                                 log.debug('moodle-mod_topomojo-generate_ticket: ' + request);
