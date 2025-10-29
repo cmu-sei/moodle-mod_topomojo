@@ -912,7 +912,10 @@ class questionmanager {
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
         $currentquestions = $this->get_questions();
 
-         // Step 1: Get questions from topomojo
+        $added_count = 0;
+        $failed_count = 0;
+
+        // Step 1: Get questions from topomojo
         $expected_questiontexts = [];
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
@@ -929,10 +932,10 @@ class questionmanager {
             if ($q->qtype !== "mojomatch") {
                 continue;
             }
-        
+
             $cleantext = trim(strip_tags($q->questiontext));
             $questionid = $q->id;
-        
+
             // Check if question text exists in TopoMojo
             if (!in_array($cleantext, $expected_questiontexts)) {
                 $mismatched_questions[] = $q->name;
@@ -941,7 +944,7 @@ class questionmanager {
                 question_delete_question($questionid);
                 continue;
             }
-        
+
             // Get answer from topomojo
             $expected_answer = null;
             foreach ($challenge->variants[$variant]->sections as $section) {
@@ -956,7 +959,7 @@ class questionmanager {
             // Get answer from moodle db and compare it with topomojo, if they do not match, delete question
             if ($expected_answer !== null) {
                 $storedanswer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
-        
+
                 if (trim($storedanswer) !== $expected_answer) {
                     $mismatched_questions[] = $q->name;
                     $deleted_questiontexts[] = $cleantext;
@@ -965,8 +968,8 @@ class questionmanager {
                     question_delete_question($questionid);
                 }
             }
-        }        
-        
+        }
+
         if (!empty($mismatched_questions) || empty($currentquestions)) {
             $questionnumber = 0;
             $type = 'info';
@@ -1068,11 +1071,12 @@ class questionmanager {
                         $questionid = $newq->id;
                         debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
+
                     if ($questionid && $addtoquiz) {
                         $ok = $this->add_question($questionid);
 
                         if ($ok === true) {
-                            \core\notification::success(get_string('questionsynced', 'topomojo'));
+                            $added_count++;
                         } else {
                             $exists = $DB->record_exists('topomojo_questions', [
                                 'topomojoid' => $this->object->topomojo->id,
@@ -1081,9 +1085,9 @@ class questionmanager {
 
                             if ($exists) {
                                 debugging("add_question() returned false but the linkage exists; suppressing failure toast.", DEBUG_DEVELOPER);
-                                \core\notification::success(get_string('questionsynced', 'topomojo'));
+                                $added_count++;
                             } else {
-                                \core\notification::error(get_string('questionaddfailed', 'topomojo'));
+                                $failed_count++;
                             }
                         }
                     }
@@ -1092,7 +1096,15 @@ class questionmanager {
                     $this->renderer->setMessage($type, $message);
                 }
             }
-            }        
+
+            // Show summary message after all questions are processed
+            if ($added_count > 0) {
+                \core\notification::success(get_string('questionsynced', 'topomojo', $added_count));
+            }
+            if ($failed_count > 0) {
+                \core\notification::error(get_string('questionaddfailed', 'topomojo', $failed_count));
+            }
+        }
     }
 
     public function notify_instructors_of_mismatch($cm, $activityname) {
