@@ -88,3 +88,7 @@
     0% { transform: rotate(0deg);}
     100% { transform: rotate(360deg);}
 }
+
+.clearfix::after,
+.clearfix::before { content: none !important; display: none !important; }
+.clearfix { clear: none !important; }

@@ -1068,14 +1068,24 @@ class questionmanager {
                         $questionid = $newq->id;
                         debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
-                    if (!$qexists && $questionid && $addtoquiz) {
-                        // attempt to add question to topomojo quiz
-                        if ($this->add_question($questionid)) {
+                    if ($questionid && $addtoquiz) {
+                        $ok = $this->add_question($questionid);
+
+                        if ($ok === true) {
                             \core\notification::success(get_string('questionsynced', 'topomojo'));
                         } else {
-                            debugging("Could not add new mojomatch question with id $questionid to the db - it may be present already", DEBUG_DEVELOPER);
-                            \core\notification::error(get_string('questionaddfailed', 'topomojo'));
-                        }                        
+                            $exists = $DB->record_exists('topomojo_questions', [
+                                'topomojoid' => $this->object->topomojo->id,
+                                'questionid' => $questionid
+                            ]);
+
+                            if ($exists) {
+                                debugging("add_question() returned false but the linkage exists; suppressing failure toast.", DEBUG_DEVELOPER);
+                                \core\notification::success(get_string('questionsynced', 'topomojo'));
+                            } else {
+                                \core\notification::error(get_string('questionaddfailed', 'topomojo'));
+                            }
+                        }
                     }
                 }
                 if ($message) {
