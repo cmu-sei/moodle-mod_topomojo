@@ -88,8 +88,3 @@
     0% { transform: rotate(0deg);}
     100% { transform: rotate(360deg);}
 }
-
-.qtext > .clearfix::before,
-.qtext > .clearfix::after { content: none !important; display: none !important; }
-
-.qtext > .clearfix { clear: none !important; }
