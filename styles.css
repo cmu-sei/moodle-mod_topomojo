@@ -89,6 +89,7 @@
     100% { transform: rotate(360deg);}
 }
 
-.clearfix::after,
-.clearfix::before { content: none !important; display: none !important; }
-.clearfix { clear: none !important; }
+.qtext > .clearfix::before,
+.qtext > .clearfix::after { content: none !important; display: none !important; }
+
+.qtext > .clearfix { clear: none !important; }
