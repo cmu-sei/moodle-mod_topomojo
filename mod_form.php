@@ -634,7 +634,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             if ($challenge) {
                 $variants = count($challenge->variants);
             } else {
-                throw new moodle_exception('The Challenge object could not be found on TopoMojo Worspace');
+                throw new moodle_exception('The Challenge object could not be found on TopoMojo Workspace');
             }
 
             if ($data->variant == 0) {
