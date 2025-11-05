@@ -361,7 +361,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
-	// TODO if we have mutiple tries, should this be set to interactive with multiple tries?
+        // TODO if we have mutiple tries, should this be set to interactive with multiple tries?
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
@@ -625,28 +625,34 @@ class mod_topomojo_mod_form extends moodleform_mod {
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
+            if (!empty($data->extendevent) && $data->clock != 1) {
+                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+            }
+
             // Check that variant is valid
             $challenge = get_challenge($this->auth, $this->workspaces[$selectedworkspace]->id);
             if ($challenge) {
                 $variants = count($challenge->variants);
             } else {
-                $variants = 1;
-            }
-
-
-            if (!empty($data->extendevent) && $data->clock != 1) {
-                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+                throw new moodle_exception('The Challenge object could not be found on TopoMojo Worspace');
             }
 
             if ($data->variant == 0) {
-                throw new moodle_exception("random variants are not suppored.");
+                throw new moodle_exception("random variants are not supported at this time");
+            } else if ($data->variant < 0) {
+                throw new moodle_exception("variant cannot be negative");
+            } else if (($variants == 0) && ($data->variant != 1)) {
+                throw new moodle_exception("lab does not have variants configured - you must use variant 1");
+                debugging("no variants configured in workspace challenge - setting to variant 1", DEBUG_DEVELOPER);
+            } else if ((($variants == 0) && ($data->variant == 1))) {
+                debugging("no variants configured in workspace challenge - using variant 1", DEBUG_DEVELOPER);
             } else if ($data->variant > $variants) {
                 throw new moodle_exception("lab does not have variant number " . $data->variant);
             }
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
-            $data->name = "Unknown lab";
+            $data->name = "Unknown Lab";
             if ($usetopomojointro) {
                 $data->intro = "No description available";
                 $data->introeditor['format'] = FORMAT_PLAIN;

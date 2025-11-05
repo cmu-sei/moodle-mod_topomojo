@@ -312,6 +312,7 @@ $string['topomojo_lod_desc'] = 'See today’s featured lab.';
 
 // Lab of Day
 $string['featuredlab'] = 'Lab of the Day';
+$string['featuredlab_help'] = 'Make this activity available to the "Lab of the Day" feature';
 $string['viewcourse'] = 'View course';
 $string['noactivitiesmapped'] = 'No activities were found on the site.';
 
