@@ -270,7 +270,8 @@ if ($object->event) {
     }
     $eventid = $object->event->id;
     $starttime = strtotime($object->event->startTime);
-    $endtime = strtotime($object->event->expirationTime);
+    debugging("expirationTime: " . $object->event->expirationTime, DEBUG_DEVELOPER);
+    $endtime = strtotime(datetime: $object->event->expirationTime);
 } else {
     $eventid = null;
     $startime = null;
