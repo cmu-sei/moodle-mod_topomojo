@@ -71,7 +71,19 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->questionorder = $topomojo->questionorder;
         $data->code = $code;
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
-        $data->duration = $duration / 60;
+        $seconds = $duration;
+        $days = floor($seconds / 86400);
+        $seconds %= 86400;
+        $hours = floor($seconds / 3600);
+        $seconds %= 3600;
+        $minutes = floor($seconds / 60);
+        $seconds %= 60;
+        $data->duration = [
+            'days' => $days,
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'seconds' => $seconds
+        ];
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
@@ -81,8 +93,19 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->intro = $topomojo->intro;
         $data->code = $code;
         $data->durationtext = get_string('durationtext', 'mod_topomojo');
-        $data->duration = $duration / 60;
-
+        $seconds = $duration;
+        $days = floor($seconds / 86400);
+        $seconds %= 86400;
+        $hours = floor($seconds / 3600);
+        $seconds %= 3600;
+        $minutes = floor($seconds / 60);
+        $seconds %= 60;
+        $data->duration = [
+            'days' => $days,
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'seconds' => $seconds
+        ];
         // Add the flag to the data object
         $data->showWarning = $showWarning;
 
@@ -95,7 +118,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->current_attempt_count = $current_attempt_count;
         $data->is_max_reached = ($current_attempt_count >= $max_attempts);
         $data->markdown = $this->clean_markdown($markdown);
-    
+
         echo $this->render_from_template('mod_topomojo/max_attempts', $data);
     }
 
@@ -107,17 +130,17 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->is_max_reached = ($current_deployed_count >= $max_deployed_labs);
         $data->markdown = $this->clean_markdown($markdown);
         $data->lab_names = $lab_names;
-    
+
         echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
     }
 
     public function display_detail_max_gamespaces($topomojo, $markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-    
+
         echo $this->render_from_template('mod_topomojo/max_deployed_gamespaces', $data);
     }
-    
+
     /**
      * Renders the start form for TopoMojo activity with Markdown content.
      *
@@ -218,25 +241,25 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->markdown = $this->clean_markdown($markdown);
         $data->showWarning = false; // No warning in normal instructions
         $data->endlab = false;      // Not an end-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-    
+
     public function render_challenge_instructions_warning_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
         $data->showWarning = true;  // Show warning for maxed attempts
         $data->endlab = true;       // End-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-    
+
     public function render_challenge_instructions_warning($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
         $data->showWarning = true;  // Show warning for maxed attempts
         $data->endlab = false;      // Not an end-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
@@ -244,33 +267,33 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
         $data->endlab = true;      // Not an end-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-    
+
     public function render_warning_endlab() {
         $data = new stdClass();
         $data->showWarning = true;  // General warning for maxed attempts
         $data->endlab = true;       // End-lab scenario with no challenge text
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-    
+
     public function render_warning() {
         $data = new stdClass();
         $data->showWarning = true;  // General warning for maxed attempts
         $data->endlab = false;      // Not an end-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
-    
+
     public function render_endlab() {
         $data = new stdClass();
         $data->endlab = true;       // End-lab scenario
-    
+
         echo $this->render_from_template('mod_topomojo/challenge', $data);
-    }    
-    
+    }
+
     /**
      * Renders an embedded page with Markdown content, and a VM list.
      *
@@ -374,13 +397,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         }
         $data->tableheaders->timestart = get_string('timestart', 'mod_topomojo');
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
-    
+
         // Only add score if any attempt will display a score
         $show_any_score = $showgrade && !empty(array_filter($attempts, function($attempt) { return $attempt->questionusageid != 268; }));
         if ($show_any_score) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
         }
-    
+
         if ($attempts) {
             foreach ($attempts as $attempt) {
                 $rowdata = new stdClass();
@@ -396,7 +419,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 }
                 $rowdata->timestart = userdate($attempt->timestart);
                 $rowdata->timefinish = ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) ? userdate($attempt->timefinish) : null;
-    
+
                 // Conditionally set score based on questionusageid
                 if ($showgrade && $attempt->questionusageid !== null && $attempt->questionusageid != 0) {
                     $rowdata->score = $attempt->score ?? "-";
@@ -404,14 +427,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 } else {
                     $rowdata->score = "-"; // Hide the score for specific questionusageid
                 }
-    
+
                 $data->tabledata[] = $rowdata;
             }
         }
-        
+
         echo $this->render_from_template('mod_topomojo/history', $data);
     }
-    
+
 
     /**
      * Renders control elements for managing the topomojo event time.

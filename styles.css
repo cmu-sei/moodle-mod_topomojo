@@ -19,7 +19,7 @@
     border-collapse: collapse;
 }
 
-#topomojo-markdown table td, 
+#topomojo-markdown table td,
 #topomojo-markdown table th {
     border: 1px solid #ddd;
     padding: 8px;
@@ -47,7 +47,7 @@
     margin-bottom: 1rem;
     border: 0 solid transparent;
     border-radius: .5rem;
-    max-width: 300px;
+    max-width: 500px;
     word-wrap: break-word;
 }
 

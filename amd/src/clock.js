@@ -53,7 +53,6 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         countdown: function() {
-
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -61,42 +60,46 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     return;
                 }
 
-                var hours = Math.floor(remaining % (60 * 60 * 24) / (60 * 60));
-                var minutes = Math.floor(remaining % (60 * 60) / 60);
+                var days = Math.floor(remaining / (60 * 60 * 24));
+                var totalHours = Math.floor(remaining / (60 * 60)); // total hours
+                var minutes = Math.floor((remaining % (60 * 60)) / 60);
                 var seconds = Math.floor(remaining % 60);
 
                 var timer = document.getElementById('timer');
                 if (timer) {
-                    if (remaining < 1800) {
-                        timer.className = "alert alert-warning";
-                    } else if (remaining < 300) {
+                    if (remaining < 300) {
                         timer.className = "alert alert-danger";
+                    } else if (remaining < 1800) {
+                        timer.className = "alert alert-warning";
                     } else {
                         timer.className = "alert alert-success";
                     }
-                    timer.innerHTML = "Timer: " + hours.toString().padStart(2, '0') +
-                            ":" + minutes.toString().padStart(2, '0') + ":" +
-                            seconds.toString().padStart(2, '0');
+
+                    timer.innerHTML = "Timer: " + days + "d " +
+                        totalHours + "h:" +
+                        minutes.toString().padStart(2, '0') + "m:" +
+                        seconds.toString().padStart(2, '0') + "s";
                 }
             }, 1000);
         },
 
         countup: function() {
-
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var running = timenow - starttime;
 
-                var hours = Math.floor(running % (60 * 60 * 24) / (60 * 60));
-                var minutes = Math.floor(running % (60 * 60) / 60);
+                var days = Math.floor(running / (60 * 60 * 24));
+                var hours = Math.floor((running % (60 * 60 * 24)) / (60 * 60));
+                var minutes = Math.floor((running % (60 * 60)) / 60);
                 var seconds = Math.floor(running % 60);
 
                 var timer = document.getElementById('timer');
                 if (timer) {
                     timer.className = "alert alert-success";
-                    timer.innerHTML = "Timer: " + hours.toString().padStart(2, '0') +
-                        ":" + minutes.toString().padStart(2, '0') + ":" +
-                        seconds.toString().padStart(2, '0');
+                    timer.innerHTML = "Timer: " + days + "d " +
+                        hours.toString().padStart(2, '0') + "h:" +
+                        minutes.toString().padStart(2, '0') + "m:" +
+                        seconds.toString().padStart(2, '0') + "s";
                 }
             }, 1000);
         },
