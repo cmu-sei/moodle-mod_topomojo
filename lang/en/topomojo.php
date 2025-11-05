@@ -19,14 +19,13 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -53,13 +52,13 @@ $string['pluginname'] = 'TopoMojo';
 
 // Plugin settings
 $string['topomojoapiurl'] = 'TopoMojo API Base URL';
-$string['embed'] = 'Display Mode';
 $string['topomojobaseurl'] = 'TopoMojo Base URL';
 $string['autocomplete'] = 'Workspace Selection Method';
 $string['workspace'] = 'Workspace';
 $string['selectname'] = 'Search for a Workspace by name';
 $string['showfailed'] = 'Show Failed';
 $string['displaylink'] = 'Display Link to TopoMojo';
+$string['embed'] = 'Display Mode';
 $string['embedlab'] = 'Embed Lab inside Moodle';
 $string['theattempt'] = 'The attempt';
 $string['theattempt_help'] = 'Whether the student can review the attempt at all.';
@@ -312,6 +311,7 @@ $string['topomojo_lod_desc'] = 'See today’s featured lab.';
 
 // Lab of Day
 $string['featuredlab'] = 'Lab of the Day';
+$string['featuredlab_help'] = 'Make this activity available to the "Lab of the Day" feature';
 $string['viewcourse'] = 'View course';
 $string['noactivitiesmapped'] = 'No activities were found on the site.';
 

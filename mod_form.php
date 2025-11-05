@@ -20,14 +20,13 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -119,14 +118,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
      */
     public function __construct($current, $section, $cm, $course) {
         self::$reviewfields = array(
-            'attempt'          => ['theattempt', 'topomojo'],          // Field for attempt details
-            'correctness'      => ['whethercorrect', 'question'],      // Field for correctness of the answer
-            'marks'            => ['marks', 'topomojo'],               // Field for marks obtained
-            'specificfeedback' => ['specificfeedback', 'question'],    // Specific feedback related to the question
-            'generalfeedback'  => ['generalfeedback', 'question'],     // General feedback for the question
-            'rightanswer'      => ['rightanswer', 'question'],         // The correct answer
+            'attempt'          => ['theattempt', 'topomojo'],            // Field for attempt details
+            'correctness'      => ['whethercorrect', 'question'],        // Field for correctness of the answer
+            'marks'            => ['marks', 'topomojo'],                 // Field for marks obtained
+            'specificfeedback' => ['specificfeedback', 'question'],      // Specific feedback related to the question
+            'generalfeedback'  => ['generalfeedback', 'question'],       // General feedback for the question
+            'rightanswer'      => ['rightanswer', 'question'],           // The correct answer
             'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'], // Overall feedback for the review
-            'manualcomment'    => ['manualcomment', 'topomojo']        // Manual comments by the reviewer
+            'manualcomment'    => ['manualcomment', 'topomojo']          // Manual comments by the reviewer
         );
         parent::__construct($current, $section, $cm, $course);
     }
@@ -148,13 +147,10 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // Adding the standard "intro" and "introformat" fields.
         $this->standard_intro_elements();
-        // TODO remove ability to edit the description and just show the select and dropdown
-        // $mform->removeElement('introeditor');
         $mform->addElement('header', 'general', get_string('general', 'form'));
         $mform->addElement('text', 'name', get_string('name'));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
-
 
         if ($topomojoconfig->autocomplete < 2) {
             // Pull list from topomojo.
@@ -250,13 +246,13 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $licenses = license_manager::get_licenses();
         if ($licenses) {
             foreach ($licenses as $license) {
-                $license_options[$license->shortname] = $license->fullname;
+                $licenseoptions[$license->shortname] = $license->fullname;
             }
         } else {
             debugging('No licenses found.', DEBUG_DEVELOPER);
         }
 
-        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'topomojo'), $license_options);
+        $mform->addElement('select', 'contentlicense', get_string('contentlicense', 'topomojo'), $licenseoptions);
         $mform->setType('contentlicense', PARAM_TEXT);
         $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
 
@@ -344,7 +340,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         // Number of challenge submissions.
         // TODO this is affected by the endlab option
-        //  if endlab is true, set submissions to 1 and disable
+        // if endlab is true, set submissions to 1 and disable
         $submissionoptions = ['0' => get_string('unlimited')];
         for ($i = 1; $i <= $maxattempts; $i++) {
             $submissionoptions[$i] = $i;
@@ -361,7 +357,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
-	// TODO if we have mutiple tries, should this be set to interactive with multiple tries?
+        // TODO if we have mutiple tries, should this be set to interactive with multiple tries?
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
@@ -370,12 +366,12 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
         $behaviours = question_engine::get_behaviour_options($currentbehaviour);
         // Filter to keep only 'deferredfeedback' behavior in the options.
-        $filtered_behaviours = array_filter($behaviours, function($behaviour) {
+        $filteredbehaviours = array_filter($behaviours, function($behaviour) {
             return $behaviour == 'deferredfeedback';
         });
 
         // Replace the behaviors with only deferredfeedback.
-        $behaviours = !empty($filtered_behaviours) ? $filtered_behaviours : ['deferredfeedback' => 'Deferred feedback'];
+        $behaviours = !empty($filteredbehaviours) ? $filteredbehaviours : ['deferredfeedback' => 'Deferred feedback'];
 
         $mform->addElement('select', 'preferredbehaviour',
                 get_string('howquestionsbehave', 'question'), $behaviours);
@@ -625,28 +621,34 @@ class mod_topomojo_mod_form extends moodleform_mod {
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
+            if (!empty($data->extendevent) && $data->clock != 1) {
+                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+            }
+
             // Check that variant is valid
             $challenge = get_challenge($this->auth, $this->workspaces[$selectedworkspace]->id);
             if ($challenge) {
                 $variants = count($challenge->variants);
             } else {
-                $variants = 1;
-            }
-
-
-            if (!empty($data->extendevent) && $data->clock != 1) {
-                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+                throw new moodle_exception('The Challenge object could not be found on TopoMojo Workspace');
             }
 
             if ($data->variant == 0) {
-                throw new moodle_exception("random variants are not suppored.");
+                throw new moodle_exception("random variants are not supported at this time");
+            } else if ($data->variant < 0) {
+                throw new moodle_exception("variant cannot be negative");
+            } else if (($variants == 0) && ($data->variant != 1)) {
+                throw new moodle_exception("lab does not have variants configured - you must use variant 1");
+                debugging("no variants configured in workspace challenge - setting to variant 1", DEBUG_DEVELOPER);
+            } else if ((($variants == 0) && ($data->variant == 1))) {
+                debugging("no variants configured in workspace challenge - using variant 1", DEBUG_DEVELOPER);
             } else if ($data->variant > $variants) {
                 throw new moodle_exception("lab does not have variant number " . $data->variant);
             }
 
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
-            $data->name = "Unknown lab";
+            $data->name = "Unknown Lab";
             if ($usetopomojointro) {
                 $data->intro = "No description available";
                 $data->introeditor['format'] = FORMAT_PLAIN;
@@ -737,9 +739,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         }
 
         if ($this->_features->groups) {
-            $options = [NOGROUPS       => get_string('groupsnone'),
-                             SEPARATEGROUPS => get_string('groupsseparate'),
-                             VISIBLEGROUPS  => get_string('groupsvisible')];
+            $options = [NOGROUPS => get_string('groupsnone'),
+                    SEPARATEGROUPS => get_string('groupsseparate'),
+                    VISIBLEGROUPS  => get_string('groupsvisible')];
             $mform->addElement('select', 'groupmode', get_string('groupmode', 'group'), $options, NOGROUPS);
             $mform->addHelpButton('groupmode', 'groupmode', 'group');
         }
