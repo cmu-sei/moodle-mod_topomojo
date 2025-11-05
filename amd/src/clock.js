@@ -61,7 +61,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 }
 
                 var days = Math.floor(remaining / (60 * 60 * 24));
-                var totalHours = Math.floor(remaining / (60 * 60)); // total hours
+                var hours = Math.floor((remaining % (60 * 60 * 24)) / (60 * 60));
                 var minutes = Math.floor((remaining % (60 * 60)) / 60);
                 var seconds = Math.floor(remaining % 60);
 
@@ -76,7 +76,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                     }
 
                     timer.innerHTML = "Timer: " + days + "d " +
-                        totalHours + "h:" +
+                        hours.toString().padStart(2, '0') + "h:" +
                         minutes.toString().padStart(2, '0') + "m:" +
                         seconds.toString().padStart(2, '0') + "s";
                 }
