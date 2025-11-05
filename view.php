@@ -117,10 +117,10 @@ if ($challenge && isset($challenge->variants[$variant])) {
     if (method_exists($object, 'get_question_manager')) {
         try {
             $qm = $object->get_question_manager();
-    
+
             if ($qm instanceof \mod_topomojo\questionmanager) {
                 $mismatches = $qm->detect_mismatched_questions($object, $variant, $challenge);
-    
+
                 if (!empty($mismatches)) {
                     $qm->notify_instructors_of_mismatch($cm, $topomojo->name);
                 }
@@ -128,7 +128,7 @@ if ($challenge && isset($challenge->variants[$variant])) {
         } catch (Throwable $e) {
             debugging("Skipping question mismatch check: " . $e->getMessage(), DEBUG_DEVELOPER);
         }
-    }    
+    }
 }
 
 
@@ -199,36 +199,36 @@ if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count 
 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    debugging("start request received", DEBUG_DEVELOPER);    
+    debugging("start request received", DEBUG_DEVELOPER);
     // Check not started already
     if (!$object->event) {
         // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
-        
+
         if ($object->event) {
             // If the event is created successfully, proceed
             debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
             $activeattempt = $object->init_attempt();
-            
+
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
-            
+
             if (!$activeattempt) {
                 debugging("init_attempt failed");
                 throw new moodle_exception('init_attempt failed');
             }
-            
+
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
-            
+
         } else {
             // Event creation failed, possibly due to an empty response
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
             throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");
         }
-        
+
         debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
-        
+
     } else {
         // If event already exists, no action needed
         debugging("event has already been started", DEBUG_DEVELOPER);
@@ -314,7 +314,7 @@ if ($object->event) {
             $license_id = $object->topomojo->contentlicense;
             $license_info = license_manager::get_license_by_shortname($license_id);
         }
-    
+
         // Display start form
         $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
     } else {

@@ -319,8 +319,18 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
         // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
-        // type duration gets stored in the db in seconds. renderer and locallib convert to minutes
-        $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), "0");
+        // type duration gets stored in the db in seconds. renderer and locallib convert to minutes, hours, days.
+        $allowed_units = [
+            MINSECS,    // Minutes (60 seconds)
+            HOURSECS,   // Hours (3600 seconds)
+            DAYSECS,    // Days (86400 seconds)
+            // SECONDS is implied and usually always available implicitly or explicitly if needed.
+        ];
+        $options = [
+            'units' => $allowed_units, // Pass the array of allowed units
+            'defaultunit' => HOURSECS   // Optional: set days as the default selection
+        ];
+        $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), $options);
         $mform->setType('duration', PARAM_INT);
         $mform->setDefault('duration', '3600');
         $mform->addHelpButton('duration', 'duration', 'topomojo');
