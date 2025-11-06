@@ -318,7 +318,7 @@ function user_events($client, $events) {
         //echo "<br>subjectid $subjectid<br>";
 
         if (!is_array($players)) {
-            debugging("no players for this event " + $event->id, DEBUG_DEVELOPER);
+            debugging("no players for this event " . $event->id, DEBUG_DEVELOPER);
             return;
 
         }
