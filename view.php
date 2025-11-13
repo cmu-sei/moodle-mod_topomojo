@@ -154,7 +154,7 @@ $gamespacelimit = get_gamespace_limit($object->userauth);
 
 //Getting all active events without filters
 $allActiveEvents = list_all_active_events($object->userauth);
-$all_active_current_deployed_count = count($allActiveEvents);
+$all_active_current_deployed_count = count((array)$allActiveEvents);
 
 //Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
 if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
@@ -171,7 +171,7 @@ $activeUserEvents = [];
 //Getting active user event for specific user
 $activeUserEvents = user_events($object->userauth, $allActiveEvents);
 //Count of those active user events
-$user_current_deployed_count  = count($activeUserEvents);
+$user_current_deployed_count  = count((array)$activeUserEvents);
 
 //Getting max deployed lab for each user in moodle
 $max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
@@ -180,7 +180,7 @@ $lab_names =  [];
 $lab_ids = [];
 
 //Getting workspace names and ids
-foreach ($activeUserEvents as $event) {
+foreach ($activeUserEvents ?? [] as $event) {
     $lab_names[] = $event['name'];
     $lab_ids[] = $event['workspaceId'];
 }
