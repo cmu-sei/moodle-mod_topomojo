@@ -526,7 +526,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025101603, 'topomojo');
     }
 
-    if ($oldversion < 2025020500) {
+    if ($oldversion < 2026020502) {
         // Define field content to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('content', XMLDB_TYPE_TEXT, null, null, null, null, null, 'isfeatured');
@@ -545,7 +545,7 @@ function xmldb_topomojo_upgrade($oldversion) {
         }
 
         // TopoMojo savepoint reached.
-        upgrade_mod_savepoint(true, 2025020500, 'topomojo');
+        upgrade_mod_savepoint(true, 2026020502, 'topomojo');
     }
 
     return true;
