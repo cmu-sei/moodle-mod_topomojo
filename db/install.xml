@@ -41,6 +41,8 @@
         <FIELD NAME="contentlicense" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="License information for content in TopoMojo"/>
         <FIELD NAME="showcontentlicense" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether to show the content license (1 = show, 0 = hide)"/>
         <FIELD NAME="isfeatured" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" COMMENT="1 if this activity is the Featured Lab"/>
+        <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Cached markdown content from TopoMojo workspace"/>
+        <FIELD NAME="contentformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Content text format"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

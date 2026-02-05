@@ -485,9 +485,29 @@ class mod_topomojo_mod_form extends moodleform_mod {
      * @return void
      */
     public function data_preprocessing(&$toform) {
+        global $DB;
+
         if (isset($toform['grade'])) {
-            // Convert to a real number, so we don't get 0.0000.
             $toform['grade'] = $toform['grade'] + 0;
+        }
+
+        if ($this->current->instance) {
+            $content = $toform['content'] ?? '';
+
+            // Fetch latest markdown from TopoMojo if workspace is set.
+            if (!empty($toform['workspaceid'])) {
+                try {
+                    $auth = setup();
+                    $markdown = get_markdown($auth, $toform['workspaceid'], $this->current->instance);
+
+                    // Store the markdown content for database sync.
+                    if (!empty($markdown)) {
+                        $toform['content'] = $markdown;
+                    }
+                } catch (Exception $e) {
+                    debugging('Failed to fetch TopoMojo markdown: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
         }
 
         if (is_array($this->_feedbacks) && count($this->_feedbacks)) {
@@ -507,11 +527,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $toform['feedbacktext['.$key.']']['itemid'] = $draftid;
 
                 if ($toform['grade'] == 0) {
-                    // When a quiz is un-graded, there can only be one lot of
-                    // feedback. If the quiz previously had a maximum grade and
-                    // several lots of feedback, we must now avoid putting text
-                    // into input boxes that are disabled, but which the
-                    // validation will insist are blank.
                     break;
                 }
 
@@ -594,7 +609,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
-            // Turn off completion settings if the checkboxes aren't ticked.
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
             if (empty($data->completionminattemptsenabled) || !$autocompletion) {
                 $data->completionminattempts = 0;

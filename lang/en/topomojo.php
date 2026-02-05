@@ -317,3 +317,6 @@ $string['noactivitiesmapped'] = 'No activities were found on the site.';
 
 $string['usingconsoleforge'] = 'Using ConsoleForge?';
 $string['configusingconsoleforge'] = 'Enable if you are using a new version of TopoMojo.';
+
+$string['labcontent'] = 'Lab Content';
+$string['labcontent_help'] = 'The content/description of this lab. When you select a workspace, the markdown content from TopoMojo will be automatically fetched and displayed here. You can add additional notes or instructions, and the TopoMojo content will be appended. This content is used for AI competency classification.';

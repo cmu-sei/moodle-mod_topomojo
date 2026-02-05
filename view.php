@@ -141,7 +141,7 @@ $current_attempt_count = $DB->count_records('topomojo_attempts', [
 
 // If the maximum attempts are reached, display the max attempts template and exit
 if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
-    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $parts[0]);
@@ -158,7 +158,7 @@ $all_active_current_deployed_count = count((array)$allActiveEvents);
 
 //Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
 if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
-    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail_max_gamespaces($topomojo, $parts[0]);
@@ -188,7 +188,7 @@ foreach ($activeUserEvents ?? [] as $event) {
 //If the maximum deployed labs are reached, display the deployed labs template and exit
 if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count >= $max_deployed_labs) {
     // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
-    $markdown = get_markdown($object->userauth, $topomojo->workspaceid);
+    $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
     $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $user_current_deployed_count, $parts[0], $lab_names);
