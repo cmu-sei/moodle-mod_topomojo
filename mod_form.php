@@ -266,10 +266,8 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('isfeatured', 0);
         $mform->addHelpButton('isfeatured', 'featuredlab', 'mod_topomojo');
 
-        $mform->addElement('header', 'contentsection', get_string('content'));
-        $mform->addElement('editor', 'content_editor', get_string('labcontent', 'mod_topomojo'), null,
-            ['maxfiles' => 0, 'context' => $this->context]);
-        $mform->addHelpButton('content_editor', 'labcontent', 'mod_topomojo');
+        // Content field removed from form - content is synced from TopoMojo API and stored in DB
+        // The aiplacement_competency plugin reads content directly from the database for AI classification
 
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
@@ -497,7 +495,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
             $toform['grade'] = $toform['grade'] + 0;
         }
 
-        // Prepare content editor.
+        // Fetch and store content from TopoMojo (not displayed in form, used by aiplacement_competency plugin).
         if ($this->current->instance) {
             $content = $toform['content'] ?? '';
 
@@ -507,22 +505,14 @@ class mod_topomojo_mod_form extends moodleform_mod {
                     $auth = setup();
                     $markdown = get_markdown($auth, $toform['workspaceid'], $this->current->instance);
 
-                    // If there's existing user-written content, append markdown.
-                    // Otherwise, just use the markdown.
-                    if (!empty($content) && trim(strip_tags($content)) !== '') {
-                        $content .= "\n\n" . $markdown;
-                    } else {
-                        $content = $markdown;
+                    // Store the markdown content for database sync.
+                    if (!empty($markdown)) {
+                        $toform['content'] = $markdown;
                     }
                 } catch (Exception $e) {
                     debugging('Failed to fetch TopoMojo markdown: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
-
-            $toform['content_editor'] = [
-                'text' => $content,
-                'format' => FORMAT_HTML,
-            ];
         }
 
         if (is_array($this->_feedbacks) && count($this->_feedbacks)) {
@@ -629,11 +619,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
 
         parent::data_postprocessing($data);
 
-        // Extract content from editor.
-        if (isset($data->content_editor)) {
-            $data->content = $data->content_editor['text'];
-            $data->contentformat = $data->content_editor['format'];
-        }
+        // Content is synced from TopoMojo API during preprocessing and stored directly in $data->content
+        // No need to extract from editor since the field is no longer in the form
+        // The content field will be automatically saved to the database by Moodle's module handling
         if (!empty($data->completionunlocked)) {
             // Turn off completion settings if the checkboxes aren't ticked.
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
