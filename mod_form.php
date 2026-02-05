@@ -266,9 +266,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('isfeatured', 0);
         $mform->addHelpButton('isfeatured', 'featuredlab', 'mod_topomojo');
 
-        // Content field removed from form - content is synced from TopoMojo API and stored in DB
-        // The aiplacement_competency plugin reads content directly from the database for AI classification
-
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
         $options = [get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo')];
@@ -491,11 +488,9 @@ class mod_topomojo_mod_form extends moodleform_mod {
         global $DB;
 
         if (isset($toform['grade'])) {
-            // Convert to a real number, so we don't get 0.0000.
             $toform['grade'] = $toform['grade'] + 0;
         }
 
-        // Fetch and store content from TopoMojo (not displayed in form, used by aiplacement_competency plugin).
         if ($this->current->instance) {
             $content = $toform['content'] ?? '';
 
@@ -532,11 +527,6 @@ class mod_topomojo_mod_form extends moodleform_mod {
                 $toform['feedbacktext['.$key.']']['itemid'] = $draftid;
 
                 if ($toform['grade'] == 0) {
-                    // When a quiz is un-graded, there can only be one lot of
-                    // feedback. If the quiz previously had a maximum grade and
-                    // several lots of feedback, we must now avoid putting text
-                    // into input boxes that are disabled, but which the
-                    // validation will insist are blank.
                     break;
                 }
 
@@ -618,12 +608,7 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $usetopomojointro = false;
 
         parent::data_postprocessing($data);
-
-        // Content is synced from TopoMojo API during preprocessing and stored directly in $data->content
-        // No need to extract from editor since the field is no longer in the form
-        // The content field will be automatically saved to the database by Moodle's module handling
         if (!empty($data->completionunlocked)) {
-            // Turn off completion settings if the checkboxes aren't ticked.
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
             if (empty($data->completionminattemptsenabled) || !$autocompletion) {
                 $data->completionminattempts = 0;
