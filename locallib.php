@@ -492,7 +492,9 @@ function get_gamespace_challenge($client, $id) {
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_markdown($client, $id) {
+function get_markdown($client, $id, $topomojoid = null) {
+    global $DB;
+
     if ($client == null) {
         throw new moodle_exception('could not setup session');
     }
@@ -506,16 +508,30 @@ function get_markdown($client, $id) {
 
     $ctype = $client->info['content_type'] ?? '';
 
+    $markdown = '';
+
     // Case 1: server returns JSON (either a bare JSON string, or an object with a field)
     if (stripos($ctype, 'application/json') !== false) {
         $decoded = json_decode($response, true);
         if (is_string($decoded)) {
-            return $decoded;
+            $markdown = $decoded;
         }
+    } else {
+        // Case 2: plain text response
+        $markdown = $response;
     }
 
-    // Case 2: plain text response
-    return $response;
+    // Update the database if topomojoid is provided.
+    if ($topomojoid !== null && $markdown !== '') {
+        $record = new stdClass();
+        $record->id = $topomojoid;
+        $record->content = $markdown;
+        $record->timemodified = time();
+
+        $DB->update_record('topomojo', $record);
+    }
+
+    return $markdown;
 }
 
 function get_gamespace_limit($client) {

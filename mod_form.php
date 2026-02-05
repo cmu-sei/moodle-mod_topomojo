@@ -266,6 +266,11 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->setDefault('isfeatured', 0);
         $mform->addHelpButton('isfeatured', 'featuredlab', 'mod_topomojo');
 
+        $mform->addElement('header', 'contentsection', get_string('content'));
+        $mform->addElement('editor', 'content_editor', get_string('labcontent', 'mod_topomojo'), null,
+            ['maxfiles' => 0, 'context' => $this->context]);
+        $mform->addHelpButton('content_editor', 'labcontent', 'mod_topomojo');
+
         $mform->addElement('header', 'optionssection', get_string('appearance'));
 
         $options = [get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo')];
@@ -485,9 +490,39 @@ class mod_topomojo_mod_form extends moodleform_mod {
      * @return void
      */
     public function data_preprocessing(&$toform) {
+        global $DB;
+
         if (isset($toform['grade'])) {
             // Convert to a real number, so we don't get 0.0000.
             $toform['grade'] = $toform['grade'] + 0;
+        }
+
+        // Prepare content editor.
+        if ($this->current->instance) {
+            $content = $toform['content'] ?? '';
+
+            // Fetch latest markdown from TopoMojo if workspace is set.
+            if (!empty($toform['workspaceid'])) {
+                try {
+                    $auth = setup();
+                    $markdown = get_markdown($auth, $toform['workspaceid'], $this->current->instance);
+
+                    // If there's existing user-written content, append markdown.
+                    // Otherwise, just use the markdown.
+                    if (!empty($content) && trim(strip_tags($content)) !== '') {
+                        $content .= "\n\n" . $markdown;
+                    } else {
+                        $content = $markdown;
+                    }
+                } catch (Exception $e) {
+                    debugging('Failed to fetch TopoMojo markdown: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
+
+            $toform['content_editor'] = [
+                'text' => $content,
+                'format' => FORMAT_HTML,
+            ];
         }
 
         if (is_array($this->_feedbacks) && count($this->_feedbacks)) {
@@ -593,6 +628,12 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $usetopomojointro = false;
 
         parent::data_postprocessing($data);
+
+        // Extract content from editor.
+        if (isset($data->content_editor)) {
+            $data->content = $data->content_editor['text'];
+            $data->contentformat = $data->content_editor['format'];
+        }
         if (!empty($data->completionunlocked)) {
             // Turn off completion settings if the checkboxes aren't ticked.
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
