@@ -320,3 +320,12 @@ $string['configusingconsoleforge'] = 'Enable if you are using a new version of T
 
 $string['labcontent'] = 'Lab Content';
 $string['labcontent_help'] = 'The content/description of this lab. When you select a workspace, the markdown content from TopoMojo will be automatically fetched and displayed here. You can add additional notes or instructions, and the TopoMojo content will be appended. This content is used for AI competency classification.';
+
+// Overview page editing
+$string['overview_edit_header'] = 'Edit TopoMojo Overview Page';
+$string['overview_content'] = 'Overview Content';
+$string['overview_content_help'] = 'The content displayed on the TopoMojo overview page. You can use headings, lists, bold text, and other HTML formatting to organize the information.';
+$string['overview_saved'] = 'Overview page content has been updated successfully.';
+$string['configure_overview'] = 'Configure TopoMojo Overview';
+$string['overview_default_content'] = '<p>Welcome to TopoMojo - hands-on cybersecurity labs integrated with Moodle.</p>
+<p>Use the links below to browse available labs or try today\'s featured lab.</p>';
