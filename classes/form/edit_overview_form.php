@@ -34,34 +34,68 @@ This Software includes and/or makes use of Third-Party Software each subject to 
 DM24-1175
 */
 
-/**
- * TopoMojo.
- *
- * @package    mod_topomojo
- * @copyright  2024 Carnegie Mellon University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace mod_topomojo\form;
 
-// This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
-// This is the version of the plugin.
-$plugin->version = 2026031000;
+require_once($CFG->libdir . '/formslib.php');
 
-// This is the version of Moodle this plugin requires.
-$plugin->requires = 2025041400;
+/**
+ * Moodle form for editing the TopoMojo overview page content
+ *
+ * @package     mod_topomojo
+ * @copyright   2024 Carnegie Mellon University
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class edit_overview_form extends \moodleform
+{
 
-// This is the component name of the plugin - it always starts with 'component_'
-$plugin->component = 'mod_topomojo';
+    /**
+     * Overriding parent function to account for namespace in the class name
+     * so that client validation works
+     *
+     * @return mixed|string
+     */
+    protected function get_form_identifier()
+    {
+        $class = get_class($this);
+        return preg_replace('/[^a-z0-9_]/i', '_', $class);
+    }
 
-// This is a list of plugins, this plugin depends on (and their versions).
-$plugin->dependencies = [
-  'qtype_mojomatch' => 2025081800,
-];
+    /**
+     * Adds form fields to the form
+     *
+     */
+    public function definition()
+    {
+        $mform = $this->_form;
 
-// This is a stable release.
-//$plugin->maturity = MATURITY_STABLE;
-$plugin->maturity = MATURITY_BETA;
+        $mform->addElement('header', 'overviewheader', get_string('overview_edit_header', 'mod_topomojo'));
 
-// This is the named version.
-$plugin->release = '1.0.0';
+        $mform->addElement(
+            'editor',
+            'content_text',
+            get_string('overview_content', 'mod_topomojo'),
+            ['rows' => 15],
+            ['maxfiles' => 0]
+        );
+        $mform->setType('content_text', PARAM_RAW);
+        $mform->addHelpButton('content_text', 'overview_content', 'mod_topomojo');
+
+        $this->add_action_buttons(true, get_string('savechanges'));
+    }
+
+    /**
+     * Validate the form data
+     *
+     * @param array $data
+     * @param array $files
+     *
+     * @return array $errors
+     */
+    public function validation($data, $files)
+    {
+        $errors = parent::validation($data, $files);
+        return $errors;
+    }
+}

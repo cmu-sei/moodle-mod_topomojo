@@ -320,3 +320,37 @@ $string['configusingconsoleforge'] = 'Enable if you are using a new version of T
 
 $string['labcontent'] = 'Lab Content';
 $string['labcontent_help'] = 'The content/description of this lab. When you select a workspace, the markdown content from TopoMojo will be automatically fetched and displayed here. You can add additional notes or instructions, and the TopoMojo content will be appended. This content is used for AI competency classification.';
+
+// Overview page editing
+$string['overview_edit_header'] = 'Edit TopoMojo Overview Page';
+$string['overview_content'] = 'Overview Content';
+$string['overview_content_help'] = 'The content displayed on the TopoMojo overview page. You can use headings, lists, bold text, and other HTML formatting to organize the information.';
+$string['overview_saved'] = 'Overview page content has been updated successfully.';
+$string['configure_overview'] = 'Configure TopoMojo Overview';
+$string['overview_default_content'] = <<<EOT
+<p style="margin:0 0 12px;">
+TopoMojo is the platform behind hands-on cybersecurity labs. Instructors build labs in <em>workspaces</em>; when you launch from Moodle you get an isolated <em>gamespace</em>, so nothing you do changes the original.
+</p>
+
+<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">On this page</h3>
+<ul style="margin:0 0 12px 18px;padding:0;">
+<li><strong>View all TopoMojo Labs</strong> to browse everything you have access to.</li>
+<li>Jump into the rotating <strong>Lab of the Day</strong> for a quick, curated pick.</li>
+<li>Open a lab’s Moodle activity and click <strong>Launch Lab</strong> to start your gamespace and follow the built-in guide.</li>
+</ul>
+
+<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">While in a lab</h3>
+<ul style="margin:0 0 12px 18px;padding:0;">
+<li><strong>Timer</strong> counts down your session; use <strong>Extend Lab</strong> if enabled.</li>
+<li><strong>End Lab</strong> cleanly shuts the lab down when you’re finished.</li>
+<li><strong>Generate Invite</strong> lets a collaborator join your current run.</li>
+<li>The <strong>Challenge</strong> tab contains graded questions; <strong>Review Activity Attempts</strong> shows history and scores.</li>
+</ul>
+
+<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">Tips</h3>
+<ul style="margin:0 8px 0 18px;padding:0;">
+<li>Read the guide first to understand the topology and goals.</li>
+<li>Watch the timer and extend before it hits zero (if allowed).</li>
+<li>End the lab when finished to free resources.</li>
+</ul>
+EOT;
