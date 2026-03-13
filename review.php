@@ -102,8 +102,18 @@ if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->
 if ($object->is_instructor()) {
     $attempts = $object->getall_attempts('closed', $review = true);
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
-    $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1]);
-    echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post');
+
+    $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
+
+    // Initialize the confirmation modal
+    $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
+        'form[action*="deleteall"] button',
+        get_string('deleteallattempts', 'mod_topomojo'),
+        get_string('deleteallattempts_confirm', 'mod_topomojo')
+    ]);
+
+    echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post',
+        ['class' => 'btn-danger']);
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');
