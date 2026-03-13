@@ -25,11 +25,8 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
     return {
         init: function(buttonSelector, confirmTitle, confirmBody) {
             $(document).ready(function() {
-                // Find button within form or directly
-                var $button = $(buttonSelector + ' input[type="submit"]').first();
-                if ($button.length === 0) {
-                    $button = $(buttonSelector).first();
-                }
+                // Find button inside the wrapper div
+                var $button = $(buttonSelector).find('input[type="submit"], button[type="submit"]').first();
 
                 if ($button.length === 0) {
                     window.console.error('Delete button not found with selector:', buttonSelector);

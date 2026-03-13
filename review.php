@@ -112,8 +112,9 @@ if ($object->is_instructor()) {
         get_string('deleteallattempts_confirm', 'mod_topomojo')
     ]);
 
-    echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post',
-        ['class' => 'btn-danger', 'id' => 'delete-all-attempts-btn']);
+    $deletebutton = $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post',
+        ['class' => 'btn-danger']);
+    echo html_writer::div($deletebutton, '', ['id' => 'delete-all-attempts-btn']);
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');
