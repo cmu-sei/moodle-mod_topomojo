@@ -319,7 +319,7 @@ if ($object->event) {
         // Initialize the launch lab confirmation modal
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#launch_button',
-            get_string('confirm', 'core'),
+            get_string('startlab', 'mod_topomojo'),
             get_string('start_attempt_confirm', 'mod_topomojo'),
             '#start_confirmed'
         ]);
@@ -344,7 +344,7 @@ if ($object->event) {
         // Initialize the end lab confirmation modal
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#end_button',
-            get_string('confirm', 'core'),
+            get_string('stoplab', 'mod_topomojo'),
             get_string('stop_attempt_confirm', 'mod_topomojo'),
             '#stop_confirmed'
         ]);
@@ -421,7 +421,7 @@ if ($object->event) {
     // Initialize the launch lab confirmation modal
     $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
         '#launch_button',
-        get_string('confirm', 'core'),
+        get_string('startlab', 'mod_topomojo'),
         get_string('start_attempt_confirm', 'mod_topomojo'),
         '#start_confirmed'
     ]);
