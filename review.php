@@ -107,13 +107,13 @@ if ($object->is_instructor()) {
 
     // Initialize the confirmation modal
     $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
-        'form[action*="deleteall"] button',
+        '#delete-all-attempts-btn',
         get_string('deleteallattempts', 'mod_topomojo'),
         get_string('deleteallattempts_confirm', 'mod_topomojo')
     ]);
 
     echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post',
-        ['class' => 'btn-danger']);
+        ['class' => 'btn-danger', 'id' => 'delete-all-attempts-btn']);
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');

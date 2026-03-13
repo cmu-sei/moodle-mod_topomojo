@@ -24,37 +24,54 @@
 define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], function($, ModalFactory, ModalEvents, Str) {
     return {
         init: function(buttonSelector, confirmTitle, confirmBody) {
-            var trigger = $(buttonSelector);
+            $(document).ready(function() {
+                // Find button within form or directly
+                var $button = $(buttonSelector + ' input[type="submit"]').first();
+                if ($button.length === 0) {
+                    $button = $(buttonSelector).first();
+                }
 
-            Str.get_strings([
-                {key: 'delete', component: 'core'},
-                {key: 'cancel', component: 'core'}
-            ]).then(function(strings) {
-                return ModalFactory.create({
-                    type: ModalFactory.types.SAVE_CANCEL,
-                    title: confirmTitle,
-                    body: confirmBody,
-                }, trigger);
-            }).then(function(modal) {
-                // Change the save button text to 'Delete'
-                modal.setSaveButtonText(strings[0]);
+                if ($button.length === 0) {
+                    window.console.error('Delete button not found with selector:', buttonSelector);
+                    return;
+                }
 
-                // Handle the save event (when user confirms)
-                modal.getRoot().on(ModalEvents.save, function() {
-                    // Submit the form
-                    trigger.closest('form').submit();
-                });
+                var $form = $button.closest('form');
 
-                // Show the modal when the button is clicked
-                trigger.on('click', function(e) {
+                // Intercept the button click
+                $button.on('click', function(e) {
                     e.preventDefault();
-                    modal.show();
-                });
+                    e.stopImmediatePropagation();
 
-                return modal;
-            }).catch(function(error) {
-                // Handle any errors
-                window.console.error('Error creating modal:', error);
+                    // Create and show the modal
+                    Str.get_strings([
+                        {key: 'delete', component: 'core'},
+                        {key: 'cancel', component: 'core'}
+                    ]).then(function(strings) {
+                        return ModalFactory.create({
+                            type: ModalFactory.types.SAVE_CANCEL,
+                            title: confirmTitle,
+                            body: confirmBody,
+                        });
+                    }).then(function(modal) {
+                        // Set button text
+                        modal.setSaveButtonText(strings[0]);
+
+                        // Handle confirmation
+                        modal.getRoot().on(ModalEvents.save, function() {
+                            $form.off('submit');
+                            $form.submit();
+                        });
+
+                        // Show the modal
+                        modal.show();
+                        return modal;
+                    }).catch(function(error) {
+                        window.console.error('Error creating modal:', error);
+                    });
+
+                    return false;
+                });
             });
         }
     };
