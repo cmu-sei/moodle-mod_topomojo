@@ -290,7 +290,7 @@ $string['search:activity'] = 'TopoMojo - activity information';
 
 $string['interestslist'] = 'list test';
 
-$string['deleteallattempts'] = 'Delete all attempts and grades';
+$string['deleteallattempts'] = 'Delete all attempts and grades?';
 $string['deleteallattempts_confirm'] = 'Are you sure you want to delete all attempts and grades for this activity? This action cannot be undone.';
 $string['attemptsdeleted'] = 'All attempts and grades have been deleted.';
 $string['messageprovider:notification'] = 'TopoMojo question mismatch notification';
