@@ -67,21 +67,15 @@ DM24-1175
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const form   = document.getElementById('start_form');
     const button = document.getElementById('launch_button');
     const flag   = document.getElementById('start_confirmed');
 
-    form.addEventListener('submit', (e) => {
-        if (flag.value !== 'yes') {
-            if (!confirm("{{# str }} start_attempt_confirm, mod_topomojo {{/ str }}")) {
-                e.preventDefault();
-                return;
-            }
-            flag.value = 'yes';
+    // Disable button and show loading state when form is submitted
+    document.getElementById('start_form').addEventListener('submit', (e) => {
+        if (flag.value === 'yes') {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span> Please wait, system processing';
         }
-
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner"></span> Please wait, system processing';
     });
 });
 </script>

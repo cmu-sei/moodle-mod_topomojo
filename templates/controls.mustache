@@ -60,13 +60,3 @@ DM24-1175
     <button id="copy_invite" class="btn btn-primary" style="display:none">{{# str }} copyinvite, mod_topomojo {{/ str }}</button>
 </div>
 <br>
-
-<script type="text/javascript">
-    document.getElementById('end_button').addEventListener('click', function(event) {
-        if (!confirm("{{# str }} stop_attempt_confirm, mod_topomojo {{/ str }}")) {
-            event.preventDefault(); // Prevent the form from being submitted if the user cancels
-        } else {
-            document.getElementById('stop_confirmed').value = "yes";
-        }
-    });
-</script>

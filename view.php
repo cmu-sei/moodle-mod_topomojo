@@ -316,6 +316,14 @@ if ($object->event) {
             $license_info = license_manager::get_license_by_shortname($license_id);
         }
 
+        // Initialize the launch lab confirmation modal
+        $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
+            '#launch_button',
+            get_string('confirm', 'core'),
+            get_string('start_attempt_confirm', 'mod_topomojo'),
+            '#start_confirmed'
+        ]);
+
         // Display start form
         $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
     } else {
@@ -332,6 +340,14 @@ if ($object->event) {
         if ($object->userauth && $topomojo->extendevent) {
             $extend = true;
         }
+
+        // Initialize the end lab confirmation modal
+        $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
+            '#end_button',
+            get_string('confirm', 'core'),
+            get_string('stop_attempt_confirm', 'mod_topomojo'),
+            '#stop_confirmed'
+        ]);
 
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
         // No matter what, start our session timer
@@ -401,6 +417,14 @@ if ($object->event) {
         $license_id = $object->topomojo->contentlicense;
         $license_info = license_manager::get_license_by_shortname($license_id);
     }
+
+    // Initialize the launch lab confirmation modal
+    $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
+        '#launch_button',
+        get_string('confirm', 'core'),
+        get_string('start_attempt_confirm', 'mod_topomojo'),
+        '#start_confirmed'
+    ]);
 
     // Display start form
     $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
