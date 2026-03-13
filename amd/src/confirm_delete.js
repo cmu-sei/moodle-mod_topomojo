@@ -52,20 +52,20 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                             type: ModalFactory.types.SAVE_CANCEL,
                             title: confirmTitle,
                             body: confirmBody,
-                        });
-                    }).then(function(modal) {
-                        // Set button text
-                        modal.setSaveButtonText(strings[0]);
+                        }).then(function(modal) {
+                            // Set button text
+                            modal.setSaveButtonText(strings[0]);
 
-                        // Handle confirmation
-                        modal.getRoot().on(ModalEvents.save, function() {
-                            $form.off('submit');
-                            $form.submit();
-                        });
+                            // Handle confirmation
+                            modal.getRoot().on(ModalEvents.save, function() {
+                                $form.off('submit');
+                                $form.submit();
+                            });
 
-                        // Show the modal
-                        modal.show();
-                        return modal;
+                            // Show the modal
+                            modal.show();
+                            return modal;
+                        });
                     }).catch(function(error) {
                         window.console.error('Error creating modal:', error);
                     });
