@@ -275,6 +275,7 @@ class topomojo_test extends \advanced_testcase {
         $attempt->state = topomojo_attempt::INPROGRESS;
         $attempt->timestart = time();
         $attempt->timemodified = time();
+        $attempt->endtime = time() + 3600;
         $DB->insert_record('topomojo_attempts', $attempt);
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);
@@ -304,6 +305,7 @@ class topomojo_test extends \advanced_testcase {
         $attempt->timestart = time();
         $attempt->timefinish = time();
         $attempt->timemodified = time();
+        $attempt->endtime = time() + 3600;
         $DB->insert_record('topomojo_attempts', $attempt);
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);

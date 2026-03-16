@@ -123,7 +123,7 @@ class topomojo_attempt_test extends \advanced_testcase {
      *
      * @return array
      */
-    public function state_provider() {
+    public static function state_provider() {
         return [
             'notstarted' => [topomojo_attempt::NOTSTARTED, 'notstarted'],
             'inprogress' => [topomojo_attempt::INPROGRESS, 'inprogress'],
@@ -168,6 +168,7 @@ class topomojo_attempt_test extends \advanced_testcase {
         $dbattempt->state = topomojo_attempt::NOTSTARTED;
         $dbattempt->timestart = time();
         $dbattempt->timemodified = time();
+        $dbattempt->endtime = time() + 3600;
         $dbattempt->id = $DB->insert_record('topomojo_attempts', $dbattempt);
 
         $attempt = new topomojo_attempt(null, $dbattempt);
@@ -216,6 +217,7 @@ class topomojo_attempt_test extends \advanced_testcase {
         $attempt->userid = 2;
         $attempt->state = topomojo_attempt::INPROGRESS;
         $attempt->timestart = time();
+        $attempt->endtime = time() + 3600;
 
         // Save attempt.
         $result = $attempt->save();
@@ -247,6 +249,7 @@ class topomojo_attempt_test extends \advanced_testcase {
         $dbattempt->state = topomojo_attempt::INPROGRESS;
         $dbattempt->timestart = time();
         $dbattempt->timemodified = time();
+        $dbattempt->endtime = time() + 3600;
         $dbattempt->id = $DB->insert_record('topomojo_attempts', $dbattempt);
 
         $attempt = new topomojo_attempt(null, $dbattempt);
@@ -280,6 +283,7 @@ class topomojo_attempt_test extends \advanced_testcase {
         $dbattempt->state = topomojo_attempt::INPROGRESS;
         $dbattempt->timestart = time();
         $dbattempt->timemodified = time();
+        $dbattempt->endtime = time() + 3600;
         $dbattempt->id = $DB->insert_record('topomojo_attempts', $dbattempt);
 
         $attempt = new topomojo_attempt(null, $dbattempt);

@@ -48,6 +48,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/topomojo/lib.php');
+require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
 /**
  * Unit tests for topomojo lib functions.
@@ -78,7 +79,7 @@ class lib_test extends \advanced_testcase {
      *
      * @return array
      */
-    public function supports_provider() {
+    public static function supports_provider() {
         return [
             'MOD_ARCHETYPE' => [FEATURE_MOD_ARCHETYPE, MOD_ARCHETYPE_OTHER],
             'GROUPS' => [FEATURE_GROUPS, false],
@@ -153,6 +154,7 @@ class lib_test extends \advanced_testcase {
         $moduleinfo = new \stdClass();
         $moduleinfo->modulename = 'topomojo';
         $moduleinfo->course = $course->id;
+        $moduleinfo->section = 0;
         $cm = create_module($moduleinfo);
         $topomojo->coursemodule = $cm->coursemodule;
 
@@ -332,6 +334,7 @@ class lib_test extends \advanced_testcase {
         $attempt->timestart = time();
         $attempt->timefinish = time();
         $attempt->timemodified = time();
+        $attempt->endtime = time() + 3600;
         $DB->insert_record('topomojo_attempts', $attempt);
 
         // Get grades for user.
