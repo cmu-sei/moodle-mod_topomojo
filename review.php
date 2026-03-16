@@ -102,8 +102,22 @@ if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->
 if ($object->is_instructor()) {
     $attempts = $object->getall_attempts('closed', $review = true);
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
-    $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1]);
-    echo $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post');
+
+    // Only show delete button if there are attempts to delete
+    if (!empty($attempts)) {
+        $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
+
+        // Initialize the confirmation modal
+        $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
+            '#delete-all-attempts-btn',
+            get_string('deleteallattempts', 'mod_topomojo'),
+            get_string('deleteallattempts_confirm', 'mod_topomojo')
+        ]);
+
+        $deletebutton = $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'mod_topomojo'), 'post',
+            ['class' => 'btn-danger']);
+        echo html_writer::div($deletebutton, '', ['id' => 'delete-all-attempts-btn']);
+    }
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');

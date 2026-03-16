@@ -26,19 +26,26 @@ $where  = "m.name = :modname
            AND cm.visibleoncoursepage = 1";
 $params = ['modname' => 'topomojo'];
 
-// Search for the featured tag
-$sqlfeatured = "
-  SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
-         t.id AS instanceid, t.name AS activityname
-  FROM {course_modules} cm
-  JOIN {modules} m   ON m.id = cm.module
-  JOIN {course}  c   ON c.id = cm.course
-  JOIN {topomojo} t  ON t.id = cm.instance
-  WHERE {$where} AND t.isfeatured = 1
-  ORDER BY c.fullname, t.name, cm.id";
-$record = $DB->get_record_sql($sqlfeatured, $params);
+// Get the current lab of the day from config
+$currentlabid = get_config('mod_topomojo', 'current_labofday_id');
+$record = null;
 
-// If none are marked as featured, find the first eligible activity
+if ($currentlabid) {
+    // Fetch the specific lab that's currently featured
+    $sqlfeatured = "
+      SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
+             t.id AS instanceid, t.name AS activityname
+      FROM {course_modules} cm
+      JOIN {modules} m   ON m.id = cm.module
+      JOIN {course}  c   ON c.id = cm.course
+      JOIN {topomojo} t  ON t.id = cm.instance
+      WHERE {$where} AND t.id = :labid
+      ORDER BY c.fullname, t.name, cm.id";
+    $params['labid'] = $currentlabid;
+    $record = $DB->get_record_sql($sqlfeatured, $params);
+}
+
+// If no current lab is set or it's no longer available, find the first eligible activity from pool
 if (!$record) {
     $sqlfirst = "
       SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
@@ -47,9 +54,15 @@ if (!$record) {
       JOIN {modules} m   ON m.id = cm.module
       JOIN {course}  c   ON c.id = cm.course
       JOIN {topomojo} t  ON t.id = cm.instance
-      WHERE {$where}
+      WHERE {$where} AND t.isfeatured = 1
       ORDER BY c.fullname, t.name, cm.id";
+    $params = ['modname' => 'topomojo']; // Reset params
     $record = $DB->get_record_sql($sqlfirst, $params);
+
+    // Update config if we found a lab
+    if ($record) {
+        set_config('current_labofday_id', $record->instanceid, 'mod_topomojo');
+    }
 }
 
 $card = null;

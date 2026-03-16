@@ -196,9 +196,10 @@ $string['attemptscore'] = 'Attempt Grade: ';
 $string['invitelink'] = 'Generate Invite';
 $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
-$string['stoplab'] = 'End Lab';
+$string['stoplab'] = 'End Lab?';
+$string['startlab'] = 'Start Lab?';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';
-$string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt?\nThis will destroy the lab on TopoMojo.';
+$string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt? This will destroy the lab on TopoMojo.';
 $string['attemptscompleted'] = 'Attempts completed';
 $string['launchedlabs'] = 'Launched Labs';
 $string['nomoreattempts'] = 'No more attempts can be made.';
@@ -289,12 +290,13 @@ $string['search:activity'] = 'TopoMojo - activity information';
 
 $string['interestslist'] = 'list test';
 
-$string['deleteallattempts'] = 'Delete all attempts and grades';
+$string['deleteallattempts'] = 'Delete all attempts and grades?';
+$string['deleteallattempts_confirm'] = 'Are you sure you want to delete all attempts and grades for this activity? This action cannot be undone.';
 $string['attemptsdeleted'] = 'All attempts and grades have been deleted.';
 $string['messageprovider:notification'] = 'TopoMojo question mismatch notification';
 $string['questionsynced'] = 'The question list has been successfully updated to match TopoMojo.';
 $string['questionaddfailed'] = 'Failed to update the question list.';
-$string['task_rotate_labofday'] = 'Rotate “Lab of the Day” link';
+$string['task_rotate_labofday'] = 'Rotate Lab of the Day link';
 
 // Labs Display
 $string['labslist']     = 'All TopoMojo Labs';
@@ -307,11 +309,11 @@ $string['topomojo']     = 'TopoMojo';
 $string['topomojo_viewall'] = 'View all TopoMojo Labs';
 $string['topomojo_viewall_desc'] = 'Browse all TopoMojo labs across the site.';
 $string['topomojo_lod'] = 'Lab of the Day';
-$string['topomojo_lod_desc'] = 'See today’s featured lab.';
+$string['topomojo_lod_desc'] = 'See today\'s featured lab.';
 
 // Lab of Day
-$string['featuredlab'] = 'Lab of the Day';
-$string['featuredlab_help'] = 'Make this activity available to the "Lab of the Day" feature';
+$string['featuredlab'] = 'Eligible for Lab of the Day';
+$string['featuredlab_help'] = 'Include this activity in the “Lab of the Day” rotation pool. The scheduled task will cycle through all eligible labs.';
 $string['viewcourse'] = 'View course';
 $string['noactivitiesmapped'] = 'No activities were found on the site.';
 
