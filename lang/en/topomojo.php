@@ -356,3 +356,13 @@ TopoMojo is the platform behind hands-on cybersecurity labs. Instructors build l
 <li>End the lab when finished to free resources.</li>
 </ul>
 EOT;
+
+// Health check strings.
+$string['healthchecksuccess'] = 'TopoMojo API is healthy (version: {$a})';
+$string['healthcheckfailed'] = 'TopoMojo API health check failed (HTTP code: {$a})';
+$string['healthcheckexception'] = 'TopoMojo API health check error: {$a}';
+$string['healthcheckunknown'] = 'TopoMojo API health status unknown';
+$string['healthcheckapinotconfigured'] = 'TopoMojo API URL is not configured';
+$string['healthcheckauthfailed'] = 'TopoMojo API authentication failed';
+$string['healthalert'] = 'Labs are currently unavailable. Please contact your administrator.';
+$string['healthwarning'] = 'TopoMojo service may be experiencing issues.';

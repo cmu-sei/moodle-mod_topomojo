@@ -153,8 +153,21 @@ class mod_topomojo_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
 
         if ($topomojoconfig->autocomplete < 2) {
-            // Pull list from topomojo.
+            // Check TopoMojo API health.
             $this->auth = setup();
+            $healthstatus = topomojo_check_health($this->auth);
+
+            if (!$healthstatus['healthy']) {
+                $mform->addElement('static', 'healthalert', '',
+                    html_writer::div(
+                        html_writer::tag('strong', get_string('healthalert', 'mod_topomojo')) .
+                        html_writer::tag('p', $healthstatus['message'], ['class' => 'small text-muted']),
+                        'alert alert-danger'
+                    )
+                );
+            }
+
+            // Pull list from topomojo.
             $this->workspaces = get_workspaces($this->auth);
             $labnames = [];
             $labs = [];

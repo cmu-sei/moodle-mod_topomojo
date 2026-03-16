@@ -95,6 +95,19 @@ $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
+// Check TopoMojo API health.
+$healthstatus = topomojo_check_health($object->userauth);
+
+if (!$healthstatus['healthy']) {
+    // Display health check error and stop processing.
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($topomojo->name);
+    echo $OUTPUT->notification(get_string('healthalert', 'mod_topomojo'), 'error');
+    echo html_writer::div($healthstatus['message'], 'alert alert-warning');
+    echo $OUTPUT->footer();
+    die();
+}
+
 // Get current state of workspace
 $allevents = list_events($object->userauth, $object->topomojo->workspaceid);
 $eventsmoodle = moodle_events($object->userauth, events: $allevents);
