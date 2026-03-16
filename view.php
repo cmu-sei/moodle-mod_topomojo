@@ -103,7 +103,6 @@ if (!$healthstatus['healthy']) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading($topomojo->name);
     echo $OUTPUT->notification(get_string('healthalert', 'mod_topomojo'), 'error');
-    echo html_writer::div($healthstatus['message'], 'alert alert-warning');
     echo $OUTPUT->footer();
     die();
 }

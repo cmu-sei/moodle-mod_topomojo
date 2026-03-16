@@ -108,6 +108,7 @@ $string['configenableoauth'] = 'Enable Oauth2 System Account for integration wit
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
 $string['workspace_help'] = 'This is the Workspace GUID in TopoMojo.';
 $string['workspace'] = 'TopoMojo Workspace';
+$string['filterbyaudience'] = 'Filter by Audience';
 $string['pluginadministration'] = 'TopoMojo administration';
 $string['playerlinktext'] = 'Open lab in new tab';
 $string['clock'] = 'Clock';

@@ -1242,46 +1242,27 @@ function topomojo_has_attempts($topomojoid)
  * Checks the health status of the TopoMojo API.
  *
  * This function makes a request to the TopoMojo health/version endpoint to verify
- * that the API is accessible and responding. Uses Moodle config cache for performance.
+ * that the API is accessible and responding.
  *
  * @param curl|null $client The cURL client instance, or null to create a new one.
- * @param bool $forcerecheck Force a fresh health check, ignoring cached results.
- * @return array An associative array with 'healthy' (bool), 'message' (string), and 'version' (string|null).
+ * @param bool $forcerecheck Unused parameter, kept for backward compatibility.
+ * @return array An associative array with 'healthy' (bool) and 'version' (string|null).
  */
 function topomojo_check_health($client = null, $forcerecheck = false)
 {
-    // Use simple config-based cache (stored in mdl_config).
-    $cachekey = 'topomojo_health_status';
-    $cacheddata = get_config('mod_topomojo', $cachekey);
-
-    // Return cached result if available, not forced, and less than 5 minutes old.
-    if (!$forcerecheck && $cacheddata) {
-        $cachedresult = @json_decode($cacheddata, true);
-        if ($cachedresult && isset($cachedresult['timestamp'])) {
-            if (time() - $cachedresult['timestamp'] < 300) { // 5 minutes cache.
-                return $cachedresult;
-            }
-        }
-    }
-
     $result = [
         'healthy' => false,
-        'message' => get_string('healthcheckunknown', 'mod_topomojo'),
         'version' => null,
-        'timestamp' => time(),
     ];
 
     // Get API URL from config.
     $apiurl = get_config('topomojo', 'topomojoapiurl');
 
     if (empty($apiurl)) {
-        $result['message'] = get_string('healthcheckapinotconfigured', 'mod_topomojo');
-        set_config($cachekey, json_encode($result), 'mod_topomojo');
+        debugging(get_string('healthcheckapinotconfigured', 'mod_topomojo'), DEBUG_DEVELOPER);
         return $result;
     }
 
-    // Health endpoint is anonymous ([AllowAnonymous]), so create a simple curl client without auth.
-    // This allows health check to work even if auth is misconfigured.
     if ($client === null) {
         $client = new curl();
     }
@@ -1296,16 +1277,12 @@ function topomojo_check_health($client = null, $forcerecheck = false)
         if ($httpcode === 200 && !empty($response)) {
             $result['healthy'] = true;
             $result['version'] = trim($response, '"');
-            $result['message'] = get_string('healthchecksuccess', 'mod_topomojo', $result['version']);
         } else {
-            $result['message'] = get_string('healthcheckfailed', 'mod_topomojo', $httpcode);
+            debugging(get_string('healthcheckfailed', 'mod_topomojo', $httpcode), DEBUG_DEVELOPER);
         }
     } catch (Exception $e) {
-        $result['message'] = get_string('healthcheckexception', 'mod_topomojo', $e->getMessage());
+        debugging(get_string('healthcheckexception', 'mod_topomojo', $e->getMessage()), DEBUG_DEVELOPER);
     }
-
-    // Cache the result.
-    set_config($cachekey, json_encode($result), 'mod_topomojo');
 
     return $result;
 }
