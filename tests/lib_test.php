@@ -155,6 +155,7 @@ class lib_test extends \advanced_testcase {
         $moduleinfo->modulename = 'topomojo';
         $moduleinfo->course = $course->id;
         $moduleinfo->section = 0;
+        $moduleinfo->visible = 1;
         $cm = create_module($moduleinfo);
         $topomojo->coursemodule = $cm->coursemodule;
 
@@ -270,10 +271,10 @@ class lib_test extends \advanced_testcase {
         $result = topomojo_review_option_form_to_db($fromform, 'attempt');
 
         // Result should be a bitmask of the enabled options.
-        $expected = mod_topomojo_display_options::DURING |
-                    mod_topomojo_display_options::IMMEDIATELY_AFTER |
-                    mod_topomojo_display_options::LATER_WHILE_OPEN |
-                    mod_topomojo_display_options::AFTER_CLOSE;
+        $expected = \mod_topomojo_display_options::DURING |
+                    \mod_topomojo_display_options::IMMEDIATELY_AFTER |
+                    \mod_topomojo_display_options::LATER_WHILE_OPEN |
+                    \mod_topomojo_display_options::AFTER_CLOSE;
 
         $this->assertEquals($expected, $result);
     }

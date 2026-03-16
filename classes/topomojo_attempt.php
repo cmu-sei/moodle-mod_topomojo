@@ -216,6 +216,7 @@ class topomojo_attempt {
             // insert new record
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
+                $this->attempt->id = $newid;
                 debugging("created new attempt record $newid", DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
