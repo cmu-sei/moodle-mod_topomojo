@@ -193,7 +193,8 @@ $string['attemptscore'] = 'Attempt Grade: ';
 $string['invitelink'] = 'Generate Invite';
 $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
-$string['stoplab'] = 'End Lab?';
+$string['stoplab'] = 'End Lab';
+$string['endlab'] = 'End Lab?';
 $string['startlab'] = 'Start Lab?';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';
 $string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt? This will destroy the lab on TopoMojo.';
@@ -284,10 +285,9 @@ $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you 
 
 // Global Search
 $string['search:activity'] = 'TopoMojo - activity information';
-
 $string['interestslist'] = 'list test';
-
-$string['deleteallattempts'] = 'Delete all attempts and grades?';
+$string['deleteallattempts'] = 'Delete all attempts and grades';
+$string['deleteall'] = 'Delete all attempts and grades?';
 $string['deleteallattempts_confirm'] = 'Are you sure you want to delete all attempts and grades for this activity? This action cannot be undone.';
 $string['attemptsdeleted'] = 'All attempts and grades have been deleted.';
 $string['messageprovider:notification'] = 'TopoMojo question mismatch notification';

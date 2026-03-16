@@ -243,9 +243,13 @@ class mod_topomojo_mod_form extends moodleform_mod
                 foreach ($audiences as $aud) {
                     $audienceoptions[$aud] = $aud;
                 }
-                $mform->addElement('select', 'audiencefilter', get_string('filterbyaudience', 'topomojo'), $audienceoptions);
 
-                $PAGE->requires->js_call_amd('mod_topomojo/audience_filter', 'init', [$workspaceaudiences]);
+                // Add audience filter select with data attribute
+                $attributes = ['data-workspace-audiences' => json_encode($workspaceaudiences)];
+                $mform->addElement('select', 'audiencefilter', get_string('filterbyaudience', 'topomojo'), $audienceoptions, $attributes);
+
+                // Load AMD module for client-side filtering (without passing large data)
+                $PAGE->requires->js_call_amd('mod_topomojo/audience_filter', 'init');
             }
 
             $options = [

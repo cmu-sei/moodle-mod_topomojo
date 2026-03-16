@@ -44,7 +44,7 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id]);
+$url = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -121,7 +121,7 @@ $userid = $USER->id;
 $activeattempt = $object->get_open_attempt();
 
 $max_attempts = $topomojo->attempts;
-$variant = $object->topomojo->variant -1;
+$variant = $object->topomojo->variant - 1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
 // Only check if challenge is valid
@@ -232,7 +232,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
-
         } else {
             // Event creation failed, possibly due to an empty response
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
@@ -240,7 +239,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
         }
 
         debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
-
     } else {
         // If event already exists, no action needed
         debugging("event has already been started", DEBUG_DEVELOPER);
@@ -274,7 +272,8 @@ if ($object->event) {
     }
     // Check age and get new link, checking for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
-                ((time() - $object->openAttempt->timemodified) > 3600 )) {
+        ((time() - $object->openAttempt->timemodified) > 3600)
+    ) {
         debugging("getting new launchpointurl", DEBUG_DEVELOPER);
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
@@ -356,15 +355,18 @@ if ($object->event) {
         // Initialize the end lab confirmation modal
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#end_button',
-            get_string('stoplab', 'mod_topomojo'),
+            get_string('endlab', 'mod_topomojo'),
             get_string('stop_attempt_confirm', 'mod_topomojo'),
             '#stop_confirmed'
         ]);
 
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
         // No matter what, start our session timer
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init',
-                ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
+        $PAGE->requires->js_call_amd(
+            'mod_topomojo/clock',
+            'init',
+            ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]
+        );
         if ($topomojo->clock == 1) {
             $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
         } else if ($topomojo->clock == 2) {
@@ -388,7 +390,9 @@ if ($object->event) {
             $vmlist = [];
             foreach ($object->event->vms as $vm) {
                 $isVisible   = is_array($vm) ? $vm['isVisible']   : $vm->isVisible;
-                if (!$isVisible) { continue; }
+                if (!$isVisible) {
+                    continue;
+                }
 
                 $name        = is_array($vm) ? $vm['name']        : $vm->name;
                 $isolationId = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
@@ -396,11 +400,11 @@ if ($object->event) {
                 if ($usecf) {
                     // ConsoleForge-style
                     $vmdata['url'] = $baseurl . '/c?name=' . rawurlencode($name)
-                                            . '&sessionId=' . rawurlencode($isolationId);
+                        . '&sessionId=' . rawurlencode($isolationId);
                 } else {
                     // Legacy /mks style
                     $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationId)
-                                            . '&v=' . rawurlencode($name);
+                        . '&v=' . rawurlencode($name);
                 }
 
                 $vmdata['name'] = $name;
@@ -412,7 +416,6 @@ if ($object->event) {
             $renderer->display_link_page($object->openAttempt->launchpointurl);
         }
     }
-
 } else {
     if ($showgrade) {
         $renderer->display_grade($topomojo);
@@ -443,4 +446,3 @@ if ($object->event) {
 }
 
 echo $renderer->footer();
-
