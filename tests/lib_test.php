@@ -156,6 +156,10 @@ class lib_test extends \advanced_testcase {
         $moduleinfo->course = $course->id;
         $moduleinfo->section = 0;
         $moduleinfo->visible = 1;
+        $moduleinfo->introeditor = [
+            'text' => $topomojo->intro,
+            'format' => FORMAT_HTML,
+        ];
         $cm = create_module($moduleinfo);
         $topomojo->coursemodule = $cm->coursemodule;
 
