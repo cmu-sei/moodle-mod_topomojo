@@ -232,8 +232,8 @@ class topomojo {
      *
      * @return bool Returns `true` if an open attempt is found and set; otherwise, returns `false`.
      */
-    public function get_open_attempt() {
-        $attempts = $this->getall_attempts('open');
+    public function get_open_attempt($preview = 0) {
+        $attempts = $this->getall_attempts('open', false, $preview);
         if (count($attempts) > 1) {
             debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
             return false;
@@ -257,9 +257,10 @@ class topomojo {
      *
      * @param string $state The state of the attempts to retrieve. Can be 'open', 'closed', or 'all'. Default is 'all'.
      * @param bool $review Indicates whether review access is permitted. Default is `false`.
+     * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts matching the criteria.
      */
-    public function getall_attempts($state = 'all', $review = false) {
+    public function getall_attempts($state = 'all', $review = false, $preview = 0) {
         global $DB, $USER;
 
         $sqlparams = [];
@@ -267,6 +268,12 @@ class topomojo {
 
         $where[] = 'topomojoid = ?';
         $sqlparams[] = $this->topomojo->id;
+
+        // Filter by preview status unless -1 (all attempts)
+        if ($preview !== -1) {
+            $where[] = 'preview = ?';
+            $sqlparams[] = $preview;
+        }
 
         switch ($state) {
             case 'open':
@@ -312,9 +319,10 @@ class topomojo {
      * @param int $userid The ID of the user for whom attempts are to be retrieved.
      * @param string $state The state of the attempts to retrieve. Can be `'open'`, `'closed'`, or `'all'`. Default is `'all'`.
      * @param bool $review Indicates whether review access is permitted. Default is `false`.
+     * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts for the specified user.
      */
-    public function get_attempts_by_user($userid, $state = 'all', $review = false) {
+    public function get_attempts_by_user($userid, $state = 'all', $review = false, $preview = 0) {
         global $DB;
 
         $sqlparams = [];
@@ -322,6 +330,12 @@ class topomojo {
 
         $where[] = 'topomojoid = ?';
         $sqlparams[] = $this->topomojo->id;
+
+        // Filter by preview status unless -1 (all attempts)
+        if ($preview !== -1) {
+            $where[] = 'preview = ?';
+            $sqlparams[] = $preview;
+        }
 
         switch ($state) {
             case 'open':
@@ -367,15 +381,17 @@ class topomojo {
      * @return bool Returns `true` if an open attempt is found or a new attempt is successfully created and started,
      * otherwise `false`.
      */
-    public function init_attempt() {
+    public function init_attempt($preview = 0) {
         global $DB, $USER;
 
-        $attempt = $this->get_open_attempt();
+        debugging("init_attempt called with preview=$preview", DEBUG_DEVELOPER);
+
+        $attempt = $this->get_open_attempt($preview);
         if ($attempt === true) {
-            debugging("init_attempt found " . $this->openAttempt->id, DEBUG_DEVELOPER);
+            debugging("init_attempt found " . $this->openAttempt->id . " with preview=" . $this->openAttempt->preview, DEBUG_DEVELOPER);
             return true;
         }
-        debugging("init_attempt could not find attempt by calling get_open_attempt", DEBUG_DEVELOPER);
+        debugging("init_attempt could not find attempt by calling get_open_attempt, creating new attempt with preview=$preview", DEBUG_DEVELOPER);
 
         // Create a new attempt
         $attempt = new topomojo_attempt(questionmanager: $this->questionmanager);
@@ -390,7 +406,11 @@ class topomojo {
         $attempt->score = 0;
         $attempt->endtime = strtotime($this->event->expirationTime);
         $attempt->eventid = $this->event->id;
+        $attempt->preview = $preview;
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
+        if ($preview) {
+            debugging("This is a PREVIEW attempt", DEBUG_DEVELOPER);
+        }
 
         if ($attempt->save()) {
             $this->openAttempt = $attempt;

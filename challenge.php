@@ -81,8 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id]);
-$returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id]);
+$previewparam = optional_param('preview', 0, PARAM_INT);
+$url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $previewparam]);
+$returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $previewparam]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -101,8 +102,11 @@ $eventsmoodle = moodle_events($object->userauth, $allevents); // events for mood
 $history = user_events($object->userauth, $eventsmoodle); // events for this user
 $object->event = get_active_event($history);
 
-// Get active attempt for user: true/false
-$activeattempt = $object->get_open_attempt();
+// Check if this is a preview attempt from URL parameter
+$ispreview = $previewparam;
+
+// Get active attempt for user: true/false (filtered by preview mode)
+$activeattempt = $object->get_open_attempt($ispreview);
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 } else if ($activeattempt == false) {
@@ -121,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
-            $activeattempt = $object->init_attempt();
+            $activeattempt = $object->init_attempt($ispreview);
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
             if (!$activeattempt) {
                 debugging("init_attempt failed");
@@ -187,6 +191,12 @@ if ((int)$object->topomojo->grade > 0) {
 $renderer = $object->renderer;
 echo $renderer->header();
 
+// Show preview mode warning if this is a preview attempt
+if ($ispreview == 1) {
+    $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+    echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+}
+
 $action = optional_param('action', '', PARAM_ALPHA);
 
 switch($action) {
@@ -199,10 +209,10 @@ switch($action) {
                     throw new moodle_exception('no active attempt');
                 }
 
-                // TODO if we are submitting answers, dont close, just save
-                $object->openAttempt->save_questions();
+                // Save answers without closing attempt
+                $object->openAttempt->save_question();
 
-                // TODO maybe dont reload?
+                // Reload the page
                 redirect($url);
             }
         }
@@ -217,6 +227,7 @@ switch($action) {
                     $current_attempt_count = $DB->count_records('topomojo_attempts', [
                         'topomojoid' => $topomojo->id,
                         'userid' => $userid,
+                        'preview' => 0
                     ]);
                     
                     $endlab = $object->topomojo->endlab;

@@ -117,8 +117,18 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
-// Get active attempt for user: true/false
-$activeattempt = $object->get_open_attempt();
+// Check if this is a preview attempt (instructor only)
+$ispreview = optional_param('preview', 0, PARAM_INT);
+$isinstructor = has_capability('mod/topomojo:manage', $context);
+
+// Show preview mode banner if in preview mode
+if ($ispreview == 1) {
+    $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+    echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+}
+
+// Get active attempt for user: true/false (filtered by preview mode)
+$activeattempt = $object->get_open_attempt($ispreview);
 
 $max_attempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
@@ -144,11 +154,12 @@ if ($challenge && isset($challenge->variants[$variant])) {
 }
 
 
-// Getting completed attempts by user
+// Getting completed attempts by user (excluding preview attempts)
 $current_attempt_count = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
-    'state' => 30
+    'state' => 30,
+    'preview' => 0
 ]);
 
 // If the maximum attempts are reached, display the max attempts template and exit
@@ -212,6 +223,10 @@ if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
+
+    // Get preview mode from POST
+    $ispreview = optional_param('preview', 0, PARAM_INT);
+
     // Check not started already
     if (!$object->event) {
         // Attempt to start the event
@@ -221,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             // If the event is created successfully, proceed
             debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
-            $activeattempt = $object->init_attempt();
+            $activeattempt = $object->init_attempt($ispreview);
 
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
 
@@ -268,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
         debugging("active event with no attempt", DEBUG_DEVELOPER);
-        $activeattempt = $object->init_attempt();
+        $activeattempt = $object->init_attempt($ispreview);
     }
     // Check age and get new link, checking for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
@@ -305,6 +320,11 @@ if ((int)$object->topomojo->grade > 0) {
 }
 
 if ($object->event) {
+    // Show preview mode warning if this is a preview attempt (additional check during lab)
+    if ($activeattempt && isset($object->openAttempt->preview) && $object->openAttempt->preview == 1) {
+        $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+        echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+    }
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
         // If VMs array is missing or not valid, display error and stop further processing
@@ -336,7 +356,7 @@ if ($object->event) {
         ]);
 
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -442,7 +462,7 @@ if ($object->event) {
     ]);
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
 }
 
 echo $renderer->footer();
