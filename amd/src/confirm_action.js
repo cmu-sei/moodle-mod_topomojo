@@ -62,11 +62,15 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
 
                             // Handle confirmation
                             modal.getRoot().on(ModalEvents.save, function() {
+                                // Close modal first
+                                modal.hide();
+
+                                // Set flag to bypass confirmation check
                                 $confirmFlag.val('yes');
 
-                                // Show loading state on button
+                                // Show loading state on button (matches original inline JS)
                                 $button.prop('disabled', true);
-                                $button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Please wait, system processing...');
+                                $button.html('<span class="spinner"></span> Please wait, system processing');
 
                                 // Remove the submit handler and submit the form natively
                                 $form.off('submit');
