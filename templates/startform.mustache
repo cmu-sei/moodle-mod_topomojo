@@ -75,16 +75,7 @@ DM24-1175
 document.addEventListener('DOMContentLoaded', () => {
     const button = document.getElementById('launch_button');
     const previewButton = document.getElementById('preview_button');
-    const flag   = document.getElementById('start_confirmed');
     const previewField = document.getElementById('preview');
-
-    // Disable button and show loading state when form is submitted
-    document.getElementById('start_form').addEventListener('submit', (e) => {
-        if (flag.value === 'yes') {
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner"></span> Please wait, system processing';
-        }
-    });
 
     // Handle preview button click
     if (previewButton) {

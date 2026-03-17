@@ -35,6 +35,8 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
 
                 var $form = $button.closest('form');
                 var $confirmFlag = $(confirmFlagSelector);
+                var $previewField = $('#preview');
+                var $previewButton = $('#preview_button');
 
                 // Intercept the form submission
                 $form.on('submit', function(e) {
@@ -68,9 +70,15 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                                 // Set flag to bypass confirmation check
                                 $confirmFlag.val('yes');
 
-                                // Show loading state on button (matches original inline JS)
-                                $button.prop('disabled', true);
-                                $button.html('<span class="spinner"></span> Please wait, system processing');
+                                // Determine which button to show spinner on based on preview field
+                                var $targetButton = $button;
+                                if ($previewField.length > 0 && $previewField.val() === '1' && $previewButton.length > 0) {
+                                    $targetButton = $previewButton;
+                                }
+
+                                // Show loading state on the appropriate button
+                                $targetButton.prop('disabled', true);
+                                $targetButton.html('<span class="spinner"></span> Please wait, system processing');
 
                                 // Remove the submit handler and submit the form natively
                                 $form.off('submit');

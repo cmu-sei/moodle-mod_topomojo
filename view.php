@@ -121,6 +121,30 @@ $userid = $USER->id;
 $ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context);
 
+// If instructor and no preview param in URL, check for existing attempts to detect preview mode
+// This handles the case when returning from challenge.php after quiz submission
+if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
+    // Check recent closed attempts for this event to see if they were preview attempts
+    // Only check the most recent attempt to keep it fast
+    $recentattempt = $DB->get_record_sql(
+        "SELECT preview FROM {topomojo_attempts}
+         WHERE topomojoid = :topomojoid
+         AND userid = :userid
+         AND eventid = :eventid
+         ORDER BY timemodified DESC
+         LIMIT 1",
+        [
+            'topomojoid' => $topomojo->id,
+            'userid' => $userid,
+            'eventid' => $object->event->id
+        ]
+    );
+
+    if ($recentattempt) {
+        $ispreview = $recentattempt->preview;
+    }
+}
+
 // Show preview mode banner if in preview mode
 if ($ispreview == 1) {
     $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
