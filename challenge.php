@@ -104,6 +104,34 @@ $object->event = get_active_event($history);
 
 // Check if this is a preview attempt from URL parameter
 $ispreview = $previewparam;
+$isinstructor = has_capability('mod/topomojo:manage', $context);
+
+// If instructor and no preview param in URL, check for existing attempts to detect preview mode
+// This handles the case when navigating to challenge.php without preview parameter
+if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
+    // Check for open attempt to see if it's a preview attempt
+    $openattempt = $DB->get_record_sql(
+        "SELECT preview FROM {topomojo_attempts}
+         WHERE topomojoid = :topomojoid
+         AND userid = :userid
+         AND eventid = :eventid
+         AND state = :state
+         LIMIT 1",
+        [
+            'topomojoid' => $topomojo->id,
+            'userid' => $USER->id,
+            'eventid' => $object->event->id,
+            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS
+        ]
+    );
+
+    if ($openattempt) {
+        $ispreview = $openattempt->preview;
+        // Update URLs to include preview parameter
+        $url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $ispreview]);
+        $returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $ispreview]);
+    }
+}
 
 // Get active attempt for user: true/false (filtered by preview mode)
 $activeattempt = $object->get_open_attempt($ispreview);
