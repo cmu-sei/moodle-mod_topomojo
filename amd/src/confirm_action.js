@@ -63,6 +63,13 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                             // Handle confirmation
                             modal.getRoot().on(ModalEvents.save, function() {
                                 $confirmFlag.val('yes');
+
+                                // Show loading state on button
+                                $button.prop('disabled', true);
+                                var originalText = $button.html();
+                                $button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Please wait, system processing...');
+
+                                // Remove the submit handler and submit the form
                                 $form.off('submit');
                                 $form.submit();
                             });
