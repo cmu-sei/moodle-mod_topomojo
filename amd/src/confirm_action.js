@@ -66,12 +66,12 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
 
                                 // Show loading state on button
                                 $button.prop('disabled', true);
-                                var originalText = $button.html();
                                 $button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Please wait, system processing...');
 
-                                // Remove the submit handler and submit the form
+                                // Remove the submit handler and submit the form natively
                                 $form.off('submit');
-                                $form.submit();
+                                // Use native form submit to ensure page reload
+                                $form[0].submit();
                             });
 
                             // Show the modal
