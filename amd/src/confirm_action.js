@@ -59,15 +59,11 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                             title: confirmTitle,
                             body: confirmBody,
                         }).then(function(modal) {
-                            // Set button text
                             modal.setSaveButtonText(strings[0]);
 
                             // Handle confirmation
                             modal.getRoot().on(ModalEvents.save, function() {
-                                // Close modal first
                                 modal.hide();
-
-                                // Set flag to bypass confirmation check
                                 $confirmFlag.val('yes');
 
                                 // Determine which button to show spinner on based on preview field
@@ -80,9 +76,7 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                                 $targetButton.prop('disabled', true);
                                 $targetButton.html('<span class="spinner"></span> Please wait, system processing');
 
-                                // Remove the submit handler and submit the form natively
                                 $form.off('submit');
-                                // Use native form submit to ensure page reload
                                 $form[0].submit();
                             });
 

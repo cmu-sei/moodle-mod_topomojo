@@ -46,7 +46,8 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright   2024 Carnegie Mellon Univeristy
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class topomojo {
+class topomojo
+{
 
     /**
      * @var \stdClass Contains information about the current event, such as launch point URL, workspace ID, and expiration time
@@ -128,7 +129,8 @@ class topomojo {
      * @param string $renderersubtype Renderer sub-type to load if requested
      *
      */
-    public function __construct($cm, $course, $topomojo, $pageurl = null, $pagevars = [], $renderersubtype = null) {
+    public function __construct($cm, $course, $topomojo, $pageurl = null, $pagevars = [], $renderersubtype = null)
+    {
         global $CFG, $PAGE;
 
         $this->cm = $cm;
@@ -145,12 +147,13 @@ class topomojo {
             $this->renderer->init($this, $pageurl, $pagevars);
             if (str_contains($pageurl->get_path(), "edit.php")) {
                 $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
-	    } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
-		    (str_contains($pageurl->get_path(), "challenge.php")) ||
-		    (str_contains($pageurl->get_path(), "viewattempt.php"))) {
-		// if there are questions added to the challenge, load questionmanager on the other pages
+            } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
+                (str_contains($pageurl->get_path(), "challenge.php")) ||
+                (str_contains($pageurl->get_path(), "viewattempt.php"))
+            ) {
+                // if there are questions added to the challenge, load questionmanager on the other pages
                 if (isset($this->topomojo->questionorder)) {
-                        $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
+                    $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
                 }
             }
             $this->userauth = setup();
@@ -166,7 +169,8 @@ class topomojo {
      *
      * @return bool Whether or not the current user has the capability
      */
-    public function has_capability($capability, $userid = 0) {
+    public function has_capability($capability, $userid = 0)
+    {
         if ($userid !== 0) {
             // Pass in userid if there is one
             return has_capability($capability, $this->context, $userid);
@@ -181,7 +185,8 @@ class topomojo {
      *
      * @return bool
      */
-    public function is_instructor() {
+    public function is_instructor()
+    {
 
         if (is_null($this->isinstructor)) {
             $this->isinstructor = $this->has_capability('mod/topomojo:manage');
@@ -197,7 +202,8 @@ class topomojo {
      * @param int $attemptid The ID of the attempt record to retrieve.
      * @return \mod_topomojo\topomojo_attempt A `topomojo_attempt` object representing the attempt.
      */
-    public function get_attempt($attemptid) {
+    public function get_attempt($attemptid)
+    {
         global $DB;
 
         $dbattempt = $DB->get_record('topomojo_attempts', ["id" => $attemptid]);
@@ -210,7 +216,8 @@ class topomojo {
      *
      * @return object
      */
-    public function getCM() {
+    public function getCM()
+    {
         return $this->cm;
     }
 
@@ -219,7 +226,8 @@ class topomojo {
      *
      * @return \context_module
      */
-    public function getContext() {
+    public function getContext()
+    {
         return $this->context;
     }
 
@@ -232,7 +240,8 @@ class topomojo {
      *
      * @return bool Returns `true` if an open attempt is found and set; otherwise, returns `false`.
      */
-    public function get_open_attempt($preview = 0) {
+    public function get_open_attempt($preview = 0)
+    {
         $attempts = $this->getall_attempts('open', false, $preview);
         if (count($attempts) > 1) {
             debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
@@ -260,7 +269,8 @@ class topomojo {
      * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts matching the criteria.
      */
-    public function getall_attempts($state = 'all', $review = false, $preview = 0) {
+    public function getall_attempts($state = 'all', $review = false, $preview = 0)
+    {
         global $DB, $USER;
 
         $sqlparams = [];
@@ -306,7 +316,6 @@ class topomojo {
         }
 
         return $attempts;
-
     }
 
     /**
@@ -322,7 +331,8 @@ class topomojo {
      * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts for the specified user.
      */
-    public function get_attempts_by_user($userid, $state = 'all', $review = false, $preview = 0) {
+    public function get_attempts_by_user($userid, $state = 'all', $review = false, $preview = 0)
+    {
         global $DB;
 
         $sqlparams = [];
@@ -381,7 +391,8 @@ class topomojo {
      * @return bool Returns `true` if an open attempt is found or a new attempt is successfully created and started,
      * otherwise `false`.
      */
-    public function init_attempt($preview = 0) {
+    public function init_attempt($preview = 0)
+    {
         global $DB, $USER;
 
         debugging("init_attempt called with preview=$preview", DEBUG_DEVELOPER);
@@ -420,8 +431,6 @@ class topomojo {
             return false;
         }
 
-        //$attempt->setState('inprogress');
-
         // TODO call start attempt event class from here
         return true;
     }
@@ -430,7 +439,8 @@ class topomojo {
      *
      * @return \mod_topomojo\questionmanager
      */
-    public function get_question_manager(): questionmanager {
+    public function get_question_manager(): questionmanager
+    {
         return $this->questionmanager;
     }
 
@@ -439,7 +449,8 @@ class topomojo {
      *
      * @return bool
      */
-    public function save() {
+    public function save()
+    {
         global $DB;
 
         return $DB->update_record('topomojo', $this->topomojo);
@@ -456,7 +467,8 @@ class topomojo {
      *
      * @return string Returns the state of the activity. Possible values are `'unopen'`, `'open'`, or `'closed'`.
      */
-    public function get_openclose_state() {
+    public function get_openclose_state()
+    {
         $state = 'open';
         $timenow = time();
         if ($this->topomojo->timeopen && ($timenow < $this->topomojo->timeopen)) {
@@ -475,7 +487,8 @@ class topomojo {
      *
      * @return \stdClass A class of the options
      */
-    public function get_review_options() {
+    public function get_review_options()
+    {
 
         $reviewoptions = new \stdClass();
         $reviewoptions->reviewattempt = $this->topomojo->reviewattempt;
@@ -502,7 +515,8 @@ class topomojo {
      * @param string $state The current state of the activity, which can be 'open' or 'closed'.
      * @return bool Returns `true` if the user can review marks based on the state and review options, otherwise `false`.
      */
-    public function canreviewmarks($reviewoptions, $state) {
+    public function canreviewmarks($reviewoptions, $state)
+    {
         $canreviewmarks = false;
         if ($state == 'open') {
             if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
@@ -528,7 +542,8 @@ class topomojo {
      * @param string $state The current state of the activity, which can be 'open' or 'closed'.
      * @return bool Returns `true` if the user can review the attempt based on the state and review options, otherwise `false`.
      */
-    public function canreviewattempt($reviewoptions, $state) {
+    public function canreviewattempt($reviewoptions, $state)
+    {
         $canreviewattempt = false;
         if ($state == 'open') {
             if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
@@ -541,5 +556,4 @@ class topomojo {
         }
         return  $canreviewattempt;
     }
-
 }

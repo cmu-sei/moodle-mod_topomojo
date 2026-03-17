@@ -39,7 +39,6 @@ define(['jquery'], function($) {
                     try {
                         workspaceAudiences = JSON.parse(audienceData);
                     } catch (e) {
-                        // eslint-disable-next-line no-console
                         console.error('Failed to parse workspace audience data:', e);
                         return;
                     }

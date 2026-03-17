@@ -117,15 +117,13 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
-// Check if this is a preview attempt (instructor only)
+// Check if this is a preview attempt
 $ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context);
 
 // If instructor and no preview param in URL, check for existing attempts to detect preview mode
-// This handles the case when returning from challenge.php after quiz submission
 if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
     // Check recent closed attempts for this event to see if they were preview attempts
-    // Only check the most recent attempt to keep it fast
     $recentattempt = $DB->get_record_sql(
         "SELECT preview FROM {topomojo_attempts}
          WHERE topomojoid = :topomojoid

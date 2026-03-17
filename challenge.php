@@ -45,7 +45,7 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -82,8 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
 // Print the page header.
 $previewparam = optional_param('preview', 0, PARAM_INT);
-$url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $previewparam]);
-$returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $previewparam]);
+$url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $previewparam]);
+$returnurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $previewparam]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -107,7 +107,6 @@ $ispreview = $previewparam;
 $isinstructor = has_capability('mod/topomojo:manage', $context);
 
 // If instructor and no preview param in URL, check for existing attempts to detect preview mode
-// This handles the case when navigating to challenge.php without preview parameter
 if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
     // Check for open attempt to see if it's a preview attempt
     $openattempt = $DB->get_record_sql(
@@ -128,12 +127,12 @@ if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->
     if ($openattempt) {
         $ispreview = $openattempt->preview;
         // Update URLs to include preview parameter
-        $url = new moodle_url ( '/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $ispreview]);
-        $returnurl = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $ispreview]);
+        $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $ispreview]);
+        $returnurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $ispreview]);
     }
 }
 
-// Get active attempt for user: true/false (filtered by preview mode)
+// Get active attempt for user
 $activeattempt = $object->get_open_attempt($ispreview);
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
@@ -152,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         // TODO check for open attempt and check for status of its event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
-            debugging("new event created " .$object->event->id, DEBUG_DEVELOPER);
+            debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $activeattempt = $object->init_attempt($ispreview);
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
             if (!$activeattempt) {
@@ -164,10 +163,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             throw new moodle_exception("start_event failed");
         }
-        debugging("new event created with variant " .$object->event->variant, DEBUG_DEVELOPER);
+        debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
         // Contact topomojo and pull the correct answers for this attempt
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
-
     } else {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
@@ -190,8 +188,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
                 topomojo_end($cm, $context, $topomojo);
             }
 
-            $viewattempturl = new moodle_url ( '/mod/topomojo/viewattempt.php',
-                    ['a' => $object->openAttempt->id, 'action' => 'view']);
+            $viewattempturl = new moodle_url(
+                '/mod/topomojo/viewattempt.php',
+                ['a' => $object->openAttempt->id, 'action' => 'view']
+            );
             redirect($viewattempturl);
         }
     }
@@ -227,7 +227,7 @@ if ($ispreview == 1) {
 
 $action = optional_param('action', '', PARAM_ALPHA);
 
-switch($action) {
+switch ($action) {
     case "submitquiz":
         debugging("submitquiz request received", DEBUG_DEVELOPER);
         if ($object->event) {
@@ -257,7 +257,7 @@ switch($action) {
                         'userid' => $userid,
                         'preview' => 0
                     ]);
-                    
+
                     $endlab = $object->topomojo->endlab;
 
                     if ($challenge->text) {
@@ -292,7 +292,6 @@ switch($action) {
                             $renderer->render_endlab();
                         }
                     }
-                    
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             }
