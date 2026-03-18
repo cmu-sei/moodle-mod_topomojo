@@ -35,6 +35,8 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
 
                 var $form = $button.closest('form');
                 var $confirmFlag = $(confirmFlagSelector);
+                var $previewField = $('#preview');
+                var $previewButton = $('#preview_button');
 
                 // Intercept the form submission
                 $form.on('submit', function(e) {
@@ -57,14 +59,25 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                             title: confirmTitle,
                             body: confirmBody,
                         }).then(function(modal) {
-                            // Set button text
                             modal.setSaveButtonText(strings[0]);
 
                             // Handle confirmation
                             modal.getRoot().on(ModalEvents.save, function() {
+                                modal.hide();
                                 $confirmFlag.val('yes');
+
+                                // Determine which button to show spinner on based on preview field
+                                var $targetButton = $button;
+                                if ($previewField.length > 0 && $previewField.val() === '1' && $previewButton.length > 0) {
+                                    $targetButton = $previewButton;
+                                }
+
+                                // Show loading state on the appropriate button
+                                $targetButton.prop('disabled', true);
+                                $targetButton.html('<span class="spinner"></span> Please wait, system processing');
+
                                 $form.off('submit');
-                                $form.submit();
+                                $form[0].submit();
                             });
 
                             // Show the modal

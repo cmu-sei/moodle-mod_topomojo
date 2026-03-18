@@ -63,7 +63,8 @@ defined('MOODLE_INTERNAL') || die;
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-function xmldb_topomojo_upgrade($oldversion) {
+function xmldb_topomojo_upgrade($oldversion)
+{
     global $CFG, $DB;
     $dbman = $DB->get_manager();
 
@@ -176,8 +177,16 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewgeneralfeedback to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewgeneralfeedback', XMLDB_TYPE_INTEGER, '6',
-                 null, XMLDB_NOTNULL, null, '0', 'reviewspecificfeedback');
+        $field = new xmldb_field(
+            'reviewgeneralfeedback',
+            XMLDB_TYPE_INTEGER,
+            '6',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'reviewspecificfeedback'
+        );
 
         // Conditionally launch add field reviewgeneralfeedback.
         if (!$dbman->field_exists($table, $field)) {
@@ -186,8 +195,16 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewrightanswer to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewrightanswer', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
-                 null, '0', 'reviewgeneralfeedback');
+        $field = new xmldb_field(
+            'reviewrightanswer',
+            XMLDB_TYPE_INTEGER,
+            '6',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'reviewgeneralfeedback'
+        );
 
         // Conditionally launch add field reviewrightanswer.
         if (!$dbman->field_exists($table, $field)) {
@@ -196,8 +213,16 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewoverallfeedback to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewoverallfeedback', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
-                 null, '0', 'reviewrightanswer');
+        $field = new xmldb_field(
+            'reviewoverallfeedback',
+            XMLDB_TYPE_INTEGER,
+            '6',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'reviewrightanswer'
+        );
 
         // Conditionally launch add field reviewoverallfeedback.
         if (!$dbman->field_exists($table, $field)) {
@@ -206,8 +231,16 @@ function xmldb_topomojo_upgrade($oldversion) {
 
         // Define field reviewmanualcomment to be added to topomojo.
         $table = new xmldb_table('topomojo');
-        $field = new xmldb_field('reviewmanualcomment', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL,
-                 null, '0', 'reviewoverallfeedback');
+        $field = new xmldb_field(
+            'reviewmanualcomment',
+            XMLDB_TYPE_INTEGER,
+            '6',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'reviewoverallfeedback'
+        );
 
         // Conditionally launch add field reviewmanualcomment.
         if (!$dbman->field_exists($table, $field)) {
@@ -548,6 +581,19 @@ function xmldb_topomojo_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026020502, 'topomojo');
     }
 
+    if ($oldversion < 2026031608) {
+        // Define field preview to be added to topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('preview', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'variant');
+
+        // Conditionally launch add field preview.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // TopoMojo savepoint reached.
+        upgrade_mod_savepoint(true, 2026031608, 'topomojo');
+    }
+
     return true;
 }
-

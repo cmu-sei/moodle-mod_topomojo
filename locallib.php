@@ -55,7 +55,8 @@ require_once($CFG->libdir . '/questionlib.php');
  *
  * @return curl The configured cURL client instance.
  */
-function setup() {
+function setup()
+{
     if (get_config('topomojo', 'enableapikey')) {
         // Use external API key
         $xapikey = get_config('topomojo', 'apikey');
@@ -73,7 +74,6 @@ function setup() {
         $client->setHeader($headers);
 
         return $client;
-
     } else {
         // Use OAuth2 system client
         if (get_config('topomojo', 'enableoauth')) {
@@ -120,7 +120,8 @@ function setup() {
  *
  * @throws moodle_exception If the cURL client is null.
  */
-function list_events($client, $workspaceid) {
+function list_events($client, $workspaceid)
+{
     //debugging("listing events", DEBUG_DEVELOPER);
     if ($client == null) {
         throw new moodle_exception('error with userauth');
@@ -174,7 +175,8 @@ function list_events($client, $workspaceid) {
  *
  * @throws moodle_exception If the cURL client is null or not provided.
  */
-function list_all_active_events($client) {
+function list_all_active_events($client)
+{
     if ($client == null) {
         throw new moodle_exception('error with userauth');
         return;
@@ -182,8 +184,8 @@ function list_all_active_events($client) {
 
     // Use a generic search term or empty if API allows it
     $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false"
-         . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
-         . "&WantsActive=true";
+        . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
+        . "&WantsActive=true";
 
     $response = $client->get($url);
 
@@ -222,7 +224,8 @@ function list_all_active_events($client) {
  * @return array An array of events where the 'managerName is set in the plugin settings.
  * If no events match or if the input is not an array, an empty array is returned.
  */
-function moodle_events($client, $events) {
+function moodle_events($client, $events)
+{
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
         return;
@@ -236,7 +239,7 @@ function moodle_events($client, $events) {
     foreach ($events as $event) {
         if (get_config('topomojo', 'enablemanagername')) {
             $managername = get_config('topomojo', 'managername');
-             if ($event['managerName'] == $managername) {
+            if ($event['managerName'] == $managername) {
                 array_push($eventsmoodle, $event);
             }
         } else {
@@ -267,7 +270,8 @@ function moodle_events($client, $events) {
  * @throws moodle_exception If there is an error with user authentication, an error communicating with TopoMojo,
  * or an issue decoding the JSON response.
  */
-function user_events($client, $events) {
+function user_events($client, $events)
+{
     global $USER;
     //debugging("filtering events for user", DEBUG_DEVELOPER);
     if ($client == null) {
@@ -314,13 +318,12 @@ function user_events($client, $events) {
         $players = $r['players'];
         //print_r($players);
 
-        $subjectid = explode( "@", $USER->email )[0];
+        $subjectid = explode("@", $USER->email)[0];
         //echo "<br>subjectid $subjectid<br>";
 
         if (!is_array($players)) {
             debugging("no players for this event " . $event->id, DEBUG_DEVELOPER);
             return;
-
         }
         foreach ($players as $player) {
             //print_r($player);
@@ -349,7 +352,8 @@ function user_events($client, $events) {
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_workspace($client, $id) {
+function get_workspace($client, $id)
+{
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
@@ -398,7 +402,8 @@ function get_workspace($client, $id) {
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_workspaces($client) {
+function get_workspaces($client)
+{
 
     if ($client == null) {
         debugging('error with client in get_workspaces', DEBUG_DEVELOPER);
@@ -442,7 +447,8 @@ function get_workspaces($client) {
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_gamespace_challenge($client, $id) {
+function get_gamespace_challenge($client, $id)
+{
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
@@ -492,7 +498,8 @@ function get_gamespace_challenge($client, $id) {
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_markdown($client, $id, $topomojoid = null) {
+function get_markdown($client, $id, $topomojoid = null)
+{
     global $DB;
 
     if ($client == null) {
@@ -534,7 +541,8 @@ function get_markdown($client, $id, $topomojoid = null) {
     return $markdown;
 }
 
-function get_gamespace_limit($client) {
+function get_gamespace_limit($client)
+{
 
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
@@ -603,7 +611,8 @@ function get_gamespace_limit($client) {
  *
  * @throws moodle_exception If there is an issue with the HTTP request or if the response code is not 200.
  */
-function start_event($client, $id, $topomojo) {
+function start_event($client, $id, $topomojo)
+{
     global $USER;
     debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
 
@@ -628,7 +637,7 @@ function start_event($client, $id, $topomojo) {
     $payload->variant = $topomojo->variant;
     $payload->players = [];
     $payload->players[0] = new stdClass();
-    $payload->players[0]->subjectId = explode( "@", $USER->email )[0];
+    $payload->players[0]->subjectId = explode("@", $USER->email)[0];
     $payload->players[0]->subjectName = $USER->username;
     $json = json_encode($payload);
     //print_r($json);
@@ -645,7 +654,7 @@ function start_event($client, $id, $topomojo) {
     $response = $client->post($url, $json);
 
     if (!$response) {
-        debugging('no response received by start_event response code ' , $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        debugging('no response received by start_event response code ', $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
@@ -681,7 +690,8 @@ function start_event($client, $id, $topomojo) {
  *
  * @throws \Exception If no response is received from the API.
  */
-function stop_event($client, $id) {
+function stop_event($client, $id)
+{
 
     if ($client == null) {
         debugging('error with client in stop_event', DEBUG_DEVELOPER);;
@@ -719,7 +729,8 @@ function stop_event($client, $id) {
  * @return string|null The ticket if the request is successful and the response code is 200, or `null` if
  *                     the request fails or the response cannot be decoded.
  */
-function get_ticket($client) {
+function get_ticket($client)
+{
 
     if ($client == null) {
         debugging('error with client in get_ticket', DEBUG_DEVELOPER);;
@@ -764,7 +775,8 @@ function get_ticket($client) {
  * @return mixed The invitation details if the request is successful and the response code is 200, or `null`
  *               if the request fails or the response cannot be decoded.
  */
-function get_invite($client, $id) {
+function get_invite($client, $id)
+{
 
     if ($client == null) {
         debugging('error with client in get_invite', DEBUG_DEVELOPER);;
@@ -808,7 +820,8 @@ function get_invite($client, $id) {
  *
  * @return bool Returns `true` if the request is successful and the response code is 200, or `false` otherwise.
  */
-function extend_event($client, $data) {
+function extend_event($client, $data)
+{
 
     if ($client == null) {
         return;
@@ -843,7 +856,8 @@ function extend_event($client, $data) {
  *
  * @throws moodle_exception Throws an exception if the response cannot be decoded or if the response code is not 200.
  */
-function get_event($client, $id) {
+function get_event($client, $id)
+{
 
     if ($client == null) {
         debugging('error with client in get_event', DEBUG_DEVELOPER);;
@@ -894,7 +908,8 @@ function get_event($client, $id) {
  * @return int Returns an integer less than, equal to, or greater than zero depending on whether the 'whenCreated'
  *             value of $a is less than, equal to, or greater than the 'whenCreated' value of $b.
  */
-function whencreated($a, $b) {
+function whencreated($a, $b)
+{
     return strnatcmp($a['whenCreated'], $b['whenCreated']);
 }
 
@@ -909,7 +924,8 @@ function whencreated($a, $b) {
  *
  * @return object|null Returns the first active event as an object, or null if no active event is found or if the input is null.
  */
-function get_active_event($history) {
+function get_active_event($history)
+{
     if ($history == null) {
         return null;
     }
@@ -933,7 +949,8 @@ function get_active_event($history) {
  *
  * @return array An associative array where the keys are grading option constants and the values are language strings.
  */
-function topomojo_get_grading_options() {
+function topomojo_get_grading_options()
+{
     return [
         TOPOMOJO_GRADEHIGHEST => get_string('gradehighest', 'topomojo'),
         TOPOMOJO_GRADEAVERAGE => get_string('gradeaverage', 'topomojo'),
@@ -951,7 +968,8 @@ function topomojo_get_grading_options() {
  *                    TOPOMOJO_ATTEMPTFIRST, TOPOMOJO_ATTEMPTLAST).
  * @return string The language string for the specified grading option.
  */
-function topomojo_get_grading_option_name($option) {
+function topomojo_get_grading_option_name($option)
+{
     $strings = topomojo_get_grading_options();
     return $strings[$option];
 }
@@ -966,7 +984,8 @@ function topomojo_get_grading_option_name($option) {
  * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
-function topomojo_end($cm, $context, $topomojo) {
+function topomojo_end($cm, $context, $topomojo)
+{
     global $USER;
     $params = [
         'objectid'      => $cm->id,
@@ -988,7 +1007,8 @@ function topomojo_end($cm, $context, $topomojo) {
  * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
-function topomojo_start($cm, $context, $topomojo) {
+function topomojo_start($cm, $context, $topomojo)
+{
     global $USER;
     $params = [
         'objectid'      => $cm->id,
@@ -1011,7 +1031,8 @@ function topomojo_start($cm, $context, $topomojo) {
  * @return object|null The decoded challenge data object if successful, or null if an error occurs or the data cannot be decoded.
  * @throws moodle_exception If there is an issue with the client or the response code is not 200.
  */
-function get_challenge($client, $id) {
+function get_challenge($client, $id)
+{
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
@@ -1055,7 +1076,8 @@ function get_challenge($client, $id) {
  * @param int $course The ID of the course for which attempts are to be retrieved.
  * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing the attempts for the specified course.
  */
-function getall_course_attempts($course) {
+function getall_course_attempts($course)
+{
     global $DB, $USER;
 
     $sqlparams = [];
@@ -1077,7 +1099,6 @@ function getall_course_attempts($course) {
     }
 
     return $attempts;
-
 }
 
 /**
@@ -1088,7 +1109,8 @@ function getall_course_attempts($course) {
  *
  * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing all TopoMojo attempts.
  */
-function getall_topomojo_attempts($course) {
+function getall_topomojo_attempts($course)
+{
     global $DB, $USER;
 
     $sql = "SELECT * FROM {topomojo_attempts}";
@@ -1101,7 +1123,6 @@ function getall_topomojo_attempts($course) {
     }
 
     return $attempts;
-
 }
 
 /**
@@ -1120,8 +1141,13 @@ function getall_topomojo_attempts($course) {
  *
  * @return string An HTML string representing the formatted question details.
  */
-function topomojo_question_tostring($question, $showicon = false, $showquestiontext = true,
-        $showidnumber = false, $showtags = false) {
+function topomojo_question_tostring(
+    $question,
+    $showicon = false,
+    $showquestiontext = true,
+    $showidnumber = false,
+    $showtags = false
+) {
     global $OUTPUT;
     $result = '';
 
@@ -1135,8 +1161,10 @@ function topomojo_question_tostring($question, $showicon = false, $showquestiont
     // Question idnumber.
     if ($showidnumber && $question->idnumber !== null && $question->idnumber !== '') {
         $result .= ' ' . html_writer::span(
-                html_writer::span(get_string('idnumber', 'question'), 'accesshide') .
-                ' ' . s($question->idnumber), 'badge badge-primary');
+            html_writer::span(get_string('idnumber', 'question'), 'accesshide') .
+                ' ' . s($question->idnumber),
+            'badge badge-primary'
+        );
     }
 
     // Question tags.
@@ -1153,8 +1181,11 @@ function topomojo_question_tostring($question, $showicon = false, $showquestiont
 
     // Question text.
     if ($showquestiontext) {
-        $questiontext = question_utils::to_plain_text($question->questiontext,
-                $question->questiontextformat, ['noclean' => true, 'para' => false]);
+        $questiontext = question_utils::to_plain_text(
+            $question->questiontext,
+            $question->questiontextformat,
+            ['noclean' => true, 'para' => false]
+        );
         $questiontext = shorten_text($questiontext, 50);
         if ($questiontext) {
             $result .= ' ' . html_writer::span(s($questiontext), 'questiontext');
@@ -1162,7 +1193,6 @@ function topomojo_question_tostring($question, $showicon = false, $showquestiont
     }
 
     return $result;
-
 }
 
 /**
@@ -1173,10 +1203,13 @@ function topomojo_question_tostring($question, $showicon = false, $showquestiont
  * @param int|null $variant (optional) The specific question variant to preview. Defaults to null.
  * @return moodle_url The URL to preview the question with the given options.
  */
-function topomojo_question_preview_url($topomojo, $question, $variant = null) {
+function topomojo_question_preview_url($topomojo, $question, $variant = null)
+{
     // Get the appropriate display options.
-    $displayoptions = topomojo_display_options::make_from_topomojo($topomojo,
-            topomojo_display_options::DURING);
+    $displayoptions = topomojo_display_options::make_from_topomojo(
+        $topomojo,
+        topomojo_display_options::DURING
+    );
 
     $maxmark = null;
     if (isset($question->maxmark)) {
@@ -1184,8 +1217,13 @@ function topomojo_question_preview_url($topomojo, $question, $variant = null) {
     }
 
     // Work out the correcte preview URL.
-    return \qbank_previewquestion\helper::question_preview_url($question->id, $topomojo->preferredbehaviour,
-            $maxmark, $displayoptions, $variant);
+    return \qbank_previewquestion\helper::question_preview_url(
+        $question->id,
+        $topomojo->preferredbehaviour,
+        $maxmark,
+        $displayoptions,
+        $variant
+    );
 }
 
 /**
@@ -1194,10 +1232,59 @@ function topomojo_question_preview_url($topomojo, $question, $variant = null) {
  * @param int $topomojoid The ID of the topomojo to check.
  * @return bool True if there are attempts, false otherwise.
  */
-function topomojo_has_attempts($topomojoid) {
+function topomojo_has_attempts($topomojoid)
+{
     global $DB;
     return $DB->record_exists('topomojo_attempts', ['topomojoid' => $topomojoid]);
+}
 
+/**
+ * Checks the health status of the TopoMojo API.
+ *
+ * This function makes a request to the TopoMojo health/version endpoint to verify
+ * that the API is accessible and responding.
+ *
+ * @param curl|null $client The cURL client instance, or null to create a new one.
+ * @param bool $forcerecheck Unused parameter, kept for backward compatibility.
+ * @return array An associative array with 'healthy' (bool) and 'version' (string|null).
+ */
+function topomojo_check_health($client = null, $forcerecheck = false)
+{
+    $result = [
+        'healthy' => false,
+        'version' => null,
+    ];
+
+    // Get API URL from config.
+    $apiurl = get_config('topomojo', 'topomojoapiurl');
+
+    if (empty($apiurl)) {
+        debugging(get_string('healthcheckapinotconfigured', 'mod_topomojo'), DEBUG_DEVELOPER);
+        return $result;
+    }
+
+    if ($client === null) {
+        $client = new curl();
+    }
+
+    // Make health check request.
+    $healthurl = $apiurl . '/health/version';
+
+    try {
+        $response = $client->get($healthurl);
+        $httpcode = $client->info['http_code'] ?? 0;
+
+        if ($httpcode === 200 && !empty($response)) {
+            $result['healthy'] = true;
+            $result['version'] = trim($response, '"');
+        } else {
+            debugging(get_string('healthcheckfailed', 'mod_topomojo', $httpcode), DEBUG_DEVELOPER);
+        }
+    } catch (Exception $e) {
+        debugging(get_string('healthcheckexception', 'mod_topomojo', $e->getMessage()), DEBUG_DEVELOPER);
+    }
+
+    return $result;
 }
 
 /**
@@ -1207,7 +1294,8 @@ function topomojo_has_attempts($topomojoid) {
  * @copyright  2010 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_topomojo_display_options extends question_display_options {
+class mod_topomojo_display_options extends question_display_options
+{
     /**
      * Apply display options during the quiz attempt.
      *
@@ -1263,20 +1351,25 @@ class mod_topomojo_display_options extends question_display_options {
      * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
      * @return mod_topomojo_display_options set up appropriately.
      */
-    public static function make_from_topomojo($topomojo, $when) {
+    public static function make_from_topomojo($topomojo, $when)
+    {
         $options = new self();
         // TODO remove if not used
         $options->attempt = self::extract($topomojo->reviewattempt, $when, true, false);
         $options->correctness = self::extract($topomojo->reviewcorrectness, $when);
-        $options->marks = self::extract($topomojo->reviewmarks, $when,
-                self::MARK_AND_MAX, self::MAX_ONLY);
+        $options->marks = self::extract(
+            $topomojo->reviewmarks,
+            $when,
+            self::MARK_AND_MAX,
+            self::MAX_ONLY
+        );
         $options->feedback = self::extract($topomojo->reviewspecificfeedback, $when);
         $options->generalfeedback = self::extract($topomojo->reviewgeneralfeedback, $when);
         $options->rightanswer = self::extract($topomojo->reviewrightanswer, $when);
         // TODO remove if not used$options->overallfeedback = self::extract($topomojo->reviewoverallfeedback, $when);
         $options->numpartscorrect = $options->feedback;
-            $options->manualcomment = $options->feedback;
-            //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
+        $options->manualcomment = $options->feedback;
+        //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
 
         if ($topomojo->questiondecimalpoints != -1) {
             $options->markdp = $topomojo->questiondecimalpoints;
@@ -1301,8 +1394,12 @@ class mod_topomojo_display_options extends question_display_options {
      *
      * @return int The visibility setting based on whether the bit is set or not in the bitmask.
      */
-    protected static function extract($bitmask, $bit,
-            $whenset = self::VISIBLE, $whennotset = self::HIDDEN) {
+    protected static function extract(
+        $bitmask,
+        $bit,
+        $whenset = self::VISIBLE,
+        $whennotset = self::HIDDEN
+    ) {
         if ($bitmask & $bit) {
             return $whenset;
         } else {

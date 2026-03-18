@@ -134,6 +134,13 @@ if (!$attempt) {
             //$event->trigger();
 
             $object->renderer->base_header();
+
+            // Show preview mode notification if this is a preview attempt
+            if ($attempt->preview == 1) {
+                $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+                echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+            }
+
             $object->renderer->render_attempt($attempt, $pageurl, $cmid);
             $object->renderer->base_footer();
 

@@ -18,14 +18,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
+CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
+WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
 CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
+Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
 terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution. Please see Copyright notice for non-US 
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution. Please see Copyright notice for non-US
 Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -55,9 +55,15 @@ DM24-1175
     <input id="event" type="hidden" name="event" value=""/>
     <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
     <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
+    <input id="preview" type="hidden" name="preview" value="0"/>
     <button id="launch_button" class="btn btn-primary" type="submit">
         Launch Lab
     </button>
+    {{#isinstructor}}
+    <button id="preview_button" class="btn btn-secondary" type="button">
+        Preview Lab
+    </button>
+    {{/isinstructor}}
 </form>
 <div id="topomojo-markdown">
 {{{markdown}}}
@@ -68,14 +74,16 @@ DM24-1175
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const button = document.getElementById('launch_button');
-    const flag   = document.getElementById('start_confirmed');
+    const previewButton = document.getElementById('preview_button');
+    const previewField = document.getElementById('preview');
 
-    // Disable button and show loading state when form is submitted
-    document.getElementById('start_form').addEventListener('submit', (e) => {
-        if (flag.value === 'yes') {
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner"></span> Please wait, system processing';
-        }
-    });
+    // Handle preview button click
+    if (previewButton) {
+        previewButton.addEventListener('click', () => {
+            previewField.value = '1';
+            // Trigger the launch button which will open the confirmation modal
+            button.click();
+        });
+    }
 });
 </script>

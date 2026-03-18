@@ -81,6 +81,7 @@
         <FIELD NAME="layout" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="the layout for this particular attempt"/>
         <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Reference to the question_usage that holds the details of the the question_attempts that make up this quiz attempt."/>
         <FIELD NAME="variant" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The variant of the lab. Defaults to 0."/>
+        <FIELD NAME="preview" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether this is a preview attempt by an instructor (1) or a real student attempt (0)."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

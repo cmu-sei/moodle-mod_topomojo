@@ -91,10 +91,6 @@ $string['maxdeployedlabel'] = 'Maximum Active Labs';
 $string['maxdeployedlabsdesc'] = 'Set the maximum number of active labs a student can have at one time. Set to 0 for unlimited active labs.';
 $string['maxgamespacesreached'] = 'This lab could not be deployed because the system account has reached the maximum limit of deployed namespaces. Please contact support to resolve this issue.';
 $string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and your responses will be graded.';
-$string['filterworkspaces'] = 'Filter Workspaces';
-$string['configfilterworkspaces'] = 'Filter workspaces based on audience';
-$string['audiencefilter'] = 'Audience Filter';
-$string['configaudiencefilter'] = 'Specify the target audience for filtering workspaces.';
 $string['enableapikey'] = 'Enable External API Key';
 $string['configenableapikey'] = 'Enable API key-based integration with TopoMojo.';
 $string['enablemanagername'] = 'Enable External Manager User';
@@ -108,6 +104,7 @@ $string['configenableoauth'] = 'Enable Oauth2 System Account for integration wit
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
 $string['workspace_help'] = 'This is the Workspace GUID in TopoMojo.';
 $string['workspace'] = 'TopoMojo Workspace';
+$string['filterbyaudience'] = 'Filter by Audience';
 $string['pluginadministration'] = 'TopoMojo administration';
 $string['playerlinktext'] = 'Open lab in new tab';
 $string['clock'] = 'Clock';
@@ -196,7 +193,8 @@ $string['attemptscore'] = 'Attempt Grade: ';
 $string['invitelink'] = 'Generate Invite';
 $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
-$string['stoplab'] = 'End Lab?';
+$string['stoplab'] = 'End Lab';
+$string['endlab'] = 'End Lab?';
 $string['startlab'] = 'Start Lab?';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';
 $string['stop_attempt_confirm'] = 'Are you sure you want to stop the attempt? This will destroy the lab on TopoMojo.';
@@ -226,6 +224,9 @@ $string['reviewofattempt'] = 'Review of attempt {$a}';
 $string['reviewofpreview'] = 'Review of preview';
 $string['reviewofquestion'] = 'Review of question {$a->question} in {$a->topomojo} by {$a->user}';
 $string['reviewopen'] = 'While the lab is open';
+$string['previewlab'] = 'Preview Lab';
+$string['previewmode'] = 'Preview Mode';
+$string['previewmodewarning'] = 'This is a preview session for instructional purposes. This attempt will not be recorded in the gradebook or count toward attempt limits.';
 $string['reviewoptions'] = 'Students may review';
 $string['reviewoptionsheading'] = 'Review options';
 $string['reviewoptionsheading_help'] = 'These options control what information students can see when they review a lab attempt or look at the lab reports.
@@ -287,10 +288,9 @@ $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you 
 
 // Global Search
 $string['search:activity'] = 'TopoMojo - activity information';
-
 $string['interestslist'] = 'list test';
-
-$string['deleteallattempts'] = 'Delete all attempts and grades?';
+$string['deleteallattempts'] = 'Delete all attempts and grades';
+$string['deleteall'] = 'Delete all attempts and grades?';
 $string['deleteallattempts_confirm'] = 'Are you sure you want to delete all attempts and grades for this activity? This action cannot be undone.';
 $string['attemptsdeleted'] = 'All attempts and grades have been deleted.';
 $string['messageprovider:notification'] = 'TopoMojo question mismatch notification';
@@ -356,3 +356,13 @@ TopoMojo is the platform behind hands-on cybersecurity labs. Instructors build l
 <li>End the lab when finished to free resources.</li>
 </ul>
 EOT;
+
+// Health check strings.
+$string['healthchecksuccess'] = 'TopoMojo API is healthy (version: {$a})';
+$string['healthcheckfailed'] = 'TopoMojo API health check failed (HTTP code: {$a})';
+$string['healthcheckexception'] = 'TopoMojo API health check error: {$a}';
+$string['healthcheckunknown'] = 'TopoMojo API health status unknown';
+$string['healthcheckapinotconfigured'] = 'TopoMojo API URL is not configured';
+$string['healthcheckauthfailed'] = 'TopoMojo API authentication failed';
+$string['healthalert'] = 'Labs are currently unavailable. Please contact your administrator.';
+$string['healthwarning'] = 'TopoMojo service may be experiencing issues.';

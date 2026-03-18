@@ -44,7 +44,7 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/view.php', ['id' => $cm->id]);
+$url = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -95,6 +95,18 @@ $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
+// Check TopoMojo API health.
+$healthstatus = topomojo_check_health($object->userauth);
+
+if (!$healthstatus['healthy']) {
+    // Display health check error and stop processing.
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($topomojo->name);
+    echo $OUTPUT->notification(get_string('healthalert', 'mod_topomojo'), 'error');
+    echo $OUTPUT->footer();
+    die();
+}
+
 // Get current state of workspace
 $allevents = list_events($object->userauth, $object->topomojo->workspaceid);
 $eventsmoodle = moodle_events($object->userauth, events: $allevents);
@@ -105,11 +117,43 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
-// Get active attempt for user: true/false
-$activeattempt = $object->get_open_attempt();
+// Check if this is a preview attempt
+$ispreview = optional_param('preview', 0, PARAM_INT);
+$isinstructor = has_capability('mod/topomojo:manage', $context);
+
+// If instructor and no preview param in URL, check for existing attempts to detect preview mode
+if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
+    // Check recent closed attempts for this event to see if they were preview attempts
+    $recentattempt = $DB->get_record_sql(
+        "SELECT preview FROM {topomojo_attempts}
+         WHERE topomojoid = :topomojoid
+         AND userid = :userid
+         AND eventid = :eventid
+         ORDER BY timemodified DESC
+         LIMIT 1",
+        [
+            'topomojoid' => $topomojo->id,
+            'userid' => $userid,
+            'eventid' => $object->event->id
+        ]
+    );
+
+    if ($recentattempt) {
+        $ispreview = $recentattempt->preview;
+    }
+}
+
+// Show preview mode banner if in preview mode
+if ($ispreview == 1) {
+    $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+    echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+}
+
+// Get active attempt for user: true/false (filtered by preview mode)
+$activeattempt = $object->get_open_attempt($ispreview);
 
 $max_attempts = $topomojo->attempts;
-$variant = $object->topomojo->variant -1;
+$variant = $object->topomojo->variant - 1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
 // Only check if challenge is valid
@@ -132,11 +176,12 @@ if ($challenge && isset($challenge->variants[$variant])) {
 }
 
 
-// Getting completed attempts by user
+// Getting completed attempts by user (excluding preview attempts)
 $current_attempt_count = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
-    'state' => 30
+    'state' => 30,
+    'preview' => 0
 ]);
 
 // If the maximum attempts are reached, display the max attempts template and exit
@@ -200,6 +245,10 @@ if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
+
+    // Get preview mode from POST
+    $ispreview = optional_param('preview', 0, PARAM_INT);
+
     // Check not started already
     if (!$object->event) {
         // Attempt to start the event
@@ -209,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             // If the event is created successfully, proceed
             debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
-            $activeattempt = $object->init_attempt();
+            $activeattempt = $object->init_attempt($ispreview);
 
             debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
 
@@ -220,7 +269,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
-
         } else {
             // Event creation failed, possibly due to an empty response
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
@@ -228,7 +276,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
         }
 
         debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
-
     } else {
         // If event already exists, no action needed
         debugging("event has already been started", DEBUG_DEVELOPER);
@@ -258,11 +305,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
         debugging("active event with no attempt", DEBUG_DEVELOPER);
-        $activeattempt = $object->init_attempt();
+        $activeattempt = $object->init_attempt($ispreview);
     }
     // Check age and get new link, checking for 30 minute timeout of the url
     if (($object->openAttempt->state == 10) &&
-                ((time() - $object->openAttempt->timemodified) > 3600 )) {
+        ((time() - $object->openAttempt->timemodified) > 3600)
+    ) {
         debugging("getting new launchpointurl", DEBUG_DEVELOPER);
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
@@ -294,6 +342,11 @@ if ((int)$object->topomojo->grade > 0) {
 }
 
 if ($object->event) {
+    // Show preview mode warning if this is a preview attempt (additional check during lab)
+    if ($activeattempt && isset($object->openAttempt->preview) && $object->openAttempt->preview == 1) {
+        $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+        echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+    }
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
         // If VMs array is missing or not valid, display error and stop further processing
@@ -325,7 +378,7 @@ if ($object->event) {
         ]);
 
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -344,15 +397,18 @@ if ($object->event) {
         // Initialize the end lab confirmation modal
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#end_button',
-            get_string('stoplab', 'mod_topomojo'),
+            get_string('endlab', 'mod_topomojo'),
             get_string('stop_attempt_confirm', 'mod_topomojo'),
             '#stop_confirmed'
         ]);
 
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
         // No matter what, start our session timer
-        $PAGE->requires->js_call_amd('mod_topomojo/clock', 'init',
-                ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]);
+        $PAGE->requires->js_call_amd(
+            'mod_topomojo/clock',
+            'init',
+            ['starttime' => $starttime, 'endtime' => $endtime, 'id' => $object->event->id]
+        );
         if ($topomojo->clock == 1) {
             $PAGE->requires->js_call_amd('mod_topomojo/clock', 'countdown');
         } else if ($topomojo->clock == 2) {
@@ -376,7 +432,9 @@ if ($object->event) {
             $vmlist = [];
             foreach ($object->event->vms as $vm) {
                 $isVisible   = is_array($vm) ? $vm['isVisible']   : $vm->isVisible;
-                if (!$isVisible) { continue; }
+                if (!$isVisible) {
+                    continue;
+                }
 
                 $name        = is_array($vm) ? $vm['name']        : $vm->name;
                 $isolationId = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
@@ -384,11 +442,11 @@ if ($object->event) {
                 if ($usecf) {
                     // ConsoleForge-style
                     $vmdata['url'] = $baseurl . '/c?name=' . rawurlencode($name)
-                                            . '&sessionId=' . rawurlencode($isolationId);
+                        . '&sessionId=' . rawurlencode($isolationId);
                 } else {
                     // Legacy /mks style
                     $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationId)
-                                            . '&v=' . rawurlencode($name);
+                        . '&v=' . rawurlencode($name);
                 }
 
                 $vmdata['name'] = $name;
@@ -400,7 +458,6 @@ if ($object->event) {
             $renderer->display_link_page($object->openAttempt->launchpointurl);
         }
     }
-
 } else {
     if ($showgrade) {
         $renderer->display_grade($topomojo);
@@ -427,8 +484,7 @@ if ($object->event) {
     ]);
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
 }
 
 echo $renderer->footer();
-
