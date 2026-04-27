@@ -112,6 +112,38 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
         // TODO test review settings
 
+        // Validate required fields
+        if (empty($data->workspaceid)) {
+            throw new restore_step_exception('topomojo_missing_workspaceid',
+                'This backup is missing the workspace ID. ' .
+                'The activity cannot be restored without selecting a TopoMojo workspace. ' .
+                'Please contact your administrator.');
+        }
+
+        // Validate that workspace exists in TopoMojo (warning only, doesn't block restore)
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+
+        $topomojoapiurl = get_config('topomojo', 'topomojoapiurl');
+        if (empty($topomojoapiurl)) {
+            // TopoMojo not configured - warn but allow restore
+            $this->log(
+                'TopoMojo API not configured. Cannot verify workspace ' . $data->workspaceid . ' exists.',
+                backup::LOG_WARNING
+            );
+        } else {
+            // TopoMojo configured - check if workspace exists
+            $workspaceexists = topomojo_validate_workspace($data->workspaceid);
+            if (!$workspaceexists) {
+                // Workspace not found - warn but allow restore
+                $this->log(
+                    'Workspace ' . $data->workspaceid . ' not found in TopoMojo. ' .
+                    'The activity was restored but may not work until the workspace is imported.',
+                    backup::LOG_WARNING
+                );
+            }
+        }
+
         // insert the topomojo record
         $newitemid = $DB->insert_record('topomojo', $data);
         // immediately after inserting "activity" record, call this
