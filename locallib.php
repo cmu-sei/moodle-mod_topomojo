@@ -1444,8 +1444,8 @@ function topomojo_validate_workspace($workspaceid) {
             return true;
         }
 
-        if ($client->info['http_code'] === 404) {
-            return false;
+        if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
+            return false; // Workspace doesn't exist (404) or invalid ID format (400)
         }
 
         debugging('Unexpected response validating workspace: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
