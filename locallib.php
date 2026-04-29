@@ -1047,6 +1047,11 @@ function get_challenge($client, $id)
     // TODO handle network error
 
     if ($client->info['http_code'] !== 200) {
+        // Workspace/challenge not found or invalid - return null instead of throwing exception
+        if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
+            debugging('Challenge not found for workspace ' . $id . ': HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
+            return null;
+        }
         //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         //print_r($client->response);
         // TODO we dont have an httpp_code if the connection failed
@@ -1055,6 +1060,7 @@ function get_challenge($client, $id)
 
     if (!$response) {
         debugging('no response received by get_challenge', DEBUG_DEVELOPER);
+        return null;
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
