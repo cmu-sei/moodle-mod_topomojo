@@ -366,3 +366,7 @@ $string['healthcheckapinotconfigured'] = 'TopoMojo API URL is not configured';
 $string['healthcheckauthfailed'] = 'TopoMojo API authentication failed';
 $string['healthalert'] = 'Labs are currently unavailable. Please contact your administrator.';
 $string['healthwarning'] = 'TopoMojo service may be experiencing issues.';
+
+// Workspace not found strings.
+$string['workspacenotfound'] = 'Lab workspace not found in TopoMojo (ID: {$a}). This activity cannot be launched. Please contact your administrator.';
+$string['workspacenotfound_instructor'] = 'This workspace needs to be imported into TopoMojo before students can access this activity. Check that the workspace ID is correct and exists in your TopoMojo instance.';

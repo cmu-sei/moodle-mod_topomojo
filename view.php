@@ -156,6 +156,23 @@ $max_attempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
+// Check if workspace exists in TopoMojo
+if ($challenge === null) {
+    // Workspace doesn't exist - show error message
+    echo $OUTPUT->notification(
+        get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
+        \core\output\notification::NOTIFY_ERROR
+    );
+    if (has_capability('mod/topomojo:manage', $context)) {
+        echo $OUTPUT->notification(
+            get_string('workspacenotfound_instructor', 'mod_topomojo'),
+            \core\output\notification::NOTIFY_INFO
+        );
+    }
+    echo $renderer->footer();
+    exit;
+}
+
 // Only check if challenge is valid
 if ($challenge && isset($challenge->variants[$variant])) {
     if (method_exists($object, 'get_question_manager')) {
