@@ -287,7 +287,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                             $eventage = time() - strtotime($starttime);
                             if ($eventage > 180) { // 3 minutes
                                 // Check if this gamespace has a Moodle attempt record (was created by Moodle)
-                                $attempt = $DB->get_record('topomojo_attempts', [
+                                $sql = "SELECT * FROM {topomojo_attempts}
+                                        WHERE topomojoid = :topomojoid
+                                        AND " . $DB->sql_compare_text('eventid') . " = " . $DB->sql_compare_text(':eventid');
+                                $attempt = $DB->get_record_sql($sql, [
                                     'topomojoid' => $object->topomojo->id,
                                     'eventid' => $gs['id']
                                 ]);
