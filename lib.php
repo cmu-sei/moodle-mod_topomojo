@@ -131,8 +131,9 @@ function topomojo_add_instance($topomojo, $mform) {
 
     $topomojo->created = time();
     $topomojo->grade = 100; // Default
-    $topomojo->id = $DB->insert_record('topomojo', $topomojo);
     $topomojo->isfeatured = empty($topomojo->isfeatured) ? 0 : 1;
+    $topomojo->endlab = empty($topomojo->endlab) ? 0 : 1;
+    $topomojo->id = $DB->insert_record('topomojo', $topomojo);
 
     // Do the processing required after an add or an update.
     topomojo_after_add_or_update($topomojo);
@@ -165,6 +166,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
     // Update the database.
     $topomojo->id = $topomojo->instance;
     $topomojo->isfeatured = empty($topomojo->isfeatured) ? 0 : 1;
+    $topomojo->endlab = empty($topomojo->endlab) ? 0 : 1;
     $DB->update_record('topomojo', $topomojo);
 
     // Do the processing required after an add or an update.
