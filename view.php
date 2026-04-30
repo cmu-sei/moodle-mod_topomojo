@@ -268,9 +268,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     // Check not started already
     if (!$object->event) {
-        // Release session lock before long-running deployment
-        \core\session\manager::write_close();
-
         // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
@@ -427,12 +424,13 @@ if ($object->event) {
             $license_info = license_manager::get_license_by_shortname($license_id);
         }
 
-        // Initialize the launch lab confirmation modal
+        // Initialize the launch lab confirmation modal with AJAX
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#launch_button',
             get_string('startlab', 'mod_topomojo'),
             get_string('start_attempt_confirm', 'mod_topomojo'),
-            '#start_confirmed'
+            '#start_confirmed',
+            true  // Use AJAX
         ]);
 
         // Display start form

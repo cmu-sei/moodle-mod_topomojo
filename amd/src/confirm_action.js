@@ -21,9 +21,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str'], function($, ModalSaveCancel, ModalEvents, Str) {
+define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str', 'core/ajax'], function($, ModalSaveCancel, ModalEvents, Str, Ajax) {
     return {
-        init: function(buttonSelector, confirmTitle, confirmBody, confirmFlagSelector) {
+        init: function(buttonSelector, confirmTitle, confirmBody, confirmFlagSelector, useAjax) {
+            useAjax = useAjax || false;
             $(document).ready(function() {
                 // Find the button
                 var $button = $(buttonSelector).first();
@@ -75,8 +76,48 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str'], fu
                                 $targetButton.prop('disabled', true);
                                 $targetButton.html('<span class="spinner"></span> Please wait, system processing');
 
-                                $form.off('submit');
-                                $form[0].submit();
+                                if (useAjax) {
+                                    // Replace page content with launching spinner
+                                    $('.topomojo-content-area').html(
+                                        '<div class="alert alert-info topomojo-launching">' +
+                                        '<div class="d-flex align-items-center">' +
+                                        '<div class="spinner-border text-primary mr-3" role="status">' +
+                                        '<span class="sr-only">Launching Lab...</span>' +
+                                        '</div>' +
+                                        '<div>' +
+                                        '<strong>Launching Lab...</strong>' +
+                                        '<p class="mb-0">Please wait while your virtual machines are being deployed. This may take up to 60 seconds.</p>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>'
+                                    );
+
+                                    // Submit via AJAX
+                                    var formData = new FormData($form[0]);
+                                    $.ajax({
+                                        url: $form.attr('action'),
+                                        type: 'POST',
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                        success: function(response) {
+                                            // Replace entire page content with response
+                                            $('html').html(response);
+                                        },
+                                        error: function(xhr) {
+                                            // Show error in content area
+                                            $('.topomojo-content-area').html(
+                                                '<div class="alert alert-danger">' +
+                                                '<strong>Error</strong>' +
+                                                '<p>' + (xhr.responseText || 'Failed to start lab. Please refresh and try again.') + '</p>' +
+                                                '</div>'
+                                            );
+                                        }
+                                    });
+                                } else {
+                                    $form.off('submit');
+                                    $form[0].submit();
+                                }
                             });
 
                             // Show the modal
