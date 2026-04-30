@@ -268,6 +268,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     // Check not started already
     if (!$object->event) {
+        // Release session lock before long-running deployment
+        \core\session\manager::write_close();
+
         // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
