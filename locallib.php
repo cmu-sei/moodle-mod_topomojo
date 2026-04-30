@@ -628,7 +628,7 @@ function start_event($client, $id, $topomojo)
     // Generate post data
     $payload = new stdClass();
     $payload->resourceId = $id;
-    $payload->startGamespace = true;
+    $payload->startGamespace = false; // Don't deploy VMs yet - do async to avoid timeout
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = $topomojo->submissions;
@@ -674,6 +674,49 @@ function start_event($client, $id, $topomojo)
     //print_r($r);
 
     return;
+}
+
+/**
+ * Starts VM deployment for an already-created gamespace.
+ *
+ * This function triggers the async VM deployment process for a gamespace that was created
+ * with startGamespace: false. Based on Gameboard's async deployment pattern.
+ *
+ * @param curl $client An instance of the curl class used for making HTTP requests.
+ * @param string $gamespaceid The ID of the gamespace to start deploying.
+ *
+ * @return bool True if deployment started successfully, false otherwise.
+ */
+function start_gamespace_deployment($client, $gamespaceid)
+{
+    if ($client == null) {
+        debugging('error with client in start_gamespace_deployment', DEBUG_DEVELOPER);
+        return false;
+    }
+
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $gamespaceid . "/start";
+    debugging("starting VM deployment for gamespace $gamespaceid", DEBUG_DEVELOPER);
+
+    $response = $client->post($url, '');
+
+    if (!$response) {
+        debugging('no response from start deployment: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        // Log the raw error for debugging
+        if (isset($client->error)) {
+            debugging('curl error: ' . $client->error, DEBUG_DEVELOPER);
+        }
+        return false;
+    }
+
+    if ($client->info['http_code'] === 200) {
+        debugging("VM deployment started successfully for gamespace $gamespaceid", DEBUG_DEVELOPER);
+        return true;
+    }
+
+    // Log non-200 responses with body for debugging
+    debugging('start deployment failed: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+    debugging('response body: ' . substr($response, 0, 500), DEBUG_DEVELOPER);
+    return false;
 }
 
 /**
