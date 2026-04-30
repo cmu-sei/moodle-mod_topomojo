@@ -366,8 +366,33 @@ if ($object->event) {
     }
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
-        // If VMs array is missing or not valid, display error and stop further processing
-        debugging("no vms", DEBUG_DEVELOPER);
+        // Check if event is still launching (within 2 minutes of creation)
+        $eventage = time() - strtotime($object->event->startTime);
+        $launchingtimeout = 120; // 2 minutes in seconds
+
+        if ($eventage < $launchingtimeout) {
+            // Still launching - show launching state with spinner and auto-refresh
+            debugging("VMs not ready yet, event age: {$eventage}s", DEBUG_DEVELOPER);
+
+            $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
+            $markdowncutline = "<!-- cut -->";
+            $parts = preg_split($markdowncutline, $markdown);
+            $code = substr($object->event->id, 0, 8);
+
+            $renderer->display_launching($parts[0], $code);
+
+            // Initialize auto-refresh (every 5 seconds, max 24 attempts = 2 minutes)
+            $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [
+                'refreshInterval' => 5,
+                'maxAttempts' => 24
+            ]);
+
+            echo $renderer->footer();
+            exit;
+        }
+
+        // Event is old and still no VMs - this is an error
+        debugging("no vms after timeout", DEBUG_DEVELOPER);
         stop_event($object->userauth, $object->event->id);
         topomojo_end($cm, $context, $topomojo);
 
