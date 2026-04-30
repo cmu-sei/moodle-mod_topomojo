@@ -290,10 +290,15 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT)
             if ($object->userauth->errno == 28) {
                 debugging("start_event timed out, deployment may still be in progress", DEBUG_DEVELOPER);
-                $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
+                try {
+                    $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
+                } catch (Exception $e) {
+                    debugging("Could not fetch markdown: " . $e->getMessage(), DEBUG_DEVELOPER);
+                    $markdown = '';
+                }
                 $markdowncutline = "<<!-- cut -->>";
                 $parts = preg_split($markdowncutline, $markdown);
-                $renderer->display_timeout($topomojo, $parts[0], null);
+                $renderer->display_timeout($topomojo, $parts[0] ?? '', null);
                 echo $renderer->footer();
                 exit;
             }
