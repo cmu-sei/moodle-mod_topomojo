@@ -268,6 +268,42 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     // Check not started already
     if (!$object->event) {
+        // Check for any existing gamespaces (active or inactive) for this workspace
+        // and end old broken ones before creating a new one
+        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . $object->topomojo->workspaceid;
+        $response = $object->userauth->get($url);
+        if ($response && $object->userauth->info['http_code'] === 200) {
+            $allgamespaces = json_decode($response, true);
+            if ($allgamespaces) {
+                foreach ($allgamespaces as $gs) {
+                    if ($gs['workspaceId'] === $object->topomojo->workspaceid) {
+                        // Check if this gamespace is old and has no VMs
+                        $hasvms = isset($gs['vms']) && is_array($gs['vms']) && !empty($gs['vms']);
+                        if (!$hasvms) {
+                            $starttime = $gs['startTime'] ?? $gs['whenCreated'];
+                            if (strpos($starttime, '0001-01-01') === 0) {
+                                $starttime = $gs['whenCreated'];
+                            }
+                            $eventage = time() - strtotime($starttime);
+                            if ($eventage > 180) { // 3 minutes
+                                // Check if this gamespace has a Moodle attempt record (was created by Moodle)
+                                $attempt = $DB->get_record('topomojo_attempt', [
+                                    'topomojoid' => $object->topomojo->id,
+                                    'eventid' => $gs['id']
+                                ]);
+                                if ($attempt) {
+                                    debugging("found old Moodle gamespace {$gs['id']} ({$eventage}s) with no VMs - ending it", DEBUG_DEVELOPER);
+                                    stop_event($object->userauth, $gs['id']);
+                                } else {
+                                    debugging("found old non-Moodle gamespace {$gs['id']} ({$eventage}s) with no VMs - skipping", DEBUG_DEVELOPER);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Create the gamespace record (returns immediately without deploying VMs)
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
@@ -362,6 +398,16 @@ if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
+}
+
+// Handle orphaned attempt (attempt exists but no active event in TopoMojo)
+if (!$object->event && $activeattempt) {
+    debugging("found orphaned attempt with no active event - closing it", DEBUG_DEVELOPER);
+    if ($object->openAttempt->questionusageid) {
+        $object->openAttempt->save_question();
+    }
+    $object->openAttempt->close_attempt();
+    $activeattempt = null;
 }
 
 if ($object->event) {
