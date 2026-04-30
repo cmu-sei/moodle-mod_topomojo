@@ -509,6 +509,11 @@ function get_markdown($client, $id, $topomojoid = null)
     $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
     $response = $client->get($url);
 
+    if ($client->info['http_code'] === 400 || $client->info['http_code'] === 404) {
+        debugging("Document not found for workspace $id: HTTP " . $client->info['http_code'], DEBUG_DEVELOPER);
+        return '';
+    }
+
     if ($client->info['http_code'] !== 200 || $response === false) {
         throw new moodle_exception(($client->info['http_code'] ?? '0') . " for $url");
     }
