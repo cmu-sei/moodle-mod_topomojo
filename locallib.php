@@ -768,6 +768,35 @@ function stop_event($client, $id)
 }
 
 /**
+ * Deletes a gamespace from TopoMojo.
+ *
+ * @param curl $client An instance of the curl class used for making HTTP requests.
+ * @param string $id The ID of the gamespace to delete.
+ *
+ * @return bool True if successful, false otherwise.
+ */
+function delete_gamespace($client, $id)
+{
+    if ($client == null) {
+        debugging('error with client in delete_gamespace', DEBUG_DEVELOPER);
+        return false;
+    }
+
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id;
+    debugging("deleting gamespace $id", DEBUG_DEVELOPER);
+
+    $response = $client->delete($url);
+
+    if ($client->info['http_code'] === 204 || $client->info['http_code'] === 200) {
+        debugging("gamespace $id deleted successfully", DEBUG_DEVELOPER);
+        return true;
+    }
+
+    debugging('delete failed: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+    return false;
+}
+
+/**
  * Retrieves a ticket from the TopoMojo API for the current user.
  *
  * This function sends a GET request to the TopoMojo API to obtain a ticket associated with the current user.

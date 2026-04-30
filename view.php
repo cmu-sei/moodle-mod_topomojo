@@ -295,8 +295,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                                     'eventid' => $gs['id']
                                 ]);
                                 if ($attempt) {
-                                    debugging("found old Moodle gamespace {$gs['id']} ({$eventage}s) with no VMs - ending it", DEBUG_DEVELOPER);
-                                    stop_event($object->userauth, $gs['id']);
+                                    debugging("found old Moodle gamespace {$gs['id']} ({$eventage}s) with no VMs - deleting it", DEBUG_DEVELOPER);
+                                    delete_gamespace($object->userauth, $gs['id']);
                                 } else {
                                     debugging("found old non-Moodle gamespace {$gs['id']} ({$eventage}s) with no VMs - skipping", DEBUG_DEVELOPER);
                                 }
