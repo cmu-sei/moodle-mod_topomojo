@@ -268,10 +268,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     // Check not started already
     if (!$object->event) {
-        // Set timeout for VM deployment
-        $deploytimeout = get_config('topomojo', 'deploytimeout') ?: 120;
-        set_time_limit($deploytimeout);
-
         // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
