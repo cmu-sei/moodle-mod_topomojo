@@ -263,15 +263,12 @@ if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count 
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
 
-    // Increase timeout for lab launch - TopoMojo can take 60+ seconds to provision VMs
-    set_time_limit(120);
-
     // Get preview mode from POST
     $ispreview = optional_param('preview', 0, PARAM_INT);
 
     // Check not started already
     if (!$object->event) {
-        // Attempt to start the event
+        // Create the gamespace record (returns immediately)
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
         // Release session lock immediately to allow other tabs to work during VM provisioning
@@ -289,6 +286,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 debugging("init_attempt failed");
                 throw new moodle_exception('init_attempt failed');
             }
+
+            // Start VM deployment in background (async - doesn't block page load)
+            start_gamespace_deployment($object->userauth, $object->event->id);
 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
