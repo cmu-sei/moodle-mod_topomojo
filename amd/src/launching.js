@@ -45,13 +45,13 @@ define(['jquery', 'core/log'], function($, log) {
                 attemptCount++;
                 log.debug('mod_topomojo/launching: Refresh attempt ' + attemptCount + ' of ' + maxAttempts);
 
+                // Reload the page to check VM status
+                window.location.reload();
+
                 if (attemptCount >= maxAttempts) {
                     clearInterval(refreshTimer);
                     log.debug('mod_topomojo/launching: Max attempts reached, stopping auto-refresh');
                 }
-
-                // Reload the page to check VM status
-                window.location.reload();
             }, refreshInterval * 1000);
         }
     };
