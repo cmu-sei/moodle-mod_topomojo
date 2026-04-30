@@ -112,6 +112,21 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
     }
 
+    /**
+     * Renders the launching view while VMs are being provisioned.
+     *
+     * @param string $markdown The markdown content to display
+     * @param string $code Optional support code
+     * @return void
+     */
+    public function display_launching($markdown, $code = false) {
+        $data = new stdClass();
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->code = $code;
+
+        echo $this->render_from_template('mod_topomojo/launching', $data);
+    }
+
     public function display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $markdown) {
         $data = new stdClass();
         $data->max_attempts = $max_attempts;

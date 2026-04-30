@@ -366,3 +366,7 @@ $string['healthcheckapinotconfigured'] = 'TopoMojo API URL is not configured';
 $string['healthcheckauthfailed'] = 'TopoMojo API authentication failed';
 $string['healthalert'] = 'Labs are currently unavailable. Please contact your administrator.';
 $string['healthwarning'] = 'TopoMojo service may be experiencing issues.';
+
+// Lab launching strings.
+$string['launching'] = 'Launching lab';
+$string['launching_description'] = 'Please wait while your lab environment is being prepared. This may take up to 2 minutes.';
