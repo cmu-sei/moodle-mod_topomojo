@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery', 'core/modal_save_cancel', 'core/str'], function($, ModalSaveCancel, Str) {
+define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str'], function($, ModalSaveCancel, ModalEvents, Str) {
     return {
         init: function(buttonSelector, confirmTitle, confirmBody, confirmFlagSelector) {
             $(document).ready(function() {
@@ -61,7 +61,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/str'], function($, ModalSaveCa
                             modal.setSaveButtonText(strings[0]);
 
                             // Handle confirmation
-                            modal.getRoot().on(ModalSaveCancel.events.save, function() {
+                            modal.getRoot().on(ModalEvents.save, function() {
                                 modal.hide();
                                 $confirmFlag.val('yes');
 
