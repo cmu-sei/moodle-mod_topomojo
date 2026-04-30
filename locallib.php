@@ -621,6 +621,10 @@ function start_event($client, $id, $topomojo)
         return;
     }
 
+    // Set curl timeout to match deployment timeout setting
+    $deploytimeout = get_config('topomojo', 'deploytimeout') ?: 120;
+    $client->setopt(['CURLOPT_TIMEOUT' => $deploytimeout]);
+
     // Web request
     $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
     //echo "POST $url<br>";
