@@ -509,6 +509,12 @@ function get_markdown($client, $id, $topomojoid = null)
     $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
     $response = $client->get($url);
 
+    // Handle 400/404 gracefully - workspace might not exist or have markdown
+    if ($client->info['http_code'] === 400 || $client->info['http_code'] === 404) {
+        debugging("Document not found for workspace $id: HTTP " . $client->info['http_code'], DEBUG_DEVELOPER);
+        return '';
+    }
+
     if ($client->info['http_code'] !== 200 || $response === false) {
         throw new moodle_exception(($client->info['http_code'] ?? '0') . " for $url");
     }
@@ -697,7 +703,9 @@ function start_gamespace_deployment($client, $gamespaceid)
     $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $gamespaceid . "/start";
     debugging("starting VM deployment for gamespace $gamespaceid", DEBUG_DEVELOPER);
 
-    $response = $client->post($url, '');
+    // Set content-length to 0 for empty POST body
+    $client->setHeader(['Content-Length: 0']);
+    $response = $client->post($url);
 
     if (!$response) {
         debugging('no response from start deployment: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
