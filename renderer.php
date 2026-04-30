@@ -156,6 +156,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/max_deployed_gamespaces', $data);
     }
 
+    public function display_timeout($topomojo, $markdown, $code) {
+        $data = new stdClass();
+        $data->markdown = $this->clean_markdown($markdown);
+        $data->code = $code;
+
+        echo $this->render_from_template('mod_topomojo/timeout', $data);
+    }
+
     /**
      * Renders the start form for TopoMojo activity with Markdown content.
      *

@@ -509,6 +509,11 @@ function get_markdown($client, $id, $topomojoid = null)
     $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
     $response = $client->get($url);
 
+    if ($client->info['http_code'] === 400 || $client->info['http_code'] === 404) {
+        debugging("Document not found for workspace $id: HTTP " . $client->info['http_code'], DEBUG_DEVELOPER);
+        return '';
+    }
+
     if ($client->info['http_code'] !== 200 || $response === false) {
         throw new moodle_exception(($client->info['http_code'] ?? '0') . " for $url");
     }
@@ -621,6 +626,10 @@ function start_event($client, $id, $topomojo)
         return;
     }
 
+    // Set curl timeout to match deployment timeout setting
+    $deploytimeout = get_config('topomojo', 'deploytimeout') ?: 120;
+    $client->setopt(['CURLOPT_TIMEOUT' => $deploytimeout]);
+
     // Web request
     $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
     //echo "POST $url<br>";
@@ -654,7 +663,7 @@ function start_event($client, $id, $topomojo)
     $response = $client->post($url, $json);
 
     if (!$response) {
-        debugging('no response received by start_event response code ', $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        debugging('no response received by start_event response code ' . $client->info['http_code'] . " errno " . $client->errno . " for $url", DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";

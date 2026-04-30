@@ -287,6 +287,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
         } else {
+            // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT)
+            if ($object->userauth->errno == 28) {
+                debugging("start_event timed out, deployment may still be in progress", DEBUG_DEVELOPER);
+                // Skip markdown fetch - curl client is in bad state after timeout
+                $renderer->display_timeout($topomojo, '', null);
+                echo $renderer->footer();
+                exit;
+            }
             // Event creation failed, possibly due to an empty response
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
             throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");
@@ -416,12 +424,13 @@ if ($object->event) {
             $license_info = license_manager::get_license_by_shortname($license_id);
         }
 
-        // Initialize the launch lab confirmation modal
+        // Initialize the launch lab confirmation modal with AJAX
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#launch_button',
             get_string('startlab', 'mod_topomojo'),
             get_string('start_attempt_confirm', 'mod_topomojo'),
-            '#start_confirmed'
+            '#start_confirmed',
+            true  // Use AJAX
         ]);
 
         // Display start form

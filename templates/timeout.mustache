@@ -34,58 +34,42 @@ DM24-1175
 }}
 
 {{!
-    @template mod_topomojo/form
+    @template mod_topomojo/timeout
 
-    This template renders a button that reloads the page and starts a lab.
+    This template shows when lab deployment times out.
 
             Example context (json):
             {
-                "workspace": "guid",
-                "url": "url"
+                "markdown": "",
+                "code": "abc123"
             }
 }}
-
-<div class="topomojo-content-area">
-{{#license_fullname}}
-<div class="license-info">
-    <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
-</div>
-{{/license_fullname}}
-
-<form id="start_form" action="{{url}}" method="post">
-    <input id="event" type="hidden" name="event" value=""/>
-    <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
-    <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
-    <input id="preview" type="hidden" name="preview" value="0"/>
-    <button id="launch_button" class="btn btn-primary" type="submit">
-        Launch Lab
-    </button>
-    {{#isinstructor}}
-    <button id="preview_button" class="btn btn-secondary" type="button">
-        Preview Lab
-    </button>
-    {{/isinstructor}}
-</form>
-<div id="topomojo-markdown">
-{{{markdown}}}
-</div>
+<div class="alert alert-warning topomojo-timeout">
+    <div class="d-flex align-items-center">
+        <div class="mr-3">
+            <i class="fa fa-clock-o fa-3x text-warning"></i>
+        </div>
+        <div>
+            <strong>{{# str }} timeout_title, mod_topomojo {{/ str }}</strong>
+            <p class="mb-2">{{# str }} timeout_description, mod_topomojo {{/ str }}</p>
+            <button type="button" class="btn btn-primary" onclick="window.location.reload();">
+                {{# str }} refresh_page, mod_topomojo {{/ str }}
+            </button>
+        </div>
+    </div>
 </div>
 
-<br>
+{{#code}}
+<div class="notification-style topomojo-notification-box">
+    <p>
+        {{# str }} supportcode, mod_topomojo {{/ str }} {{code}}
+        <i class="fa fa-info-circle" data-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
+    </p>
+</div>
+{{/code}}
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const button = document.getElementById('launch_button');
-    const previewButton = document.getElementById('preview_button');
-    const previewField = document.getElementById('preview');
-
-    // Handle preview button click
-    if (previewButton) {
-        previewButton.addEventListener('click', () => {
-            previewField.value = '1';
-            // Trigger the launch button which will open the confirmation modal
-            button.click();
-        });
-    }
-});
-</script>
+{{#markdown}}
+<div class="topomojo-markdown-content">
+    {{{markdown}}}
+</div>
+{{/markdown}}
