@@ -381,6 +381,11 @@ if ($object->event) {
 
             $renderer->display_launching($parts[0], $code);
 
+            // Initialize tooltip for support code
+            if ($code) {
+                $PAGE->requires->js_call_amd('core/tooltip', 'init');
+            }
+
             // Initialize auto-refresh (every 5 seconds, max 24 attempts = 2 minutes)
             $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [
                 'refreshInterval' => 5,
