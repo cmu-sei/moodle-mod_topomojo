@@ -268,8 +268,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
     // Check not started already
     if (!$object->event) {
-        // Attempt to start the event
+        // Create the gamespace record (returns immediately)
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
+
+        // Release session lock immediately to allow other tabs to work during VM provisioning
+        \core\session\manager::write_close();
 
         if ($object->event) {
             // If the event is created successfully, proceed
@@ -283,6 +286,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 debugging("init_attempt failed");
                 throw new moodle_exception('init_attempt failed');
             }
+
+            // Start VM deployment in background (async - doesn't block page load)
+            start_gamespace_deployment($object->userauth, $object->event->id);
 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
@@ -380,6 +386,11 @@ if ($object->event) {
             $code = substr($object->event->id, 0, 8);
 
             $renderer->display_launching($parts[0], $code);
+
+            // Initialize tooltip for support code
+            if ($code) {
+                $PAGE->requires->js_call_amd('core/tooltip', 'init');
+            }
 
             // Initialize auto-refresh (every 5 seconds, max 24 attempts = 2 minutes)
             $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [

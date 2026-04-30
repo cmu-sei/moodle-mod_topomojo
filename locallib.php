@@ -628,7 +628,7 @@ function start_event($client, $id, $topomojo)
     // Generate post data
     $payload = new stdClass();
     $payload->resourceId = $id;
-    $payload->startGamespace = true;
+    $payload->startGamespace = false; // Don't deploy VMs yet - do it async to avoid timeout
     $payload->allowPreview = false;
     $payload->allowReset = false;
     $payload->maxAttempts = $topomojo->submissions;
@@ -674,6 +674,43 @@ function start_event($client, $id, $topomojo)
     //print_r($r);
 
     return;
+}
+
+/**
+ * Start VM deployment for a gamespace (async operation).
+ *
+ * This triggers TopoMojo to begin provisioning VMs for the gamespace.
+ * Unlike start_event which creates the gamespace record, this starts
+ * the actual VM deployment which can take 30-60 seconds.
+ *
+ * @param object $client The HTTP client used to make the API request.
+ * @param string $gamespaceid The gamespace ID to start deployment for.
+ * @return bool True if deployment started successfully, false otherwise.
+ */
+function start_gamespace_deployment($client, $gamespaceid)
+{
+    if ($client == null) {
+        debugging('error with client in start_gamespace_deployment', DEBUG_DEVELOPER);
+        return false;
+    }
+
+    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $gamespaceid . "/start";
+    debugging("starting VM deployment for gamespace $gamespaceid", DEBUG_DEVELOPER);
+
+    $response = $client->post($url, '');
+
+    if (!$response) {
+        debugging('no response received from start deployment: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        return false;
+    }
+
+    if ($client->info['http_code'] === 200) {
+        debugging("VM deployment started successfully for gamespace $gamespaceid", DEBUG_DEVELOPER);
+        return true;
+    }
+
+    debugging('start deployment failed: ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+    return false;
 }
 
 /**
