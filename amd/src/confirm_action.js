@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], function($, ModalFactory, ModalEvents, Str) {
+define(['jquery', 'core/modal_save_cancel', 'core/modal_events', 'core/str'], function($, ModalSaveCancel, ModalEvents, Str) {
     return {
         init: function(buttonSelector, confirmTitle, confirmBody, confirmFlagSelector) {
             $(document).ready(function() {
@@ -54,8 +54,7 @@ define(['jquery', 'core/modal_factory', 'core/modal_events', 'core/str'], functi
                         {key: 'confirm', component: 'core'},
                         {key: 'cancel', component: 'core'}
                     ]).then(function(strings) {
-                        return ModalFactory.create({
-                            type: ModalFactory.types.SAVE_CANCEL,
+                        return ModalSaveCancel.create({
                             title: confirmTitle,
                             body: confirmBody,
                         }).then(function(modal) {
