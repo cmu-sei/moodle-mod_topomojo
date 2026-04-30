@@ -1047,6 +1047,11 @@ function get_challenge($client, $id)
     // TODO handle network error
 
     if ($client->info['http_code'] !== 200) {
+        // Workspace/challenge not found or invalid - return null instead of throwing exception
+        if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
+            debugging('Challenge not found for workspace ' . $id . ': HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
+            return null;
+        }
         //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         //print_r($client->response);
         // TODO we dont have an httpp_code if the connection failed
@@ -1055,6 +1060,7 @@ function get_challenge($client, $id)
 
     if (!$response) {
         debugging('no response received by get_challenge', DEBUG_DEVELOPER);
+        return null;
     }
     //echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
@@ -1405,5 +1411,54 @@ class mod_topomojo_display_options extends question_display_options
         } else {
             return $whennotset;
         }
+    }
+}
+
+/**
+ * Validates that a TopoMojo workspace exists in the TopoMojo API.
+ *
+ * This function is called during course restore to verify that the workspace ID
+ * from the backup file exists in the target TopoMojo instance. It performs a
+ * graceful check and returns false if validation fails, allowing restore to proceed
+ * with a warning rather than blocking completely.
+ *
+ * @param string $workspaceid The workspace GUID to validate.
+ * @return bool True if the workspace exists, false otherwise.
+ */
+function topomojo_validate_workspace($workspaceid) {
+    if (empty($workspaceid)) {
+        return false;
+    }
+
+    try {
+        $client = setup();
+        if (!$client) {
+            debugging('Could not initialize TopoMojo API client for workspace validation', DEBUG_DEVELOPER);
+            return false; // Can't validate, assume it exists to avoid blocking restore
+        }
+
+        $apiurl = get_config('topomojo', 'topomojoapiurl');
+        if (empty($apiurl)) {
+            debugging('TopoMojo API URL not configured', DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $url = rtrim($apiurl, '/') . '/api/workspace/' . $workspaceid;
+        $response = $client->get($url);
+
+        if ($client->info['http_code'] === 200) {
+            return true;
+        }
+
+        if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
+            return false; // Workspace doesn't exist (404) or invalid ID format (400)
+        }
+
+        debugging('Unexpected response validating workspace: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
+        return false;
+
+    } catch (Exception $e) {
+        debugging('Exception validating workspace: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        return false;
     }
 }

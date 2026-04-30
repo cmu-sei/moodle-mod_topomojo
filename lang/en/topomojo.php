@@ -370,3 +370,7 @@ $string['healthwarning'] = 'TopoMojo service may be experiencing issues.';
 // Lab launching strings.
 $string['launching'] = 'Launching lab';
 $string['launching_description'] = 'Please wait while your lab environment is being prepared. This may take up to 2 minutes.';
+
+// Workspace not found strings.
+$string['workspacenotfound'] = 'Lab workspace not found in TopoMojo (ID: {$a}). This activity cannot be launched. Please contact your administrator.';
+$string['workspacenotfound_instructor'] = 'This workspace needs to be imported into TopoMojo before students can access this activity. Check that the workspace ID is correct and exists in your TopoMojo instance.';
