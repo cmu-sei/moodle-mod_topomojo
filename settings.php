@@ -127,6 +127,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/maxdeployedlabs',
         get_string('maxdeployedlabel', 'topomojo'), get_string('maxdeployedlabsdesc', 'topomojo'), 2, PARAM_INT));
 
+    $settings->add(new admin_setting_configtext('topomojo/deploytimeout',
+        get_string('deploytimeout', 'topomojo'), get_string('configdeploytimeout', 'topomojo'), 120, PARAM_INT));
+
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
         get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
 
