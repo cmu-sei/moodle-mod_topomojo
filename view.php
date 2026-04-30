@@ -287,6 +287,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             // Log event start in Moodle
             topomojo_start($cm, $context, $topomojo);
         } else {
+            // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT)
+            if ($object->userauth->errno == 28) {
+                debugging("start_event timed out, deployment may still be in progress", DEBUG_DEVELOPER);
+                $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
+                $markdowncutline = "<<!-- cut -->>";
+                $parts = preg_split($markdowncutline, $markdown);
+                $renderer->display_timeout($topomojo, $parts[0], null);
+                echo $renderer->footer();
+                exit;
+            }
             // Event creation failed, possibly due to an empty response
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
             throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");

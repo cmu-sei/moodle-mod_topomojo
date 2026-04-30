@@ -658,7 +658,7 @@ function start_event($client, $id, $topomojo)
     $response = $client->post($url, $json);
 
     if (!$response) {
-        debugging('no response received by start_event response code ', $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        debugging('no response received by start_event response code ' . $client->info['http_code'] . " errno " . $client->errno . " for $url", DEBUG_DEVELOPER);
         return;
     }
     //echo "response:<br><pre>$response</pre>";
