@@ -263,6 +263,9 @@ if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count 
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
     debugging("start request received", DEBUG_DEVELOPER);
 
+    // Increase timeout for lab launch - TopoMojo can take 60+ seconds to provision VMs
+    set_time_limit(120);
+
     // Get preview mode from POST
     $ispreview = optional_param('preview', 0, PARAM_INT);
 
@@ -270,6 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     if (!$object->event) {
         // Attempt to start the event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
+
+        // Release session lock immediately to allow other tabs to work during VM provisioning
+        \core\session\manager::write_close();
 
         if ($object->event) {
             // If the event is created successfully, proceed
