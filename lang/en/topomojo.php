@@ -63,7 +63,7 @@ $string['embedlab'] = 'Embed Lab inside Moodle';
 $string['theattempt'] = 'The attempt';
 $string['theattempt_help'] = 'Whether the student can review the attempt at all.';
 $string['configtopomojobaseurl'] = 'Base URL for TopoMojo without trailing /.';
-$string['configissuerid'] = 'This is the integer value for the issuer.';
+$string['configissuerid'] = 'OAuth2 issuer for authentication with TopoMojo API. The issuer must be configured in Site administration > Server > OAuth 2 services.';
 $string['configembed'] = 'This determines whether the lab is embedded or whether a link to TopoMojo is displayed';
 $string['configtopomojoapiurl'] = 'Base URL for TopoMojo API instance without trailing /.';
 $string['configworkspace'] = 'Workspace GUID to be launched.';
@@ -101,7 +101,7 @@ $string['configenableapikey'] = 'Enable API key-based integration with TopoMojo.
 $string['enablemanagername'] = 'Enable External Manager User';
 $string['configenablemanagername'] = 'Enable external manager for integration with TopoMojo.';
 $string['issuerid'] = 'Issuer Id';
-$string['configissuerid'] = 'OAUTH Issuer Id for Applications';
+$string['configissuerid'] = 'OAuth2 issuer for authentication with TopoMojo API. The issuer must be configured in Site administration > Server > OAuth 2 services.';
 $string['enableoauth'] = 'Enable Oauth2 System Account';
 $string['configenableoauth'] = 'Enable Oauth2 System Account for integration with TopoMojo.';
 
