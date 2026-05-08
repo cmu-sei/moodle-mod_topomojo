@@ -482,7 +482,7 @@ if ($object->event) {
             $jsoptions = ['id' => $object->event->id];
             $PAGE->requires->js_call_amd('mod_topomojo/ticket', 'init', [$jsoptions]);
 
-            $baseurl = get_config('topomojo', 'topomojobaseurl');
+            $baseurl = get_topomojo_base_url();
             $usecf  = (int) get_config('topomojo', 'usingconsoleforge');
 
             $vmlist = [];

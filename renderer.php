@@ -750,7 +750,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
     private function clean_markdown($markdown) {
         $cleanlines = array();
-        $url = get_config('topomojo', 'topomojobaseurl');
+        $url = get_topomojo_base_url();
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
         //Match the pattern for markdown images
