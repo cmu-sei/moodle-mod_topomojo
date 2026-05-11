@@ -473,11 +473,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param bool $extend Optional. Whether to include an extension option in the controls.
      * @return void
      */
-    public function display_controls($starttime, $endtime, $extend = false) {
+    public function display_controls($starttime, $endtime, $extend = false, $url = '', $workspaceid = '') {
 
         $data = new stdClass();
         $data->starttime = $starttime;
         $data->endtime = $endtime;
+        $data->url = $url;
+        $data->workspaceid = $workspaceid;
         if ($extend) {
             $data->extend = get_string('extendevent', 'mod_topomojo');
         }
@@ -748,7 +750,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
     private function clean_markdown($markdown) {
         $cleanlines = array();
-        $url = get_config('topomojo', 'topomojobaseurl');
+        $url = get_topomojo_base_url();
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
         //Match the pattern for markdown images

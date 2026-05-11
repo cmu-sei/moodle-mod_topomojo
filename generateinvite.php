@@ -71,7 +71,7 @@ if (!$id || !$result) {
     $response['gamespace'] = $id;
 } else {
     header('HTTP/1.1 200 OK');
-    $invitelinkurl = get_config('topomojo', 'topomojobaseurl') . "/lp/?c=" . $result->code;
+    $invitelinkurl = get_topomojo_base_url() . "/lp/?c=" . $result->code;
     $response['invitelinkurl'] = $invitelinkurl;
 }
 

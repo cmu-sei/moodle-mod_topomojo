@@ -48,6 +48,26 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once($CFG->libdir . '/questionlib.php');
 
 /**
+ * Gets the TopoMojo API URL with trailing slashes removed.
+ *
+ * @return string The API URL without trailing slashes
+ */
+function get_topomojo_api_url() {
+    $url = get_config('topomojo', 'topomojoapiurl');
+    return rtrim($url, '/');
+}
+
+/**
+ * Gets the TopoMojo base URL with trailing slashes removed.
+ *
+ * @return string The base URL without trailing slashes
+ */
+function get_topomojo_base_url() {
+    $url = get_config('topomojo', 'topomojobaseurl');
+    return rtrim($url, '/');
+}
+
+/**
  * Sets up and returns a cURL client with the required headers.
  *
  * This function initializes a cURL client and configures it with the necessary headers,
@@ -129,7 +149,7 @@ function list_events($client, $workspaceid)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false&Term=" . $workspaceid . "&WantsActive=true";
+    $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false&Term=" . $workspaceid . "&WantsActive=true";
 
     $response = $client->get($url);
 
@@ -183,7 +203,7 @@ function list_all_active_events($client)
     }
 
     // Use a generic search term or empty if API allows it
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespaces?WantsAll=false"
+    $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false"
         . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
         . "&WantsActive=true";
 
@@ -287,7 +307,7 @@ function user_events($client, $events)
 
     foreach ($events as $event) {
         // Web request
-        $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $event['id'];
+        $url = get_topomojo_api_url() . "/gamespace/" . $event['id'];
         //echo "<br>GET $url<br>";
 
         $count = 1;
@@ -360,7 +380,7 @@ function get_workspace($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/workspace/" . $id;
+    $url = get_topomojo_api_url() . "/workspace/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -411,7 +431,7 @@ function get_workspaces($client)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/workspaces";
+    $url = get_topomojo_api_url() . "/workspaces";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -455,7 +475,7 @@ function get_gamespace_challenge($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/challenge";
+    $url = get_topomojo_api_url() . "/gamespace/" . $id . "/challenge";
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -506,7 +526,7 @@ function get_markdown($client, $id, $topomojoid = null)
         throw new moodle_exception('could not setup session');
     }
 
-    $url = get_config('topomojo', 'topomojoapiurl') . "/document/" . $id;
+    $url = get_topomojo_api_url() . "/document/" . $id;
     $response = $client->get($url);
 
     if ($client->info['http_code'] === 400 || $client->info['http_code'] === 404) {
@@ -554,7 +574,7 @@ function get_gamespace_limit($client)
         return;
     }
 
-    $base_url = get_config('topomojo', 'topomojoapiurl');
+    $base_url = get_topomojo_api_url();
 
     if (get_config('topomojo', 'enableapikey') && get_config('topomojo', 'enablemanagername')) {
         $xapikey = get_config('topomojo', 'apikey');
@@ -631,7 +651,7 @@ function start_event($client, $id, $topomojo)
     $client->setopt(['CURLOPT_TIMEOUT' => $deploytimeout]);
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
+    $url = get_topomojo_api_url() . "/gamespace";
     //echo "POST $url<br>";
 
     // Generate post data
@@ -708,7 +728,7 @@ function stop_event($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/complete";
+    $url = get_topomojo_api_url() . "/gamespace/" . $id . "/complete";
     //echo "POST $url<br>";
 
     $response = $client->post($url);
@@ -747,7 +767,7 @@ function get_ticket($client)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/user/ticket";
+    $url = get_topomojo_api_url() . "/user/ticket";
     //echo "POST $url<br>";
 
     $response = $client->get($url);
@@ -793,7 +813,7 @@ function get_invite($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id . "/invite";
+    $url = get_topomojo_api_url() . "/gamespace/" . $id . "/invite";
     //echo "POST $url<br>";
 
     $response = $client->post($url);
@@ -837,7 +857,7 @@ function extend_event($client, $data)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace";
+    $url = get_topomojo_api_url() . "/gamespace";
     $client->setHeader('Content-Type: application/json-patch+json');
 
     $response = $client->put($url, json_encode($data));
@@ -879,7 +899,7 @@ function get_event($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/gamespace/" . $id;
+    $url = get_topomojo_api_url() . "/gamespace/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -1048,7 +1068,7 @@ function get_challenge($client, $id)
     }
 
     // Web request
-    $url = get_config('topomojo', 'topomojoapiurl') . "/challenge/" . $id;
+    $url = get_topomojo_api_url() . "/challenge/" . $id;
     //echo "GET $url<br>";
 
     $response = $client->get($url);
@@ -1271,7 +1291,7 @@ function topomojo_check_health($client = null, $forcerecheck = false)
     ];
 
     // Get API URL from config.
-    $apiurl = get_config('topomojo', 'topomojoapiurl');
+    $apiurl = get_topomojo_api_url();
 
     if (empty($apiurl)) {
         debugging(get_string('healthcheckapinotconfigured', 'mod_topomojo'), DEBUG_DEVELOPER);
@@ -1446,7 +1466,7 @@ function topomojo_validate_workspace($workspaceid) {
             return false; // Can't validate, assume it exists to avoid blocking restore
         }
 
-        $apiurl = get_config('topomojo', 'topomojoapiurl');
+        $apiurl = get_topomojo_api_url();
         if (empty($apiurl)) {
             debugging('TopoMojo API URL not configured', DEBUG_DEVELOPER);
             return false;
