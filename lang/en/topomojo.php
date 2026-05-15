@@ -268,6 +268,7 @@ $string['reviewthisattempt'] = 'Review your responses to this attempt';
 $string['topomojo:manage'] = 'Manage TopoMojo activities';
 $string['topomojo:view'] = 'View TopoMojo activity information';
 $string['topomojo:addinstance'] = 'Add a new TopoMojo activties';
+$string['topomojo:bulkdeploy'] = 'Bulk-deploy a TopoMojo lab for all enrolled users';
 
 // Questions
 $string['noquestions'] = 'No questions have been added yet';
@@ -393,3 +394,20 @@ $string['launching_description'] = 'Please wait while your lab environment is be
 // Workspace not found strings.
 $string['workspacenotfound'] = 'Lab workspace not found in TopoMojo (ID: {$a}). This activity cannot be launched. Please contact your administrator.';
 $string['workspacenotfound_instructor'] = 'This workspace needs to be imported into TopoMojo before students can access this activity. Check that the workspace ID is correct and exists in your TopoMojo instance.';
+
+// Bulk-deploy strings.
+$string['bulkdeploy_button'] = 'Deploy for all enrolled users';
+$string['bulkdeploy_pageheading'] = 'Bulk-deploy lab';
+$string['bulkdeploy_rolefilter'] = 'Roles to include';
+$string['bulkdeploy_rolefilter_help'] = 'Choose which course roles to deploy labs for. Only users with active enrollment in one of the selected roles will receive a gamespace. Leave empty to deploy for everyone enrolled.';
+$string['bulkdeploy_rolefilter_all'] = 'All roles';
+$string['bulkdeploy_batchsize'] = 'Batch size';
+$string['bulkdeploy_batchsize_help'] = 'How many gamespaces to deploy in parallel. Larger batches finish faster but put more load on TopoMojo. The deploy waits for every gamespace in a batch to finish starting before the next batch begins. Default: 5.';
+$string['bulkdeploy_submit'] = 'Queue bulk deploy';
+$string['bulkdeploy_no_workspace'] = 'This activity has no TopoMojo workspace configured; cannot bulk-deploy.';
+$string['bulkdeploy_no_users_match'] = 'No active enrolled users matched the selected roles.';
+$string['bulkdeploy_batchsize_invalid'] = 'Batch size must be between 1 and 50.';
+$string['bulkdeploy_waittimeout'] = 'Bulk-deploy per-batch wait timeout (seconds)';
+$string['configbulkdeploy_waittimeout'] = 'Maximum time to wait for one batch of gamespaces to start (have active VMs) before failing them. The bulk deploy waits for every gamespace in a batch to be ready before starting the next batch. Increase if your TopoMojo deployment is slow to start VMs.';
+$string['bulkdeploy_status_pageheading'] = 'Bulk-deploy status';
+$string['bulkdeploy_cancel'] = 'Cancel deploy';

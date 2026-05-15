@@ -543,4 +543,16 @@ if ($object->event) {
     $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
 }
 
+if (has_capability('mod/topomojo:bulkdeploy', $context)) {
+    $bulkurl = new moodle_url('/mod/topomojo/bulkdeploy.php', ['id' => $cm->id]);
+    echo html_writer::div(
+        html_writer::link(
+            $bulkurl,
+            get_string('bulkdeploy_button', 'topomojo'),
+            ['class' => 'btn btn-secondary mt-3']
+        ),
+        'mod-topomojo-bulkdeploy-action'
+    );
+}
+
 echo $renderer->footer();
