@@ -593,4 +593,12 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $context->add_node($node, $beforekey);
     }
 
+    if (has_capability('mod/topomojo:bulkdeploy', $settingsnav->get_page()->cm->context)) {
+        $url = new moodle_url('/mod/topomojo/manage.php', ['id' => $settingsnav->get_page()->cm->id]);
+        $node = navigation_node::create(get_string('manage_button', 'mod_topomojo'),
+                new moodle_url($url),
+                navigation_node::TYPE_SETTING, null, 'mod_topomojo_manage', new pix_icon('i/users', ''));
+        $context->add_node($node, $beforekey);
+    }
+
 }

@@ -14,7 +14,8 @@ class job_repository {
         int $initiatorid,
         int $batchsize,
         ?string $rolefilter,
-        array $userids
+        array $userids,
+        ?int $scheduledfor = null
     ): int {
         global $DB;
         $now = time();
@@ -27,6 +28,7 @@ class job_repository {
             'totalusers'    => count($userids),
             'status'        => job_status::QUEUED,
             'timecreated'   => $now,
+            'scheduledfor'  => $scheduledfor,
         ];
         $jobid = $DB->insert_record('topomojo_bulkdeploy_job', $job);
 

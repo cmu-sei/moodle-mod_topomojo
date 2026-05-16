@@ -2,11 +2,18 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
+$cmid = required_param('id', PARAM_INT);
+redirect(
+    new moodle_url('/mod/topomojo/manage.php', ['id' => $cmid]),
+    get_string('page_moved', 'topomojo'),
+    null,
+    \core\output\notification::NOTIFY_INFO
+);
+
+// Legacy code below - kept for reference but unreachable
 use mod_topomojo\form\bulkdeploy_form;
 use mod_topomojo\local\bulkdeploy\job_repository;
 use mod_topomojo\task\bulkdeploy_run;
-
-$cmid = required_param('id', PARAM_INT);
 [$course, $cm] = get_course_and_cm_from_cmid($cmid, 'topomojo');
 require_login($course, false, $cm);
 
@@ -63,7 +70,8 @@ if ($data = $form->get_data()) {
         (int) $USER->id,
         (int) $data->batchsize,
         $rolefilter ? implode(',', $rolefilter) : null,
-        array_map(fn($u) => (int) $u->id, $enrolled)
+        array_map(fn($u) => (int) $u->id, $enrolled),
+        null
     );
 
     $task = new bulkdeploy_run();

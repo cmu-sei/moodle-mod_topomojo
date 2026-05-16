@@ -52,20 +52,26 @@ DM24-1175
 </div>
 {{/license_fullname}}
 
+{{#has_predeployed}}
+<div class="alert alert-info">
+    <strong>Gamespace resources deployed.</strong> Your lab environment is ready. Click Start to begin your attempt.
+</div>
+{{/has_predeployed}}
+
 <form id="start_form" action="{{url}}" method="post">
     <input id="event" type="hidden" name="event" value=""/>
     <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
     <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
     <input id="preview" type="hidden" name="preview" value="0"/>
     <button id="launch_button" class="btn btn-primary" type="submit">
-        Launch Lab
+        {{#has_predeployed}}Start Attempt{{/has_predeployed}}{{^has_predeployed}}Launch Lab{{/has_predeployed}}
     </button>
     {{#isinstructor}}
     <button id="preview_button" class="btn btn-secondary" type="button">
         Preview Lab
     </button>
     <a href="{{bulkdeployurl}}" class="btn btn-secondary" role="button">
-        Deploy for all enrolled users
+        Manage Deployments
     </a>
     {{/isinstructor}}
 </form>

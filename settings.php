@@ -136,6 +136,12 @@ if ($ADMIN->fulltree) {
         600,
         PARAM_INT));
 
+    $settings->add(new admin_setting_configtext('topomojo/bulkdeploy_batchsize',
+        get_string('bulkdeploy_batchsize', 'topomojo'),
+        get_string('configbulkdeploy_batchsize', 'topomojo'),
+        5,
+        PARAM_INT));
+
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
         get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
 

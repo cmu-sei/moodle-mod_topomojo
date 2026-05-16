@@ -119,7 +119,8 @@ $userid = $USER->id;
 
 // Check if this is a preview attempt
 $ispreview = optional_param('preview', 0, PARAM_INT);
-$isinstructor = has_capability('mod/topomojo:manage', $context);
+$isinstructor = has_capability('mod/topomojo:manage', $context) ||
+                has_capability('mod/topomojo:bulkdeploy', $context);
 
 // If instructor and no preview param in URL, check for existing attempts to detect preview mode
 if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
@@ -151,6 +152,54 @@ if ($ispreview == 1) {
 
 // Get active attempt for user: true/false (filtered by preview mode)
 $activeattempt = $object->get_open_attempt($ispreview);
+
+// If active attempt found but event not fetched yet, fetch it
+if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
+    // Access eventid from the attempt object's internal data
+    $attemptdata = $object->openAttempt->get_attempt();
+    if (!empty($attemptdata->eventid)) {
+        $object->event = get_event($object->userauth, $attemptdata->eventid);
+    }
+}
+
+// Check for bulk-deployed attempt if no active attempt found
+$has_predeployed = false;
+if (!$activeattempt) {
+    $bulkdeployrow = $DB->get_record_sql(
+        "SELECT bdu.*, bdj.topomojoid
+         FROM {topomojo_bulkdeploy_user} bdu
+         INNER JOIN {topomojo_bulkdeploy_job} bdj ON bdj.id = bdu.jobid
+         WHERE bdu.userid = :userid
+         AND bdj.topomojoid = :topomojoid
+         AND bdu.status = 'ready'
+         AND bdu.gamespaceid IS NOT NULL
+         ORDER BY bdu.id DESC
+         LIMIT 1",
+        ['userid' => $USER->id, 'topomojoid' => $topomojo->id]
+    );
+
+    if ($bulkdeployrow) {
+        debugging("view.php: Found bulk deploy row, gamespaceid=" . $bulkdeployrow->gamespaceid, DEBUG_DEVELOPER);
+        // Check if there's an attempt for this specific gamespace
+        $existingattempt = $DB->get_record('topomojo_attempts', [
+            'topomojoid' => $topomojo->id,
+            'userid' => $USER->id,
+            'eventid' => $bulkdeployrow->gamespaceid,
+            'state' => 10 // INPROGRESS
+        ]);
+
+        if ($existingattempt) {
+            // Gamespace deployed AND attempt already started - resume it
+            $activeattempt = $existingattempt;
+            $object->openAttempt = new topomojo_attempt();
+            $object->openAttempt->load_from_record($activeattempt);
+            $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
+        } else {
+            // Gamespace deployed but NO attempt yet - show "Start Attempt" UI
+            $has_predeployed = true;
+        }
+    }
+}
 
 $max_attempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
@@ -433,8 +482,10 @@ if ($object->event) {
             true  // Use AJAX
         ]);
 
+        $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
+
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -540,7 +591,7 @@ if ($object->event) {
     ]);
 
     // Bulk deploy URL for instructors
-    $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/bulkdeploy.php', ['id' => $cm->id]) : null;
+    $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
     // Display start form
     $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl);

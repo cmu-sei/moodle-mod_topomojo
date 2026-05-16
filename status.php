@@ -25,6 +25,7 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->requires->js_call_amd('mod_topomojo/bulkdeploy_status', 'init', [$jobid, sesskey()]);
 
 echo $OUTPUT->header();
+\core\notification::info(get_string('view_job_in_manage', 'topomojo'));
 echo $OUTPUT->heading(get_string('bulkdeploy_status_pageheading', 'topomojo'));
 
 $counts = $repo->count_user_rows_by_status($jobid);
@@ -44,18 +45,65 @@ if (!job_status::is_terminal($job->status)) {
     echo html_writer::start_tag('form', [
         'method' => 'post',
         'action' => new moodle_url('/mod/topomojo/bulkdeploy_cancel.php'),
+        'class' => 'mt-2'
     ]);
     echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'jobid', 'value' => $jobid]);
     echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
-    echo html_writer::empty_tag('input', ['type' => 'submit', 'value' => get_string('bulkdeploy_cancel', 'topomojo')]);
+    echo html_writer::empty_tag('input', [
+        'type' => 'submit',
+        'value' => get_string('bulkdeploy_cancel', 'topomojo'),
+        'class' => 'btn btn-secondary'
+    ]);
     echo html_writer::end_tag('form');
 }
 
 echo html_writer::start_tag('table', ['class' => 'generaltable', 'data-role' => 'rows-table']);
-echo '<thead><tr><th>User</th><th>Status</th><th>Gamespace</th><th>Error</th></tr></thead><tbody>';
+echo '<thead><tr><th>Actions</th><th>User</th><th>Status</th><th>Gamespace</th><th>Error</th></tr></thead><tbody>';
 foreach ($rows as $r) {
     $u = core_user::get_user($r->userid);
     echo '<tr data-rowid="' . (int)$r->id . '">'
+       . '<td data-role="row-actions">';
+
+    // Show appropriate button based on status and whether attempt exists
+    if ($r->status === 'ready' && !empty($r->gamespaceid)) {
+        // Check if user has an active attempt
+        $hasattempt = $DB->record_exists('topomojo_attempts', [
+            'topomojoid' => $job->topomojoid,
+            'userid' => $r->userid,
+            'eventid' => $r->gamespaceid
+        ]);
+
+        if ($hasattempt) {
+            // Has attempt - show End button
+            $endurl = new moodle_url('/mod/topomojo/bulkdeploy_end_gamespace.php', [
+                'jobid' => $jobid,
+                'rowid' => $r->id,
+                'gamespaceid' => $r->gamespaceid,
+                'sesskey' => sesskey()
+            ]);
+            echo html_writer::link($endurl, 'End', ['class' => 'btn btn-sm btn-secondary']);
+        } else {
+            // No attempt - show Launch button
+            $launchurl = new moodle_url('/mod/topomojo/bulkdeploy_launch.php', [
+                'jobid' => $jobid,
+                'rowid' => $r->id,
+                'gamespaceid' => $r->gamespaceid,
+                'sesskey' => sesskey()
+            ]);
+            echo html_writer::link($launchurl, 'Launch', ['class' => 'btn btn-sm btn-primary', 'target' => '_blank']);
+        }
+    } elseif (($r->status === 'pending' || $r->status === 'launched') && !empty($r->gamespaceid)) {
+        // Still deploying - show Cancel button
+        $endurl = new moodle_url('/mod/topomojo/bulkdeploy_end_gamespace.php', [
+            'jobid' => $jobid,
+            'rowid' => $r->id,
+            'gamespaceid' => $r->gamespaceid,
+            'sesskey' => sesskey()
+        ]);
+        echo html_writer::link($endurl, 'Cancel', ['class' => 'btn btn-sm btn-danger btn-sm']);
+    }
+
+    echo '</td>'
        . '<td>' . s(fullname($u)) . '</td>'
        . '<td data-role="row-status">' . s($r->status) . '</td>'
        . '<td data-role="row-gamespace">' . s((string)$r->gamespaceid) . '</td>'

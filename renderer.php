@@ -177,12 +177,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param string $markdown The Markdown content to be displayed in the start form.
      * @return void
      */
-    public function display_startform($url, $workspace, $markdown, $content_license = null, $isinstructor = false, $bulkdeployurl = null) {
+    public function display_startform($url, $workspace, $markdown, $content_license = null, $isinstructor = false, $bulkdeployurl = null, $has_predeployed = false) {
         $data = new stdClass();
         $data->url = $url;
         $data->workspace = $workspace;
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
+        $data->has_predeployed = $has_predeployed;
 
         $data->markdown = $this->clean_markdown($markdown);
 
