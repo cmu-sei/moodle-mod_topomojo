@@ -25,10 +25,8 @@ $PAGE->set_heading(format_string($course->fullname));
 
 $PAGE->requires->js_call_amd('mod_topomojo/manage', 'init', [$cmid, sesskey()]);
 
-error_log("manage.php: Starting get_enrolled_users_with_state");
 $manrepo = new management_repository();
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id, $rolefilter);
-error_log("manage.php: Got " . count($users) . " users");
 
 // Sort users
 usort($users, function($a, $b) use ($sort, $dir) {
