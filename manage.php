@@ -161,9 +161,13 @@ foreach ($users as $u) {
 
     $statusinfo = 'None';
 
-    // Show "Scheduled" first if there's a future scheduled deployment
+    // Priority: scheduled > active deployments > attempt status > other deployment status
     if (!empty($u->deploystatus) && !empty($u->scheduledfor) && $u->scheduledfor > time() && $u->deploystatus === 'pending') {
+        // Show "Scheduled" for future deployments
         $statusinfo = 'Scheduled';
+    } else if (!empty($u->deploystatus) && in_array($u->deploystatus, ['pending', 'launched'])) {
+        // Show active deployment status (overrides attempt status)
+        $statusinfo = ucfirst($u->deploystatus);
     } else if (!empty($u->attemptid)) {
         // Show attempt status
         $statemap = [
@@ -174,7 +178,7 @@ foreach ($users as $u) {
         ];
         $statusinfo = $statemap[$u->attemptstate] ?? $u->attemptstate ?? 'unknown';
     } else if (!empty($u->deploystatus)) {
-        // Show other deployment statuses
+        // Show other deployment statuses (ready, failed, cancelled, expired)
         $statusinfo = ucfirst($u->deploystatus);
     }
 
