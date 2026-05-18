@@ -158,7 +158,13 @@ if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
     // Access eventid from the attempt object's internal data
     $attemptdata = $object->openAttempt->get_attempt();
     if (!empty($attemptdata->eventid)) {
-        $object->event = get_event($object->userauth, $attemptdata->eventid);
+        try {
+            $object->event = get_event($object->userauth, $attemptdata->eventid);
+        } catch (\Exception $e) {
+            // Gamespace no longer exists in TopoMojo - clear event so page loads normally
+            debugging("Gamespace {$attemptdata->eventid} not found, clearing event", DEBUG_DEVELOPER);
+            $object->event = null;
+        }
     }
 }
 
@@ -193,7 +199,13 @@ if (!$activeattempt) {
             $activeattempt = $existingattempt;
             $object->openAttempt = new topomojo_attempt();
             $object->openAttempt->load_from_record($activeattempt);
-            $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
+            try {
+                $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
+            } catch (\Exception $e) {
+                // Gamespace no longer exists - clear event so page loads normally
+                debugging("Bulk-deployed gamespace {$bulkdeployrow->gamespaceid} not found, clearing event", DEBUG_DEVELOPER);
+                $object->event = null;
+            }
         } else {
             // Gamespace deployed but NO attempt yet - show "Start Attempt" UI
             $has_predeployed = true;
@@ -428,7 +440,7 @@ if ($object->event) {
         $launchingtimeout = 120; // 2 minutes in seconds
 
         if ($eventage < $launchingtimeout) {
-            // Still launching - show launching state with spinner and auto-refresh
+            // Still launching - show launching state with manual refresh message
             debugging("VMs not ready yet, event age: {$eventage}s", DEBUG_DEVELOPER);
 
             $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
@@ -443,11 +455,11 @@ if ($object->event) {
                 $PAGE->requires->js_call_amd('core/tooltip', 'init');
             }
 
-            // Initialize auto-refresh (every 5 seconds, max 24 attempts = 2 minutes)
-            $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [
-                'refreshInterval' => 5,
-                'maxAttempts' => 24
-            ]);
+            // Show manual refresh instruction instead of auto-refresh
+            echo html_writer::div(
+                get_string('launching_manual_refresh', 'topomojo'),
+                'alert alert-info mt-3'
+            );
 
             echo $renderer->footer();
             exit;
