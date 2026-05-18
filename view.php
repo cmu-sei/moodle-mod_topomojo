@@ -187,12 +187,19 @@ if (!$activeattempt) {
     if ($bulkdeployrow) {
         debugging("view.php: Found bulk deploy row, gamespaceid=" . $bulkdeployrow->gamespaceid, DEBUG_DEVELOPER);
         // Check if there's an attempt for this specific gamespace
-        $existingattempt = $DB->get_record('topomojo_attempts', [
-            'topomojoid' => $topomojo->id,
-            'userid' => $USER->id,
-            'eventid' => $bulkdeployrow->gamespaceid,
-            'state' => 10 // INPROGRESS
-        ]);
+        $existingattempt = $DB->get_record_sql(
+            "SELECT * FROM {topomojo_attempts}
+             WHERE topomojoid = :topomojoid
+             AND userid = :userid
+             AND " . $DB->sql_compare_text('eventid') . " = " . $DB->sql_compare_text(':eventid') . "
+             AND state = :state",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $USER->id,
+                'eventid' => $bulkdeployrow->gamespaceid,
+                'state' => 10 // INPROGRESS
+            ]
+        );
 
         if ($existingattempt) {
             // Gamespace deployed AND attempt already started - resume it
