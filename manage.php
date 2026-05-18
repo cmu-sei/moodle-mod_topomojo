@@ -201,11 +201,19 @@ foreach ($users as $u) {
 
     $roletext = isset($userroles[$u->userid]) ? s($userroles[$u->userid]) : '─';
 
+    // Build status cell with error tooltip if failed
+    $statushtml = s($statusinfo);
+    if ($statusinfo === 'Failed' && !empty($u->deployerror)) {
+        $errormsg = s($u->deployerror);
+        $statushtml = '<span title="' . $errormsg . '" style="cursor: help; text-decoration: underline dotted;">' .
+                      s($statusinfo) . ' ⓘ</span>';
+    }
+
     echo '<tr data-userid="' . $u->userid . '">';
     echo '<td><input type="checkbox" class="user-checkbox" value="' . $u->userid . '"></td>';
     echo '<td>' . $fullname . '</td>';
     echo '<td>' . $roletext . '</td>';
-    echo '<td>' . s($statusinfo) . '</td>';
+    echo '<td>' . $statushtml . '</td>';
     echo '<td>' . $gamespacetext . '</td>';
     echo '<td>' . $scheduledtext . '</td>';
     echo '<td>';
