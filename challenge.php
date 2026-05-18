@@ -136,6 +136,14 @@ if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->
 $activeattempt = $object->get_open_attempt($ispreview);
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
+
+    // If active attempt found but event not fetched yet, fetch it
+    if (empty($object->event) && isset($object->openAttempt)) {
+        $attemptdata = $object->openAttempt->get_attempt();
+        if (!empty($attemptdata->eventid)) {
+            $object->event = get_event($object->userauth, $attemptdata->eventid);
+        }
+    }
 } else if ($activeattempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
     redirect($returnurl);

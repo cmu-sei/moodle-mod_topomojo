@@ -655,19 +655,7 @@ function start_event($client, $id, $topomojo)
     //echo "POST $url<br>";
 
     // Generate post data
-    $payload = new stdClass();
-    $payload->resourceId = $id;
-    $payload->startGamespace = true;
-    $payload->allowPreview = false;
-    $payload->allowReset = false;
-    $payload->maxAttempts = $topomojo->submissions;
-    $payload->maxMinutes = $topomojo->duration / 60;
-    $payload->points = $topomojo->grade;
-    $payload->variant = $topomojo->variant;
-    $payload->players = [];
-    $payload->players[0] = new stdClass();
-    $payload->players[0]->subjectId = explode("@", $USER->email)[0];
-    $payload->players[0]->subjectName = $USER->username;
+    $payload = \mod_topomojo\local\bulkdeploy\payload_builder::build($id, $topomojo, $USER);
     $json = json_encode($payload);
     //print_r($json);
 

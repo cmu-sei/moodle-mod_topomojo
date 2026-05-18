@@ -119,7 +119,8 @@ $userid = $USER->id;
 
 // Check if this is a preview attempt
 $ispreview = optional_param('preview', 0, PARAM_INT);
-$isinstructor = has_capability('mod/topomojo:manage', $context);
+$isinstructor = has_capability('mod/topomojo:manage', $context) ||
+                has_capability('mod/topomojo:bulkdeploy', $context);
 
 // If instructor and no preview param in URL, check for existing attempts to detect preview mode
 if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
@@ -151,6 +152,73 @@ if ($ispreview == 1) {
 
 // Get active attempt for user: true/false (filtered by preview mode)
 $activeattempt = $object->get_open_attempt($ispreview);
+
+// If active attempt found but event not fetched yet, fetch it
+if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
+    // Access eventid from the attempt object's internal data
+    $attemptdata = $object->openAttempt->get_attempt();
+    if (!empty($attemptdata->eventid)) {
+        try {
+            $object->event = get_event($object->userauth, $attemptdata->eventid);
+        } catch (\Exception $e) {
+            // Gamespace no longer exists in TopoMojo - clear event so page loads normally
+            debugging("Gamespace {$attemptdata->eventid} not found, clearing event", DEBUG_DEVELOPER);
+            $object->event = null;
+        }
+    }
+}
+
+// Check for bulk-deployed attempt if no active attempt found
+$has_predeployed = false;
+if (!$activeattempt) {
+    $bulkdeployrow = $DB->get_record_sql(
+        "SELECT bdu.*, bdj.topomojoid
+         FROM {topomojo_bulkdeploy_user} bdu
+         INNER JOIN {topomojo_bulkdeploy_job} bdj ON bdj.id = bdu.jobid
+         WHERE bdu.userid = :userid
+         AND bdj.topomojoid = :topomojoid
+         AND bdu.status = 'ready'
+         AND bdu.gamespaceid IS NOT NULL
+         ORDER BY bdu.id DESC
+         LIMIT 1",
+        ['userid' => $USER->id, 'topomojoid' => $topomojo->id]
+    );
+
+    if ($bulkdeployrow) {
+        debugging("view.php: Found bulk deploy row, gamespaceid=" . $bulkdeployrow->gamespaceid, DEBUG_DEVELOPER);
+        // Check if there's an attempt for this specific gamespace
+        $existingattempt = $DB->get_record_sql(
+            "SELECT * FROM {topomojo_attempts}
+             WHERE topomojoid = :topomojoid
+             AND userid = :userid
+             AND " . $DB->sql_compare_text('eventid') . " = " . $DB->sql_compare_text(':eventid') . "
+             AND state = :state",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $USER->id,
+                'eventid' => $bulkdeployrow->gamespaceid,
+                'state' => 10 // INPROGRESS
+            ]
+        );
+
+        if ($existingattempt) {
+            // Gamespace deployed AND attempt already started - resume it
+            $activeattempt = $existingattempt;
+            $object->openAttempt = new topomojo_attempt();
+            $object->openAttempt->load_from_record($activeattempt);
+            try {
+                $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
+            } catch (\Exception $e) {
+                // Gamespace no longer exists - clear event so page loads normally
+                debugging("Bulk-deployed gamespace {$bulkdeployrow->gamespaceid} not found, clearing event", DEBUG_DEVELOPER);
+                $object->event = null;
+            }
+        } else {
+            // Gamespace deployed but NO attempt yet - show "Start Attempt" UI
+            $has_predeployed = true;
+        }
+    }
+}
 
 $max_attempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
@@ -379,7 +447,7 @@ if ($object->event) {
         $launchingtimeout = 120; // 2 minutes in seconds
 
         if ($eventage < $launchingtimeout) {
-            // Still launching - show launching state with spinner and auto-refresh
+            // Still launching - show launching state with manual refresh message
             debugging("VMs not ready yet, event age: {$eventage}s", DEBUG_DEVELOPER);
 
             $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
@@ -394,11 +462,11 @@ if ($object->event) {
                 $PAGE->requires->js_call_amd('core/tooltip', 'init');
             }
 
-            // Initialize auto-refresh (every 5 seconds, max 24 attempts = 2 minutes)
-            $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [
-                'refreshInterval' => 5,
-                'maxAttempts' => 24
-            ]);
+            // Show manual refresh instruction instead of auto-refresh
+            echo html_writer::div(
+                get_string('launching_manual_refresh', 'topomojo'),
+                'alert alert-info mt-3'
+            );
 
             echo $renderer->footer();
             exit;
@@ -433,8 +501,10 @@ if ($object->event) {
             true  // Use AJAX
         ]);
 
+        $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
+
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -539,8 +609,11 @@ if ($object->event) {
         '#start_confirmed'
     ]);
 
+    // Bulk deploy URL for instructors
+    $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
+
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl);
 }
 
 echo $renderer->footer();

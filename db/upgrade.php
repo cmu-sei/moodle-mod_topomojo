@@ -595,5 +595,35 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2026031608, 'topomojo');
     }
 
+    if ($oldversion < 2026051500) {
+        $tables = [
+            'topomojo_bulkdeploy_job',
+            'topomojo_bulkdeploy_user',
+        ];
+        foreach ($tables as $tablename) {
+            $table = new xmldb_table($tablename);
+            if (!$dbman->table_exists($table)) {
+                // Use the install.xml definition.
+                $dbman->install_one_table_from_xmldb_file(
+                    $CFG->dirroot . '/mod/topomojo/db/install.xml',
+                    $tablename
+                );
+            }
+        }
+        upgrade_mod_savepoint(true, 2026051500, 'topomojo');
+    }
+
+    if ($oldversion < 2026051504) {
+        $table = new xmldb_table('topomojo_bulkdeploy_job');
+        $field = new xmldb_field('scheduledfor', XMLDB_TYPE_INTEGER, '10',
+            null, null, null, null, 'timecancelled');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026051504, 'topomojo');
+    }
+
     return true;
 }

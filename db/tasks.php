@@ -64,5 +64,14 @@ $tasks = [
         'month'     => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => 'mod_topomojo\task\cleanup_gamespaces',
+        'blocking' => 0,
+        'minute' => '*/15',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
 ];
 

@@ -130,6 +130,18 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('topomojo/deploytimeout',
         get_string('deploytimeout', 'topomojo'), get_string('configdeploytimeout', 'topomojo'), 120, PARAM_INT));
 
+    $settings->add(new admin_setting_configtext('topomojo/bulkdeploy_waittimeout',
+        get_string('bulkdeploy_waittimeout', 'topomojo'),
+        get_string('configbulkdeploy_waittimeout', 'topomojo'),
+        600,
+        PARAM_INT));
+
+    $settings->add(new admin_setting_configtext('topomojo/bulkdeploy_batchsize',
+        get_string('bulkdeploy_batchsize', 'topomojo'),
+        get_string('configbulkdeploy_batchsize', 'topomojo'),
+        5,
+        PARAM_INT));
+
     $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
         get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
 
