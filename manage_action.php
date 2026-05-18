@@ -186,7 +186,7 @@ switch ($action) {
 
             if ($attempt && !empty($attempt->eventid)) {
                 stop_event($auth, $attempt->eventid);
-                $attempt->state = 'finished';
+                $attempt->state = 30; // FINISHED
                 $attempt->timefinish = time();
                 $attempt->timemodified = time();
                 $DB->update_record('topomojo_attempts', $attempt);
