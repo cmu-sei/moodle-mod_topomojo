@@ -10,8 +10,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
 
             let timer = null;
             let lastSeenStatuses = new Map(); // Track status per user
-            const urlParams = new URLSearchParams(window.location.search);
-            const justDeployed = urlParams.get('deployed') === '1';
+            let inactivePollCount = 0;
+            const MAX_INACTIVE_POLLS = 6; // Stop after 6 polls (30 seconds) with no activity
 
             const hasActiveDeploys = () => {
                 const table = document.querySelector('.mod-topomojo-users-table tbody');
@@ -26,9 +26,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                     if (userid && statusCell) {
                         const status = statusCell.textContent.trim().toLowerCase();
                         const scheduled = scheduledCell ? scheduledCell.textContent.trim() : '';
-                        if (!justDeployed) {
-                            lastSeenStatuses.set(userid, status);
-                        }
+                        lastSeenStatuses.set(userid, status);
                         if (status === 'pending' || status === 'launched' || status === 'active' ||
                             (scheduled && scheduled !== '─')) {
                             hasActive = true;
@@ -311,13 +309,6 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
 
                             const oldStatus = lastSeenStatuses.get(user.userid.toString());
 
-                            // If we just deployed and see any deployment status appear, reload
-                            if (justDeployed && user.deploystatus && !oldStatus) {
-                                console.log('[Manage] New deployment detected for user ' + user.userid);
-                                hasChanges = true;
-                                break;
-                            }
-
                             // If status changed from pending/launched/active to something else, reload
                             if (oldStatus &&
                                 (oldStatus === 'pending' || oldStatus === 'launched' || oldStatus === 'active') &&
@@ -335,11 +326,17 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                         return;
                     }
 
-                    // Check if page still has pending/launched
-                    if (!hasActiveDeploys()) {
-                        console.log('[Manage] No active deploys, stopping poll');
-                        stop();
-                        return;
+                    // Check if page still has pending/launched/active/scheduled
+                    const hasActive = hasActiveDeploys();
+                    if (!hasActive) {
+                        inactivePollCount++;
+                        if (inactivePollCount >= MAX_INACTIVE_POLLS) {
+                            console.log('[Manage] No active deploys for ' + MAX_INACTIVE_POLLS + ' polls, stopping');
+                            stop();
+                            return;
+                        }
+                    } else {
+                        inactivePollCount = 0;
                     }
 
                     // Continue polling
@@ -351,13 +348,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 }
             };
 
-            if (hasActiveDeploys() || justDeployed) {
-                if (justDeployed) {
-                    poll();
-                } else {
-                    timer = window.setTimeout(poll, POLL_MS);
-                }
-            }
+            // Always start polling on page load
+            timer = window.setTimeout(poll, POLL_MS);
         }
     };
 });

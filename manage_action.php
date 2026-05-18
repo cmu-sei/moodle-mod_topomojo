@@ -58,7 +58,7 @@ switch ($action) {
         \core\task\manager::queue_adhoc_task($task);
 
         \core\notification::success(get_string('deployment_queued', 'topomojo', count($userids)));
-        redirect(new moodle_url($returnurl, ['deployed' => 1]));
+        redirect($returnurl);
         break;
 
     case 'schedule_selected':
@@ -101,7 +101,7 @@ switch ($action) {
         \core\task\manager::queue_adhoc_task($task);
 
         \core\notification::success(get_string('deployment_scheduled', 'topomojo', count($userids)));
-        redirect(new moodle_url($returnurl, ['deployed' => 1]));
+        redirect($returnurl);
         break;
 
     case 'cancel_selected':

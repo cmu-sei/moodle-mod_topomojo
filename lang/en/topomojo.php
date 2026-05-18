@@ -413,6 +413,7 @@ $string['bulkdeploy_batchsize'] = 'Batch size';
 $string['configbulkdeploy_batchsize'] = 'Maximum number of gamespaces to deploy concurrently. When deploying to multiple users, this many gamespaces will start at once. Once a batch completes, the next batch starts. Lower values reduce load on TopoMojo infrastructure.';
 $string['bulkdeploy_batchsize_desc'] = 'Deploy this many gamespaces at once (maximum: {$a})';
 $string['deploy_confirm_message'] = 'Deploy gamespaces for selected users?';
+$string['schedule_confirm_message'] = 'Choose when to start the deployment for selected users:';
 $string['cleanup_gamespaces_task'] = 'Clean up expired TopoMojo gamespaces';
 $string['bulkdeploy_status_pageheading'] = 'Bulk-deploy status';
 $string['bulkdeploy_cancel'] = 'Cancel deploy';

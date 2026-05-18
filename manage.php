@@ -25,8 +25,10 @@ $PAGE->set_heading(format_string($course->fullname));
 
 $PAGE->requires->js_call_amd('mod_topomojo/manage', 'init', [$cmid, sesskey()]);
 
+error_log("manage.php: Starting get_enrolled_users_with_state");
 $manrepo = new management_repository();
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id, $rolefilter);
+error_log("manage.php: Got " . count($users) . " users");
 
 // Sort users
 usort($users, function($a, $b) use ($sort, $dir) {
@@ -36,29 +38,7 @@ usort($users, function($a, $b) use ($sort, $dir) {
     return $dir === 'DESC' ? -$cmp : $cmp;
 });
 
-// Validate ready gamespaces still exist in TopoMojo
-$auth = setup();
-if ($auth) {
-    foreach ($users as $u) {
-        if ($u->deploystatus === 'ready' && !empty($u->deploygamespaceid)) {
-            try {
-                $gamespace = get_event($auth, $u->deploygamespaceid);
-                // Gamespace exists, check if it's still active
-                if (empty($gamespace->id) || !$gamespace->isActive) {
-                    throw new Exception('Gamespace is no longer active');
-                }
-            } catch (Exception $e) {
-                // Gamespace no longer exists or expired - mark as expired
-                $DB->execute(
-                    "UPDATE {topomojo_bulkdeploy_user} SET status = 'expired', errormessage = 'Gamespace expired in TopoMojo'
-                     WHERE id = :deployrowid",
-                    ['deployrowid' => $u->deployrowid]
-                );
-                $u->deploystatus = 'expired';
-            }
-        }
-    }
-}
+// Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task
 
 $coursecontext = context_course::instance($course->id);
 $userroles = [];
