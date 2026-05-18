@@ -60,9 +60,9 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                     if (statusCell) {
                         const status = statusCell.textContent.trim().toLowerCase();
 
-                        // Can deploy/schedule: None, Expired, Finished, Ready (after expired), Not Started, Abandoned, Cancelled
+                        // Can deploy/schedule: None, Expired, Finished, Ready (after expired), Not Started, Abandoned, Cancelled, Failed
                         if (status === 'none' || status === 'expired' || status === 'finished' ||
-                            status === 'ready' || status === 'not started' || status === 'abandoned' || status === 'cancelled') {
+                            status === 'ready' || status === 'not started' || status === 'abandoned' || status === 'cancelled' || status === 'failed') {
                             canDeploy++;
                         }
                         // Can cancel: Pending, Launched, Scheduled
