@@ -148,12 +148,17 @@ switch ($action) {
 
         // Cancel adhoc tasks for scheduled jobs
         foreach (array_keys($jobsToCancel) as $jobid) {
-            $DB->execute(
-                "DELETE FROM {task_adhoc} WHERE component = 'mod_topomojo'
-                 AND classname = '\\\\mod_topomojo\\\\task\\\\bulkdeploy_run'
-                 AND customdata LIKE :jobid",
-                ['jobid' => '%"jobid":' . $jobid . '%']
-            );
+            // Find matching tasks
+            $tasks = $DB->get_records('task_adhoc', [
+                'component' => 'mod_topomojo',
+                'classname' => '\\mod_topomojo\\task\\bulkdeploy_run'
+            ]);
+            foreach ($tasks as $task) {
+                $data = json_decode($task->customdata);
+                if (!empty($data->jobid) && $data->jobid == $jobid) {
+                    $DB->delete_records('task_adhoc', ['id' => $task->id]);
+                }
+            }
         }
 
         \core\notification::success(get_string('deployments_cancelled', 'topomojo', $cancelled));
