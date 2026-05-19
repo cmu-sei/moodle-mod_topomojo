@@ -146,19 +146,19 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
 };
 
 $statuslegend = s(implode("\n", [
-    'None: no deployment or attempt for this user.',
-    'Scheduled: deployment is queued for a future time.',
-    'Pending: deployment is queued and waiting to launch.',
-    'Launched: deployment has started and the gamespace is being built.',
-    'Failed: deployment failed (hover the cell for the error).',
-    'Cancelled: deployment was cancelled before completing.',
-    'Not Started: an attempt exists but the user has not begun.',
-    'Active: the gamespace is deployed and ready.',
-    'Abandoned: user left the attempt without finishing.',
-    'Finished: user completed the attempt.',
+    get_string('status_legend_none', 'topomojo'),
+    get_string('status_legend_scheduled', 'topomojo'),
+    get_string('status_legend_pending', 'topomojo'),
+    get_string('status_legend_launched', 'topomojo'),
+    get_string('status_legend_failed', 'topomojo'),
+    get_string('status_legend_cancelled', 'topomojo'),
+    get_string('status_legend_notstarted', 'topomojo'),
+    get_string('status_legend_active', 'topomojo'),
+    get_string('status_legend_abandoned', 'topomojo'),
+    get_string('status_legend_finished', 'topomojo'),
 ]));
 $statusheader = $sortlink('attemptstate', 'Status') .
-    ' <span title="' . $statuslegend . '" style="cursor: help; text-decoration: underline dotted;">ⓘ</span>';
+    ' <span title="' . $statuslegend . '" class="mod-topomojo-status-tooltip">ⓘ</span>';
 
 echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table']);
 echo '<thead><tr>';
@@ -220,19 +220,19 @@ foreach ($users as $u) {
     $statushtml = s($statusinfo);
     if ($statusinfo === 'Failed' && !empty($u->deployerror)) {
         $errormsg = s($u->deployerror);
-        $statushtml = '<span title="' . $errormsg . '" style="cursor: help; text-decoration: underline dotted;">' .
+        $statushtml = '<span title="' . $errormsg . '" class="mod-topomojo-status-tooltip">' .
                       s($statusinfo) . ' ⓘ</span>';
     } else if ($statusinfo === 'Active' && (!empty($u->attempttimestart) || !empty($u->attemptendtime))) {
         $tooltipparts = [];
         $datefmt = get_string('strftimedatetime', 'langconfig');
         if (!empty($u->attempttimestart)) {
-            $tooltipparts[] = 'Active at: ' . userdate($u->attempttimestart, $datefmt);
+            $tooltipparts[] = get_string('status_active_at', 'topomojo', userdate($u->attempttimestart, $datefmt));
         }
         if (!empty($u->attemptendtime)) {
-            $tooltipparts[] = 'Ends at: ' . userdate($u->attemptendtime, $datefmt);
+            $tooltipparts[] = get_string('status_ends_at', 'topomojo', userdate($u->attemptendtime, $datefmt));
         }
         $tooltip = s(implode("\n", $tooltipparts));
-        $statushtml = '<span title="' . $tooltip . '" style="cursor: help; text-decoration: underline dotted;">' .
+        $statushtml = '<span title="' . $tooltip . '" class="mod-topomojo-status-tooltip">' .
                       s($statusinfo) . ' ⓘ</span>';
     }
 

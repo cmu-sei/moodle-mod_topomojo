@@ -131,6 +131,7 @@ class launcher {
             $stillpending = [];
             foreach ($responses as $i => $resp) {
                 $entry = $reqindex[$i];
+                // External terminal states (CANCELLED, etc.) win over what we observed.
                 if (($currentstatuses[$entry['rowid']] ?? null) !== user_status::LAUNCHED) {
                     continue;
                 }
