@@ -154,6 +154,64 @@ final class launcher_test extends \advanced_testcase {
         $this->assertSame(user_status::READY, $after->status);
     }
 
+    public function test_externally_cancelled_row_is_dropped_and_not_overwritten(): void {
+        $this->resetAfterTest();
+        $repo = new job_repository();
+        $jobid = $repo->create_job(1, 1, 1, 2, null, [10, 11]);
+        $rows = array_values($repo->get_user_rows($jobid));
+        $rowid_a = (int) $rows[0]->id;
+        $rowid_b = (int) $rows[1]->id;
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-a'])));
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-b'])));
+        // First poll: neither ready.
+        $fake->queue('GET', 'https://api/gamespace/gs-a', $this->gamespace_response('gs-a', true, false));
+        $fake->queue('GET', 'https://api/gamespace/gs-b', $this->gamespace_response('gs-b', true, false));
+        // Second poll: only gs-b should be polled (gs-a was cancelled). Ready this time.
+        $fake->queue('GET', 'https://api/gamespace/gs-b', $this->gamespace_response('gs-b', true, true));
+
+        // Subclass to inject a cancellation between poll cycles via sleep_seconds().
+        $launcher = new class($repo, $fake, 'https://api', [], 60, 1, 600, $rowid_a) extends launcher {
+            public function __construct(
+                job_repository $repo,
+                curl_multi_client $client,
+                string $apibaseurl,
+                array $authheaders,
+                int $requesttimeout,
+                int $pollintervalsec,
+                int $waitceilingsec,
+                private int $cancelrowid
+            ) {
+                parent::__construct(
+                    $repo, $client, $apibaseurl, $authheaders,
+                    $requesttimeout, $pollintervalsec, $waitceilingsec
+                );
+            }
+            protected function sleep_seconds(int $seconds): void {
+                global $DB;
+                $DB->update_record('topomojo_bulkdeploy_user', (object) [
+                    'id' => $this->cancelrowid,
+                    'status' => user_status::CANCELLED,
+                ]);
+            }
+        };
+
+        $launcher->run_batch($jobid, [
+            ['rowid' => $rowid_a, 'user' => $this->user('a@b')],
+            ['rowid' => $rowid_b, 'user' => $this->user('c@d')],
+        ], $this->topomojo());
+
+        $after = $repo->get_user_rows($jobid);
+        $this->assertSame(user_status::CANCELLED, $after[$rowid_a]->status,
+            'externally cancelled row must keep CANCELLED status');
+        $this->assertSame(user_status::READY, $after[$rowid_b]->status);
+
+        // gs-a should have been polled exactly once (first cycle only).
+        $gets_a = array_filter($fake->log, fn($r) => $r['url'] === 'https://api/gamespace/gs-a');
+        $this->assertCount(1, $gets_a, 'cancelled gamespace must not be polled after cancellation');
+    }
+
     public function test_wait_ceiling_marks_failed_when_never_ready(): void {
         $this->resetAfterTest();
         $repo = new job_repository();

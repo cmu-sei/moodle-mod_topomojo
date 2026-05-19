@@ -58,6 +58,32 @@ class job_repository {
     }
 
     /**
+     * Look up the current status of the supplied user-row IDs.
+     *
+     * @param int[] $rowids
+     * @return array<int,string> map of rowid => status; rowids that don't exist are omitted
+     */
+    public function get_user_statuses(array $rowids): array {
+        global $DB;
+        if (!$rowids) {
+            return [];
+        }
+        [$insql, $params] = $DB->get_in_or_equal($rowids, SQL_PARAMS_NAMED);
+        $rows = $DB->get_records_select(
+            'topomojo_bulkdeploy_user',
+            "id $insql",
+            $params,
+            '',
+            'id, status'
+        );
+        $out = [];
+        foreach ($rows as $r) {
+            $out[(int) $r->id] = $r->status;
+        }
+        return $out;
+    }
+
+    /**
      * @return \stdClass[] rows whose status is not yet terminal
      */
     public function get_active_user_rows(int $jobid): array {

@@ -68,6 +68,8 @@ class management_repository {
                    att.state AS attemptstate,
                    att.score AS attemptscore,
                    att.eventid AS attemptgamespaceid,
+                   att.timestart AS attempttimestart,
+                   att.endtime AS attemptendtime,
                    bd.id AS deployrowid,
                    bd.status AS deploystatus,
                    bd.gamespaceid AS deploygamespaceid,

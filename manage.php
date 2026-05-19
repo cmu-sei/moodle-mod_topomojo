@@ -145,12 +145,27 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
     return html_writer::link($url, $label . $icon);
 };
 
+$statuslegend = s(implode("\n", [
+    get_string('status_legend_none', 'topomojo'),
+    get_string('status_legend_scheduled', 'topomojo'),
+    get_string('status_legend_pending', 'topomojo'),
+    get_string('status_legend_launched', 'topomojo'),
+    get_string('status_legend_failed', 'topomojo'),
+    get_string('status_legend_cancelled', 'topomojo'),
+    get_string('status_legend_not_started', 'topomojo'),
+    get_string('status_legend_active', 'topomojo'),
+    get_string('status_legend_abandoned', 'topomojo'),
+    get_string('status_legend_finished', 'topomojo'),
+]));
+$statusheader = $sortlink('attemptstate', 'Status') .
+    ' <span title="' . $statuslegend . '" class="mod-topomojo-status-tooltip">ⓘ</span>';
+
 echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table']);
 echo '<thead><tr>';
 echo '<th><input type="checkbox" id="select-all-checkbox"></th>';
 echo '<th>' . $sortlink('firstname', 'User') . '</th>';
 echo '<th>Role</th>';
-echo '<th>' . $sortlink('attemptstate', 'Status') . '</th>';
+echo '<th>' . $statusheader . '</th>';
 echo '<th>Current or Last Gamespace</th>';
 echo '<th>Scheduled For</th>';
 echo '<th>Actions</th>';
@@ -205,7 +220,19 @@ foreach ($users as $u) {
     $statushtml = s($statusinfo);
     if ($statusinfo === 'Failed' && !empty($u->deployerror)) {
         $errormsg = s($u->deployerror);
-        $statushtml = '<span title="' . $errormsg . '" style="cursor: help; text-decoration: underline dotted;">' .
+        $statushtml = '<span title="' . $errormsg . '" class="mod-topomojo-status-tooltip">' .
+                      s($statusinfo) . ' ⓘ</span>';
+    } else if ($statusinfo === 'Active' && (!empty($u->attempttimestart) || !empty($u->attemptendtime))) {
+        $tooltipparts = [];
+        $datefmt = get_string('strftimedatetime', 'langconfig');
+        if (!empty($u->attempttimestart)) {
+            $tooltipparts[] = get_string('status_active_at', 'topomojo', userdate($u->attempttimestart, $datefmt));
+        }
+        if (!empty($u->attemptendtime)) {
+            $tooltipparts[] = get_string('status_ends_at', 'topomojo', userdate($u->attemptendtime, $datefmt));
+        }
+        $tooltip = s(implode("\n", $tooltipparts));
+        $statushtml = '<span title="' . $tooltip . '" class="mod-topomojo-status-tooltip">' .
                       s($statusinfo) . ' ⓘ</span>';
     }
 
