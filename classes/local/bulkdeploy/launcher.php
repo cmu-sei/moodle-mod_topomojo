@@ -100,6 +100,14 @@ class launcher {
         $laststatus = [];
 
         while ($remaining) {
+            // Drop rows whose status was changed externally (e.g. cancelled from the
+            // management page) before issuing more polls. Avoids overwriting their
+            // status when the wait ceiling fires.
+            $remaining = $this->drop_externally_mutated($remaining);
+            if (!$remaining) {
+                return;
+            }
+
             $requests = [];
             $reqindex = [];
             foreach ($remaining as $entry) {
@@ -113,9 +121,19 @@ class launcher {
             }
             $responses = $this->client->execute($requests);
 
+            // Re-check after the GETs return: a cancellation may have landed while
+            // requests were in flight. Build a map and skip writing to those rows.
+            $currentstatuses = $this->repo->get_user_statuses(array_map(
+                fn($e) => $e['rowid'],
+                $reqindex
+            ));
+
             $stillpending = [];
             foreach ($responses as $i => $resp) {
                 $entry = $reqindex[$i];
+                if (($currentstatuses[$entry['rowid']] ?? null) !== user_status::LAUNCHED) {
+                    continue;
+                }
                 $laststatus[$entry['gamespaceid']] = $this->extract_state($resp->body);
                 if ($resp->httpcode === 200) {
                     $decoded = json_decode($resp->body);
@@ -157,6 +175,27 @@ class launcher {
                 $this->sleep_seconds($this->pollintervalsec);
             }
         }
+    }
+
+    /**
+     * Filters $remaining to entries whose DB status is still LAUNCHED. Anything
+     * else (CANCELLED via management page, or any other external change) is dropped.
+     *
+     * @param array $remaining each entry: ['rowid' => int, 'gamespaceid' => string]
+     * @return array
+     */
+    private function drop_externally_mutated(array $remaining): array {
+        if (!$remaining) {
+            return [];
+        }
+        $statuses = $this->repo->get_user_statuses(array_map(fn($e) => $e['rowid'], $remaining));
+        $kept = [];
+        foreach ($remaining as $entry) {
+            if (($statuses[$entry['rowid']] ?? null) === user_status::LAUNCHED) {
+                $kept[] = $entry;
+            }
+        }
+        return $kept;
     }
 
     protected function now(): int {
