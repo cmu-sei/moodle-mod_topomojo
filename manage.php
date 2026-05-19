@@ -145,12 +145,27 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
     return html_writer::link($url, $label . $icon);
 };
 
+$statuslegend = s(implode("\n", [
+    'None: no deployment or attempt for this user.',
+    'Scheduled: deployment is queued for a future time.',
+    'Pending: deployment is queued and waiting to launch.',
+    'Launched: deployment has started and the gamespace is being built.',
+    'Failed: deployment failed (hover the cell for the error).',
+    'Cancelled: deployment was cancelled before completing.',
+    'Not Started: an attempt exists but the user has not begun.',
+    'Active: the gamespace is deployed and ready.',
+    'Abandoned: user left the attempt without finishing.',
+    'Finished: user completed the attempt.',
+]));
+$statusheader = $sortlink('attemptstate', 'Status') .
+    ' <span title="' . $statuslegend . '" style="cursor: help; text-decoration: underline dotted;">ⓘ</span>';
+
 echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table']);
 echo '<thead><tr>';
 echo '<th><input type="checkbox" id="select-all-checkbox"></th>';
 echo '<th>' . $sortlink('firstname', 'User') . '</th>';
 echo '<th>Role</th>';
-echo '<th>' . $sortlink('attemptstate', 'Status') . '</th>';
+echo '<th>' . $statusheader . '</th>';
 echo '<th>Current or Last Gamespace</th>';
 echo '<th>Scheduled For</th>';
 echo '<th>Actions</th>';
