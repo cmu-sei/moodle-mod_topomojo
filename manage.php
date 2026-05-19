@@ -152,7 +152,7 @@ $statuslegend = s(implode("\n", [
     get_string('status_legend_launched', 'topomojo'),
     get_string('status_legend_failed', 'topomojo'),
     get_string('status_legend_cancelled', 'topomojo'),
-    get_string('status_legend_notstarted', 'topomojo'),
+    get_string('status_legend_not_started', 'topomojo'),
     get_string('status_legend_active', 'topomojo'),
     get_string('status_legend_abandoned', 'topomojo'),
     get_string('status_legend_finished', 'topomojo'),
