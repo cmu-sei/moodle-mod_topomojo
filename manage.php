@@ -209,7 +209,7 @@ foreach ($users as $u) {
                       s($statusinfo) . ' ⓘ</span>';
     }
 
-    echo '<tr data-userid="' . $u->userid . '">';
+    echo '<tr data-userid="' . $u->userid . '" data-status="' . s(strtolower($statusinfo)) . '">';
     echo '<td><input type="checkbox" class="user-checkbox" value="' . $u->userid . '"></td>';
     echo '<td>' . $fullname . '</td>';
     echo '<td>' . $roletext . '</td>';
