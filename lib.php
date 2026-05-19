@@ -321,6 +321,38 @@ function topomojo_delete_all_attempts($topomojo) {
     question_engine::delete_questions_usage_by_activities(new qubaids_for_topomojo($topomojo->id));
     $DB->delete_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
     $DB->delete_records('topomojo_grades', ['topomojoid' => $topomojo->id]);
+
+    // Stop any running gamespaces tracked by bulk-deploy and remove the rows.
+    // Best-effort: a failed stop_event() must not abort the wipe.
+    $jobids = $DB->get_fieldset_select(
+        'topomojo_bulkdeploy_job',
+        'id',
+        'topomojoid = :topomojoid',
+        ['topomojoid' => $topomojo->id]
+    );
+    if ($jobids) {
+        $auth = setup();
+        [$insql, $params] = $DB->get_in_or_equal($jobids, SQL_PARAMS_NAMED, 'jid');
+        $deployrows = $DB->get_records_select(
+            'topomojo_bulkdeploy_user',
+            "jobid $insql AND gamespaceid IS NOT NULL AND gamespaceid <> ''",
+            $params,
+            '',
+            'id, gamespaceid'
+        );
+        foreach ($deployrows as $row) {
+            if (!$auth) {
+                break;
+            }
+            try {
+                stop_event($auth, $row->gamespaceid);
+            } catch (\Throwable $e) {
+                debugging("topomojo_delete_all_attempts: stop_event failed for gamespace {$row->gamespaceid}: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+        $DB->delete_records_select('topomojo_bulkdeploy_user', "jobid $insql", $params);
+        $DB->delete_records('topomojo_bulkdeploy_job', ['topomojoid' => $topomojo->id]);
+    }
 }
 
 /**
