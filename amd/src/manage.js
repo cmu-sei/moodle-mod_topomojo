@@ -13,6 +13,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
             let inactivePollCount = 0;
             const MAX_INACTIVE_POLLS = 6; // Stop after 6 polls (30 seconds) with no activity
 
+            const rowStatus = (row) => (row.getAttribute('data-status') || '').trim().toLowerCase();
+
             const hasActiveDeploys = () => {
                 const table = document.querySelector('.mod-topomojo-users-table tbody');
                 if (!table) return false;
@@ -21,10 +23,9 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
 
                 rows.forEach(row => {
                     const userid = row.getAttribute('data-userid');
-                    const statusCell = row.querySelector('td:nth-child(4)');
                     const scheduledCell = row.querySelector('td:nth-child(6)');
-                    if (userid && statusCell) {
-                        const status = statusCell.textContent.trim().toLowerCase();
+                    if (userid) {
+                        const status = rowStatus(row);
                         const scheduled = scheduledCell ? scheduledCell.textContent.trim() : '';
                         lastSeenStatuses.set(userid, status);
                         if (status === 'pending' || status === 'launched' || status === 'active' ||
@@ -56,9 +57,8 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
 
                 checkboxes.forEach(cb => {
                     const row = cb.closest('tr');
-                    const statusCell = row.querySelector('td:nth-child(4)');
-                    if (statusCell) {
-                        const status = statusCell.textContent.trim().toLowerCase();
+                    if (row) {
+                        const status = rowStatus(row);
 
                         // Can deploy/schedule: None, Expired, Finished, Ready (after expired), Not Started, Abandoned, Cancelled, Failed
                         if (status === 'none' || status === 'expired' || status === 'finished' ||
