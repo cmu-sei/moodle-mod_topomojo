@@ -207,6 +207,18 @@ foreach ($users as $u) {
         $errormsg = s($u->deployerror);
         $statushtml = '<span title="' . $errormsg . '" style="cursor: help; text-decoration: underline dotted;">' .
                       s($statusinfo) . ' ⓘ</span>';
+    } else if ($statusinfo === 'Active' && (!empty($u->attempttimestart) || !empty($u->attemptendtime))) {
+        $tooltipparts = [];
+        $datefmt = get_string('strftimedatetime', 'langconfig');
+        if (!empty($u->attempttimestart)) {
+            $tooltipparts[] = 'Active at: ' . userdate($u->attempttimestart, $datefmt);
+        }
+        if (!empty($u->attemptendtime)) {
+            $tooltipparts[] = 'Ends at: ' . userdate($u->attemptendtime, $datefmt);
+        }
+        $tooltip = s(implode("\n", $tooltipparts));
+        $statushtml = '<span title="' . $tooltip . '" style="cursor: help; text-decoration: underline dotted;">' .
+                      s($statusinfo) . ' ⓘ</span>';
     }
 
     echo '<tr data-userid="' . $u->userid . '" data-status="' . s(strtolower($statusinfo)) . '">';
