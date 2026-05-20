@@ -173,6 +173,53 @@ Follow the procedures below to launch and complete a lab using the TopoMojo for 
 
 **Review Activity Attempts:** Tracks the user's performance history.
 
+### Managing Lab Deployments
+
+The **Manage Deployments** feature lets course teachers pre-deploy student labs or schedule deployments before students need them. Rather than deploying all labs at the same time when students begin an activity, teachers can spread deployments over time to reduce infrastructure load.
+
+Students can begin faster because lab VMs may already be available when they open the activity.
+
+#### Deploying or Scheduling Labs
+
+1. In your course, open a TopoMojo lab activity and select **Manage Deployments**.
+
+    ![Manage Deployments button on TopoMojo plugin tab in Moodle](img/manage-deployments-button.png)
+
+2. Select the students to deploy for:
+
+    - To deploy for all enrolled students, click **Select All**.
+    - To target a subset, select individual users from the list or filter by role. For example, filter by role to deploy only for students and exclude teaching assistants and teachers.
+
+3. Choose how to deploy:
+
+    - To start deploying immediately, click **Deploy Selected Now**.
+    - To deploy at a future time, click **Schedule Selected**, then choose the date and time to begin deployment.
+
+    ![Schedule Selected dialog showing deployment time and batch size options](img/schedule-selected.png)
+
+4. Set the batch size based on your infrastructure's capacity to handle simultaneous deployments.
+
+    The batch size controls how many gamespaces deploy at the same time. Use a batch size that matches your infrastructure capacity.
+
+    Labs with many VMs usually require a smaller batch size. Environments with more available hypervisor resources may support a larger batch size.
+
+    **Choosing a batch size:** Deploying too many labs at once can overwhelm infrastructure and cause unexpected behavior. Consider the number of VMs per lab and the available hypervisor hosts when choosing a batch size.
+
+#### Monitoring Deployment Status
+
+The status page updates automatically while deployments are in progress. The table shows each lab's status, its current or last gamespace ID, and its scheduled time when applicable.
+
+| Status | Meaning |
+| ------ | ------- |
+| Active | Lab deployed successfully |
+| Pending | Lab is starting up |
+| Scheduled | Lab will deploy at the listed scheduled time |
+| Failed | Lab deployment did not complete successfully |
+
+![Deployment status page showing pending, active, and scheduled labs with gamespace IDs and scheduled times](img/deployment-status.png)
+
+> **Note:** **Scheduled Time** is when the lab begins deploying, not when it becomes available to students. Large labs may take several minutes to start after the scheduled time.
+
 ## License
 
 TopoMojo Plugin for Moodle
