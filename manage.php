@@ -166,20 +166,8 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
     return html_writer::link($url, $label . $icon);
 };
 
-$statuslegend = s(implode("\n", [
-    get_string('status_legend_none', 'topomojo'),
-    get_string('status_legend_scheduled', 'topomojo'),
-    get_string('status_legend_pending', 'topomojo'),
-    get_string('status_legend_launched', 'topomojo'),
-    get_string('status_legend_failed', 'topomojo'),
-    get_string('status_legend_cancelled', 'topomojo'),
-    get_string('status_legend_not_started', 'topomojo'),
-    get_string('status_legend_active', 'topomojo'),
-    get_string('status_legend_abandoned', 'topomojo'),
-    get_string('status_legend_finished', 'topomojo'),
-]));
-$statusheader = $sortlink('attemptstate', 'Status') .
-    ' <span title="' . $statuslegend . '" class="mod-topomojo-status-tooltip">ⓘ</span>';
+$statusheader = $sortlink('attemptstate', get_string('status', 'topomojo')) .
+    ' ' . $OUTPUT->help_icon('status', 'topomojo');
 
 echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table']);
 echo '<thead><tr>';

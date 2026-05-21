@@ -129,7 +129,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $this->assertStringContainsString('Active ⓘ', $state['tooltip_html']);
         $datefmt = get_string('strftimedatetime', 'langconfig');
         $this->assertStringContainsString(
-            s(get_string('status_active_at', 'topomojo', userdate($start, $datefmt))),
+            s(get_string('status_started_at', 'topomojo', userdate($start, $datefmt))),
             $state['tooltip_html']
         );
     }
@@ -155,6 +155,40 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $this->assertSame('Finished', $state['status_label']);
         $this->assertSame('finished', $state['status_class']);
         $this->assertNull($state['tooltip_html']);
+    }
+
+    public function test_attempt_state_finished_with_times_renders_tooltip(): void {
+        $this->resetAfterTest();
+        $repo = new management_repository();
+
+        $start = 1700000000;
+        $end = 1700003600;
+        $row = (object) [
+            'userid' => 1,
+            'attemptid' => 7,
+            'attemptstate' => '30',
+            'attemptgamespaceid' => 'gs',
+            'attempttimestart' => $start,
+            'attemptendtime' => $end,
+            'deploystatus' => null,
+            'deploygamespaceid' => null,
+            'deployerror' => null,
+            'scheduledfor' => null,
+        ];
+        $state = $repo->format_user_state($row);
+
+        $this->assertSame('Finished', $state['status_label']);
+        $this->assertNotNull($state['tooltip_html']);
+        $this->assertStringContainsString('Finished ⓘ', $state['tooltip_html']);
+        $datefmt = get_string('strftimedatetime', 'langconfig');
+        $this->assertStringContainsString(
+            s(get_string('status_started_at', 'topomojo', userdate($start, $datefmt))),
+            $state['tooltip_html']
+        );
+        $this->assertStringContainsString(
+            s(get_string('status_ended_at', 'topomojo', userdate($end, $datefmt))),
+            $state['tooltip_html']
+        );
     }
 
     public function test_failed_deploy_renders_error_tooltip(): void {
