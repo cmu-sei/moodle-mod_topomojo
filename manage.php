@@ -52,7 +52,7 @@ foreach ($users as $u) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('manage_pageheading', 'topomojo'));
 
-// Check for active deployments and show adhoc task link
+// Check for active deployments and compute progress summary.
 $has_active_deploys = false;
 foreach ($users as $u) {
     if (in_array($u->deploystatus, ['pending', 'launched'])) {
@@ -61,15 +61,36 @@ foreach ($users as $u) {
     }
 }
 
+$summary_ready = 0;
+$summary_total = 0;
 if ($has_active_deploys) {
-    $adhocurl = new moodle_url('/admin/tool/task/adhoctasks.php', [
-        'classname' => '\\mod_topomojo\\task\\bulkdeploy_run'
-    ]);
-    echo $OUTPUT->notification(
-        'Deployments are running. ' . html_writer::link($adhocurl, 'View adhoc task details', ['target' => '_blank']),
-        \core\output\notification::NOTIFY_INFO
-    );
+    $activejobs = $manrepo->get_active_jobs($topomojo->id);
+    foreach ($activejobs as $job) {
+        $progress = $manrepo->get_job_progress($job->id);
+        $summary_ready += (int) $progress->ready;
+        $summary_total += (int) $job->totalusers;
+    }
 }
+
+$adhocurl = new moodle_url('/admin/tool/task/adhoctasks.php', [
+    'classname' => '\\mod_topomojo\\task\\bulkdeploy_run',
+]);
+$linkhtml = html_writer::link($adhocurl, get_string('manage_deploy_running_link', 'topomojo'),
+    ['target' => '_blank']);
+$progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
+    . '/'
+    . html_writer::span((string) $summary_total, 'deploy-summary-total');
+$summaryhtml = get_string('manage_deploy_running_summary', 'topomojo',
+    (object) ['progress' => $progresshtml, 'link' => $linkhtml]);
+
+$notifstyle = $has_active_deploys ? '' : 'display:none;';
+echo html_writer::start_div('alert alert-info', [
+    'id' => 'deploy-notification',
+    'role' => 'alert',
+    'style' => $notifstyle,
+]);
+echo $summaryhtml;
+echo html_writer::end_div();
 
 $roleopts = [0 => get_string('bulkdeploy_rolefilter_all', 'topomojo')];
 foreach (get_roles_used_in_context($context) as $role) {
@@ -171,111 +192,41 @@ echo '<th>Scheduled For</th>';
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
+$attemptids = array_filter(array_map(function($u) {
+    return $u->attemptid ?? null;
+}, $users));
+$attemptswithq = [];
+if ($attemptids) {
+    [$insql, $params] = $DB->get_in_or_equal($attemptids, SQL_PARAMS_NAMED);
+    $records = $DB->get_records_select(
+        'topomojo_attempts',
+        "id $insql AND questionusageid IS NOT NULL AND questionusageid <> 0",
+        $params,
+        '',
+        'id'
+    );
+    $attemptswithq = array_flip(array_keys($records));
+}
+
 foreach ($users as $u) {
     $fullname = s($u->firstname . ' ' . $u->lastname);
-
-    $statusinfo = 'None';
-
-    // Priority: scheduled > active deployments > attempt status > other deployment status
-    if (!empty($u->deploystatus) && !empty($u->scheduledfor) && $u->scheduledfor > time() && $u->deploystatus === 'pending') {
-        // Show "Scheduled" for future deployments
-        $statusinfo = 'Scheduled';
-    } else if (!empty($u->deploystatus) && in_array($u->deploystatus, ['pending', 'launched'])) {
-        // Show active deployment status (overrides attempt status)
-        $statusinfo = ucfirst($u->deploystatus);
-    } else if (!empty($u->attemptid)) {
-        // Show attempt status
-        $statemap = [
-            '0' => 'Not Started',
-            '10' => 'Active',
-            '20' => 'Abandoned',
-            '30' => 'Finished',
-        ];
-        $statusinfo = $statemap[$u->attemptstate] ?? $u->attemptstate ?? 'unknown';
-    } else if (!empty($u->deploystatus)) {
-        // Show other deployment statuses (ready, failed, cancelled, expired)
-        $statusinfo = ucfirst($u->deploystatus);
-    }
-
-    // Show gamespace: deployment gamespace OR attempt gamespace as fallback
-    $gamespaceid = '';
-    if (!empty($u->deploygamespaceid)) {
-        // Deployment has a gamespace
-        $gamespaceid = $u->deploygamespaceid;
-    } else if (!empty($u->attemptgamespaceid)) {
-        // Fall back to attempt gamespace
-        $gamespaceid = $u->attemptgamespaceid;
-    }
-    $gamespacetext = $gamespaceid ? s($gamespaceid) : '─';
-
-    // Show scheduled time if deployment is scheduled (pending with future time)
-    $scheduledtext = '─';
-    if (!empty($u->scheduledfor) && $u->scheduledfor > time() && $u->deploystatus === 'pending') {
-        $scheduledtext = userdate($u->scheduledfor, get_string('strftimedatetime', 'langconfig'));
-    }
-
     $roletext = isset($userroles[$u->userid]) ? s($userroles[$u->userid]) : '─';
 
-    // Build status cell with error tooltip if failed
-    $statushtml = s($statusinfo);
-    if ($statusinfo === 'Failed' && !empty($u->deployerror)) {
-        $errormsg = s($u->deployerror);
-        $statushtml = '<span title="' . $errormsg . '" class="mod-topomojo-status-tooltip">' .
-                      s($statusinfo) . ' ⓘ</span>';
-    } else if ($statusinfo === 'Active' && (!empty($u->attempttimestart) || !empty($u->attemptendtime))) {
-        $tooltipparts = [];
-        $datefmt = get_string('strftimedatetime', 'langconfig');
-        if (!empty($u->attempttimestart)) {
-            $tooltipparts[] = get_string('status_active_at', 'topomojo', userdate($u->attempttimestart, $datefmt));
-        }
-        if (!empty($u->attemptendtime)) {
-            $tooltipparts[] = get_string('status_ends_at', 'topomojo', userdate($u->attemptendtime, $datefmt));
-        }
-        $tooltip = s(implode("\n", $tooltipparts));
-        $statushtml = '<span title="' . $tooltip . '" class="mod-topomojo-status-tooltip">' .
-                      s($statusinfo) . ' ⓘ</span>';
-    }
+    $hasquestions = !empty($u->attemptid) && isset($attemptswithq[$u->attemptid]);
+    $state = $manrepo->format_user_state($u, $hasquestions);
 
-    echo '<tr data-userid="' . $u->userid . '" data-status="' . s(strtolower($statusinfo)) . '">';
+    $statushtml = $state['tooltip_html'] !== null
+        ? $state['tooltip_html']
+        : s($state['status_label']);
+
+    echo '<tr data-userid="' . $u->userid . '" data-status="' . s($state['status_class']) . '">';
     echo '<td><input type="checkbox" class="user-checkbox" value="' . $u->userid . '"></td>';
     echo '<td>' . $fullname . '</td>';
     echo '<td>' . $roletext . '</td>';
-    echo '<td>' . $statushtml . '</td>';
-    echo '<td>' . $gamespacetext . '</td>';
-    echo '<td>' . $scheduledtext . '</td>';
-    echo '<td>';
-
-    // Show link to view attempt if there's an attempt (active or finished)
-    if (!empty($u->attemptid)) {
-        // Check if attempt has questions
-        $attemptrecord = $DB->get_record('topomojo_attempts', ['id' => $u->attemptid], 'questionusageid');
-        $hasquestions = !empty($attemptrecord->questionusageid);
-
-        if ($hasquestions) {
-            if ($u->attemptstate == 10) {
-                // Active attempt with questions - link to challenge page
-                $challengeurl = new moodle_url('/mod/topomojo/challenge.php', [
-                    'attemptid' => $u->attemptid,
-                ]);
-                echo html_writer::link($challengeurl, get_string('viewattempt', 'mod_topomojo'), ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
-            } else if (in_array($u->attemptstate, [20, 30])) {
-                // Finished/abandoned attempt with questions - link to viewattempt
-                $viewurl = new moodle_url('/mod/topomojo/viewattempt.php', [
-                    'a' => $u->attemptid,
-                    'action' => 'view',
-                ]);
-                echo html_writer::link($viewurl, get_string('viewattempt', 'mod_topomojo'), ['class' => 'btn btn-sm btn-outline-secondary', 'target' => '_blank']);
-            } else {
-                echo '─';
-            }
-        } else {
-            echo '─';
-        }
-    } else {
-        echo '─';
-    }
-
-    echo '</td>';
+    echo '<td class="cell-status">' . $statushtml . '</td>';
+    echo '<td class="cell-gamespace">' . s($state['gamespace_text']) . '</td>';
+    echo '<td class="cell-scheduled">' . s($state['scheduled_text']) . '</td>';
+    echo '<td class="cell-actions">' . $state['action_html'] . '</td>';
     echo '</tr>';
 }
 

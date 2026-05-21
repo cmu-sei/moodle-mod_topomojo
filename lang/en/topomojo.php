@@ -473,3 +473,5 @@ $string['status_legend_not_started'] = 'Not Started: an attempt exists but the u
 $string['status_legend_active'] = 'Active: the gamespace is deployed and ready.';
 $string['status_legend_abandoned'] = 'Abandoned: user left the attempt without finishing.';
 $string['status_legend_finished'] = 'Finished: user completed the attempt.';
+$string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress}). {$a->link}';
+$string['manage_deploy_running_link'] = 'View adhoc task details';

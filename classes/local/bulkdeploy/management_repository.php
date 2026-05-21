@@ -179,4 +179,100 @@ class management_repository {
             'cancelled' => $counts[user_status::CANCELLED] ?? 0,
         ];
     }
+
+    /**
+     * Format a single enrolled-user row for the manage page.
+     *
+     * Returns an associative array with:
+     *  - status_label   (string): final user-facing status string
+     *  - status_class   (string): lowercase status used as the row's data-status attr
+     *  - gamespace_text (string): gamespace id or "─"
+     *  - scheduled_text (string): formatted userdate or "─"
+     *  - tooltip_html   (string|null): pre-rendered <span title="...">Label ⓘ</span> markup, or null
+     *  - action_html    (string): pre-rendered <a ...>...</a> markup, or "─"
+     *
+     * Both manage.php (initial render) and manage_status_ajax.php (polling) call this
+     * helper so the rendered cells never disagree.
+     *
+     * @param \stdClass $row           Row produced by get_enrolled_users_with_state().
+     * @param bool      $hasquestions  Whether the row's attempt has a non-empty questionusageid.
+     * @return array
+     */
+    public function format_user_state(\stdClass $row, bool $hasquestions = false): array {
+        $now = time();
+        $statuslabel = 'None';
+        $scheduledtext = '─';
+        $tooltiphtml = null;
+
+        $deploystatus = $row->deploystatus ?? null;
+        $scheduledfor = $row->scheduledfor ?? null;
+        $attemptid = $row->attemptid ?? null;
+        $attemptstate = $row->attemptstate ?? null;
+
+        if (!empty($scheduledfor) && $scheduledfor > $now && $deploystatus === 'pending') {
+            $statuslabel = 'Scheduled';
+            $scheduledtext = userdate($scheduledfor, get_string('strftimedatetime', 'langconfig'));
+        } else if (!empty($deploystatus) && in_array($deploystatus, ['pending', 'launched'], true)) {
+            $statuslabel = ucfirst($deploystatus);
+        } else if (!empty($attemptid)) {
+            $statemap = [
+                '0'  => 'Not Started',
+                '10' => 'Active',
+                '20' => 'Abandoned',
+                '30' => 'Finished',
+            ];
+            $statuslabel = $statemap[(string) $attemptstate] ?? (string) ($attemptstate ?? 'unknown');
+        } else if (!empty($deploystatus)) {
+            $statuslabel = ucfirst($deploystatus);
+        }
+
+        if ($statuslabel === 'Failed' && !empty($row->deployerror)) {
+            $tooltiphtml = '<span title="' . s($row->deployerror) . '" class="mod-topomojo-status-tooltip">'
+                . s($statuslabel) . ' ⓘ</span>';
+        } else if ($statuslabel === 'Active'
+            && (!empty($row->attempttimestart) || !empty($row->attemptendtime))) {
+            $datefmt = get_string('strftimedatetime', 'langconfig');
+            $parts = [];
+            if (!empty($row->attempttimestart)) {
+                $parts[] = get_string('status_active_at', 'topomojo',
+                    userdate($row->attempttimestart, $datefmt));
+            }
+            if (!empty($row->attemptendtime)) {
+                $parts[] = get_string('status_ends_at', 'topomojo',
+                    userdate($row->attemptendtime, $datefmt));
+            }
+            $tooltiphtml = '<span title="' . s(implode("\n", $parts)) . '" class="mod-topomojo-status-tooltip">'
+                . s($statuslabel) . ' ⓘ</span>';
+        }
+
+        $gamespacetext = '─';
+        if (!empty($row->deploygamespaceid)) {
+            $gamespacetext = (string) $row->deploygamespaceid;
+        } else if (!empty($row->attemptgamespaceid)) {
+            $gamespacetext = (string) $row->attemptgamespaceid;
+        }
+
+        $actionhtml = '─';
+        $attemptstateint = $attemptstate !== null ? (int) $attemptstate : null;
+        if (!empty($attemptid) && $hasquestions) {
+            if ($attemptstateint === 10) {
+                $url = new \moodle_url('/mod/topomojo/challenge.php', ['attemptid' => $attemptid]);
+                $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
+                    ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
+            } else if (in_array($attemptstateint, [20, 30], true)) {
+                $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
+                $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
+                    ['class' => 'btn btn-sm btn-outline-secondary', 'target' => '_blank']);
+            }
+        }
+
+        return [
+            'status_label'   => $statuslabel,
+            'status_class'   => strtolower($statuslabel),
+            'gamespace_text' => $gamespacetext,
+            'scheduled_text' => $scheduledtext,
+            'tooltip_html'   => $tooltiphtml,
+            'action_html'    => $actionhtml,
+        ];
+    }
 }
