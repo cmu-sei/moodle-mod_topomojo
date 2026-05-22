@@ -120,6 +120,34 @@ class questionmanager {
         return $this->object;
     }
 
+    /**
+     * Convert Moodle's 1-based variant number to 0-based array index
+     *
+     * @param int $variant 1-based variant number (as stored in DB and shown in UI)
+     * @return int 0-based array index for accessing $challenge->variants[]
+     * @throws \coding_exception if variant < 1
+     */
+    private function variant_to_index($variant) {
+        if ($variant < 1) {
+            throw new \coding_exception('Variant must be >= 1 (got ' . $variant . ')');
+        }
+        return $variant - 1;
+    }
+
+    /**
+     * Convert 0-based array index to 1-based variant number
+     *
+     * @param int $index 0-based array index
+     * @return int 1-based variant number
+     * @throws \coding_exception if index < 0
+     */
+    private function index_to_variant($index) {
+        if ($index < 0) {
+            throw new \coding_exception('Index must be >= 0 (got ' . $index . ')');
+        }
+        return $index + 1;
+    }
+
 
     /**
      * Edit a topomojo question
@@ -273,7 +301,8 @@ class questionmanager {
               FROM {question} q
               JOIN {question_versions} qv ON q.id = qv.questionid
               JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
-              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid AND qr.version = qv.version
+              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid
+                   AND (qr.version = qv.version OR qr.version IS NULL)
               JOIN {topomojo_questions} qs ON qs.id = qr.itemid
              WHERE q.id = ?
                AND qs.id = ?
@@ -290,7 +319,20 @@ class questionmanager {
             $questionreferences->questionarea = 'slot';
             $questionreferences->itemid = $slotid;
             $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
-            $questionreferences->version = null; // Always latest.
+
+            // Pin to current version for historical stability
+            $version = $DB->get_field('question_versions', 'version', [
+                'questionid' => $questionid
+            ], IGNORE_MULTIPLE);
+
+            if ($version === false) {
+                debugging("Warning: No version found for question $questionid, using null", DEBUG_DEVELOPER);
+                $questionreferences->version = null;
+            } else {
+                $questionreferences->version = $version;
+                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
+            }
+
             $DB->insert_record('question_references', $questionreferences);
         } else if ($qreferenceitem->itemid === 0 || $qreferenceitem->itemid === null) {
             $questionreferences = new stdClass();
@@ -305,7 +347,20 @@ class questionmanager {
             $questionreferences->questionarea = 'slot';
             $questionreferences->itemid = $slotid;
             $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
-            $questionreferences->version = null; // Always latest.
+
+            // Pin to current version for historical stability
+            $version = $DB->get_field('question_versions', 'version', [
+                'questionid' => $questionid
+            ], IGNORE_MULTIPLE);
+
+            if ($version === false) {
+                debugging("Warning: No version found for question $questionid, using null", DEBUG_DEVELOPER);
+                $questionreferences->version = null;
+            } else {
+                $questionreferences->version = $version;
+                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
+            }
+
             $DB->insert_record('question_references', $questionreferences);
         }
 
@@ -901,7 +956,7 @@ class questionmanager {
      *
      * @param \context $context The context in which the questions are being processed (e.g., course context).
      * @param stdClass $object An object containing information related to the topomojo instance.
-     * @param int $variant The variant number of the questions to process.
+     * @param int $variant_index ZERO-BASED array index for $challenge->variants[] (NOT the 1-based variant number)
      * @param stdClass $challenge The challenge object containing the sections and questions.
      * @param bool $addtoquiz Flag indicating whether to add the questions to the quiz.
      *
@@ -1003,7 +1058,7 @@ class questionmanager {
                             'questiontext' => $cleantext,
                             'answer'       => trim($question->answer),
                             'workspaceid'  => $object->topomojo->workspaceid,
-                            'variant'      => $variant
+                            'variant'      => $this->index_to_variant($variant) // Convert 0-based index to 1-based for DB
                         ];
 
                         if ($rec = $DB->get_record_sql($sql, $params)) {
@@ -1054,7 +1109,7 @@ class questionmanager {
                         $form->answer = [$question->answer];
                         $form->fraction = ['1'];
                         $form->feedback[0] = ['text' => '', 'format' => '1'];
-                        $form->variant = $variant;
+                        $form->variant = $this->index_to_variant($variant); // Convert 0-based index to 1-based for storage
                         $form->workspaceid = $object->topomojo->workspaceid;
                         $form->transforms = 0;
                         $form->qorder = $questionnumber;

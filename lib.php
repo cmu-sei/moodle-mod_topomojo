@@ -682,12 +682,12 @@ function topomojo_auto_import_questions($topomojo, $context) {
         // Get question manager
         $questionmanager = $topomojoobj->get_question_manager();
 
-        // Adjust for zero-based variant offset
-        $variant = $topomojo->variant - 1;
+        // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
+        $variant_index = $topomojo->variant - 1;
         $addtoquiz = true;
 
         // Import questions
-        $questionmanager->process_variant_questions($context, $topomojoobj, $variant, $challenge, $addtoquiz);
+        $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
 
         debugging("Auto-imported questions for activity {$topomojo->id}", DEBUG_DEVELOPER);
 

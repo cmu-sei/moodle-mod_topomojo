@@ -123,9 +123,10 @@ if ($object->topomojo->importchallenge) {
             throw new moodle_exception("this lab has no challenge");
         }
 
-        $variant = $object->topomojo->variant - 1;
+        // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
+        $variant_index = $object->topomojo->variant - 1;
         $addtoquiz = true;
-        $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
+        $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
     }
 }
 
