@@ -227,22 +227,32 @@ class management_repository {
         }
 
         if ($statuslabel === 'Failed' && !empty($row->deployerror)) {
-            $tooltiphtml = '<span title="' . s($row->deployerror) . '" class="mod-topomojo-status-tooltip">'
-                . s($statuslabel) . ' ⓘ</span>';
+            $content = s($row->deployerror);
+            $tooltiphtml = s($statuslabel) . ' '
+                . '<a class="btn btn-link p-0 mod-topomojo-status-help" role="button" data-bs-container="body" '
+                . 'data-bs-toggle="popover" data-bs-placement="right" data-bs-content="' . $content . '" '
+                . 'data-bs-html="false" tabindex="0" data-bs-trigger="focus" aria-label="Help">'
+                . '<i class="icon fa fa-circle-question text-info fa-fw" title="Error details" role="img" '
+                . 'aria-label="Error details"></i></a>';
         } else if (in_array($statuslabel, ['Active', 'Finished'], true)
             && (!empty($row->attempttimestart) || !empty($row->attemptendtime))) {
             $datefmt = get_string('strftimedatetime', 'langconfig');
             $parts = [];
             if (!empty($row->attempttimestart)) {
-                $parts[] = get_string('status_started_at', 'topomojo',
-                    userdate($row->attempttimestart, $datefmt));
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_started_at', 'topomojo',
+                    userdate($row->attempttimestart, $datefmt))) . '</div>';
             }
             if (!empty($row->attemptendtime)) {
-                $parts[] = get_string('status_ended_at', 'topomojo',
-                    userdate($row->attemptendtime, $datefmt));
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_ended_at', 'topomojo',
+                    userdate($row->attemptendtime, $datefmt))) . '</div>';
             }
-            $tooltiphtml = '<span title="' . s(implode("\n", $parts)) . '" class="mod-topomojo-status-tooltip">'
-                . s($statuslabel) . ' ⓘ</span>';
+            $content = implode('', $parts);
+            $tooltiphtml = s($statuslabel) . ' '
+                . '<a class="btn btn-link p-0 mod-topomojo-status-help" role="button" data-bs-container="body" '
+                . 'data-bs-toggle="popover" data-bs-placement="right" data-bs-content="' . htmlspecialchars($content) . '" '
+                . 'data-bs-html="true" tabindex="0" data-bs-trigger="focus" aria-label="Help">'
+                . '<i class="icon fa fa-circle-question text-info fa-fw" title="Details" role="img" '
+                . 'aria-label="Details"></i></a>';
         }
 
         $gamespacetext = '─';

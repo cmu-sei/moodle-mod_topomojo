@@ -91,7 +91,6 @@
     100% { transform: rotate(360deg);}
 }
 
-.mod-topomojo-status-tooltip {
-    cursor: help;
-    text-decoration: underline dotted;
+.popover-body {
+    white-space: nowrap;
 }
