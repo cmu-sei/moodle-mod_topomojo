@@ -28,14 +28,6 @@ $PAGE->requires->js_call_amd('mod_topomojo/manage', 'init', [$cmid, sesskey()]);
 $manrepo = new management_repository();
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id, $rolefilter);
 
-// Sort users
-usort($users, function($a, $b) use ($sort, $dir) {
-    $val1 = $a->$sort ?? '';
-    $val2 = $b->$sort ?? '';
-    $cmp = strcasecmp($val1, $val2);
-    return $dir === 'DESC' ? -$cmp : $cmp;
-});
-
 // Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task
 
 $coursecontext = context_course::instance($course->id);
@@ -47,7 +39,22 @@ foreach ($users as $u) {
         $rolenames[] = role_get_name($role, $coursecontext);
     }
     $userroles[$u->userid] = implode(', ', $rolenames);
+    $u->roletext = $userroles[$u->userid];
 }
+
+// Sort users
+usort($users, function($a, $b) use ($sort, $dir) {
+    $val1 = $a->$sort ?? '';
+    $val2 = $b->$sort ?? '';
+    if ($sort === 'scheduledfor') {
+        $val1 = (int)$val1;
+        $val2 = (int)$val2;
+        $cmp = $val1 <=> $val2;
+    } else {
+        $cmp = strcasecmp($val1, $val2);
+    }
+    return $dir === 'DESC' ? -$cmp : $cmp;
+});
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('manage_pageheading', 'topomojo'));
@@ -173,10 +180,10 @@ echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-user
 echo '<thead><tr>';
 echo '<th><input type="checkbox" id="select-all-checkbox"></th>';
 echo '<th>' . $sortlink('firstname', 'User') . '</th>';
-echo '<th>Role</th>';
+echo '<th>' . $sortlink('roletext', 'Role') . '</th>';
 echo '<th>' . $statusheader . '</th>';
 echo '<th>Current or Last Gamespace</th>';
-echo '<th>Scheduled For</th>';
+echo '<th>' . $sortlink('scheduledfor', 'Scheduled For') . '</th>';
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
