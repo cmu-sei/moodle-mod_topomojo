@@ -36,14 +36,20 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
         $cleaned = 0;
 
         // Find finished/abandoned attempts with active gamespaces
+        list($insql, $inparams) = $DB->get_in_or_equal(
+            [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED],
+            SQL_PARAMS_NAMED,
+            'state'
+        );
+
         $attempts = $DB->get_records_sql(
             "SELECT id, topomojoid, userid, eventid, state, timefinish
                FROM {topomojo_attempts}
               WHERE eventid IS NOT NULL
-                AND state IN (20, 30)
+                AND state $insql
                 AND timefinish > 0
                 AND timefinish < :cutoff",
-            ['cutoff' => time() - 300] // Finished > 5 minutes ago
+            array_merge($inparams, ['cutoff' => time() - 300]) // Finished > 5 minutes ago
         );
 
         foreach ($attempts as $attempt) {
