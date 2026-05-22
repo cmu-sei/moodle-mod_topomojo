@@ -85,6 +85,7 @@ class questionmanager {
      */
     protected $object;
 
+
     /**
      * Construct an instance of question manager
      *
@@ -146,6 +147,35 @@ class questionmanager {
             throw new \coding_exception('Index must be >= 0 (got ' . $index . ')');
         }
         return $index + 1;
+    }
+
+    /**
+     * Get questions for a specific variant
+     *
+     * @param int $variant Variant number (1-based)
+     * @return array Array of topomojo_question objects for the specified variant
+     */
+    public function get_questions_for_variant($variant) {
+        global $DB;
+
+        // Query topomojo_questions joined with qtype_mojomatch_options to filter by variant
+        $sql = "SELECT tq.*
+                FROM {topomojo_questions} tq
+                JOIN {question} q ON q.id = tq.questionid
+                JOIN {qtype_mojomatch_options} qmo ON qmo.questionid = q.id
+                WHERE tq.topomojoid = ?
+                  AND qmo.variant = ?
+                ORDER BY tq.slot ASC";
+
+        $records = $DB->get_records_sql($sql, [$this->object->topomojo->id, $variant]);
+
+        $questions = [];
+        foreach ($records as $record) {
+            $questions[] = new topomojo_question($record, $this);
+        }
+
+        debugging("Loaded " . count($questions) . " questions for variant $variant", DEBUG_DEVELOPER);
+        return $questions;
     }
 
 
@@ -556,29 +586,43 @@ class questionmanager {
      * This is called by the question_attmept class on construct of a new attempt
      *
      * @param \question_usage_by_activity $quba
+     * @param int|null $variant Variant number (1-based) to filter questions, null for all
      *
      * @return array
      */
-    public function add_questions_to_quba(\question_usage_by_activity $quba) {
+    public function add_questions_to_quba(\question_usage_by_activity $quba, $variant = null) {
 
-        // We need the questionids of our questions
+        // Get questions for this variant (or all if no variant specified)
+        if ($variant !== null) {
+            $variant_questions = $this->get_questions_for_variant($variant);
+            debugging("Adding " . count($variant_questions) . " questions for variant $variant to quba", DEBUG_DEVELOPER);
+        } else {
+            $variant_questions = $this->get_questions();
+            debugging("Adding " . count($variant_questions) . " questions (all variants) to quba", DEBUG_DEVELOPER);
+        }
+
+        // Extract question IDs
         $questionids = [];
-        foreach ($this->qbankorderedquestions as $qbankquestion) {
-            if (!in_array($qbankquestion->getQuestion()->id, $questionids)) {
-                $questionids[] = $qbankquestion->getQuestion()->id;
+        foreach ($variant_questions as $vq) {
+            $qid = $vq->getQuestion()->id;
+            if (!in_array($qid, $questionids)) {
+                $questionids[] = $qid;
             }
         }
+
+        if (empty($questionids)) {
+            debugging("No questions to add to quba", DEBUG_DEVELOPER);
+            return [];
+        }
+
         $questions = question_load_questions($questionids);
 
-        //print_r($questions);
-
-        // Loop through the ordered question bank questions and add them to the quba
-        // Object
+        // Loop through and add questions to quba
         $attemptquestionorder = [];
-        foreach ($this->qbankorderedquestions as $qbankquestion) {
-            $questionid = $qbankquestion->getQuestion()->id;
+        foreach ($variant_questions as $vq) {
+            $questionid = $vq->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
-            $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
+            $attemptquestionorder[$vq->getId()] = $quba->add_question($q, $vq->getPoints());
         }
 
         // Start the questions in the quba

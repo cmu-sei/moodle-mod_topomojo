@@ -391,6 +391,48 @@ class topomojo
      * @return bool Returns `true` if an open attempt is found or a new attempt is successfully created and started,
      * otherwise `false`.
      */
+    /**
+     * Ensure questions exist for a specific variant, import if missing
+     *
+     * @param int $variant Variant number (1-based)
+     */
+    private function ensure_variant_questions_exist($variant) {
+        global $DB, $CFG;
+
+        // Check if any questions exist for this variant
+        $exists = $DB->record_exists_sql(
+            "SELECT 1
+               FROM {qtype_mojomatch_options} o
+               JOIN {question} q ON q.id = o.questionid
+               JOIN {topomojo_questions} tq ON tq.questionid = q.id
+              WHERE tq.topomojoid = ? AND o.variant = ?",
+            [$this->topomojo->id, $variant]
+        );
+
+        if ($exists) {
+            debugging("Questions for variant $variant already exist", DEBUG_DEVELOPER);
+            return;
+        }
+
+        // Questions missing - import them now
+        debugging("Questions for variant $variant missing, importing from TopoMojo", DEBUG_DEVELOPER);
+
+        require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+        $auth = setup();
+        $challenge = get_challenge($auth, $this->topomojo->workspaceid);
+
+        if (!$challenge || !isset($challenge->variants[$variant - 1])) {
+            debugging("Cannot import variant $variant - not found in TopoMojo challenge", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $context = $this->getContext();
+        $variant_index = $variant - 1; // Convert to 0-based for array access
+        $this->questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
+
+        debugging("Successfully imported variant $variant questions", DEBUG_DEVELOPER);
+    }
+
     public function init_attempt($preview = 0)
     {
         global $DB, $USER;
@@ -404,8 +446,15 @@ class topomojo
         }
         debugging("init_attempt could not find attempt by calling get_open_attempt, creating new attempt with preview=$preview", DEBUG_DEVELOPER);
 
-        // Create a new attempt
-        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager);
+        // Determine which variant TopoMojo deployed (converts from 0-based to 1-based)
+        $deployed_variant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
+        debugging("TopoMojo deployed variant $deployed_variant", DEBUG_DEVELOPER);
+
+        // Check if questions exist for this variant, import if missing
+        $this->ensure_variant_questions_exist($deployed_variant);
+
+        // Create a new attempt with variant
+        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager, variant: $deployed_variant);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -418,6 +467,7 @@ class topomojo
         $attempt->endtime = strtotime($this->event->expirationTime);
         $attempt->eventid = $this->event->id;
         $attempt->preview = $preview;
+        $attempt->variant = $deployed_variant;
         debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
         if ($preview) {
             debugging("This is a PREVIEW attempt", DEBUG_DEVELOPER);

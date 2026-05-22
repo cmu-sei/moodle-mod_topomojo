@@ -123,10 +123,22 @@ if ($object->topomojo->importchallenge) {
             throw new moodle_exception("this lab has no challenge");
         }
 
-        // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-        $variant_index = $object->topomojo->variant - 1;
         $addtoquiz = true;
-        $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+
+        // Check if random variant mode (variant=0)
+        if ($object->topomojo->variant == 0) {
+            // Random mode - import ALL variants
+            debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
+            $variant_count = count($challenge->variants);
+            for ($i = 0; $i < $variant_count; $i++) {
+                $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
+            }
+        } else {
+            // Specific mode - import single variant
+            // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
+            $variant_index = $object->topomojo->variant - 1;
+            $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+        }
     }
 }
 

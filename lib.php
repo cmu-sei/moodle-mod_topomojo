@@ -681,13 +681,22 @@ function topomojo_auto_import_questions($topomojo, $context) {
 
         // Get question manager
         $questionmanager = $topomojoobj->get_question_manager();
-
-        // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-        $variant_index = $topomojo->variant - 1;
         $addtoquiz = true;
 
-        // Import questions
-        $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
+        // Check if random variant mode (variant=0)
+        if ($topomojo->variant == 0) {
+            // Random mode - import ALL variants
+            debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
+            $variant_count = count($challenge->variants);
+            for ($i = 0; $i < $variant_count; $i++) {
+                $questionmanager->process_variant_questions($context, $topomojoobj, $i, $challenge, $addtoquiz);
+            }
+        } else {
+            // Specific mode - import single variant
+            // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
+            $variant_index = $topomojo->variant - 1;
+            $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
+        }
 
         debugging("Auto-imported questions for activity {$topomojo->id}", DEBUG_DEVELOPER);
 

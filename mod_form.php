@@ -274,8 +274,16 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
-        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
-        $mform->setType('variant', PARAM_INT);
+        // Build variant options: 0=Random, 1-N=specific variants
+        $variantoptions = [
+            0 => get_string('variant_random', 'topomojo')
+        ];
+        // Add numbered variants (will validate against actual workspace variant count later)
+        for ($i = 1; $i <= 10; $i++) {
+            $variantoptions[$i] = get_string('variant_number', 'topomojo', $i);
+        }
+
+        $mform->addElement('select', 'variant', get_string('variant', 'topomojo'), $variantoptions);
         $mform->setDefault('variant', '1');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
@@ -759,7 +767,10 @@ class mod_topomojo_mod_form extends moodleform_mod
             }
 
             if ($data->variant == 0) {
-                throw new moodle_exception("random variants are not supported at this time");
+                // Random variant mode - validate we have multiple variants
+                if ($variants < 2) {
+                    throw new moodle_exception("Random variant mode (variant=0) requires at least 2 variants in the TopoMojo challenge");
+                }
             } else if ($data->variant < 0) {
                 throw new moodle_exception("variant cannot be negative");
             } else if (($variants == 0) && ($data->variant != 1)) {
