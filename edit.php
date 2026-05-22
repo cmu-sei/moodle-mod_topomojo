@@ -112,15 +112,21 @@ if ($addquestionlist) {
 }
 
 if ($object->topomojo->importchallenge) {
-    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-    if (!$challenge) {
-        throw new moodle_exception("this lab has no challenge");
-    }
+    $questions = $questionmanager->get_questions();
 
-    //Adjust for offset
-    $variant = $object->topomojo->variant - 1;
-    $addtoquiz = true;
-    $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
+    // Only import if no questions have been imported yet
+    if (empty($questions)) {
+        debugging("No questions found - triggering import", DEBUG_DEVELOPER);
+
+        $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+        if (!$challenge) {
+            throw new moodle_exception("this lab has no challenge");
+        }
+
+        $variant = $object->topomojo->variant - 1;
+        $addtoquiz = true;
+        $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
+    }
 }
 
 // Handle actions

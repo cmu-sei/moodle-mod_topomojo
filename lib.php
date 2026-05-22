@@ -198,6 +198,11 @@ function topomojo_after_add_or_update($topomojo) {
 
     // Update related grade item.
     topomojo_grade_item_update($topomojo);
+
+    // Auto-import challenge questions if enabled
+    if (!empty($topomojo->importchallenge) && !empty($topomojo->workspaceid)) {
+        topomojo_auto_import_questions($topomojo, $context);
+    }
 }
 
 /**
@@ -642,4 +647,52 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
         $context->add_node($node, $beforekey);
     }
 
+}
+/**
+ * Auto-import questions from TopoMojo workspace
+ * Called after activity save
+ *
+ * @param stdClass $topomojo Activity instance
+ * @param context $context Module context
+ */
+function topomojo_auto_import_questions($topomojo, $context) {
+    global $CFG, $DB;
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+
+    try {
+        // Get course and cm
+        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id);
+        $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+
+        // Setup authentication
+        $auth = setup();
+
+        // Get challenge
+        $challenge = get_challenge($auth, $topomojo->workspaceid);
+        if (!$challenge) {
+            debugging('No challenge found for workspace: ' . $topomojo->workspaceid, DEBUG_DEVELOPER);
+            return;
+        }
+
+        // Create topomojo object for question manager
+        $pageurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id]);
+        $pagevars = ['pageurl' => $pageurl];
+        $topomojoobj = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
+
+        // Get question manager
+        $questionmanager = $topomojoobj->get_question_manager();
+
+        // Adjust for zero-based variant offset
+        $variant = $topomojo->variant - 1;
+        $addtoquiz = true;
+
+        // Import questions
+        $questionmanager->process_variant_questions($context, $topomojoobj, $variant, $challenge, $addtoquiz);
+
+        debugging("Auto-imported questions for activity {$topomojo->id}", DEBUG_DEVELOPER);
+
+    } catch (Exception $e) {
+        debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        // Don't throw - let activity save succeed even if import fails
+    }
 }
