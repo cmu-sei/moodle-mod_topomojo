@@ -461,15 +461,20 @@ $string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
 $string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
 $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
-$string['status_active_at'] = 'Active at: {$a}';
-$string['status_ends_at'] = 'Ends at: {$a}';
-$string['status_legend_none'] = 'None: no deployment or attempt for this user.';
-$string['status_legend_scheduled'] = 'Scheduled: deployment is queued for a future time.';
-$string['status_legend_pending'] = 'Pending: deployment is queued and waiting to launch.';
-$string['status_legend_launched'] = 'Launched: deployment has started and the gamespace is being built.';
-$string['status_legend_failed'] = 'Failed: deployment failed (hover the cell for the error).';
-$string['status_legend_cancelled'] = 'Cancelled: deployment was cancelled before completing.';
-$string['status_legend_not_started'] = 'Not Started: an attempt exists but the user has not begun.';
-$string['status_legend_active'] = 'Active: the gamespace is deployed and ready.';
-$string['status_legend_abandoned'] = 'Abandoned: user left the attempt without finishing.';
-$string['status_legend_finished'] = 'Finished: user completed the attempt.';
+$string['status'] = 'Status';
+$string['status_help'] = 'Status values used in this table:
+
+* **None**: no deployment or attempt for this user.
+* **Scheduled**: deployment is queued for a future time.
+* **Pending**: deployment is queued and waiting to launch.
+* **Launched**: deployment has started and the gamespace is being built.
+* **Failed**: deployment failed (hover the cell for the error).
+* **Cancelled**: deployment was cancelled before completing.
+* **Not Started**: an attempt exists but the user has not begun.
+* **Active**: the gamespace is deployed and ready.
+* **Abandoned**: user left the attempt without finishing.
+* **Finished**: user completed the attempt.';
+$string['status_started_at'] = 'Started at: {$a}';
+$string['status_ended_at'] = 'Ended at: {$a}';
+$string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress}). {$a->link}';
+$string['manage_deploy_running_link'] = 'View adhoc task details';
