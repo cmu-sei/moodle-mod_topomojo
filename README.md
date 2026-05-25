@@ -20,8 +20,12 @@ The **TopoMojo Plugin for Moodle** is an activity plugin that integrates TopoMoj
 
 - Embed and/or link TopoMojo labs into Moodle activities.
 - Import challenge questions from TopoMojo and manage in Moodle's quiz and grading systems.
+- Automatic question import on activity save - questions sync when you create or update activities.
+- Support for lab variants - use specific variants or random mode to import all variants.
+- Manual question preservation - add Moodle questions (True/False, Multiple Choice, etc.) alongside TopoMojo questions, preserved across variant switches.
 - Configure lab access, grading methods, attempts, and durations.
 - Import and map TopoMojo workspace tags for better organization within Moodle.
+- Pre-deploy and schedule student labs to reduce infrastructure load during peak times.
 
 ## Requirements
 
@@ -124,7 +128,9 @@ Follow the procedures below to add a TopoMojo activity to a course in Moodle.
 3. Under **General**, complete the following.
    - **Description:** Provide a description of the activity, visible to students if enabled. 
    - **TopoMojo Workspace:** Use the dropdown or search field to select a TopoMojo workspace. Workspaces can be filtered by audience or tags depending on the plugin configuration.
-   - **Variant:** Specify a variant of the lab (i.e., version).
+   - **Variant:** Specify a variant of the lab. Options:
+     - **Specific variant (1, 2, 3...):** All students use the same variant
+     - **Random variant (0):** Questions from all variants are imported; each student would be randomly assigned a variant upon deployment (Note: per-student assignment not yet implemented - random mode currently imports all variants to question bank only)
 
 ![activity general settings](img/activity-general-settings.png)
 
