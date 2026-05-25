@@ -394,7 +394,30 @@ class questionmanager {
 
 
     /**
-     * Moves a question on the question order for this topomojo 
+     * Convert Moodle's 1-based variant number to 0-based array index
+     *
+     * Moodle stores variants as 1, 2, 3... (DB/UI)
+     * TopoMojo API uses 0, 1, 2... (array indices)
+     *
+     * @param int $variant 1-based variant number (as stored in DB and shown in UI)
+     * @return int 0-based array index for accessing $challenge->variants[]
+     */
+    private function variant_to_index($variant) {
+        return $variant - 1;
+    }
+
+    /**
+     * Convert 0-based array index to 1-based variant number
+     *
+     * @param int $index 0-based array index
+     * @return int 1-based variant number (for storage in DB and display in UI)
+     */
+    private function index_to_variant($index) {
+        return $index + 1;
+    }
+
+    /**
+     * Moves a question on the question order for this topomojo
      *
      * @param string $direction 'up'||'down'
      * @param int $questionid The topomojo questionid
@@ -1017,7 +1040,8 @@ class questionmanager {
      *
      * @param \context $context The context in which the questions are being processed (e.g., course context).
      * @param stdClass $object An object containing information related to the topomojo instance.
-     * @param int $variant_index ZERO-BASED array index for $challenge->variants[] (NOT the 1-based variant number)
+     * @param int $variant ZERO-BASED array index for $challenge->variants[] (NOT the 1-based variant number from DB)
+     *                     Example: $variant=0 accesses $challenge->variants[0] which corresponds to Moodle variant 1 in DB
      * @param stdClass $challenge The challenge object containing the sections and questions.
      * @param bool $addtoquiz Flag indicating whether to add the questions to the quiz.
      *

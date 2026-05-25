@@ -135,13 +135,14 @@ if ($object->topomojo->importchallenge) {
             $addtoquiz = false;
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
+                // $i is already 0-based for array access
                 $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
             }
         } else {
             // Specific mode - import single variant and link
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-            $variant_index = $object->topomojo->variant - 1;
+            $variant_index = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
             $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
         }
     }
