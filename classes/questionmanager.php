@@ -394,29 +394,6 @@ class questionmanager {
 
 
     /**
-     * Convert Moodle's 1-based variant number to 0-based array index
-     *
-     * Moodle stores variants as 1, 2, 3... (DB/UI)
-     * TopoMojo API uses 0, 1, 2... (array indices)
-     *
-     * @param int $variant 1-based variant number (as stored in DB and shown in UI)
-     * @return int 0-based array index for accessing $challenge->variants[]
-     */
-    private function variant_to_index($variant) {
-        return $variant - 1;
-    }
-
-    /**
-     * Convert 0-based array index to 1-based variant number
-     *
-     * @param int $index 0-based array index
-     * @return int 1-based variant number (for storage in DB and display in UI)
-     */
-    private function index_to_variant($index) {
-        return $index + 1;
-    }
-
-    /**
      * Moves a question on the question order for this topomojo
      *
      * @param string $direction 'up'||'down'
@@ -1143,7 +1120,7 @@ class questionmanager {
                             'questiontext' => $cleantext,
                             'answer'       => trim($question->answer),
                             'workspaceid'  => $object->topomojo->workspaceid,
-                            'variant'      => $this->index_to_variant($variant) // Convert 0-based index to 1-based for DB
+                            'variant'      => $variant + 1 // Convert 0-based index to 1-based for DB
                         ];
 
                         if ($rec = $DB->get_record_sql($sql, $params)) {
@@ -1183,7 +1160,7 @@ class questionmanager {
                         $q->qtype = 'mojomatch';
                         $form->category = $cat->id;
                         // Name format: "Activity Name - Variant 1 - Question text preview..."
-                        $variant_number = $this->index_to_variant($variant);
+                        $variant_number = $variant + 1; // Convert 0-based index to 1-based for display
                         $question_preview = mb_substr(strip_tags($question->text), 0, 50);
                         $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
                         $form->questiontext['text'] = $question->text;
@@ -1203,7 +1180,7 @@ class questionmanager {
                         $form->answer = [$question->answer];
                         $form->fraction = ['1'];
                         $form->feedback[0] = ['text' => '', 'format' => '1'];
-                        $form->variant = $this->index_to_variant($variant); // Convert 0-based index to 1-based for storage
+                        $form->variant = $variant + 1; // Convert 0-based index to 1-based for storage
                         $form->workspaceid = $object->topomojo->workspaceid;
                         $form->transforms = 0;
                         $form->qorder = $questionnumber;
