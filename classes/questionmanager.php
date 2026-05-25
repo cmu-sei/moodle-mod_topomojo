@@ -269,6 +269,25 @@ class questionmanager {
 
         if ($this->is_question_already_present($questionid)) {
             debugging("Question with ID $questionid is already present", DEBUG_DEVELOPER);
+
+            // Even if already present, ensure it's in questionorder
+            $tq_record = $DB->get_record('topomojo_questions', [
+                'topomojoid' => $this->object->topomojo->id,
+                'questionid' => $questionid
+            ]);
+
+            if ($tq_record) {
+                // Get fresh questionorder from database (cached value may be stale)
+                $topomojo_fresh = $DB->get_record('topomojo', ['id' => $this->object->topomojo->id]);
+                $questionorder = $topomojo_fresh->questionorder;
+                $order_array = !empty($questionorder) ? explode(',', $questionorder) : [];
+
+                if (!in_array($tq_record->id, $order_array)) {
+                    debugging("Question present but not in order, adding to questionorder", DEBUG_DEVELOPER);
+                    $this->update_questionorder('addquestion', $tq_record->id);
+                }
+            }
+
             return true; // Already present = success
         }
 
