@@ -641,10 +641,10 @@ class questionmanager {
     /**
      * Gets the question order from the topomojo object
      *
-     * @return string
+     * @return string|null
      */
     protected function get_question_order() {
-        return $this->object->topomojo->questionorder;
+        return $this->object->topomojo->questionorder ?? null;
     }
 
     /**
@@ -858,7 +858,7 @@ class questionmanager {
         global $DB;
 
         // Start by ordering the topomojo question ids into an array
-        $questionorder = $this->object->topomojo->questionorder;
+        $questionorder = $this->object->topomojo->questionorder ?? null;
 
         // Generate empty array for ordered questions for no question order
         if (empty($questionorder) ) {
@@ -1132,10 +1132,19 @@ class questionmanager {
 
                         $q = new stdClass();
                         $saq = new \qtype_mojomatch();
-                        $cat = question_get_default_category($context->id);
+                        $cat = question_get_default_category($context->id, true); // Create if doesn't exist
+
+                        if (!$cat) {
+                            debugging("Failed to get default question category for context {$context->id}", DEBUG_DEVELOPER);
+                            throw new \moodle_exception('questioncategorynotfound', 'mod_topomojo');
+                        }
+
                         $q->qtype = 'mojomatch';
                         $form->category = $cat->id;
-                        $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
+                        // Name format: "Activity Name - Variant 1 - Question text preview..."
+                        $variant_number = $this->index_to_variant($variant);
+                        $question_preview = mb_substr(strip_tags($question->text), 0, 50);
+                        $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
                         $form->questiontext['text'] = $question->text;
                         $form->questiontext['format'] = '0'; //TODO find out nonhtml
                         $form->defaultmark = 1;

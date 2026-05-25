@@ -139,7 +139,7 @@ function topomojo_add_instance($topomojo, $mform) {
     $topomojo->isfeatured = empty($topomojo->isfeatured) ? 0 : 1;
 
     // Do the processing required after an add or an update.
-    topomojo_after_add_or_update($topomojo);
+    topomojo_after_add_or_update($topomojo, false); // false = not an update (it's an add)
 
     return $topomojo->id;
 }
@@ -176,7 +176,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
     $DB->update_record('topomojo', $topomojo);
 
     // Do the processing required after an add or an update.
-    topomojo_after_add_or_update($topomojo);
+    topomojo_after_add_or_update($topomojo, true); // true = this is an update
 
     return true;
 
@@ -188,7 +188,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
  *
  * @param object $quiz the quiz object.
  */
-function topomojo_after_add_or_update($topomojo) {
+function topomojo_after_add_or_update($topomojo, $is_update = false) {
     global $DB;
     $cmid = $topomojo->coursemodule;
 
@@ -200,9 +200,11 @@ function topomojo_after_add_or_update($topomojo) {
     topomojo_grade_item_update($topomojo);
 
     // Auto-import challenge questions if enabled
-    if (!empty($topomojo->importchallenge) && !empty($topomojo->workspaceid)) {
-        topomojo_auto_import_questions($topomojo, $context);
+    // Only run on UPDATE to avoid transaction issues during ADD
+    if ($is_update && !empty($topomojo->importchallenge) && !empty($topomojo->workspaceid)) {
+        topomojo_auto_import_questions($topomojo, $context, $cmid);
     }
+    // On ADD, questions will import on first edit.php visit (fallback already exists)
 }
 
 /**
@@ -654,14 +656,15 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
  *
  * @param stdClass $topomojo Activity instance
  * @param context $context Module context
+ * @param int $cmid Course module ID
  */
-function topomojo_auto_import_questions($topomojo, $context) {
+function topomojo_auto_import_questions($topomojo, $context, $cmid) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
     try {
-        // Get course and cm
-        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id);
+        // Get course and cm using CM ID (more reliable during transaction than querying by instance)
+        $cm = get_coursemodule_from_id('topomojo', $cmid, 0, false, MUST_EXIST);
         $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
         // Setup authentication
@@ -675,12 +678,20 @@ function topomojo_auto_import_questions($topomojo, $context) {
         }
 
         // Create topomojo object for question manager
-        $pageurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id]);
+        // Use edit.php URL so questionmanager is always created (doesn't check questionorder existence)
+        $pageurl = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
         $pagevars = ['pageurl' => $pageurl];
         $topomojoobj = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-        // Get question manager
+        // Get question manager (will exist because we used edit.php URL)
         $questionmanager = $topomojoobj->get_question_manager();
+
+        // Safety check: if questionmanager is null, abort import (shouldn't happen with edit.php URL)
+        if (!$questionmanager) {
+            debugging('Question manager is null, skipping auto-import', DEBUG_DEVELOPER);
+            return;
+        }
+
         $addtoquiz = true;
 
         // Check if random variant mode (variant=0)
@@ -702,6 +713,10 @@ function topomojo_auto_import_questions($topomojo, $context) {
 
     } catch (Exception $e) {
         debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        // Don't throw - let activity save succeed even if import fails
+    } catch (Throwable $t) {
+        // Catch all errors including Error types (PHP 7+)
+        debugging('Failed to auto-import questions (Throwable): ' . $t->getMessage(), DEBUG_DEVELOPER);
         // Don't throw - let activity save succeed even if import fails
     }
 }

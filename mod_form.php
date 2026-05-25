@@ -987,4 +987,27 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         $this->plugin_extend_coursemodule_standard_elements();
     }
+
+    /**
+     * Perform extra processing after data is set
+     * Disable variant field if attempts exist
+     */
+    public function definition_after_data() {
+        parent::definition_after_data();
+
+        $mform = $this->_form;
+
+        // Only check if this is an existing activity (not new)
+        if (!empty($this->current->instance)) {
+            // Check if there are any attempts
+            $hasattempts = topomojo_has_attempts($this->current->instance);
+
+            if ($hasattempts) {
+                // Freeze the variant field and add a note
+                $mform->freeze('variant');
+                $mform->addElement('static', 'variantlocked', '',
+                    get_string('variantlockedhasattempts', 'topomojo'));
+            }
+        }
+    }
 }

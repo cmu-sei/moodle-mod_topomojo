@@ -96,7 +96,7 @@ $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
 list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
-        question_edit_setup('editq', '/mod/topomojo/edit.php', true);
+        question_edit_setup('editq', '/mod/topomojo/edit.php');
 
 
 $topomojohasattempts = topomojo_has_attempts($topomojo->id);
@@ -150,6 +150,22 @@ switch ($action) {
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $questionid = $key;
+
+                // Validate variant before adding (unless variant=0 for random mode)
+                if ($object->topomojo->variant != 0) {
+                    $question_variant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
+
+                    if ($question_variant && $question_variant != $object->topomojo->variant) {
+                        $type = 'error';
+                        $message = get_string('wrongvariantadd', 'topomojo', [
+                            'question_variant' => $question_variant,
+                            'activity_variant' => $object->topomojo->variant
+                        ]);
+                        $renderer->setMessage($type, $message);
+                        continue; // Skip this question, continue with others
+                    }
+                }
+
                 if (!$questionmanager->add_question($questionid)) {
                     $type = 'error';
                     $message = get_string('qadderror', 'topomojo');

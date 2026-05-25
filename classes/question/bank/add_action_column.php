@@ -86,9 +86,40 @@ class add_action_column extends \core_question\local\bank\question_action_base {
      * @return void
      */
     protected function display_content($question, $rowclasses) {
+        global $DB;
+
         if (!question_has_capability_on($question, 'use')) {
             return;
         }
+
+        // Get the activity variant
+        $cm = $this->qbank->get_most_specific_context()->get_course_module_record();
+        $topomojo = $DB->get_record('topomojo', ['id' => $cm->instance], 'variant', MUST_EXIST);
+        $activity_variant = $topomojo->variant;
+
+        // Get the question's variant from qtype_mojomatch_options
+        $question_variant = $DB->get_field_sql(
+            "SELECT qmo.variant
+             FROM {qtype_mojomatch_options} qmo
+             JOIN {question_versions} qv ON qv.questionid = qmo.questionid
+             WHERE qv.questionbankentryid = ?",
+            [$question->questionbankentryid]
+        );
+
+        // If variant=0 (random mode), allow all questions
+        // Otherwise, only show add icon for matching variant
+        if ($activity_variant != 0 && $question_variant != $activity_variant) {
+            // Show disabled icon with tooltip explaining why
+            echo \html_writer::span(
+                get_string('wrongvariant', 'topomojo', [
+                    'question_variant' => $question_variant,
+                    'activity_variant' => $activity_variant
+                ]),
+                'text-muted small'
+            );
+            return;
+        }
+
         $this->print_icon('t/add', $this->stradd, $this->qbank->add_to_topomojo_url($question->id));
     }
 }
