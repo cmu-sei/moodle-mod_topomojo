@@ -262,14 +262,14 @@ class questionmanager {
      *
      * @param int $questionid The topomojo questionid to add
      *
-     * @return bool
+     * @return bool True if added or already present, false on error
      */
     public function add_question($questionid) {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-            debugging("Question with ID $questionid is already present, it cannot be added", DEBUG_DEVELOPER);
-            return false;
+            debugging("Question with ID $questionid is already present", DEBUG_DEVELOPER);
+            return true; // Already present = success
         }
 
         $question = new \stdClass();
