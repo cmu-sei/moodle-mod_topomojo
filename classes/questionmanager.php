@@ -282,46 +282,20 @@ class questionmanager {
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
 
-        // Get the course context ID dynamically
-        $courseid = $this->object->course->id;
-        $contextid = \context_course::instance($courseid)->id;
-
-        // Find the 'top' category for this course context
-        $category = $DB->get_record('question_categories', [
-            'contextid' => $contextid,
-            'name' => 'top'
-        ], 'id');
-
-        // If no 'top' category exists, fallback to the default category for this course
-        if (!$category) {
-            debugging("No 'top' category found for course $courseid. Using default category.", DEBUG_DEVELOPER);
-            $category = $DB->get_record('question_categories', [
-                'contextid' => $contextid
-            ], 'id', IGNORE_MULTIPLE);
+        // Get question_bank_entries via question_versions (not by ID - questionid is question.id not qbe.id)
+        $qversion = $DB->get_record('question_versions', ['questionid' => $questionid]);
+        if (!$qversion) {
+            debugging("No question_versions found for question $questionid", DEBUG_DEVELOPER);
+            return true; // Question was added to topomojo_questions, just no reference created
         }
 
-        // Ensure we have a valid category ID
-        if (!$category) {
-            debugging("Error: No valid question category found for course $courseid.", DEBUG_DEVELOPER);
-            return false;
-        }
-
-        $categoryid = $category->id;
-
-        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
+        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $qversion->questionbankentryid]);
         if (!$qbankentry) {
-            debugging("no question_bank_entries found for $questionid", DEBUG_DEVELOPER);
-            $qbankentry = new stdClass();
-            $qbankentry->questioncategoryid = $categoryid;
-            $qbankentry->name = $qrecord->name;
-            $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
-        } else {
-            if ($qbankentry->questioncategoryid != $categoryid) {
-                $qbankentry->questioncategoryid = $categoryid;
-                debugging("changing question bank entry questioncategoryid from $qbankentry->questioncategoryid to $categoryid", DEBUG_DEVELOPER);
-                $DB->update_record('question_bank_entries', $qbankentry);
-            }
+            debugging("No question_bank_entries found for question $questionid", DEBUG_DEVELOPER);
+            return true; // Question was added to topomojo_questions, just no reference created
         }
+
+        // Don't modify the category - question already has a valid category from when it was created
 
         // quiz_slots is equivalent to topomojo_questions
         $slotid = $topomojoquestionid;
@@ -395,7 +369,7 @@ class questionmanager {
         }
 
         // If we get here return true
-        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
+        debugging("Success: Question ID $questionid added to TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
         return true;
     }
 
@@ -873,10 +847,34 @@ class questionmanager {
 
         // Using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
         $orderedquestionids = [];
+        $had_stale = false;
         foreach ($questionorder as $qorder) {
+            // Skip if this ID doesn't exist in topomojoquestions (stale data)
+            if (!isset($this->topomojoquestions[$qorder])) {
+                debugging("Skipping stale question order ID: $qorder", DEBUG_DEVELOPER);
+                $had_stale = true;
+                continue;
+            }
             // Store the topomojo question id as the key so that it can be used later when adding question time to
             // Question bank question object
             $orderedquestionids[$qorder] = $this->topomojoquestions[$qorder]->questionid;
+        }
+
+        // Clean up stale IDs from database
+        if ($had_stale) {
+            $valid_ids = array_keys($orderedquestionids);
+            $new_order = !empty($valid_ids) ? implode(',', $valid_ids) : null;
+            if ($new_order !== $this->object->topomojo->questionorder) {
+                $this->object->topomojo->questionorder = $new_order;
+                $DB->update_record('topomojo', $this->object->topomojo);
+                debugging("Cleaned stale IDs from questionorder", DEBUG_DEVELOPER);
+            }
+        }
+
+        // If no valid IDs remain, return empty
+        if (empty($orderedquestionids)) {
+            $this->qbankorderedquestions = [];
+            return;
         }
 
         // Get qbank questions based on the question ids from the topomojo questions table
@@ -1086,8 +1084,8 @@ class questionmanager {
                     $qexists    = 0;
                     $questionid = 0;
 
-                    // ─── do not recycle anything when quiz is still empty ───────────
-                    if (!empty($currentquestions) && !in_array($cleantext, $deleted_questiontexts, true)) {
+                    // ─── Always check for existing questions to avoid duplicates ───────────
+                    if (!in_array($cleantext, $deleted_questiontexts, true)) {
 
                         // try to find *exact* match (text + answer + workspace + variant)
                         $sql = "SELECT q.id AS questionid

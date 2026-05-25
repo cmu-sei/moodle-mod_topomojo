@@ -483,3 +483,4 @@ $string['status_started_at'] = 'Started at: {$a}';
 $string['status_ended_at'] = 'Ended at: {$a}';
 $string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress}). {$a->link}';
 $string['manage_deploy_running_link'] = 'View adhoc task details';
+$string['randomvariantinfo'] = 'Random variant mode: Questions from all variants have been imported. Each student will be randomly assigned a variant when they first access the activity.';

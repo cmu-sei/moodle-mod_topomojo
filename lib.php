@@ -692,18 +692,102 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             return;
         }
 
-        $addtoquiz = true;
-
         // Check if random variant mode (variant=0)
         if ($topomojo->variant == 0) {
-            // Random mode - import ALL variants
-            debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
+            // Random mode - import ALL variants but DON'T link to activity (addtoquiz=false)
+            // Questions will be linked per-student during deployment
+            debugging("Random mode: importing all variants (not linking to activity)", DEBUG_DEVELOPER);
+
+            // First, remove any previously linked questions imported from THIS workspace
+            // Query database directly since questionmanager might have stale data
+            $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+            $deleted_ids = [];
+            foreach ($linked_questions as $tq_record) {
+                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                if ($question && $question->qtype === 'mojomatch') {
+                    // Check if this question was imported from this workspace
+                    $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
+                    if ($options && $options->workspaceid === $topomojo->workspaceid) {
+                        debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
+                        $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
+                        $deleted_ids[] = $tq_record->id;
+                    }
+                }
+            }
+
+            // Always validate and clean questionorder in random mode
+            // Remove any IDs that no longer exist in topomojo_questions table
+            if (!empty($topomojo->questionorder)) {
+                $order_array = explode(',', $topomojo->questionorder);
+                $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+                $valid_ids = array_keys($remaining_questions);
+
+                // Keep only IDs that still exist
+                $order_array = array_intersect($order_array, array_map('strval', $valid_ids));
+                $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
+                $DB->update_record('topomojo', $topomojo);
+                debugging("Cleaned questionorder for random mode", DEBUG_DEVELOPER);
+            } elseif (!empty($deleted_ids)) {
+                debugging("Removed TopoMojo questions but questionorder was already empty", DEBUG_DEVELOPER);
+            }
+
+            $addtoquiz = false;
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
                 $questionmanager->process_variant_questions($context, $topomojoobj, $i, $challenge, $addtoquiz);
             }
         } else {
-            // Specific mode - import single variant
+            // Specific mode - import single variant and link to activity
+
+            // First, remove any previously linked TopoMojo questions from THIS workspace
+            // (but preserve manually added questions)
+            $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+            $deleted_ids = [];
+            foreach ($linked_questions as $tq_record) {
+                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                if ($question && $question->qtype === 'mojomatch') {
+                    // Check if this question was imported from this workspace
+                    $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
+                    if ($options && $options->workspaceid === $topomojo->workspaceid) {
+                        debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
+                        $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
+                        $deleted_ids[] = $tq_record->id;
+                    }
+                }
+            }
+
+            // Rebuild questionorder to match ALL remaining questions in topomojo_questions
+            if (!empty($deleted_ids)) {
+                // Get all remaining questions
+                $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id], 'id ASC');
+                $remaining_ids = array_keys($remaining_questions);
+
+                // Rebuild order: keep old order for existing questions, append any missing ones
+                $order_array = [];
+                if (!empty($topomojo->questionorder)) {
+                    $old_order = explode(',', $topomojo->questionorder);
+                    // Keep IDs that still exist and weren't deleted
+                    foreach ($old_order as $id) {
+                        if (in_array($id, $remaining_ids)) {
+                            $order_array[] = $id;
+                        }
+                    }
+                }
+                // Append any questions that aren't in the order yet
+                foreach ($remaining_ids as $id) {
+                    if (!in_array($id, $order_array)) {
+                        $order_array[] = $id;
+                    }
+                }
+
+                $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
+                $DB->update_record('topomojo', $topomojo);
+                // Refresh the topomojoobj with cleaned questionorder
+                $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
+                debugging("Rebuilt questionorder: " . count($order_array) . " questions (removed deleted, kept/added all remaining)", DEBUG_DEVELOPER);
+            }
+
+            $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
             $variant_index = $topomojo->variant - 1;
             $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);

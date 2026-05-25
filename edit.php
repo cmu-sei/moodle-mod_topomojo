@@ -104,6 +104,11 @@ $topomojohasattempts = topomojo_has_attempts($topomojo->id);
 $questionmanager = $object->get_question_manager();
 
 $renderer = $object->renderer;
+
+// Show notification if in random variant mode
+if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
+    \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
+}
 //$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 
@@ -123,18 +128,18 @@ if ($object->topomojo->importchallenge) {
             throw new moodle_exception("this lab has no challenge");
         }
 
-        $addtoquiz = true;
-
         // Check if random variant mode (variant=0)
         if ($object->topomojo->variant == 0) {
-            // Random mode - import ALL variants
+            // Random mode - import ALL variants but don't link
             debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
+            $addtoquiz = false;
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
                 $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
             }
         } else {
-            // Specific mode - import single variant
+            // Specific mode - import single variant and link
+            $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
             $variant_index = $object->topomojo->variant - 1;
             $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);

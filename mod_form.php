@@ -278,8 +278,25 @@ class mod_topomojo_mod_form extends moodleform_mod
         $variantoptions = [
             0 => get_string('variant_random', 'topomojo')
         ];
-        // Add numbered variants (will validate against actual workspace variant count later)
-        for ($i = 1; $i <= 10; $i++) {
+
+        // Dynamically determine max variants from TopoMojo workspace
+        $maxvariants = 10; // Default fallback
+        if (!empty($this->current->workspaceid)) {
+            // Existing activity - fetch actual variant count from TopoMojo
+            try {
+                require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+                $auth = setup();
+                $challenge = get_challenge($auth, $this->current->workspaceid);
+                if ($challenge && isset($challenge->variants)) {
+                    $maxvariants = count($challenge->variants);
+                }
+            } catch (Exception $e) {
+                debugging('Could not fetch variant count from TopoMojo: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        // Add numbered variants up to actual count
+        for ($i = 1; $i <= $maxvariants; $i++) {
             $variantoptions[$i] = get_string('variant_number', 'topomojo', $i);
         }
 
