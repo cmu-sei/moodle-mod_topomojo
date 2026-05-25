@@ -156,8 +156,19 @@ switch ($action) {
                 $key = $matches[1];
                 $questionid = $key;
 
-                // Validate variant before adding (unless variant=0 for random mode)
-                if ($object->topomojo->variant != 0) {
+                // Check question type
+                $question = $DB->get_record('question', ['id' => $questionid], 'qtype');
+
+                // Block adding variant-specific questions in random mode
+                if ($object->topomojo->variant == 0 && $question && $question->qtype === 'mojomatch') {
+                    $type = 'error';
+                    $message = get_string('cannotaddvariantquestionrandom', 'topomojo');
+                    $renderer->setMessage($type, $message);
+                    continue; // Skip this question, continue with others
+                }
+
+                // Validate variant before adding (only in specific mode)
+                if ($object->topomojo->variant != 0 && $question && $question->qtype === 'mojomatch') {
                     $question_variant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
 
                     if ($question_variant && $question_variant != $object->topomojo->variant) {
