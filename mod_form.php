@@ -1025,21 +1025,26 @@ class mod_topomojo_mod_form extends moodleform_mod
             $hasattempts = topomojo_has_attempts($this->current->instance);
 
             if ($hasattempts) {
-                // Freeze the workspace field and add help text
+                // Freeze the workspace field and add warning immediately after
                 $mform->freeze('workspaceid');
-                $mform->insertElementBefore(
-                    $mform->createElement('static', 'workspacelocked', '',
-                        '<div class="alert alert-warning">' . get_string('workspacelockedhasattempts', 'topomojo') . '</div>'),
-                    'variant'
-                );
+                $workspacealert = $mform->createElement('static', 'workspacelocked', '',
+                    '<div class="alert alert-warning" style="margin-top: 5px; margin-bottom: 15px;">' .
+                    get_string('workspacelockedhasattempts', 'topomojo') . '</div>');
+                $mform->insertElementBefore($workspacealert, 'variant');
 
-                // Freeze the variant field and add help text
+                // Freeze the variant field and add warning immediately after
                 $mform->freeze('variant');
-                $mform->insertElementBefore(
-                    $mform->createElement('static', 'variantlocked', '',
-                        '<div class="alert alert-warning">' . get_string('variantlockedhasattempts', 'topomojo') . '</div>'),
-                    'contentlicense'
-                );
+                $variantalert = $mform->createElement('static', 'variantlocked', '',
+                    '<div class="alert alert-warning" style="margin-top: 5px; margin-bottom: 15px;">' .
+                    get_string('variantlockedhasattempts', 'topomojo') . '</div>');
+
+                // Find the next field after variant and insert before it
+                $nextelement = $mform->getElement('contentlicense');
+                if ($nextelement) {
+                    $mform->insertElementBefore($variantalert, 'contentlicense');
+                } else {
+                    $mform->addElement($variantalert);
+                }
             }
         }
     }
