@@ -165,7 +165,7 @@ class questionmanager {
                 JOIN {qtype_mojomatch_options} qmo ON qmo.questionid = q.id
                 WHERE tq.topomojoid = ?
                   AND qmo.variant = ?
-                ORDER BY tq.slot ASC";
+                ORDER BY tq.id ASC";
 
         $records = $DB->get_records_sql($sql, [$this->object->topomojo->id, $variant]);
 
