@@ -1025,26 +1025,21 @@ class mod_topomojo_mod_form extends moodleform_mod
             $hasattempts = topomojo_has_attempts($this->current->instance);
 
             if ($hasattempts) {
-                // Freeze the workspace field and add warning immediately after
+                // Freeze workspace and add explanation
+                $workspaceelement = $mform->getElement('workspaceid');
                 $mform->freeze('workspaceid');
-                $workspacealert = $mform->createElement('static', 'workspacelocked', '',
-                    '<div class="alert alert-warning" style="margin-top: 5px; margin-bottom: 15px;">' .
-                    get_string('workspacelockedhasattempts', 'topomojo') . '</div>');
-                $mform->insertElementBefore($workspacealert, 'variant');
+                $workspaceelement->setLabel($workspaceelement->getLabel() .
+                    '<div class="alert alert-warning mt-2">' .
+                    get_string('workspacelockedhasattempts', 'topomojo') .
+                    '</div>');
 
-                // Freeze the variant field and add warning immediately after
+                // Freeze variant and add explanation
+                $variantelement = $mform->getElement('variant');
                 $mform->freeze('variant');
-                $variantalert = $mform->createElement('static', 'variantlocked', '',
-                    '<div class="alert alert-warning" style="margin-top: 5px; margin-bottom: 15px;">' .
-                    get_string('variantlockedhasattempts', 'topomojo') . '</div>');
-
-                // Find the next field after variant and insert before it
-                $nextelement = $mform->getElement('contentlicense');
-                if ($nextelement) {
-                    $mform->insertElementBefore($variantalert, 'contentlicense');
-                } else {
-                    $mform->addElement($variantalert);
-                }
+                $variantelement->setLabel($variantelement->getLabel() .
+                    '<div class="alert alert-warning mt-2">' .
+                    get_string('variantlockedhasattempts', 'topomojo') .
+                    '</div>');
             }
         }
     }
