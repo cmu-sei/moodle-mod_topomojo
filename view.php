@@ -124,14 +124,38 @@ if (!empty($topomojo->importchallenge)) {
     if (empty($topomojo->questionorder)) {
         $questions_missing = true;
 
-        if (has_capability('mod/topomojo:manage', $context)) {
-            // Teacher notification with link to Questions page
-            $questionsurl = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
-            $message = get_string('questionsnotimported_teacher', 'topomojo', $questionsurl->out());
-            echo $OUTPUT->notification($message, 'warning');
+        // Check if workspace has challenge questions
+        require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+        $auth = setup();
+        $challenge = get_challenge($auth, $topomojo->workspaceid);
+        $has_challenge_questions = false;
+        if ($challenge && !empty($challenge->variants)) {
+            foreach ($challenge->variants as $variant) {
+                if (!empty($variant->sections)) {
+                    foreach ($variant->sections as $section) {
+                        if (!empty($section->questions)) {
+                            $has_challenge_questions = true;
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($has_challenge_questions) {
+            // Has questions but not imported yet
+            if (has_capability('mod/topomojo:manage', $context)) {
+                $questionsurl = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
+                $message = get_string('questionsnotimported_teacher', 'topomojo', $questionsurl->out());
+                echo $OUTPUT->notification($message, 'warning');
+            } else {
+                echo $OUTPUT->notification(get_string('questionsnotimported_student', 'topomojo'), 'error');
+            }
         } else {
-            // Student notification
-            echo $OUTPUT->notification(get_string('questionsnotimported_student', 'topomojo'), 'error');
+            // Workspace has no challenge questions - show informational message
+            if (!has_capability('mod/topomojo:manage', $context)) {
+                echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
+            }
         }
     }
 }
