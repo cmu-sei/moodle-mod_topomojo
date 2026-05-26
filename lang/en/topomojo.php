@@ -397,8 +397,8 @@ $string['launching'] = 'Launching lab';
 $string['launching_description'] = 'Please wait while your lab environment is being prepared. This may take up to 2 minutes.';
 
 // Workspace not found strings.
-$string['workspacenotfound'] = 'Lab workspace not found in TopoMojo (ID: {$a}). This activity cannot be launched. Please contact your administrator.';
-$string['workspacenotfound_instructor'] = 'This workspace needs to be imported into TopoMojo before students can access this activity. Check that the workspace ID is correct and exists in your TopoMojo instance.';
+$string['workspacenotfound'] = 'Lab workspace not found in TopoMojo (ID: {$a}). This activity cannot be launched. Please contact your instructor.';
+$string['workspacenotfound_instructor'] = 'Lab workspace not found in TopoMojo (ID: {$a}). Check that the workspace ID is correct and exists in your TopoMojo instance before students can access this activity.';
 
 // Bulk-deploy strings.
 $string['bulkdeploy_button'] = 'Deploy for all enrolled users';
@@ -485,3 +485,5 @@ $string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress})
 $string['manage_deploy_running_link'] = 'View adhoc task details';
 $string['randomvariantinfo'] = 'Random variant mode: Questions from all variants have been imported. Each student will be randomly assigned a variant when they first access the activity.';
 $string['cannotaddvariantquestionrandom'] = 'Cannot add variant-specific questions in random variant mode. Only manually created questions (True/False, etc.) can be added.';
+$string['questionsnotimported_teacher'] = 'Questions have not been imported yet. <a href="{$a}">Visit the Questions page</a> or update activity settings to trigger import.';
+$string['questionsnotimported_student'] = 'This activity is not ready yet. Please contact your instructor.';

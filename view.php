@@ -117,6 +117,27 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
+// Check if questions have been imported when import is enabled
+$questions_missing = false;
+if (!empty($topomojo->importchallenge)) {
+    $questionmanager = $object->get_question_manager();
+    $questions = $questionmanager->get_questions();
+
+    if (empty($questions)) {
+        $questions_missing = true;
+
+        if (has_capability('mod/topomojo:manage', $context)) {
+            // Teacher notification with link to Questions page
+            $questionsurl = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
+            $message = get_string('questionsnotimported_teacher', 'topomojo', $questionsurl->out());
+            echo $OUTPUT->notification($message, 'warning');
+        } else {
+            // Student notification
+            echo $OUTPUT->notification(get_string('questionsnotimported_student', 'topomojo'), 'error');
+        }
+    }
+}
+
 // Check if this is a preview attempt
 $ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context) ||
@@ -227,14 +248,17 @@ $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 // Check if workspace exists in TopoMojo
 if ($challenge === null) {
     // Workspace doesn't exist - show error message
-    echo $OUTPUT->notification(
-        get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
-        \core\output\notification::NOTIFY_ERROR
-    );
     if (has_capability('mod/topomojo:manage', $context)) {
+        // Show instructor-specific message
         echo $OUTPUT->notification(
-            get_string('workspacenotfound_instructor', 'mod_topomojo'),
-            \core\output\notification::NOTIFY_INFO
+            get_string('workspacenotfound_instructor', 'mod_topomojo', $object->topomojo->workspaceid),
+            \core\output\notification::NOTIFY_ERROR
+        );
+    } else {
+        // Show student message
+        echo $OUTPUT->notification(
+            get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
+            \core\output\notification::NOTIFY_ERROR
         );
     }
     echo $renderer->footer();
