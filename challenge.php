@@ -284,6 +284,9 @@ switch ($action) {
                             $renderer->render_challenge_instructions_endlab($challenge->text);
                         } elseif ($max_attempts == 0 && $endlab == 1) {
                             $renderer->render_challenge_instructions_endlab($challenge->text);
+                        } else {
+                            // Default: show instructions without special formatting (unlimited attempts, no endlab)
+                            $renderer->render_challenge_instructions($challenge->text);
                         }
                     } else {
                         // No challenge text; handle general warnings based on attempts and endlab
