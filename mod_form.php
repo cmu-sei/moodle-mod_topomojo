@@ -1025,15 +1025,21 @@ class mod_topomojo_mod_form extends moodleform_mod
             $hasattempts = topomojo_has_attempts($this->current->instance);
 
             if ($hasattempts) {
-                // Freeze the workspace field
+                // Freeze the workspace field and add help text
                 $mform->freeze('workspaceid');
-                $mform->addElement('static', 'workspacelocked', '',
-                    get_string('workspacelockedhasattempts', 'topomojo'));
+                $mform->insertElementBefore(
+                    $mform->createElement('static', 'workspacelocked', '',
+                        '<div class="alert alert-warning">' . get_string('workspacelockedhasattempts', 'topomojo') . '</div>'),
+                    'variant'
+                );
 
-                // Freeze the variant field
+                // Freeze the variant field and add help text
                 $mform->freeze('variant');
-                $mform->addElement('static', 'variantlocked', '',
-                    get_string('variantlockedhasattempts', 'topomojo'));
+                $mform->insertElementBefore(
+                    $mform->createElement('static', 'variantlocked', '',
+                        '<div class="alert alert-warning">' . get_string('variantlockedhasattempts', 'topomojo') . '</div>'),
+                    'contentlicense'
+                );
             }
         }
     }
