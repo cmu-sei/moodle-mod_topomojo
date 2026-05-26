@@ -816,11 +816,15 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
         } else {
             // Specific mode - import single variant and link to activity
 
-            // Clean up mismatched questions
-            topomojo_cleanup_questions($topomojo, $topomojo->variant);
-
-            // Refresh topomojoobj with cleaned questionorder
-            $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
+            // Clean up mismatched questions (only if no attempts exist)
+            $hasattempts = topomojo_has_attempts($topomojo->id);
+            if (!$hasattempts) {
+                topomojo_cleanup_questions($topomojo, $topomojo->variant);
+                // Refresh topomojoobj with cleaned questionorder
+                $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
+            } else {
+                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
+            }
 
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]

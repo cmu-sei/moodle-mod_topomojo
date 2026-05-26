@@ -117,9 +117,13 @@ if ($addquestionlist) {
 }
 
 if ($object->topomojo->importchallenge) {
-    // Always run cleanup to remove mismatched questions
+    // Clean up mismatched questions (only if no attempts exist)
     require_once("$CFG->dirroot/mod/topomojo/lib.php");
-    topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
+    if (!$topomojohasattempts) {
+        topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
+    } else {
+        debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
+    }
 
     $questions = $questionmanager->get_questions();
 
