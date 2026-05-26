@@ -120,10 +120,8 @@ $userid = $USER->id;
 // Check if questions have been imported when import is enabled
 $questions_missing = false;
 if (!empty($topomojo->importchallenge)) {
-    $questionmanager = $object->get_question_manager();
-    $questions = $questionmanager->get_questions();
-
-    if (empty($questions)) {
+    // Check if questionorder exists (indicates questions were imported)
+    if (empty($topomojo->questionorder)) {
         $questions_missing = true;
 
         if (has_capability('mod/topomojo:manage', $context)) {
