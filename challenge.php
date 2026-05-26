@@ -307,6 +307,9 @@ switch ($action) {
             // Render quiz if questions exist
             if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
+            } elseif (empty($challenge->text)) {
+                // No challenge text and no questions - show informational message
+                echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
             }
         } else {
             $renderer->render_no_challenge();
