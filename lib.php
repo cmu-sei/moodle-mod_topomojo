@@ -650,6 +650,70 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
     }
 
 }
+
+/**
+ * Clean up mismatched questions from activity
+ * Removes mojomatch questions that don't match current workspace+variant
+ * Preserves manual questions
+ *
+ * @param stdClass $topomojo Activity instance
+ * @param int $target_variant 1-based target variant (or 0 for random)
+ * @return array Count of deleted question IDs
+ */
+function topomojo_cleanup_questions($topomojo, $target_variant) {
+    global $DB;
+
+    $deleted_ids = [];
+    $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+
+    foreach ($linked_questions as $tq_record) {
+        $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+        if ($question && $question->qtype === 'mojomatch') {
+            $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
+            if ($options) {
+                // Keep if: same workspace AND (random mode OR same variant)
+                $keep = ($options->workspaceid === $topomojo->workspaceid) &&
+                        ($target_variant == 0 || $options->variant == $target_variant);
+
+                if (!$keep) {
+                    $reason = ($options->workspaceid !== $topomojo->workspaceid) ? "different workspace" : "different variant";
+                    debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
+                    $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
+                    $deleted_ids[] = $tq_record->id;
+                }
+            }
+        }
+    }
+
+    // Rebuild questionorder
+    $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id], 'id ASC');
+    $remaining_ids = array_keys($remaining_questions);
+
+    $order_array = [];
+    if (!empty($topomojo->questionorder)) {
+        $old_order = explode(',', $topomojo->questionorder);
+        foreach ($old_order as $id) {
+            if (in_array($id, $remaining_ids)) {
+                $order_array[] = $id;
+            }
+        }
+    }
+    foreach ($remaining_ids as $id) {
+        if (!in_array($id, $order_array)) {
+            $order_array[] = $id;
+        }
+    }
+
+    $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
+    $DB->update_record('topomojo', $topomojo);
+
+    if (!empty($deleted_ids)) {
+        debugging("Cleaned up " . count($deleted_ids) . " mismatched questions", DEBUG_DEVELOPER);
+    }
+
+    return $deleted_ids;
+}
+
 /**
  * Auto-import questions from TopoMojo workspace
  * Called after activity save
@@ -740,59 +804,11 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
         } else {
             // Specific mode - import single variant and link to activity
 
-            // First, remove any previously linked TopoMojo questions
-            // (but preserve manually added questions AND questions from current workspace+target variant)
-            $target_variant = $topomojo->variant; // 1-based
-            $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-            $deleted_ids = [];
-            foreach ($linked_questions as $tq_record) {
-                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
-                if ($question && $question->qtype === 'mojomatch') {
-                    $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
-                    if ($options) {
-                        // Keep if: same workspace AND same variant
-                        $keep = ($options->workspaceid === $topomojo->workspaceid) && ($options->variant == $target_variant);
+            // Clean up mismatched questions
+            topomojo_cleanup_questions($topomojo, $topomojo->variant);
 
-                        if (!$keep) {
-                            $reason = ($options->workspaceid !== $topomojo->workspaceid) ? "different workspace" : "different variant";
-                            debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
-                            $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                            $deleted_ids[] = $tq_record->id;
-                        } else {
-                            debugging("Keeping question (matches workspace+variant): {$question->name}", DEBUG_DEVELOPER);
-                        }
-                    }
-                }
-            }
-
-            // Always rebuild questionorder to match ALL remaining questions in topomojo_questions
-            // This ensures manual questions are preserved even when no mojomatch questions were deleted
-            $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id], 'id ASC');
-            $remaining_ids = array_keys($remaining_questions);
-
-            // Rebuild order: keep old order for existing questions, append any missing ones
-            $order_array = [];
-            if (!empty($topomojo->questionorder)) {
-                $old_order = explode(',', $topomojo->questionorder);
-                // Keep IDs that still exist and weren't deleted
-                foreach ($old_order as $id) {
-                    if (in_array($id, $remaining_ids)) {
-                        $order_array[] = $id;
-                    }
-                }
-            }
-            // Append any questions that aren't in the order yet
-            foreach ($remaining_ids as $id) {
-                if (!in_array($id, $order_array)) {
-                    $order_array[] = $id;
-                }
-            }
-
-            $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
-            $DB->update_record('topomojo', $topomojo);
-            // Refresh the topomojoobj with cleaned questionorder
+            // Refresh topomojoobj with cleaned questionorder
             $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
-            debugging("Rebuilt questionorder: " . count($order_array) . " questions (removed " . count($deleted_ids) . " deleted, kept/added all remaining)", DEBUG_DEVELOPER);
 
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]

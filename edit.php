@@ -117,6 +117,10 @@ if ($addquestionlist) {
 }
 
 if ($object->topomojo->importchallenge) {
+    // Always run cleanup to remove mismatched questions
+    require_once("$CFG->dirroot/mod/topomojo/lib.php");
+    topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
+
     $questions = $questionmanager->get_questions();
 
     // Only import if no questions have been imported yet
