@@ -255,11 +255,7 @@ switch ($action) {
         break;
     default:
         if ($object->openAttempt && $object->openAttempt->get_quba()) {
-            // Check if activity has questions before trying to get question manager
-            if (!empty($object->topomojo->questionorder)) {
-                $questionmanager = $object->get_question_manager();
-                if (count($questionmanager->get_questions())) {
-                if ($object->event->id) {
+            if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
                     $userid = $USER->id;
                     $max_attempts = $topomojo->attempts;
@@ -303,9 +299,11 @@ switch ($action) {
                             $renderer->render_endlab();
                         }
                     }
-                }
+            }
+
+            // Render quiz if questions exist
+            if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
-                }
             }
         } else {
             $renderer->render_no_challenge();
