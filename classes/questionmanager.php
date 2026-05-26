@@ -1034,6 +1034,13 @@ class questionmanager {
 
         // Step 1: Get questions from topomojo
         $expected_questiontexts = [];
+
+        // Check if variant exists
+        if (!isset($challenge->variants[$variant])) {
+            debugging("Variant $variant does not exist in challenge (has " . count($challenge->variants) . " variants)", DEBUG_DEVELOPER);
+            return; // No questions to import
+        }
+
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
                 $expected_questiontexts[] = trim(strip_tags($q->text));

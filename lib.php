@@ -740,24 +740,26 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
         } else {
             // Specific mode - import single variant and link to activity
 
-            // First, remove any previously linked TopoMojo questions from THIS workspace
-            // (but preserve manually added questions AND questions from the target variant)
+            // First, remove any previously linked TopoMojo questions
+            // (but preserve manually added questions AND questions from current workspace+target variant)
             $target_variant = $topomojo->variant; // 1-based
             $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
             $deleted_ids = [];
             foreach ($linked_questions as $tq_record) {
                 $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
                 if ($question && $question->qtype === 'mojomatch') {
-                    // Check if this question was imported from this workspace
                     $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
-                    if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                        // Only remove if NOT from the target variant
-                        if ($options->variant != $target_variant) {
-                            debugging("Removing variant {$options->variant} question (target is variant {$target_variant}): {$question->name}", DEBUG_DEVELOPER);
+                    if ($options) {
+                        // Keep if: same workspace AND same variant
+                        $keep = ($options->workspaceid === $topomojo->workspaceid) && ($options->variant == $target_variant);
+
+                        if (!$keep) {
+                            $reason = ($options->workspaceid !== $topomojo->workspaceid) ? "different workspace" : "different variant";
+                            debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
                             $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
                             $deleted_ids[] = $tq_record->id;
                         } else {
-                            debugging("Keeping variant {$options->variant} question (matches target): {$question->name}", DEBUG_DEVELOPER);
+                            debugging("Keeping question (matches workspace+variant): {$question->name}", DEBUG_DEVELOPER);
                         }
                     }
                 }
