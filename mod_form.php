@@ -793,12 +793,15 @@ class mod_topomojo_mod_form extends moodleform_mod
             } else if ($data->variant < 0) {
                 throw new moodle_exception("variant cannot be negative");
             } else if (($variants == 0) && ($data->variant != 1)) {
-                throw new moodle_exception("lab does not have variants configured - you must use variant 1");
-                debugging("no variants configured in workspace challenge - setting to variant 1", DEBUG_DEVELOPER);
+                // Auto-switch to variant 1 if workspace has no variants
+                debugging("Workspace has no variants - switching to variant 1", DEBUG_DEVELOPER);
+                $data->variant = 1;
             } else if ((($variants == 0) && ($data->variant == 1))) {
                 debugging("no variants configured in workspace challenge - using variant 1", DEBUG_DEVELOPER);
             } else if ($data->variant > $variants) {
-                throw new moodle_exception("lab does not have variant number " . $data->variant);
+                // Auto-switch to highest available variant
+                debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);
+                $data->variant = $variants;
             }
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
