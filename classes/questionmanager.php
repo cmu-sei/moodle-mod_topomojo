@@ -1047,7 +1047,9 @@ class questionmanager {
 
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
-                $expected_questiontexts[] = trim(strip_tags($q->text));
+                if (!empty($q->text)) {
+                    $expected_questiontexts[] = trim(strip_tags($q->text));
+                }
             }
         }
 
@@ -1110,13 +1112,14 @@ class questionmanager {
 
                 foreach ($section->questions as $question) {
                     $questionnumber++;
-                    $cleantext = trim(strip_tags($question->text));
 
-                    // Skip empty questions
-                    if (empty($cleantext)) {
+                    // Skip empty questions (check before strip_tags to avoid deprecated warning)
+                    if (empty($question->text)) {
                         debugging("Skipping empty question in variant $variant", DEBUG_DEVELOPER);
                         continue;
                     }
+
+                    $cleantext = trim(strip_tags($question->text));
 
                     $qexists    = 0;
                     $questionid = 0;
