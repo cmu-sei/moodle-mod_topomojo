@@ -171,7 +171,11 @@ class questionmanager {
 
         $questions = [];
         foreach ($records as $record) {
-            $questions[] = new topomojo_question($record, $this);
+            // Fetch the full question object
+            $question = $DB->get_record('question', ['id' => $record->questionid]);
+            if ($question) {
+                $questions[] = new topomojo_question($record->id, $record->points, $question);
+            }
         }
 
         debugging("Loaded " . count($questions) . " questions for variant $variant", DEBUG_DEVELOPER);
