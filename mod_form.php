@@ -786,7 +786,9 @@ class mod_topomojo_mod_form extends moodleform_mod
             if ($data->variant == 0) {
                 // Random variant mode - validate we have multiple variants
                 if ($variants < 2) {
-                    throw new moodle_exception("Random variant mode (variant=0) requires at least 2 variants in the TopoMojo challenge");
+                    // Auto-switch to variant 1 if workspace doesn't support random mode
+                    debugging("Random mode requires 2+ variants - switching to variant 1", DEBUG_DEVELOPER);
+                    $data->variant = 1;
                 }
             } else if ($data->variant < 0) {
                 throw new moodle_exception("variant cannot be negative");
