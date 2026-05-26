@@ -255,7 +255,10 @@ switch ($action) {
         break;
     default:
         if ($object->openAttempt && $object->openAttempt->get_quba()) {
-            if (count($object->get_question_manager()->get_questions())) {
+            // Check if activity has questions before trying to get question manager
+            if (!empty($object->topomojo->questionorder)) {
+                $questionmanager = $object->get_question_manager();
+                if (count($questionmanager->get_questions())) {
                 if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
                     $userid = $USER->id;
@@ -302,6 +305,7 @@ switch ($action) {
                     }
                 }
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
+                }
             }
         } else {
             $renderer->render_no_challenge();
