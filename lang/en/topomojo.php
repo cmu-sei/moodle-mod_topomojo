@@ -158,6 +158,7 @@ $string['variant_help'] = 'The variant of the lab deployment on TopoMojo. Select
 $string['variant_random'] = 'Random (assign different variants to each student)';
 $string['variant_number'] = 'Variant {$a}';
 $string['variantlockedhasattempts'] = 'The variant cannot be changed because students have already started attempts. Changing variants would affect grading fairness.';
+$string['workspacelockedhasattempts'] = 'The workspace cannot be changed because students have already started attempts. Changing workspaces would invalidate existing attempts.';
 $string['wrongvariant'] = 'This question is for Variant {$a->question_variant}, but this activity uses Variant {$a->activity_variant}';
 $string['wrongvariantadd'] = 'Cannot add question from Variant {$a->question_variant} to an activity configured for Variant {$a->activity_variant}';
 $string['attemptsallowed'] = 'Attempts allowed';
