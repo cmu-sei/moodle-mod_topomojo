@@ -655,13 +655,16 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
  * Clean up mismatched questions from activity
  * Removes mojomatch questions that don't match current workspace+variant
  * Preserves manual questions
+ * For workspace changes: deletes questions from question bank entirely
+ * For variant changes: unlinks from activity but keeps in question bank
  *
  * @param stdClass $topomojo Activity instance
  * @param int $target_variant 1-based target variant (or 0 for random)
  * @return array Count of deleted question IDs
  */
 function topomojo_cleanup_questions($topomojo, $target_variant) {
-    global $DB;
+    global $DB, $CFG;
+    require_once($CFG->libdir . '/questionlib.php');
 
     $deleted_ids = [];
     $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
@@ -676,10 +679,19 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
                         ($target_variant == 0 || $options->variant == $target_variant);
 
                 if (!$keep) {
-                    $reason = ($options->workspaceid !== $topomojo->workspaceid) ? "different workspace" : "different variant";
+                    $workspace_changed = ($options->workspaceid !== $topomojo->workspaceid);
+                    $reason = $workspace_changed ? "different workspace" : "different variant";
                     debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
+
+                    // Unlink from activity
                     $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
                     $deleted_ids[] = $tq_record->id;
+
+                    // If workspace changed, delete from question bank entirely
+                    if ($workspace_changed) {
+                        debugging("Deleting question from question bank: {$question->name}", DEBUG_DEVELOPER);
+                        question_delete_question($question->id);
+                    }
                 }
             }
         }
