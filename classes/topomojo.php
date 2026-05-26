@@ -426,13 +426,13 @@ class topomojo
             return;
         }
 
-        // Get question manager (might be null if no questions exist yet)
-        $questionmanager = $this->get_question_manager();
-        if (!$questionmanager) {
+        // Get question manager (access directly to avoid return type error when null)
+        if (!$this->questionmanager) {
             // Create a temporary questionmanager for import
             require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
-            $questionmanager = new questionmanager($this);
+            $this->questionmanager = new questionmanager($this);
         }
+        $questionmanager = $this->questionmanager;
 
         $context = $this->getContext();
         $variant_index = $variant - 1; // Convert to 0-based for array access
