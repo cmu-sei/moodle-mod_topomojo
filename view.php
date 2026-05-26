@@ -117,46 +117,17 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
-// Check if questions have been imported when import is enabled
-$questions_missing = false;
-if (!empty($topomojo->importchallenge)) {
-    // Check if questionorder exists (indicates questions were imported)
-    if (empty($topomojo->questionorder)) {
-        $questions_missing = true;
+// Auto-import questions if not already imported
+if (!empty($topomojo->importchallenge) && empty($topomojo->questionorder)) {
+    require_once($CFG->dirroot . '/mod/topomojo/lib.php');
+    topomojo_auto_import_questions($topomojo, $context, $cm->id);
 
-        // Check if workspace has challenge questions
-        require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
-        $auth = setup();
-        $challenge = get_challenge($auth, $topomojo->workspaceid);
-        $has_challenge_questions = false;
-        if ($challenge && !empty($challenge->variants)) {
-            foreach ($challenge->variants as $variant) {
-                if (!empty($variant->sections)) {
-                    foreach ($variant->sections as $section) {
-                        if (!empty($section->questions)) {
-                            $has_challenge_questions = true;
-                            break 2;
-                        }
-                    }
-                }
-            }
-        }
+    // Reload topomojo to get updated questionorder
+    $topomojo = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
 
-        if ($has_challenge_questions) {
-            // Has questions but not imported yet
-            if (has_capability('mod/topomojo:manage', $context)) {
-                $questionsurl = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
-                $message = get_string('questionsnotimported_teacher', 'topomojo', $questionsurl->out());
-                echo $OUTPUT->notification($message, 'warning');
-            } else {
-                echo $OUTPUT->notification(get_string('questionsnotimported_student', 'topomojo'), 'error');
-            }
-        } else {
-            // Workspace has no challenge questions - show informational message
-            if (!has_capability('mod/topomojo:manage', $context)) {
-                echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
-            }
-        }
+    // If still no questions after import, workspace has no challenge questions
+    if (empty($topomojo->questionorder) && !has_capability('mod/topomojo:manage', $context)) {
+        echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
     }
 }
 
