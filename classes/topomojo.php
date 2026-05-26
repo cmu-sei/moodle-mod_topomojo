@@ -430,7 +430,7 @@ class topomojo
         if (!$this->questionmanager) {
             // Create a temporary questionmanager for import
             require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
-            $this->questionmanager = new questionmanager($this);
+            $this->questionmanager = new questionmanager($this, $this->renderer, $this->pagevars);
         }
         $questionmanager = $this->questionmanager;
 
