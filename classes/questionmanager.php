@@ -1112,6 +1112,12 @@ class questionmanager {
                     $questionnumber++;
                     $cleantext = trim(strip_tags($question->text));
 
+                    // Skip empty questions
+                    if (empty($cleantext)) {
+                        debugging("Skipping empty question in variant $variant", DEBUG_DEVELOPER);
+                        continue;
+                    }
+
                     $qexists    = 0;
                     $questionid = 0;
 
