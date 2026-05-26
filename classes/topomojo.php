@@ -426,9 +426,17 @@ class topomojo
             return;
         }
 
+        // Get question manager (might be null if no questions exist yet)
+        $questionmanager = $this->get_question_manager();
+        if (!$questionmanager) {
+            // Create a temporary questionmanager for import
+            require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
+            $questionmanager = new questionmanager($this);
+        }
+
         $context = $this->getContext();
         $variant_index = $variant - 1; // Convert to 0-based for array access
-        $this->questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
+        $questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
 
         debugging("Successfully imported variant $variant questions", DEBUG_DEVELOPER);
     }
