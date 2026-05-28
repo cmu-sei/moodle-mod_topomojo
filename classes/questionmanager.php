@@ -85,6 +85,7 @@ class questionmanager {
      */
     protected $object;
 
+
     /**
      * Construct an instance of question manager
      *
@@ -118,6 +119,67 @@ class questionmanager {
      */
     public function gettopomojo() {
         return $this->object;
+    }
+
+    /**
+     * Convert Moodle's 1-based variant number to 0-based array index
+     *
+     * @param int $variant 1-based variant number (as stored in DB and shown in UI)
+     * @return int 0-based array index for accessing $challenge->variants[]
+     * @throws \coding_exception if variant < 1
+     */
+    private function variant_to_index($variant) {
+        if ($variant < 1) {
+            throw new \coding_exception('Variant must be >= 1 (got ' . $variant . ')');
+        }
+        return $variant - 1;
+    }
+
+    /**
+     * Convert 0-based array index to 1-based variant number
+     *
+     * @param int $index 0-based array index
+     * @return int 1-based variant number
+     * @throws \coding_exception if index < 0
+     */
+    private function index_to_variant($index) {
+        if ($index < 0) {
+            throw new \coding_exception('Index must be >= 0 (got ' . $index . ')');
+        }
+        return $index + 1;
+    }
+
+    /**
+     * Get questions for a specific variant
+     *
+     * @param int $variant Variant number (1-based)
+     * @return array Array of topomojo_question objects for the specified variant
+     */
+    public function get_questions_for_variant($variant) {
+        global $DB;
+
+        // Query topomojo_questions joined with qtype_mojomatch_options to filter by variant
+        $sql = "SELECT tq.*
+                FROM {topomojo_questions} tq
+                JOIN {question} q ON q.id = tq.questionid
+                JOIN {qtype_mojomatch_options} qmo ON qmo.questionid = q.id
+                WHERE tq.topomojoid = ?
+                  AND qmo.variant = ?
+                ORDER BY tq.id ASC";
+
+        $records = $DB->get_records_sql($sql, [$this->object->topomojo->id, $variant]);
+
+        $questions = [];
+        foreach ($records as $record) {
+            // Fetch the full question object
+            $question = $DB->get_record('question', ['id' => $record->questionid]);
+            if ($question) {
+                $questions[] = new topomojo_question($record->id, $record->points, $question);
+            }
+        }
+
+        debugging("Loaded " . count($questions) . " questions for variant $variant", DEBUG_DEVELOPER);
+        return $questions;
     }
 
 
@@ -204,14 +266,33 @@ class questionmanager {
      *
      * @param int $questionid The topomojo questionid to add
      *
-     * @return bool
+     * @return bool True if added or already present, false on error
      */
     public function add_question($questionid) {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-            debugging("Question with ID $questionid is already present, it cannot be added", DEBUG_DEVELOPER);
-            return false;
+            debugging("Question with ID $questionid is already present", DEBUG_DEVELOPER);
+
+            // Even if already present, ensure it's in questionorder
+            $tq_record = $DB->get_record('topomojo_questions', [
+                'topomojoid' => $this->object->topomojo->id,
+                'questionid' => $questionid
+            ]);
+
+            if ($tq_record) {
+                // Get fresh questionorder from database (cached value may be stale)
+                $topomojo_fresh = $DB->get_record('topomojo', ['id' => $this->object->topomojo->id]);
+                $questionorder = $topomojo_fresh->questionorder;
+                $order_array = !empty($questionorder) ? explode(',', $questionorder) : [];
+
+                if (!in_array($tq_record->id, $order_array)) {
+                    debugging("Question present but not in order, adding to questionorder", DEBUG_DEVELOPER);
+                    $this->update_questionorder('addquestion', $tq_record->id);
+                }
+            }
+
+            return true; // Already present = success
         }
 
         $question = new \stdClass();
@@ -224,46 +305,20 @@ class questionmanager {
 
         $this->update_questionorder('addquestion', $topomojoquestionid);
 
-        // Get the course context ID dynamically
-        $courseid = $this->object->course->id;
-        $contextid = \context_course::instance($courseid)->id;
-
-        // Find the 'top' category for this course context
-        $category = $DB->get_record('question_categories', [
-            'contextid' => $contextid,
-            'name' => 'top'
-        ], 'id');
-
-        // If no 'top' category exists, fallback to the default category for this course
-        if (!$category) {
-            debugging("No 'top' category found for course $courseid. Using default category.", DEBUG_DEVELOPER);
-            $category = $DB->get_record('question_categories', [
-                'contextid' => $contextid
-            ], 'id', IGNORE_MULTIPLE);
+        // Get question_bank_entries via question_versions (not by ID - questionid is question.id not qbe.id)
+        $qversion = $DB->get_record('question_versions', ['questionid' => $questionid]);
+        if (!$qversion) {
+            debugging("No question_versions found for question $questionid", DEBUG_DEVELOPER);
+            return true; // Question was added to topomojo_questions, just no reference created
         }
 
-        // Ensure we have a valid category ID
-        if (!$category) {
-            debugging("Error: No valid question category found for course $courseid.", DEBUG_DEVELOPER);
-            return false;
-        }
-
-        $categoryid = $category->id;
-
-        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $questionid]);
+        $qbankentry = $DB->get_record('question_bank_entries', ['id' => $qversion->questionbankentryid]);
         if (!$qbankentry) {
-            debugging("no question_bank_entries found for $questionid", DEBUG_DEVELOPER);
-            $qbankentry = new stdClass();
-            $qbankentry->questioncategoryid = $categoryid;
-            $qbankentry->name = $qrecord->name;
-            $qbankentry->id = $DB->insert_record('question_bank_entries', $qbankentry);
-        } else {
-            if ($qbankentry->questioncategoryid != $categoryid) {
-                $qbankentry->questioncategoryid = $categoryid;
-                debugging("changing question bank entry questioncategoryid from $qbankentry->questioncategoryid to $categoryid", DEBUG_DEVELOPER);
-                $DB->update_record('question_bank_entries', $qbankentry);
-            }
+            debugging("No question_bank_entries found for question $questionid", DEBUG_DEVELOPER);
+            return true; // Question was added to topomojo_questions, just no reference created
         }
+
+        // Don't modify the category - question already has a valid category from when it was created
 
         // quiz_slots is equivalent to topomojo_questions
         $slotid = $topomojoquestionid;
@@ -273,7 +328,8 @@ class questionmanager {
               FROM {question} q
               JOIN {question_versions} qv ON q.id = qv.questionid
               JOIN {question_bank_entries} qbe ON qbe.id = qv.questionbankentryid
-              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid AND qr.version = qv.version
+              JOIN {question_references} qr ON qbe.id = qr.questionbankentryid
+                   AND (qr.version = qv.version OR qr.version IS NULL)
               JOIN {topomojo_questions} qs ON qs.id = qr.itemid
              WHERE q.id = ?
                AND qs.id = ?
@@ -290,7 +346,20 @@ class questionmanager {
             $questionreferences->questionarea = 'slot';
             $questionreferences->itemid = $slotid;
             $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
-            $questionreferences->version = null; // Always latest.
+
+            // Pin to current version for historical stability
+            $version = $DB->get_field('question_versions', 'version', [
+                'questionid' => $questionid
+            ], IGNORE_MULTIPLE);
+
+            if ($version === false) {
+                debugging("Warning: No version found for question $questionid, using null", DEBUG_DEVELOPER);
+                $questionreferences->version = null;
+            } else {
+                $questionreferences->version = $version;
+                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
+            }
+
             $DB->insert_record('question_references', $questionreferences);
         } else if ($qreferenceitem->itemid === 0 || $qreferenceitem->itemid === null) {
             $questionreferences = new stdClass();
@@ -305,18 +374,31 @@ class questionmanager {
             $questionreferences->questionarea = 'slot';
             $questionreferences->itemid = $slotid;
             $questionreferences->questionbankentryid = get_question_bank_entry($questionid)->id;
-            $questionreferences->version = null; // Always latest.
+
+            // Pin to current version for historical stability
+            $version = $DB->get_field('question_versions', 'version', [
+                'questionid' => $questionid
+            ], IGNORE_MULTIPLE);
+
+            if ($version === false) {
+                debugging("Warning: No version found for question $questionid, using null", DEBUG_DEVELOPER);
+                $questionreferences->version = null;
+            } else {
+                $questionreferences->version = $version;
+                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
+            }
+
             $DB->insert_record('question_references', $questionreferences);
         }
 
         // If we get here return true
-        debugging("Success: Question ID $questionid added to category $categoryid and TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
+        debugging("Success: Question ID $questionid added to TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
         return true;
     }
 
 
     /**
-     * Moves a question on the question order for this topomojo 
+     * Moves a question on the question order for this topomojo
      *
      * @param string $direction 'up'||'down'
      * @param int $questionid The topomojo questionid
@@ -501,29 +583,43 @@ class questionmanager {
      * This is called by the question_attmept class on construct of a new attempt
      *
      * @param \question_usage_by_activity $quba
+     * @param int|null $variant Variant number (1-based) to filter questions, null for all
      *
      * @return array
      */
-    public function add_questions_to_quba(\question_usage_by_activity $quba) {
+    public function add_questions_to_quba(\question_usage_by_activity $quba, $variant = null) {
 
-        // We need the questionids of our questions
+        // Get questions for this variant (or all if no variant specified)
+        if ($variant !== null) {
+            $variant_questions = $this->get_questions_for_variant($variant);
+            debugging("Adding " . count($variant_questions) . " questions for variant $variant to quba", DEBUG_DEVELOPER);
+        } else {
+            $variant_questions = $this->get_questions();
+            debugging("Adding " . count($variant_questions) . " questions (all variants) to quba", DEBUG_DEVELOPER);
+        }
+
+        // Extract question IDs
         $questionids = [];
-        foreach ($this->qbankorderedquestions as $qbankquestion) {
-            if (!in_array($qbankquestion->getQuestion()->id, $questionids)) {
-                $questionids[] = $qbankquestion->getQuestion()->id;
+        foreach ($variant_questions as $vq) {
+            $qid = $vq->getQuestion()->id;
+            if (!in_array($qid, $questionids)) {
+                $questionids[] = $qid;
             }
         }
+
+        if (empty($questionids)) {
+            debugging("No questions to add to quba", DEBUG_DEVELOPER);
+            return [];
+        }
+
         $questions = question_load_questions($questionids);
 
-        //print_r($questions);
-
-        // Loop through the ordered question bank questions and add them to the quba
-        // Object
+        // Loop through and add questions to quba
         $attemptquestionorder = [];
-        foreach ($this->qbankorderedquestions as $qbankquestion) {
-            $questionid = $qbankquestion->getQuestion()->id;
+        foreach ($variant_questions as $vq) {
+            $questionid = $vq->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
-            $attemptquestionorder[$qbankquestion->getId()] = $quba->add_question($q, $qbankquestion->getPoints());
+            $attemptquestionorder[$vq->getId()] = $quba->add_question($q, $vq->getPoints());
         }
 
         // Start the questions in the quba
@@ -542,10 +638,10 @@ class questionmanager {
     /**
      * Gets the question order from the topomojo object
      *
-     * @return string
+     * @return string|null
      */
     protected function get_question_order() {
-        return $this->object->topomojo->questionorder;
+        return $this->object->topomojo->questionorder ?? null;
     }
 
     /**
@@ -759,7 +855,7 @@ class questionmanager {
         global $DB;
 
         // Start by ordering the topomojo question ids into an array
-        $questionorder = $this->object->topomojo->questionorder;
+        $questionorder = $this->object->topomojo->questionorder ?? null;
 
         // Generate empty array for ordered questions for no question order
         if (empty($questionorder) ) {
@@ -774,10 +870,34 @@ class questionmanager {
 
         // Using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
         $orderedquestionids = [];
+        $had_stale = false;
         foreach ($questionorder as $qorder) {
+            // Skip if this ID doesn't exist in topomojoquestions (stale data)
+            if (!isset($this->topomojoquestions[$qorder])) {
+                debugging("Skipping stale question order ID: $qorder", DEBUG_DEVELOPER);
+                $had_stale = true;
+                continue;
+            }
             // Store the topomojo question id as the key so that it can be used later when adding question time to
             // Question bank question object
             $orderedquestionids[$qorder] = $this->topomojoquestions[$qorder]->questionid;
+        }
+
+        // Clean up stale IDs from database
+        if ($had_stale) {
+            $valid_ids = array_keys($orderedquestionids);
+            $new_order = !empty($valid_ids) ? implode(',', $valid_ids) : null;
+            if ($new_order !== $this->object->topomojo->questionorder) {
+                $this->object->topomojo->questionorder = $new_order;
+                $DB->update_record('topomojo', $this->object->topomojo);
+                debugging("Cleaned stale IDs from questionorder", DEBUG_DEVELOPER);
+            }
+        }
+
+        // If no valid IDs remain, return empty
+        if (empty($orderedquestionids)) {
+            $this->qbankorderedquestions = [];
+            return;
         }
 
         // Get qbank questions based on the question ids from the topomojo questions table
@@ -901,7 +1021,8 @@ class questionmanager {
      *
      * @param \context $context The context in which the questions are being processed (e.g., course context).
      * @param stdClass $object An object containing information related to the topomojo instance.
-     * @param int $variant The variant number of the questions to process.
+     * @param int $variant ZERO-BASED array index for $challenge->variants[] (NOT the 1-based variant number from DB)
+     *                     Example: $variant=0 accesses $challenge->variants[0] which corresponds to Moodle variant 1 in DB
      * @param stdClass $challenge The challenge object containing the sections and questions.
      * @param bool $addtoquiz Flag indicating whether to add the questions to the quiz.
      *
@@ -917,9 +1038,18 @@ class questionmanager {
 
         // Step 1: Get questions from topomojo
         $expected_questiontexts = [];
+
+        // Check if variant exists
+        if (!isset($challenge->variants[$variant])) {
+            debugging("Variant $variant does not exist in challenge (has " . count($challenge->variants) . " variants)", DEBUG_DEVELOPER);
+            return; // No questions to import
+        }
+
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
-                $expected_questiontexts[] = trim(strip_tags($q->text));
+                if (!empty($q->text)) {
+                    $expected_questiontexts[] = trim(strip_tags($q->text));
+                }
             }
         }
 
@@ -982,13 +1112,20 @@ class questionmanager {
 
                 foreach ($section->questions as $question) {
                     $questionnumber++;
+
+                    // Skip empty questions (check before strip_tags to avoid deprecated warning)
+                    if (empty($question->text)) {
+                        debugging("Skipping empty question in variant $variant", DEBUG_DEVELOPER);
+                        continue;
+                    }
+
                     $cleantext = trim(strip_tags($question->text));
 
                     $qexists    = 0;
                     $questionid = 0;
 
-                    // ─── do not recycle anything when quiz is still empty ───────────
-                    if (!empty($currentquestions) && !in_array($cleantext, $deleted_questiontexts, true)) {
+                    // ─── Always check for existing questions to avoid duplicates ───────────
+                    if (!in_array($cleantext, $deleted_questiontexts, true)) {
 
                         // try to find *exact* match (text + answer + workspace + variant)
                         $sql = "SELECT q.id AS questionid
@@ -1003,7 +1140,7 @@ class questionmanager {
                             'questiontext' => $cleantext,
                             'answer'       => trim($question->answer),
                             'workspaceid'  => $object->topomojo->workspaceid,
-                            'variant'      => $variant
+                            'variant'      => $variant + 1 // Convert 0-based index to 1-based for DB
                         ];
 
                         if ($rec = $DB->get_record_sql($sql, $params)) {
@@ -1033,10 +1170,19 @@ class questionmanager {
 
                         $q = new stdClass();
                         $saq = new \qtype_mojomatch();
-                        $cat = question_get_default_category($context->id);
+                        $cat = question_get_default_category($context->id, true); // Create if doesn't exist
+
+                        if (!$cat) {
+                            debugging("Failed to get default question category for context {$context->id}", DEBUG_DEVELOPER);
+                            throw new \moodle_exception('questioncategorynotfound', 'mod_topomojo');
+                        }
+
                         $q->qtype = 'mojomatch';
                         $form->category = $cat->id;
-                        $form->name = $object->topomojo->name . " - $variant - $questionnumber ";
+                        // Name format: "Activity Name - Variant 1 - Question text preview..."
+                        $variant_number = $variant + 1; // Convert 0-based index to 1-based for display
+                        $question_preview = mb_substr(strip_tags($question->text), 0, 50);
+                        $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
                         $form->questiontext['text'] = $question->text;
                         $form->questiontext['format'] = '0'; //TODO find out nonhtml
                         $form->defaultmark = 1;
@@ -1054,7 +1200,7 @@ class questionmanager {
                         $form->answer = [$question->answer];
                         $form->fraction = ['1'];
                         $form->feedback[0] = ['text' => '', 'format' => '1'];
-                        $form->variant = $variant;
+                        $form->variant = $variant + 1; // Convert 0-based index to 1-based for storage
                         $form->workspaceid = $object->topomojo->workspaceid;
                         $form->transforms = 0;
                         $form->qorder = $questionnumber;

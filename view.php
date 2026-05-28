@@ -117,6 +117,20 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
+// Auto-import questions if not already imported
+if (!empty($topomojo->importchallenge) && empty($topomojo->questionorder)) {
+    require_once($CFG->dirroot . '/mod/topomojo/lib.php');
+    topomojo_auto_import_questions($topomojo, $context, $cm->id);
+
+    // Reload topomojo to get updated questionorder
+    $topomojo = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
+
+    // If still no questions after import, workspace has no challenge questions
+    if (empty($topomojo->questionorder) && !has_capability('mod/topomojo:manage', $context)) {
+        echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
+    }
+}
+
 // Check if this is a preview attempt
 $ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context) ||
@@ -227,14 +241,17 @@ $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 // Check if workspace exists in TopoMojo
 if ($challenge === null) {
     // Workspace doesn't exist - show error message
-    echo $OUTPUT->notification(
-        get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
-        \core\output\notification::NOTIFY_ERROR
-    );
     if (has_capability('mod/topomojo:manage', $context)) {
+        // Show instructor-specific message
         echo $OUTPUT->notification(
-            get_string('workspacenotfound_instructor', 'mod_topomojo'),
-            \core\output\notification::NOTIFY_INFO
+            get_string('workspacenotfound_instructor', 'mod_topomojo', $object->topomojo->workspaceid),
+            \core\output\notification::NOTIFY_ERROR
+        );
+    } else {
+        // Show student message
+        echo $OUTPUT->notification(
+            get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
+            \core\output\notification::NOTIFY_ERROR
         );
     }
     echo $renderer->footer();

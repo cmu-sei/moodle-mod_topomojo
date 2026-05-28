@@ -20,6 +20,8 @@ class payload_builder {
         $payload->maxAttempts = (int) $topomojo->submissions;
         $payload->maxMinutes = (int) ($topomojo->duration / 60);
         $payload->points = (int) $topomojo->grade;
+
+        // Pass variant directly - TopoMojo handles variant=0 as random
         $payload->variant = (int) $topomojo->variant;
 
         $email = (string) ($user->email ?? '');

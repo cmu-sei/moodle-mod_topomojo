@@ -274,8 +274,33 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
-        $mform->addElement('text', 'variant', get_string('variant', 'topomojo'));
-        $mform->setType('variant', PARAM_INT);
+        // Build variant options: 0=Random, 1-N=specific variants
+        $variantoptions = [
+            0 => get_string('variant_random', 'topomojo')
+        ];
+
+        // Dynamically determine max variants from TopoMojo workspace
+        $maxvariants = 10; // Default fallback
+        if (!empty($this->current->workspaceid)) {
+            // Existing activity - fetch actual variant count from TopoMojo
+            try {
+                require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+                $auth = setup();
+                $challenge = get_challenge($auth, $this->current->workspaceid);
+                if ($challenge && isset($challenge->variants)) {
+                    $maxvariants = count($challenge->variants);
+                }
+            } catch (Exception $e) {
+                debugging('Could not fetch variant count from TopoMojo: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+
+        // Add numbered variants up to actual count
+        for ($i = 1; $i <= $maxvariants; $i++) {
+            $variantoptions[$i] = get_string('variant_number', 'topomojo', $i);
+        }
+
+        $mform->addElement('select', 'variant', get_string('variant', 'topomojo'), $variantoptions);
         $mform->setDefault('variant', '1');
         $mform->addHelpButton('variant', 'variant', 'topomojo');
 
@@ -759,16 +784,24 @@ class mod_topomojo_mod_form extends moodleform_mod
             }
 
             if ($data->variant == 0) {
-                throw new moodle_exception("random variants are not supported at this time");
+                // Random variant mode - validate we have multiple variants
+                if ($variants < 2) {
+                    // Auto-switch to variant 1 if workspace doesn't support random mode
+                    debugging("Random mode requires 2+ variants - switching to variant 1", DEBUG_DEVELOPER);
+                    $data->variant = 1;
+                }
             } else if ($data->variant < 0) {
                 throw new moodle_exception("variant cannot be negative");
             } else if (($variants == 0) && ($data->variant != 1)) {
-                throw new moodle_exception("lab does not have variants configured - you must use variant 1");
-                debugging("no variants configured in workspace challenge - setting to variant 1", DEBUG_DEVELOPER);
+                // Auto-switch to variant 1 if workspace has no variants
+                debugging("Workspace has no variants - switching to variant 1", DEBUG_DEVELOPER);
+                $data->variant = 1;
             } else if ((($variants == 0) && ($data->variant == 1))) {
                 debugging("no variants configured in workspace challenge - using variant 1", DEBUG_DEVELOPER);
             } else if ($data->variant > $variants) {
-                throw new moodle_exception("lab does not have variant number " . $data->variant);
+                // Auto-switch to highest available variant
+                debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);
+                $data->variant = $variants;
             }
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
@@ -975,5 +1008,39 @@ class mod_topomojo_mod_form extends moodleform_mod
         $this->standard_hidden_coursemodule_elements();
 
         $this->plugin_extend_coursemodule_standard_elements();
+    }
+
+    /**
+     * Perform extra processing after data is set
+     * Disable variant field if attempts exist
+     */
+    public function definition_after_data() {
+        parent::definition_after_data();
+
+        $mform = $this->_form;
+
+        // Only check if this is an existing activity (not new)
+        if (!empty($this->current->instance)) {
+            // Check if there are any attempts
+            $hasattempts = topomojo_has_attempts($this->current->instance);
+
+            if ($hasattempts) {
+                // Lock workspace and add explanation
+                $workspaceelement = $mform->getElement('workspaceid');
+                $mform->hardFreeze('workspaceid');
+                $workspaceelement->setLabel($workspaceelement->getLabel() .
+                    '<div class="alert alert-warning mt-2"><small>' .
+                    get_string('workspacelockedhasattempts', 'topomojo') .
+                    '</small></div>');
+
+                // Lock variant and add explanation
+                $variantelement = $mform->getElement('variant');
+                $mform->hardFreeze('variant');
+                $variantelement->setLabel($variantelement->getLabel() .
+                    '<div class="alert alert-warning mt-2"><small>' .
+                    get_string('variantlockedhasattempts', 'topomojo') .
+                    '</small></div>');
+            }
+        }
     }
 }

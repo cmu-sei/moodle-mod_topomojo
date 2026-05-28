@@ -86,16 +86,17 @@ class topomojo_attempt {
      * otherwise initialize empty class
      *
      * @param questionmanager $questionmanager
-     * @param \stdClass
+     * @param \stdClass $dbattempt
      * @param \context_module $context
+     * @param int|null $variant Variant number (1-based) for new attempts
      */
-    public function __construct($questionmanager, $dbattempt = null, $context = null) {
+    public function __construct($questionmanager, $dbattempt = null, $context = null, $variant = null) {
         $this->questionmanager = $questionmanager;
         $this->context = $context;
 
         // If empty create new attempt
         if (empty($dbattempt)) {
-            debugging("creating new attempt", DEBUG_DEVELOPER);
+            debugging("creating new attempt with variant=" . ($variant ?? 'null'), DEBUG_DEVELOPER);
             $this->attempt = new \stdClass();
 
             if ($this->questionmanager) {
@@ -104,13 +105,14 @@ class topomojo_attempt {
                         $this->questionmanager->gettopomojo()->getContext());
                 $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
-                $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba);
+                // Pass variant to add_questions_to_quba so it only loads matching questions
+                $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba, $variant);
                 // Add the attempt layout to this instance
                 $this->attempt->layout = implode(',', $attemptlayout);
                 \question_engine::save_questions_usage_by_activity($this->quba);
             }
         } else { // else load it up in this class instance
-            debugging("loading existing attempt", DEBUG_DEVELOPER);
+            debugging("loading existing attempt with variant=" . ($dbattempt->variant ?? 'null'), DEBUG_DEVELOPER);
             $this->attempt = $dbattempt;
             if ($this->attempt->questionusageid) {
                 $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);

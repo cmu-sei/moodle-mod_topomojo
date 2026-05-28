@@ -255,8 +255,7 @@ switch ($action) {
         break;
     default:
         if ($object->openAttempt && $object->openAttempt->get_quba()) {
-            if (count($object->get_question_manager()->get_questions())) {
-                if ($object->event->id) {
+            if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
                     $userid = $USER->id;
                     $max_attempts = $topomojo->attempts;
@@ -285,6 +284,9 @@ switch ($action) {
                             $renderer->render_challenge_instructions_endlab($challenge->text);
                         } elseif ($max_attempts == 0 && $endlab == 1) {
                             $renderer->render_challenge_instructions_endlab($challenge->text);
+                        } else {
+                            // Default: show instructions without special formatting (unlimited attempts, no endlab)
+                            $renderer->render_challenge_instructions($challenge->text);
                         }
                     } else {
                         // No challenge text; handle general warnings based on attempts and endlab
@@ -300,8 +302,14 @@ switch ($action) {
                             $renderer->render_endlab();
                         }
                     }
-                }
+            }
+
+            // Render quiz if questions exist
+            if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
+            } elseif (empty($challenge->text)) {
+                // No challenge text and no questions - show informational message
+                echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
             }
         } else {
             $renderer->render_no_challenge();

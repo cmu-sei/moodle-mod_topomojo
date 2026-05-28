@@ -96,7 +96,7 @@ $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
 list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
-        question_edit_setup('editq', '/mod/topomojo/edit.php', true);
+        question_edit_setup('editq', '/mod/topomojo/edit.php');
 
 
 $topomojohasattempts = topomojo_has_attempts($topomojo->id);
@@ -104,6 +104,11 @@ $topomojohasattempts = topomojo_has_attempts($topomojo->id);
 $questionmanager = $object->get_question_manager();
 
 $renderer = $object->renderer;
+
+// Show notification if in random variant mode
+if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
+    \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
+}
 //$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 
@@ -112,15 +117,43 @@ if ($addquestionlist) {
 }
 
 if ($object->topomojo->importchallenge) {
-    $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-    if (!$challenge) {
-        throw new moodle_exception("this lab has no challenge");
+    // Clean up mismatched questions (only if no attempts exist)
+    require_once("$CFG->dirroot/mod/topomojo/lib.php");
+    if (!$topomojohasattempts) {
+        topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
+    } else {
+        debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
     }
 
-    //Adjust for offset
-    $variant = $object->topomojo->variant - 1;
-    $addtoquiz = true;
-    $questionmanager->process_variant_questions($context, $object, $variant, $challenge, $addtoquiz);
+    $questions = $questionmanager->get_questions();
+
+    // Only import if no questions have been imported yet
+    if (empty($questions)) {
+        debugging("No questions found - triggering import", DEBUG_DEVELOPER);
+
+        $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+        if (!$challenge) {
+            throw new moodle_exception("this lab has no challenge");
+        }
+
+        // Check if random variant mode (variant=0)
+        if ($object->topomojo->variant == 0) {
+            // Random mode - import ALL variants but don't link
+            debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
+            $addtoquiz = false;
+            $variant_count = count($challenge->variants);
+            for ($i = 0; $i < $variant_count; $i++) {
+                // $i is already 0-based for array access
+                $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
+            }
+        } else {
+            // Specific mode - import single variant and link
+            $addtoquiz = true;
+            // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
+            $variant_index = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
+            $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+        }
+    }
 }
 
 // Handle actions
@@ -131,6 +164,33 @@ switch ($action) {
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $questionid = $key;
+
+                // Check question type
+                $question = $DB->get_record('question', ['id' => $questionid], 'qtype');
+
+                // Block adding variant-specific questions in random mode
+                if ($object->topomojo->variant == 0 && $question && $question->qtype === 'mojomatch') {
+                    $type = 'error';
+                    $message = get_string('cannotaddvariantquestionrandom', 'topomojo');
+                    $renderer->setMessage($type, $message);
+                    continue; // Skip this question, continue with others
+                }
+
+                // Validate variant before adding (only in specific mode)
+                if ($object->topomojo->variant != 0 && $question && $question->qtype === 'mojomatch') {
+                    $question_variant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
+
+                    if ($question_variant && $question_variant != $object->topomojo->variant) {
+                        $type = 'error';
+                        $message = get_string('wrongvariantadd', 'topomojo', [
+                            'question_variant' => $question_variant,
+                            'activity_variant' => $object->topomojo->variant
+                        ]);
+                        $renderer->setMessage($type, $message);
+                        continue; // Skip this question, continue with others
+                    }
+                }
+
                 if (!$questionmanager->add_question($questionid)) {
                     $type = 'error';
                     $message = get_string('qadderror', 'topomojo');
