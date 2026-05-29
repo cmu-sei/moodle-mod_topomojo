@@ -799,32 +799,8 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                 $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
             }
 
-            // Clean up previously linked questions (only if no attempts exist)
-            $hasattempts = topomojo_has_attempts($topomojo->id);
-            if ($hasattempts) {
-                debugging("Skipping question cleanup - activity has attempts", DEBUG_DEVELOPER);
-            } else {
-                // Remove any previously linked questions imported from THIS workspace
-                // Query database directly since questionmanager might have stale data
-                $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-                $deleted_ids = [];
-                foreach ($linked_questions as $tq_record) {
-                    $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
-                    if ($question && $question->qtype === 'mojomatch') {
-                        // Check if this question was imported from this workspace
-                        $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
-                        if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                            debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
-                            $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                            $deleted_ids[] = $tq_record->id;
-                        }
-                    }
-                }
-
-                if (!empty($deleted_ids)) {
-                    debugging("Removed " . count($deleted_ids) . " variant-specific questions", DEBUG_DEVELOPER);
-                }
-            }
+            // For random mode, never delete questions - we need all variants in the question bank
+            // Questions are tracked in topomojo_questions but not linked via questionorder
 
             $addtoquiz = false;
             $variant_count = count($challenge->variants);
