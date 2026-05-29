@@ -118,12 +118,17 @@ echo $renderer->header();
 $userid = $USER->id;
 
 // Auto-import questions if not already imported
-if (!empty($topomojo->importchallenge) && empty($topomojo->questionorder)) {
-    require_once($CFG->dirroot . '/mod/topomojo/lib.php');
-    topomojo_auto_import_questions($topomojo, $context, $cm->id);
+// For random mode (variant=0), questionorder is empty by design, so check question bank instead
+if (!empty($topomojo->importchallenge)) {
+    $questions_exist = $DB->record_exists('topomojo_questions', ['topomojoid' => $topomojo->id]);
 
-    // Reload topomojo to get updated questionorder
-    $topomojo = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
+    if (!$questions_exist) {
+        require_once($CFG->dirroot . '/mod/topomojo/lib.php');
+        topomojo_auto_import_questions($topomojo, $context, $cm->id);
+
+        // Reload topomojo to get updated questionorder
+        $topomojo = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
+    }
 
     // If still no questions after import, workspace has no challenge questions
     if (empty($topomojo->questionorder) && !has_capability('mod/topomojo:manage', $context)) {

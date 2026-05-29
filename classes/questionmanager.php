@@ -1108,14 +1108,15 @@ class questionmanager {
             // Add new questions when necessary, if found in array (answers), or if question texts do not match
             foreach ($challenge->variants[$variant]->sections as $section) {
                 $count = count($section->questions);
-                debugging("Found $count question(s) for variant $variant on TopoMojo server", DEBUG_DEVELOPER);
+                $variant_display = $variant + 1; // Convert to 1-based for display (matches TopoMojo UI)
+                debugging("Found $count question(s) for Variant $variant_display on TopoMojo server", DEBUG_DEVELOPER);
 
                 foreach ($section->questions as $question) {
                     $questionnumber++;
 
                     // Skip empty questions (check before strip_tags to avoid deprecated warning)
                     if (empty($question->text)) {
-                        debugging("Skipping empty question in variant $variant", DEBUG_DEVELOPER);
+                        debugging("Skipping empty question in Variant $variant_display", DEBUG_DEVELOPER);
                         continue;
                     }
 
