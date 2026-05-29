@@ -835,7 +835,7 @@ class questionmanager {
      * in the correct order
      *
      */
-    protected function refresh_questions() {
+    public function refresh_questions() {
         $this->init_topomojo_questions();
         $this->init_qbank_questions();
     }
