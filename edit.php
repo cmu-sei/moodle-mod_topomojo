@@ -132,6 +132,10 @@ if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) 
 
             // Reload object to pick up cleared questionorder
             $object->topomojo->questionorder = $topomojo->questionorder;
+
+            // Refresh questionmanager to reload the cleared questionorder
+            $questionmanager->refresh_questions();
+            debugging("Refreshed questionmanager after clearing questionorder", DEBUG_DEVELOPER);
         }
     }
 }
