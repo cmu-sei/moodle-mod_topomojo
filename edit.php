@@ -141,10 +141,11 @@ if ($object->topomojo->importchallenge) {
             // Random mode - import ALL variants but don't link
             debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
             $addtoquiz = false;
+            $force_import = true; // Always process all variants
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
                 // $i is already 0-based for array access
-                $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
+                $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz, $force_import);
             }
         } else {
             // Specific mode - import single variant and link

@@ -803,10 +803,11 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             // Questions are tracked in topomojo_questions but not linked via questionorder
 
             $addtoquiz = false;
+            $force_import = true; // Always process all variants for random mode
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
                 // $i is already 0-based for array access
-                $questionmanager->process_variant_questions($context, $topomojoobj, $i, $challenge, $addtoquiz);
+                $questionmanager->process_variant_questions($context, $topomojoobj, $i, $challenge, $addtoquiz, $force_import);
             }
         } else {
             // Specific mode - import single variant and link to activity

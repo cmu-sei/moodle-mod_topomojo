@@ -1028,10 +1028,11 @@ class questionmanager {
      *                     Example: $variant=0 accesses $challenge->variants[0] which corresponds to Moodle variant 1 in DB
      * @param stdClass $challenge The challenge object containing the sections and questions.
      * @param bool $addtoquiz Flag indicating whether to add the questions to the quiz.
+     * @param bool $force_import Force import even if questions already exist (for random mode).
      *
      * @return void
      */
-    public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz) {
+    public function process_variant_questions($context, $object, $variant, $challenge, $addtoquiz, $force_import = false) {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
         $currentquestions = $this->get_questions();
@@ -1103,7 +1104,7 @@ class questionmanager {
             }
         }
 
-        if (!empty($mismatched_questions) || empty($currentquestions)) {
+        if ($force_import || !empty($mismatched_questions) || empty($currentquestions)) {
             $questionnumber = 0;
             $type = 'info';
             $message = '';
