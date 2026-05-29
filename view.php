@@ -118,21 +118,8 @@ echo $renderer->header();
 $userid = $USER->id;
 
 // Auto-import questions if not already imported
-// For random mode (variant=0), check if mojomatch questions exist for this workspace
-// For specific mode, check if questions are linked via topomojo_questions
 if (!empty($topomojo->importchallenge)) {
-    if ($topomojo->variant == 0) {
-        // Random mode: check if questions exist in question bank for this workspace
-        $sql = "SELECT COUNT(DISTINCT q.id)
-                FROM {question} q
-                JOIN {qtype_mojomatch_options} qmo ON q.id = qmo.questionid
-                WHERE qmo.workspaceid = :workspaceid";
-        $count = $DB->count_records_sql($sql, ['workspaceid' => $topomojo->workspaceid]);
-        $questions_exist = ($count > 0);
-    } else {
-        // Specific mode: check if questions are linked to this activity
-        $questions_exist = $DB->record_exists('topomojo_questions', ['topomojoid' => $topomojo->id]);
-    }
+    $questions_exist = $DB->record_exists('topomojo_questions', ['topomojoid' => $topomojo->id]);
 
     if (!$questions_exist) {
         require_once($CFG->dirroot . '/mod/topomojo/lib.php');

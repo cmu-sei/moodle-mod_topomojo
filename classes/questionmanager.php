@@ -265,10 +265,11 @@ class questionmanager {
      * Add a question on the topomojo
      *
      * @param int $questionid The topomojo questionid to add
+     * @param bool $update_order Whether to add to questionorder (false for random mode)
      *
      * @return bool True if added or already present, false on error
      */
-    public function add_question($questionid) {
+    public function add_question($questionid, $update_order = true) {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
@@ -286,7 +287,7 @@ class questionmanager {
                 $questionorder = $topomojo_fresh->questionorder;
                 $order_array = !empty($questionorder) ? explode(',', $questionorder) : [];
 
-                if (!in_array($tq_record->id, $order_array)) {
+                if (!in_array($tq_record->id, $order_array) && $update_order) {
                     debugging("Question present but not in order, adding to questionorder", DEBUG_DEVELOPER);
                     $this->update_questionorder('addquestion', $tq_record->id);
                 }
@@ -303,7 +304,9 @@ class questionmanager {
 
         $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
 
-        $this->update_questionorder('addquestion', $topomojoquestionid);
+        if ($update_order) {
+            $this->update_questionorder('addquestion', $topomojoquestionid);
+        }
 
         // Get question_bank_entries via question_versions (not by ID - questionid is question.id not qbe.id)
         $qversion = $DB->get_record('question_versions', ['questionid' => $questionid]);
@@ -1219,8 +1222,10 @@ class questionmanager {
                         debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
 
-                    if ($questionid && $addtoquiz) {
-                        $ok = $this->add_question($questionid);
+                    if ($questionid) {
+                        // Always call add_question to create topomojo_questions entry
+                        // For random mode (addtoquiz=false), don't add to questionorder
+                        $ok = $this->add_question($questionid, $addtoquiz);
 
                         if ($ok === true) {
                             $added_count++;
