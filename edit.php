@@ -125,10 +125,23 @@ if ($object->topomojo->importchallenge) {
         debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
     }
 
-    $questions = $questionmanager->get_questions();
+    // Check if questions exist based on mode
+    if ($object->topomojo->variant == 0) {
+        // Random mode: check if questions exist in question bank for this workspace
+        $sql = "SELECT COUNT(DISTINCT q.id)
+                FROM {question} q
+                JOIN {qtype_mojomatch_options} qmo ON q.id = qmo.questionid
+                WHERE qmo.workspaceid = :workspaceid";
+        $count = $DB->count_records_sql($sql, ['workspaceid' => $object->topomojo->workspaceid]);
+        $questions_exist = ($count > 0);
+    } else {
+        // Specific mode: check topomojo_questions table
+        $questions = $questionmanager->get_questions();
+        $questions_exist = !empty($questions);
+    }
 
     // Only import if no questions have been imported yet
-    if (empty($questions)) {
+    if (!$questions_exist) {
         debugging("No questions found - triggering import", DEBUG_DEVELOPER);
 
         $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
