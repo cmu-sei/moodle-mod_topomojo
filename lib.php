@@ -774,42 +774,55 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             // Questions will be linked per-student during deployment
             debugging("Random mode: importing all variants (not linking to activity)", DEBUG_DEVELOPER);
 
+            // For random mode, remove mojomatch questions from questionorder but keep manual questions
+            // Attempts store their variant, so this won't affect existing attempts
+            if (!empty($topomojo->questionorder)) {
+                $order_array = explode(',', $topomojo->questionorder);
+                $manual_question_ids = [];
+
+                foreach ($order_array as $tq_id) {
+                    $tq_record = $DB->get_record('topomojo_questions', ['id' => $tq_id]);
+                    if ($tq_record) {
+                        $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                        // Keep manual questions (non-mojomatch)
+                        if ($question && $question->qtype !== 'mojomatch') {
+                            $manual_question_ids[] = $tq_id;
+                        }
+                    }
+                }
+
+                $topomojo->questionorder = !empty($manual_question_ids) ? implode(',', $manual_question_ids) : null;
+                $DB->update_record('topomojo', $topomojo);
+                debugging("Cleared mojomatch questions from questionorder for random mode, kept " . count($manual_question_ids) . " manual questions", DEBUG_DEVELOPER);
+
+                // Reload topomojoobj to pick up the cleared questionorder
+                $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
+            }
+
             // Clean up previously linked questions (only if no attempts exist)
             $hasattempts = topomojo_has_attempts($topomojo->id);
             if ($hasattempts) {
-                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
+                debugging("Skipping question cleanup - activity has attempts", DEBUG_DEVELOPER);
             } else {
                 // Remove any previously linked questions imported from THIS workspace
                 // Query database directly since questionmanager might have stale data
                 $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-            $deleted_ids = [];
-            foreach ($linked_questions as $tq_record) {
-                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
-                if ($question && $question->qtype === 'mojomatch') {
-                    // Check if this question was imported from this workspace
-                    $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
-                    if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                        debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
-                        $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                        $deleted_ids[] = $tq_record->id;
+                $deleted_ids = [];
+                foreach ($linked_questions as $tq_record) {
+                    $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                    if ($question && $question->qtype === 'mojomatch') {
+                        // Check if this question was imported from this workspace
+                        $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
+                        if ($options && $options->workspaceid === $topomojo->workspaceid) {
+                            debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
+                            $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
+                            $deleted_ids[] = $tq_record->id;
+                        }
                     }
                 }
-            }
 
-                // Always validate and clean questionorder in random mode
-                // Remove any IDs that no longer exist in topomojo_questions table
-                if (!empty($topomojo->questionorder)) {
-                    $order_array = explode(',', $topomojo->questionorder);
-                    $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-                    $valid_ids = array_keys($remaining_questions);
-
-                    // Keep only IDs that still exist
-                    $order_array = array_intersect($order_array, array_map('strval', $valid_ids));
-                    $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
-                    $DB->update_record('topomojo', $topomojo);
-                    debugging("Cleaned questionorder for random mode", DEBUG_DEVELOPER);
-                } elseif (!empty($deleted_ids)) {
-                    debugging("Removed TopoMojo questions but questionorder was already empty", DEBUG_DEVELOPER);
+                if (!empty($deleted_ids)) {
+                    debugging("Removed " . count($deleted_ids) . " variant-specific questions", DEBUG_DEVELOPER);
                 }
             }
 
