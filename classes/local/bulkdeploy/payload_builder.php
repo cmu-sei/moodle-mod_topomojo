@@ -21,8 +21,23 @@ class payload_builder {
         $payload->maxMinutes = (int) ($topomojo->duration / 60);
         $payload->points = (int) $topomojo->grade;
 
-        // Pass variant directly - TopoMojo handles variant=0 as random
-        $payload->variant = (int) $topomojo->variant;
+        // Auto-detect random mode (variant=0) and pick random variant
+        $variant = (int) $topomojo->variant;
+        if ($variant === 0) {
+            // Random mode - get variant count from TopoMojo and pick one
+            require_once(__DIR__ . '/../../../locallib.php');
+            $auth = setup();
+            $challenge = get_challenge($auth, $workspaceid);
+            if ($challenge && !empty($challenge->variants)) {
+                $variant_count = count($challenge->variants);
+                $variant = rand(1, $variant_count);
+                debugging("Random mode: selected variant $variant (out of $variant_count)", DEBUG_DEVELOPER);
+            } else {
+                $variant = 1; // Fallback
+                debugging("Random mode: could not get variant count, defaulting to variant 1", DEBUG_DEVELOPER);
+            }
+        }
+        $payload->variant = $variant;
 
         $email = (string) ($user->email ?? '');
         $atpos = strpos($email, '@');
