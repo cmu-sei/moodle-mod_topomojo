@@ -108,6 +108,32 @@ $renderer = $object->renderer;
 // Show notification if in random variant mode
 if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
     \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
+
+    // For random mode, ensure mojomatch questions are not in questionorder
+    if (!empty($topomojo->questionorder)) {
+        $order_array = explode(',', $topomojo->questionorder);
+        $manual_question_ids = [];
+
+        foreach ($order_array as $tq_id) {
+            $tq_record = $DB->get_record('topomojo_questions', ['id' => $tq_id]);
+            if ($tq_record) {
+                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                // Keep manual questions (non-mojomatch)
+                if ($question && $question->qtype !== 'mojomatch') {
+                    $manual_question_ids[] = $tq_id;
+                }
+            }
+        }
+
+        if (count($manual_question_ids) != count($order_array)) {
+            $topomojo->questionorder = !empty($manual_question_ids) ? implode(',', $manual_question_ids) : null;
+            $DB->update_record('topomojo', $topomojo);
+            debugging("Cleared mojomatch from questionorder for random mode", DEBUG_DEVELOPER);
+
+            // Reload object to pick up cleared questionorder
+            $object->topomojo->questionorder = $topomojo->questionorder;
+        }
+    }
 }
 //$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
