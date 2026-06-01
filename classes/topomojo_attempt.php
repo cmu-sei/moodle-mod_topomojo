@@ -107,9 +107,18 @@ class topomojo_attempt {
 
                 // Pass variant to add_questions_to_quba so it only loads matching questions
                 $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba, $variant);
-                // Add the attempt layout to this instance
+
+                // Add the attempt layout to this instance (may be empty if variant has no questions)
                 $this->attempt->layout = implode(',', $attemptlayout);
-                \question_engine::save_questions_usage_by_activity($this->quba);
+
+                // Only save QUBA if questions were added
+                if (!empty($attemptlayout)) {
+                    \question_engine::save_questions_usage_by_activity($this->quba);
+                } else {
+                    debugging("Variant $variant has no questions - QUBA created but empty", DEBUG_DEVELOPER);
+                    // Don't save empty QUBA - it will cause errors when trying to render
+                    $this->quba = null;
+                }
             }
         } else { // else load it up in this class instance
             debugging("loading existing attempt with variant=" . ($dbattempt->variant ?? 'null'), DEBUG_DEVELOPER);
@@ -317,6 +326,11 @@ class topomojo_attempt {
      * @return string the HTML fragment for the question
      */
     public function render_question($slotid, $review = false, $reviewoptions = '', $when = null) {
+        // Return empty string if no QUBA (variant has no questions)
+        if (!$this->quba) {
+            return '';
+        }
+
         $displayoptions = $this->get_display_options($review, $reviewoptions, $when);
         $questionnum = $this->get_question_number(); // set to 1 if it doesnt exist
         $this->add_question_number(); // increment qnum
