@@ -263,13 +263,12 @@ class management_repository {
         }
 
         $actionhtml = '─';
-        $attemptstateint = $attemptstate !== null ? (int) $attemptstate : null;
         if (!empty($attemptid) && $hasquestions) {
-            if ($attemptstateint === 10) {
+            if ($attemptstate === \mod_topomojo\topomojo_attempt::INPROGRESS) {
                 $url = new \moodle_url('/mod/topomojo/challenge.php', ['attemptid' => $attemptid]);
                 $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
                     ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
-            } else if (in_array($attemptstateint, [20, 30], true)) {
+            } else if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
                 $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
                 $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
                     ['class' => 'btn btn-sm btn-outline-secondary', 'target' => '_blank']);

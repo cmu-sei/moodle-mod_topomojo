@@ -186,12 +186,12 @@ switch ($action) {
             $attempt = $DB->get_record('topomojo_attempts', [
                 'topomojoid' => $topomojo->id,
                 'userid' => $uid,
-                'state' => 10, // INPROGRESS
+                'state' => \mod_topomojo\topomojo_attempt::INPROGRESS,
             ], '*', IGNORE_MULTIPLE);
 
             if ($attempt && !empty($attempt->eventid)) {
                 stop_event($auth, $attempt->eventid);
-                $attempt->state = 30; // FINISHED
+                $attempt->state = \mod_topomojo\topomojo_attempt::FINISHED;
                 $attempt->timefinish = time();
                 $attempt->timemodified = time();
                 $DB->update_record('topomojo_attempts', $attempt);

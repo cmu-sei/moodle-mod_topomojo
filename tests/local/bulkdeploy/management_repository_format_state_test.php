@@ -66,7 +66,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 99,
-            'attemptstate' => '10',
+            'attemptstate' => 'inprogress',
             'attemptgamespaceid' => 'gs-attempt',
             'attempttimestart' => time() - 100,
             'attemptendtime' => time() + 100,
@@ -89,7 +89,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 99,
-            'attemptstate' => '10',
+            'attemptstate' => 'inprogress',
             'attemptgamespaceid' => 'gs-attempt',
             'attempttimestart' => null,
             'attemptendtime' => null,
@@ -113,7 +113,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 7,
-            'attemptstate' => '10',
+            'attemptstate' => 'inprogress',
             'attemptgamespaceid' => 'gs-attempt',
             'attempttimestart' => $start,
             'attemptendtime' => $end,
@@ -141,7 +141,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 7,
-            'attemptstate' => '30',
+            'attemptstate' => 'finished',
             'attemptgamespaceid' => 'gs',
             'attempttimestart' => null,
             'attemptendtime' => null,
@@ -166,7 +166,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 7,
-            'attemptstate' => '30',
+            'attemptstate' => 'finished',
             'attemptgamespaceid' => 'gs',
             'attempttimestart' => $start,
             'attemptendtime' => $end,
@@ -267,7 +267,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 42,
-            'attemptstate' => '10',
+            'attemptstate' => 'inprogress',
             'attemptgamespaceid' => null,
             'attempttimestart' => null,
             'attemptendtime' => null,
@@ -290,7 +290,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 42,
-            'attemptstate' => '30',
+            'attemptstate' => 'finished',
             'attemptgamespaceid' => null,
             'attempttimestart' => null,
             'attemptendtime' => null,
@@ -313,7 +313,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $row = (object) [
             'userid' => 1,
             'attemptid' => 42,
-            'attemptstate' => '10',
+            'attemptstate' => 'inprogress',
             'attemptgamespaceid' => null,
             'attempttimestart' => null,
             'attemptendtime' => null,
