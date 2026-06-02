@@ -417,6 +417,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         if ($showuser) {
             $data->tableheaders->username = get_string('username', 'mod_topomojo');
             $data->tableheaders->eventguid = get_string('eventid', 'mod_topomojo');
+            $data->tableheaders->variant = get_string('variant', 'mod_topomojo');
         }
         if ($showdetail) {
             $data->tableheaders->name = get_string('workspace', 'mod_topomojo');
@@ -437,6 +438,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $user = $DB->get_record("user", ['id' => $attempt->userid]);
                     $rowdata->username = fullname($user);
                     $rowdata->eventguid = $attempt->eventid ?: "-";
+                    $rowdata->variant = $attempt->variant ?? "-";
                 }
                 if ($showdetail) {
                     $topomojo = $DB->get_record("topomojo", ['id' => $attempt->topomojoid]);
