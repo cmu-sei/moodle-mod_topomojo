@@ -36,8 +36,9 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
         $cleaned = 0;
 
         // Find finished/abandoned attempts with active gamespaces
+        // State column is char(16) so values must be strings for PostgreSQL.
         list($insql, $inparams) = $DB->get_in_or_equal(
-            [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED],
+            [(string)\mod_topomojo\topomojo_attempt::ABANDONED, (string)\mod_topomojo\topomojo_attempt::FINISHED],
             SQL_PARAMS_NAMED,
             'state'
         );
