@@ -423,7 +423,10 @@ switch ($action) {
 
                     if (!$has_content) {
                         debugging("No challenge text or variant text found", DEBUG_DEVELOPER);
-                        $renderer->render_no_challenge();
+                        echo $OUTPUT->notification(
+                            'No challenge or variant markdown configured in TopoMojo. Questions can be reviewed on the Questions page.',
+                            \core\output\notification::NOTIFY_INFO
+                        );
                     }
                 } catch (Exception $e) {
                     debugging("Failed to fetch challenge preview: " . $e->getMessage(), DEBUG_DEVELOPER);
