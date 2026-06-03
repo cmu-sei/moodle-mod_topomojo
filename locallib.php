@@ -734,6 +734,43 @@ function stop_event($client, $id)
 }
 
 /**
+ * Checks if user has an active gamespace from another activity sharing the same workspace.
+ *
+ * TopoMojo's Register endpoint returns existing active gamespaces for a workspace+user,
+ * ignoring variant differences. When multiple activities share a workspace, we must
+ * detect this conflict before launch to prevent the wrong gamespace being reused.
+ *
+ * @param int $topomojoid Current activity ID
+ * @param string $workspaceid Workspace GUID
+ * @return stdClass|null Conflicting attempt record with activity details, or null if none
+ */
+function check_conflicting_gamespace($topomojoid, $workspaceid) {
+    global $DB, $USER;
+
+    // Find active attempts from OTHER activities using the same workspace
+    $sql = "SELECT ta.*, t.name as activityname, t.course, cm.id as cmid
+            FROM {topomojo_attempts} ta
+            JOIN {topomojo} t ON t.id = ta.topomojoid
+            JOIN {course_modules} cm ON cm.instance = t.id
+            JOIN {modules} m ON m.id = cm.module AND m.name = 'topomojo'
+            WHERE ta.userid = :userid
+              AND ta.state = :state
+              AND ta.topomojoid != :topomojoid
+              AND t.workspaceid = :workspaceid
+            ORDER BY ta.timemodified DESC
+            LIMIT 1";
+
+    $conflict = $DB->get_record_sql($sql, [
+        'userid' => $USER->id,
+        'state' => \mod_topomojo\topomojo_attempt::INPROGRESS,
+        'topomojoid' => $topomojoid,
+        'workspaceid' => $workspaceid
+    ]);
+
+    return $conflict ?: null;
+}
+
+/**
  * Retrieves a ticket from the TopoMojo API for the current user.
  *
  * This function sends a GET request to the TopoMojo API to obtain a ticket associated with the current user.

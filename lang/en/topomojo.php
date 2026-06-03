@@ -493,3 +493,6 @@ $string['launching_manual_refresh'] = 'Lab is launching. Please refresh the page
 $string['gamespace_not_found'] = 'Your lab session could not be found. It may have expired or been terminated. Please start a new attempt.';
 $string['gamespace_terminated'] = 'Your lab session was terminated. Start a new attempt to continue.';
 $string['attempt_orphaned'] = 'Your attempt record exists but the lab environment is no longer available. Please contact your instructor.';
+$string['conflicting_gamespace_title'] = 'Active lab in another activity';
+$string['conflicting_gamespace'] = 'You have an active lab session in <strong>{$a->activityname}</strong> which shares the same workspace. You must end that lab before starting this one.';
+$string['conflicting_gamespace_link'] = 'Go to {$a->activityname}';

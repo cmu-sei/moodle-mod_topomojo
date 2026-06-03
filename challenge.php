@@ -158,6 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 
     // Check not started already
     if (!$object->event) {
+        // Check for conflicting gamespace from another activity sharing this workspace
+        $conflict = check_conflicting_gamespace($topomojo->id, $topomojo->workspaceid);
+        if ($conflict) {
+            $conflicturl = new moodle_url('/mod/topomojo/view.php', ['id' => $conflict->cmid]);
+            $conflictdata = (object)[
+                'activityname' => $conflict->activityname,
+                'activityurl' => $conflicturl->out()
+            ];
+            echo $OUTPUT->header();
+            echo $OUTPUT->notification(
+                get_string('conflicting_gamespace', 'mod_topomojo', $conflictdata),
+                \core\output\notification::NOTIFY_ERROR
+            );
+            echo html_writer::link($conflicturl, get_string('conflicting_gamespace_link', 'mod_topomojo', $conflictdata), ['class' => 'btn btn-secondary']);
+            echo $OUTPUT->footer();
+            exit;
+        }
 
         // TODO check for open attempt and check for status of its event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
