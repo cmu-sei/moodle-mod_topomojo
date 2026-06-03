@@ -96,11 +96,11 @@ $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
-// Get current state of workspace
-$allevents = list_events($object->userauth, $object->topomojo->workspaceid); // events for workspace
-$eventsmoodle = moodle_events($object->userauth, $allevents); // events for moodle bot
-$history = user_events($object->userauth, $eventsmoodle); // events for this user
-$object->event = get_active_event($history);
+// Initialize event as null - will be set from attempt records if user has active gamespace
+// CRITICAL: Do NOT use list_events() fallback here as it returns ALL gamespaces for this workspace,
+// causing cross-contamination when multiple activities share the same workspace.
+// Each activity must only see gamespaces created from its own attempts.
+$object->event = null;
 
 // Check if this is a preview attempt from URL parameter
 $ispreview = $previewparam;
