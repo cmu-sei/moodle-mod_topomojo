@@ -216,12 +216,12 @@ class management_repository {
             $statuslabel = ucfirst($deploystatus);
         } else if (!empty($attemptid)) {
             $statemap = [
-                '0'  => 'Not Started',
-                '10' => 'Active',
-                '20' => 'Abandoned',
-                '30' => 'Finished',
+                'notstarted' => 'Not Started',
+                'inprogress' => 'Active',
+                'abandoned'  => 'Abandoned',
+                'finished'   => 'Finished',
             ];
-            $statuslabel = $statemap[(string) $attemptstate] ?? (string) ($attemptstate ?? 'unknown');
+            $statuslabel = $statemap[$attemptstate] ?? (string) ($attemptstate ?? 'unknown');
         } else if (!empty($deploystatus)) {
             $statuslabel = ucfirst($deploystatus);
         }
