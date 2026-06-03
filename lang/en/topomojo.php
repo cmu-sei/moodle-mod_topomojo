@@ -489,3 +489,4 @@ $string['cannotaddvariantquestionrandom'] = 'Cannot add variant-specific questio
 $string['questionsnotimported_teacher'] = 'Questions have not been imported yet. <a href="{$a}">Visit the Questions page</a> or update activity settings to trigger import.';
 $string['questionsnotimported_student'] = 'This activity is not ready yet. Please contact your instructor.';
 $string['nochallengequestions'] = 'This activity has no graded questions. Review questions on the Questions page.';
+$string['launching_manual_refresh'] = 'Lab is launching. Please refresh the page manually to check if your environment is ready.';
