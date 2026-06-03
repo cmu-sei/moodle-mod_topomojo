@@ -264,14 +264,12 @@ class management_repository {
 
         $actionhtml = '─';
         if (!empty($attemptid) && $hasquestions) {
-            if ($attemptstate === \mod_topomojo\topomojo_attempt::INPROGRESS) {
-                $url = new \moodle_url('/mod/topomojo/challenge.php', ['attemptid' => $attemptid]);
-                $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
-                    ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
-            } else if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
+            // All attempt states link to viewattempt.php for instructor review
+            if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::INPROGRESS, \mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
                 $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
+                $buttonclass = $attemptstate === \mod_topomojo\topomojo_attempt::INPROGRESS ? 'btn-outline-primary' : 'btn-outline-secondary';
                 $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
-                    ['class' => 'btn btn-sm btn-outline-secondary', 'target' => '_blank']);
+                    ['class' => 'btn btn-sm ' . $buttonclass, 'target' => '_blank']);
             }
         }
 
