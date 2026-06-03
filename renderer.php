@@ -262,11 +262,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param string $markdown The Markdown-formatted instructions to be rendered.
      * @return void
      */
-    public function render_challenge_instructions($markdown) {
+    public function render_challenge_instructions($markdown, $hasQuiz = true) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
         $data->showWarning = false; // No warning in normal instructions
         $data->endlab = false;      // Not an end-lab scenario
+        $data->hasQuiz = $hasQuiz;  // Whether there are quiz questions (controls beforeunload warning)
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }

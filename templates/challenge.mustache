@@ -48,20 +48,19 @@ DM24-1175
 <div class="alert alert-warning">{{# str }} finalattempt, mod_topomojo {{/ str }}</div>
 {{/showWarning}}
 
+{{#hasQuiz}}
 <div class="alert alert-warning">{{#str}} responsesnotsaved, mod_topomojo {{/str}}</div>
+{{/hasQuiz}}
 
 {{#endlab}}
 <div class="alert alert-warning">{{# str }} endlabmessage, mod_topomojo {{/ str }}</div>
 {{/endlab}}
 
-<div>
-<h1>{{# str }} challengeinstructions, mod_topomojo {{/ str }}</h1>
-</div>
-<br>
 <div id="topomojo-markdown">
 {{{markdown}}}
 </div>
 
+{{#hasQuiz}}
 <script>
 let quizSubmitted = false;
 
@@ -76,4 +75,5 @@ window.addEventListener('beforeunload', function (e) {
     }
 });
 </script>
+{{/hasQuiz}}
 
