@@ -365,39 +365,58 @@ switch ($action) {
 
                             if (count($full_challenge->variants) > 0) {
                                 $is_random = ($object->topomojo->variant == 0);
+                                $variant_has_text = false;
 
-                                echo '<div class="card mb-3">';
+                                // Check if any variant has text before showing the card
                                 if ($is_random) {
-                                    echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong> (students see one variant based on random assignment)</div>';
-                                } else {
-                                    echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong></div>';
-                                }
-                                echo '<div class="card-body">';
-
-                                if ($is_random) {
-                                    // Show all variants for random mode
-                                    foreach ($full_challenge->variants as $idx => $variant) {
+                                    foreach ($full_challenge->variants as $variant) {
                                         if (!empty($variant->text)) {
-                                            $variant_num = $idx + 1;
-                                            echo '<div class="border-bottom pb-3 mb-3">';
-                                            echo '<h5 class="text-primary">Variant ' . $variant_num . '</h5>';
-                                            $renderer->render_challenge_instructions($variant->text, false);
-                                            echo '</div>';
-                                            $has_content = true;
+                                            $variant_has_text = true;
+                                            break;
                                         }
                                     }
                                 } else {
-                                    // Show only the configured variant
-                                    $variant_index = $object->topomojo->variant - 1; // Convert to 0-based
-                                    $configured_variant = $object->topomojo->variant;
+                                    $variant_index = $object->topomojo->variant - 1;
                                     if (isset($full_challenge->variants[$variant_index]) && !empty($full_challenge->variants[$variant_index]->text)) {
-                                        echo '<h5 class="text-primary">Variant ' . $configured_variant . '</h5>';
-                                        $renderer->render_challenge_instructions($full_challenge->variants[$variant_index]->text, false);
-                                        $has_content = true;
+                                        $variant_has_text = true;
                                     }
                                 }
 
-                                echo '</div></div>';
+                                // Only show card if there's variant text to display
+                                if ($variant_has_text) {
+                                    echo '<div class="card mb-3">';
+                                    if ($is_random) {
+                                        echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong> (students see one variant based on random assignment)</div>';
+                                    } else {
+                                        echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong></div>';
+                                    }
+                                    echo '<div class="card-body">';
+
+                                    if ($is_random) {
+                                        // Show all variants for random mode
+                                        foreach ($full_challenge->variants as $idx => $variant) {
+                                            if (!empty($variant->text)) {
+                                                $variant_num = $idx + 1;
+                                                echo '<div class="border-bottom pb-3 mb-3">';
+                                                echo '<h5 class="text-primary">Variant ' . $variant_num . '</h5>';
+                                                $renderer->render_challenge_instructions($variant->text, false);
+                                                echo '</div>';
+                                                $has_content = true;
+                                            }
+                                        }
+                                    } else {
+                                        // Show only the configured variant
+                                        $variant_index = $object->topomojo->variant - 1; // Convert to 0-based
+                                        $configured_variant = $object->topomojo->variant;
+                                        if (isset($full_challenge->variants[$variant_index]) && !empty($full_challenge->variants[$variant_index]->text)) {
+                                            echo '<h5 class="text-primary">Variant ' . $configured_variant . '</h5>';
+                                            $renderer->render_challenge_instructions($full_challenge->variants[$variant_index]->text, false);
+                                            $has_content = true;
+                                        }
+                                    }
+
+                                    echo '</div></div>';
+                                }
                             }
                         }
                     }
