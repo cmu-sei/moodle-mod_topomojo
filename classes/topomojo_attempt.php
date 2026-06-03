@@ -52,17 +52,17 @@ class topomojo_attempt {
 
     /** Constants for the status of the attempt */
 
-    /** @var int NOTSTARTED Indicates that the attempt has not started */
-    const NOTSTARTED = 0;
+    /** @var string NOTSTARTED Indicates that the attempt has not started */
+    const NOTSTARTED = 'notstarted';
 
-    /** @var int INPROGRESS Indicates that the attempt is currently in progress */
-    const INPROGRESS = 10;
+    /** @var string INPROGRESS Indicates that the attempt is currently in progress */
+    const INPROGRESS = 'inprogress';
 
-    /** @var int ABANDONED Indicates that the attempt has been abandoned */
-    const ABANDONED = 20;
+    /** @var string ABANDONED Indicates that the attempt has been abandoned */
+    const ABANDONED = 'abandoned';
 
-    /** @var int FINISHED Indicates that the attempt has finished */
-    const FINISHED = 30;
+    /** @var string FINISHED Indicates that the attempt has finished */
+    const FINISHED = 'finished';
 
     /** @var \stdClass The attempt record */
     protected $attempt;

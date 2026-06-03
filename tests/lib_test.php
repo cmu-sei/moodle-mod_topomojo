@@ -337,7 +337,7 @@ class lib_test extends \advanced_testcase {
         $attempt = new \stdClass();
         $attempt->topomojoid = $topomojo->id;
         $attempt->userid = $user->id;
-        $attempt->state = 30; // FINISHED
+        $attempt->state = \mod_topomojo\topomojo_attempt::FINISHED;
         $attempt->timestart = time();
         $attempt->timefinish = time();
         $attempt->timemodified = time();

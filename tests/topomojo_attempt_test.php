@@ -60,10 +60,10 @@ class topomojo_attempt_test extends \advanced_testcase {
      * Test attempt class constants.
      */
     public function test_attempt_constants() {
-        $this->assertEquals(0, topomojo_attempt::NOTSTARTED);
-        $this->assertEquals(10, topomojo_attempt::INPROGRESS);
-        $this->assertEquals(20, topomojo_attempt::ABANDONED);
-        $this->assertEquals(30, topomojo_attempt::FINISHED);
+        $this->assertEquals('notstarted', topomojo_attempt::NOTSTARTED);
+        $this->assertEquals('inprogress', topomojo_attempt::INPROGRESS);
+        $this->assertEquals('abandoned', topomojo_attempt::ABANDONED);
+        $this->assertEquals('finished', topomojo_attempt::FINISHED);
     }
 
     /**

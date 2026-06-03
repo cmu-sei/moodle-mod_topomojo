@@ -211,7 +211,7 @@ if (!$activeattempt) {
                 'topomojoid' => $topomojo->id,
                 'userid' => $USER->id,
                 'eventid' => $bulkdeployrow->gamespaceid,
-                'state' => 10 // INPROGRESS
+                'state' => \mod_topomojo\topomojo_attempt::INPROGRESS
             ]
         );
 
@@ -282,7 +282,7 @@ if ($challenge && isset($challenge->variants[$variant])) {
 $current_attempt_count = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
-    'state' => 30,
+    'state' => \mod_topomojo\topomojo_attempt::FINISHED,
     'preview' => 0
 ]);
 
@@ -418,7 +418,7 @@ if ($object->event) {
         $activeattempt = $object->init_attempt($ispreview);
     }
     // Check age and get new link, checking for 30 minute timeout of the url
-    if (($object->openAttempt->state == 10) &&
+    if (($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
         ((time() - $object->openAttempt->timemodified) > 3600)
     ) {
         debugging("getting new launchpointurl", DEBUG_DEVELOPER);
