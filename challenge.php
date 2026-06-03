@@ -267,26 +267,42 @@ switch ($action) {
 
                     $endlab = $object->topomojo->endlab;
 
-                    if ($challenge->text) {
+                    // Get the full challenge structure to access variant text
+                    $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+                    $deployed_variant = $object->event->variant ?? null;
+
+                    $combined_text = $challenge->text ?? '';
+
+                    // Append variant-specific text if available
+                    if ($full_challenge && $deployed_variant !== null && isset($full_challenge->variants[$deployed_variant]->text)) {
+                        $variant_text = $full_challenge->variants[$deployed_variant]->text;
+                        if (!empty($variant_text)) {
+                            $combined_text .= "\n\n" . $variant_text;
+                            debugging("Appended variant $deployed_variant text (" . strlen($variant_text) . " chars)", DEBUG_DEVELOPER);
+                        }
+                    }
+
+                    if ($combined_text) {
+                        debugging("Combined text length: " . strlen($combined_text) . " chars", DEBUG_DEVELOPER);
                         if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
                             // Normal instruction when attempts are not maxed out, no end lab
-                            $renderer->render_challenge_instructions($challenge->text);
+                            $renderer->render_challenge_instructions($combined_text);
                         } elseif ($current_attempt_count == $max_attempts && $max_attempts != 0) {
                             // Conditions when attempts are maxed out
                             if ($endlab == 1) {
                                 // Show end lab warning if the lab is ending
-                                $renderer->render_challenge_instructions_warning_endlab($challenge->text);
+                                $renderer->render_challenge_instructions_warning_endlab($combined_text);
                             } else {
                                 // Show warning if max attempts are reached, lab not ending
-                                $renderer->render_challenge_instructions_warning($challenge->text);
+                                $renderer->render_challenge_instructions_warning($combined_text);
                             }
                         } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($challenge->text);
+                            $renderer->render_challenge_instructions_endlab($combined_text);
                         } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($challenge->text);
+                            $renderer->render_challenge_instructions_endlab($combined_text);
                         } else {
                             // Default: show instructions without special formatting (unlimited attempts, no endlab)
-                            $renderer->render_challenge_instructions($challenge->text);
+                            $renderer->render_challenge_instructions($combined_text);
                         }
                     } else {
                         // No challenge text; handle general warnings based on attempts and endlab
@@ -312,7 +328,39 @@ switch ($action) {
                 echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
             }
         } else {
-            $renderer->render_no_challenge();
+            // No active attempt - only show preview for instructors
+            if (has_capability('mod/topomojo:manage', $context)) {
+                // Instructor preview mode
+                try {
+                    // Get challenge and all variant texts
+                    $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+
+                    if ($full_challenge && !empty($full_challenge->text)) {
+                        $preview_text = "**Instructor Preview** (Students will see this after launching the lab)\n\n";
+                        $preview_text .= $full_challenge->text;
+
+                        // Show all variants for instructor reference
+                        if (isset($full_challenge->variants) && count($full_challenge->variants) > 0) {
+                            $preview_text .= "\n\n---\n\n**Variant-Specific Text** (Students see one based on random/configured assignment):\n";
+                            foreach ($full_challenge->variants as $idx => $variant) {
+                                if (!empty($variant->text)) {
+                                    $variant_num = $idx + 1;
+                                    $preview_text .= "\n\n**Variant $variant_num:**\n\n" . $variant->text;
+                                }
+                            }
+                        }
+
+                        $renderer->render_challenge_instructions($preview_text);
+                    } else {
+                        $renderer->render_no_challenge();
+                    }
+                } catch (Exception $e) {
+                    debugging("Failed to fetch challenge preview: " . $e->getMessage(), DEBUG_DEVELOPER);
+                    $renderer->render_no_challenge();
+                }
+            } else {
+                $renderer->render_no_challenge();
+            }
         }
 }
 // Attempts may differ from events pulled from history on server
