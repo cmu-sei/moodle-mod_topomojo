@@ -488,4 +488,4 @@ $string['randomvariantinfo'] = 'Random variant mode: Questions from all variants
 $string['cannotaddvariantquestionrandom'] = 'Cannot add variant-specific questions in random variant mode. Only manually created questions (True/False, etc.) can be added.';
 $string['questionsnotimported_teacher'] = 'Questions have not been imported yet. <a href="{$a}">Visit the Questions page</a> or update activity settings to trigger import.';
 $string['questionsnotimported_student'] = 'This activity is not ready yet. Please contact your instructor.';
-$string['nochallengequestions'] = 'This activity has no graded questions.';
+$string['nochallengequestions'] = 'This activity has no graded questions. Review questions on the Questions page.';
