@@ -370,6 +370,53 @@ switch ($action) {
                     }
             }
 
+            // Display submission feedback if returning after a submission
+            $showfeedback = optional_param('showfeedback', 0, PARAM_INT);
+            if ($showfeedback && $object->openAttempt) {
+                $submission_count = count_attempt_submissions($object->openAttempt);
+                $max_submissions = (int)$object->topomojo->submissions;
+                $current_score = $object->openAttempt->score;
+                $max_score = (int)$object->topomojo->grade;
+
+                // Display submission counter
+                echo html_writer::start_div('alert alert-info mt-3');
+                if ($max_submissions > 0) {
+                    // Show X of Y
+                    echo html_writer::tag('h4', get_string('submission_feedback_header', 'topomojo'));
+                    echo html_writer::tag('p', get_string('submission_count', 'topomojo',
+                        ['current' => $submission_count, 'max' => $max_submissions]));
+
+                    // Show remaining submissions
+                    $remaining = $max_submissions - $submission_count;
+                    if ($remaining > 0) {
+                        echo html_writer::tag('p', get_string('submissions_remaining', 'topomojo', $remaining));
+                    }
+
+                    // Warn if on final submission
+                    if ($remaining == 1) {
+                        echo html_writer::div(
+                            get_string('final_submission_warning', 'topomojo',
+                                ['current' => $submission_count + 1, 'max' => $max_submissions]),
+                            'alert alert-warning mt-2'
+                        );
+                    }
+                } else {
+                    // Unlimited submissions
+                    echo html_writer::tag('h4', get_string('submission_feedback_header', 'topomojo'));
+                    echo html_writer::tag('p', get_string('submission_count_unlimited', 'topomojo',
+                        ['current' => $submission_count]));
+                }
+
+                // Show current score if grading is enabled
+                if ($max_score > 0) {
+                    echo html_writer::tag('p', get_string('submission_graded', 'topomojo',
+                        ['score' => round($current_score, 2), 'maxscore' => $max_score]),
+                        'font-weight-bold');
+                }
+
+                echo html_writer::end_div();
+            }
+
             // Render quiz if questions exist
             if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
