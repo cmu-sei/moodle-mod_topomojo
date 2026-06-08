@@ -1469,6 +1469,59 @@ class mod_topomojo_display_options extends question_display_options
 }
 
 /**
+ * Count the number of challenge submissions for a given attempt.
+ *
+ * This function examines the question attempt steps to determine how many times
+ * the student has submitted their answers for grading. It looks at the quba
+ * (question usage by activity) to count submission actions across all questions.
+ *
+ * @param \mod_topomojo\topomojo_attempt $attempt The attempt object
+ * @return int The number of times answers have been submitted for grading
+ */
+function count_attempt_submissions($attempt) {
+    if (!$attempt || !$attempt->get_quba()) {
+        return 0;
+    }
+
+    $quba = $attempt->get_quba();
+    $slots = $attempt->getSlots();
+
+    if (empty($slots)) {
+        return 0;
+    }
+
+    // Count finish/submit actions in the quba
+    // Each submission creates a 'finish' step across all questions
+    $max_submits = 0;
+
+    foreach ($slots as $slot) {
+        try {
+            $qa = $quba->get_question_attempt($slot);
+            $steps = $qa->get_step_count();
+
+            // Count steps that represent submissions (finish actions)
+            $submit_count = 0;
+            for ($i = 0; $i < $steps; $i++) {
+                $step = $qa->get_step($i);
+                if ($step->has_behaviour_var('finish')) {
+                    $submit_count++;
+                }
+            }
+
+            if ($submit_count > $max_submits) {
+                $max_submits = $submit_count;
+            }
+        } catch (Exception $e) {
+            debugging("Error counting submissions for slot $slot: " . $e->getMessage(), DEBUG_DEVELOPER);
+            continue;
+        }
+    }
+
+    // Return at least 1 if questions have been answered
+    return max(1, $max_submits);
+}
+
+/**
  * Validates that a TopoMojo workspace exists in the TopoMojo API.
  *
  * This function is called during course restore to verify that the workspace ID

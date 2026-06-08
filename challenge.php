@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
-    debugging("stop request received", DEBUG_DEVELOPER);
+    debugging("stop request received - challenge submission", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
             if (!$activeattempt) {
@@ -206,21 +206,51 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
                 throw new moodle_exception('no attempt to close');
             }
 
+            // Save and grade the submission
             $object->openAttempt->save_question();
-            $object->openAttempt->close_attempt();
             $grader = new \mod_topomojo\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
 
-            if ($object->topomojo->endlab) {
-                stop_event($object->userauth, $object->event->id);
-                topomojo_end($cm, $context, $topomojo);
+            // Count how many times this attempt has been submitted
+            $submission_count = count_attempt_submissions($object->openAttempt);
+            $max_submissions = (int)$object->topomojo->submissions;
+
+            debugging("Submission $submission_count of $max_submissions (0=unlimited)", DEBUG_DEVELOPER);
+
+            // Determine if we should close the attempt
+            $should_close_attempt = false;
+            if ($max_submissions > 0 && $submission_count >= $max_submissions) {
+                // Reached submission limit - close the attempt
+                $should_close_attempt = true;
+                debugging("Max submissions reached - closing attempt", DEBUG_DEVELOPER);
             }
 
-            $viewattempturl = new moodle_url(
-                '/mod/topomojo/viewattempt.php',
-                ['a' => $object->openAttempt->id, 'action' => 'view']
-            );
-            redirect($viewattempturl);
+            if ($should_close_attempt) {
+                // Close the attempt
+                $object->openAttempt->close_attempt();
+
+                // Only destroy gamespace if endlab checkbox is enabled
+                if ($object->topomojo->endlab) {
+                    debugging("endlab=1, destroying gamespace", DEBUG_DEVELOPER);
+                    stop_event($object->userauth, $object->event->id);
+                    topomojo_end($cm, $context, $topomojo);
+                }
+
+                // Redirect to review page (final)
+                $viewattempturl = new moodle_url(
+                    '/mod/topomojo/viewattempt.php',
+                    ['a' => $object->openAttempt->id, 'action' => 'view']
+                );
+                redirect($viewattempturl);
+            } else {
+                // Keep attempt open - redirect back to challenge page with feedback
+                debugging("Keeping attempt open for more submissions", DEBUG_DEVELOPER);
+                $feedbackurl = new moodle_url(
+                    '/mod/topomojo/challenge.php',
+                    ['id' => $cm->id, 'showfeedback' => 1]
+                );
+                redirect($feedbackurl);
+            }
         }
     }
 }
@@ -265,7 +295,7 @@ switch ($action) {
                     throw new moodle_exception('no active attempt');
                 }
 
-                // Save answers without closing attempt
+                // This is the auto-save action, just save without grading
                 $object->openAttempt->save_question();
 
                 // Reload the page

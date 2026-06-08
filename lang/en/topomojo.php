@@ -496,3 +496,15 @@ $string['attempt_orphaned'] = 'Your attempt record exists but the lab environmen
 $string['conflicting_gamespace_title'] = 'Active lab in another activity';
 $string['conflicting_gamespace'] = 'You have an active lab session in <strong>{$a->activityname}</strong> which shares the same workspace. You must end that lab before starting this one.';
 $string['conflicting_gamespace_link'] = 'Go to {$a->activityname}';
+
+// Multi-submission feedback strings
+$string['submission_count'] = 'Submission {$a->current} of {$a->max}';
+$string['submission_count_unlimited'] = 'Submission {$a->current} (unlimited)';
+$string['submissions_remaining'] = 'You have {$a} submission(s) remaining.';
+$string['submission_graded'] = 'Submission graded: {$a->score}/{$a->maxscore}';
+$string['previous_score'] = 'Previous: {$a}';
+$string['score_improved'] = 'Score improved by {$a} points!';
+$string['score_decreased'] = 'Score decreased by {$a} points.';
+$string['final_submission_warning'] = 'Warning: This is your final submission ({$a->current} of {$a->max})';
+$string['continue_working'] = 'Continue Working';
+$string['submission_feedback_header'] = 'Submission Results';
