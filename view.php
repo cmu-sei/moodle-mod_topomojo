@@ -232,6 +232,47 @@ if (!$activeattempt) {
             $has_predeployed = true;
         }
     }
+
+    // If still no active attempt, check for recent FINISHED attempt with running gamespace
+    // This allows students to continue exploring the lab after exhausting submissions (when endlab=0)
+    if (!$activeattempt && !$has_predeployed) {
+        $recentfinished = $DB->get_record_sql(
+            "SELECT * FROM {topomojo_attempts}
+             WHERE topomojoid = :topomojoid
+             AND userid = :userid
+             AND state = :state
+             AND preview = :preview
+             ORDER BY timefinish DESC
+             LIMIT 1",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $USER->id,
+                'state' => \mod_topomojo\topomojo_attempt::FINISHED,
+                'preview' => $ispreview
+            ]
+        );
+
+        if ($recentfinished && $recentfinished->eventid) {
+            debugging("Found FINISHED attempt {$recentfinished->id} with eventid {$recentfinished->eventid}", DEBUG_DEVELOPER);
+            // Check if gamespace still exists and is active
+            try {
+                $event = get_event($object->userauth, $recentfinished->eventid);
+                if ($event && $event->isActive) {
+                    debugging("Gamespace still active - allowing access for exploration", DEBUG_DEVELOPER);
+                    // Load the gamespace for read-only/exploration access
+                    $object->event = $event;
+                    // Load the finished attempt (but don't treat it as "active" for submission purposes)
+                    $object->openAttempt = new topomojo_attempt();
+                    $object->openAttempt->load_from_record($recentfinished);
+                    // Set a flag to indicate this is read-only exploration mode
+                    $object->exploration_mode = true;
+                }
+            } catch (\Exception $e) {
+                // Gamespace is gone, that's fine - student can start a new attempt
+                debugging("FINISHED attempt's gamespace not found: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+    }
 }
 
 $max_attempts = $topomojo->attempts;
@@ -411,15 +452,27 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
-            if (!$activeattempt) {
+            // Allow ending lab in exploration mode (FINISHED attempt with running gamespace)
+            $in_exploration_mode = isset($object->exploration_mode) && $object->exploration_mode;
+
+            if (!$activeattempt && !$in_exploration_mode) {
                 debugging('no attempt to close', DEBUG_DEVELOPER);
                 throw new moodle_exception('no attempt to close');
             }
-            debugging("but no live event for " . $object->openAttempt->id, DEBUG_DEVELOPER);
-            if ($object->openAttempt->questionusageid) {
+
+            debugging("Ending lab for attempt " . $object->openAttempt->id, DEBUG_DEVELOPER);
+
+            // Save any pending answers (only if attempt is still INPROGRESS)
+            if ($activeattempt && $object->openAttempt->questionusageid) {
                 $object->openAttempt->save_question();
             }
-            $object->openAttempt->close_attempt();
+
+            // Close attempt if still open
+            if ($activeattempt) {
+                $object->openAttempt->close_attempt();
+            }
+
+            // Destroy the gamespace
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
 
@@ -430,6 +483,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 }
 
 if ($object->event) {
+    // Show notification if in exploration mode (finished attempt with running gamespace)
+    if (isset($object->exploration_mode) && $object->exploration_mode) {
+        echo $OUTPUT->notification(
+            get_string('exploration_mode_notice', 'mod_topomojo'),
+            \core\output\notification::NOTIFY_INFO
+        );
+    }
+
     if (($object->event->isActive) && (!$activeattempt)) {
         debugging("active event with no attempt", DEBUG_DEVELOPER);
         $activeattempt = $object->init_attempt($ispreview);
