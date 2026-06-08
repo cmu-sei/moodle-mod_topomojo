@@ -411,7 +411,7 @@ switch ($action) {
                 if ($max_score > 0) {
                     echo html_writer::tag('p', get_string('submission_graded', 'topomojo',
                         ['score' => round($current_score, 2), 'maxscore' => $max_score]),
-                        'font-weight-bold');
+                        ['class' => 'font-weight-bold']);
                 }
 
                 echo html_writer::end_div();
