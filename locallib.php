@@ -1479,6 +1479,8 @@ class mod_topomojo_display_options extends question_display_options
  * @return int The number of times answers have been submitted for grading
  */
 function count_attempt_submissions($attempt) {
+    global $DB;
+
     if (!$attempt || !$attempt->get_quba()) {
         return 0;
     }
@@ -1490,23 +1492,24 @@ function count_attempt_submissions($attempt) {
         return 0;
     }
 
-    // Count finish/submit actions in the quba
-    // Each submission creates a 'finish' step across all questions
+    // Count finish/submit actions by checking question_attempt_steps table
+    // Each submission creates steps with behaviour='finish' across all questions
     $max_submits = 0;
 
     foreach ($slots as $slot) {
         try {
             $qa = $quba->get_question_attempt($slot);
-            $steps = $qa->get_step_count();
+            $questionattemptid = $qa->get_database_id();
 
-            // Count steps that represent submissions (finish actions)
-            $submit_count = 0;
-            for ($i = 0; $i < $steps; $i++) {
-                $step = $qa->get_step($i);
-                if ($step->has_behaviour_var('finish')) {
-                    $submit_count++;
-                }
-            }
+            // Count steps where behaviour var 'finish' is set
+            $sql = "SELECT COUNT(DISTINCT sequencenumber)
+                    FROM {question_attempt_step_data} qasd
+                    JOIN {question_attempt_steps} qas ON qas.id = qasd.attemptstepid
+                    WHERE qas.questionattemptid = :qaid
+                    AND qasd.name = '-finish'
+                    AND qasd.value = '1'";
+
+            $submit_count = $DB->count_records_sql($sql, ['qaid' => $questionattemptid]);
 
             if ($submit_count > $max_submits) {
                 $max_submits = $submit_count;
