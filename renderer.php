@@ -409,8 +409,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param bool $showdetail Whether to include workspace details in the table.
      * @return void
      */
-    public function display_attempts($attempts, $showgrade, $showuser = false, $showdetail = false) {
-        global $DB;
+    public function display_attempts($attempts, $showgrade, $showuser = false, $showdetail = false, $showdelete = false, $cmid = null) {
+        global $DB, $PAGE;
         $data = new stdClass();
         $data->tableheaders = new stdClass();
         $data->tabledata = [];
@@ -423,6 +423,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         if ($showdetail) {
             $data->tableheaders->name = get_string('workspace', 'mod_topomojo');
         }
+        $data->tableheaders->state = get_string('state', 'mod_topomojo');
         $data->tableheaders->timestart = get_string('timestart', 'mod_topomojo');
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
 
@@ -430,6 +431,10 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $show_any_score = $showgrade && !empty(array_filter($attempts, function($attempt) { return $attempt->questionusageid != 268; }));
         if ($show_any_score) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
+        }
+
+        if ($showdelete) {
+            $data->tableheaders->actions = get_string('actions', 'mod_topomojo');
         }
 
         if ($attempts) {
@@ -446,6 +451,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $rowdata->name = $topomojo->name;
                     $rowdata->moduleurl = new moodle_url('/mod/topomojo/view.php', ["c" => $topomojo->id]);
                 }
+                $rowdata->state = ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) ? get_string('finished', 'mod_topomojo') : get_string('inprogress', 'mod_topomojo');
                 $rowdata->timestart = userdate($attempt->timestart);
                 $rowdata->timefinish = ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) ? userdate($attempt->timefinish) : null;
 
@@ -455,6 +461,19 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $rowdata->attempturl = $attempt->score !== null ? new moodle_url('/mod/topomojo/viewattempt.php', ["a" => $attempt->id]) : null;
                 } else {
                     $rowdata->score = "-"; // Hide the score for specific questionusageid
+                }
+
+                if ($showdelete) {
+                    // Use $cmid parameter if pageurl is not available
+                    $id = $cmid ?? ($this->pageurl ? $this->pageurl->get_param('id') : null);
+                    if ($id) {
+                        $rowdata->deleteurl = new moodle_url('/mod/topomojo/review.php', [
+                            'id' => $id,
+                            'delete' => $attempt->id,
+                            'sesskey' => sesskey()
+                        ]);
+                        $rowdata->attemptid = $attempt->id;
+                    }
                 }
 
                 $data->tabledata[] = $rowdata;
@@ -519,10 +538,10 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         //$output .= html_writer::end_div();
 
         $output .= html_writer::start_div('', ['id' => 'topomojoview']);
-        // Start the form.
+        // Start the form - post to challenge.php with action=submitquiz for Check button handling
         $output .= html_writer::start_tag('form',
                 ['action' => new moodle_url($pageurl,
-                ['id' => $cmid]), 'method' => 'post',
+                ['id' => $cmid, 'action' => 'submitquiz']), 'method' => 'post',
                 'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
                 ]);
         /*
@@ -556,12 +575,16 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'slots',
         'value' => implode(',', $attempt->getSlots())]);
 
-        $endurl = new moodle_url('/mod/topomojo/view.php', $params);
-        //$output .= $this->output->single_button($endurl, 'Submit Quiz', 'get');
-        $output .= $this->output->single_button($endurl, 'Submit Quiz');
-
-        // Finish the form.
+        // Finish the question form (Check buttons are inside this form)
         $output .= html_writer::end_tag('div');
+        $output .= html_writer::end_tag('form');
+
+        // Submit Quiz button in a separate form (so Check buttons don't trigger it)
+        // Posts to challenge.php with finishattempt action to close the attempt
+        $finishurl = new moodle_url('/mod/topomojo/challenge.php', array_merge($params, ['action' => 'finishattempt']));
+        $output .= html_writer::start_tag('form', ['method' => 'post', 'action' => $finishurl]);
+        $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+        $output .= html_writer::empty_tag('input', ['type' => 'submit', 'value' => 'Submit Quiz', 'class' => 'btn btn-primary mt-3']);
         $output .= html_writer::end_tag('form');
 
         $output .= html_writer::end_div();

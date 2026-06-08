@@ -420,9 +420,31 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
         $mform->addHelpButton('endlab', 'endlab', 'topomojo');
 
-        // Number of challenge submissions.
-        // TODO this is affected by the endlab option
-        // if endlab is true, set submissions to 1 and disable
+        // Shuffle within questions.
+        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
+        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'topomojo');
+        $mform->setAdvanced('shuffleanswers', '');
+        $mform->setDefault('shuffleanswers', '');
+
+        // How questions behave (question behaviour).
+        // Note: mojomatch questions use qbehaviour_mojomatch (supports deferred and interactive modes).
+        // This setting applies to any standard Moodle question types mixed into the activity.
+        if (!empty($this->current->preferredbehaviour)) {
+            $currentbehaviour = $this->current->preferredbehaviour;
+        } else {
+            $currentbehaviour = 'deferredfeedback';
+        }
+        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+
+        $mform->addElement(
+            'select',
+            'preferredbehaviour',
+            get_string('howquestionsbehave', 'question'),
+            $behaviours
+        );
+        $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
+
+        // Tries per question (only relevant for interactive mode with multiple tries)
         $submissionoptions = ['0' => get_string('unlimited')];
         for ($i = 1; $i <= $maxattempts; $i++) {
             $submissionoptions[$i] = $i;
@@ -435,37 +457,12 @@ class mod_topomojo_mod_form extends moodleform_mod
             $submissionoptions
         );
         $mform->addHelpButton('submissions', 'submissionsallowed', 'topomojo');
-        $mform->disabledIf('submissions', 'endlab', 'checked');
 
-        // Shuffle within questions.
-        $mform->addElement('selectyesno', 'shuffleanswers', get_string('shufflewithin', 'topomojo'));
-        $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'topomojo');
-        $mform->setAdvanced('shuffleanswers', '');
-        $mform->setDefault('shuffleanswers', '');
-
-        // TODO if we have mutiple tries, should this be set to interactive with multiple tries?
-        // How questions behave (question behaviour).
-        if (!empty($this->current->preferredbehaviour)) {
-            $currentbehaviour = $this->current->preferredbehaviour;
-        } else {
-            $currentbehaviour = 'deferredfeedback';
-        }
-        $behaviours = question_engine::get_behaviour_options($currentbehaviour);
-        // Filter to keep only 'deferredfeedback' behavior in the options.
-        $filteredbehaviours = array_filter($behaviours, function ($behaviour) {
-            return $behaviour == 'deferredfeedback';
-        });
-
-        // Replace the behaviors with only deferredfeedback.
-        $behaviours = !empty($filteredbehaviours) ? $filteredbehaviours : ['deferredfeedback' => 'Deferred feedback'];
-
-        $mform->addElement(
-            'select',
-            'preferredbehaviour',
-            get_string('howquestionsbehave', 'question'),
-            $behaviours
-        );
-        $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
+        // Disable submissions field unless an interactive behavior is selected
+        // Enable for: interactive, immediatefeedback, immediatecbm, interactivecountback, mojomatch
+        $mform->hideIf('submissions', 'preferredbehaviour', 'eq', 'deferredfeedback');
+        $mform->hideIf('submissions', 'preferredbehaviour', 'eq', 'manualgraded');
+        $mform->hideIf('submissions', 'preferredbehaviour', 'eq', 'informationitem');
 
         // -------------------------------------------------------------------------------
         $mform->addElement(

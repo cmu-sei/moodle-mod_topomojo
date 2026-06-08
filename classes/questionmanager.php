@@ -1197,21 +1197,34 @@ class questionmanager {
                         if ($form->defaultmark == 0) {
                             $form->defaultmark = 1;
                         }
+                        // Read penalty from TopoMojo challenge JSON (default 0.1 = 10%)
+                        $form->penalty = isset($question->penalty) && is_numeric($question->penalty)
+                            ? (float)$question->penalty
+                            : 0.1;
                         $form->usecase = '0'; // Case sensitive, topomojo does tolower() on responses
                         $form->answer = [$question->answer];
                         $form->fraction = ['1'];
-                        $form->feedback[0] = ['text' => '', 'format' => '1'];
+
+                        // Use hint from TopoMojo challenge as feedback (shown after wrong answer)
+                        $feedback_text = '';
+                        if (!empty($question->hint)) {
+                            $feedback_text = $question->hint;
+                        }
+
+                        // Special case: if answer has transforms (##..##), add note to feedback
+                        if (preg_match('/##.*##/', $question->answer)) {
+                            $form->transforms = 1;
+                            $runtime_note = 'This answer is randomly generated at runtime.';
+                            $feedback_text = !empty($feedback_text)
+                                ? $feedback_text . "\n\n" . $runtime_note
+                                : $runtime_note;
+                        }
+
+                        $form->feedback[0] = ['text' => $feedback_text, 'format' => '1'];
                         $form->variant = $variant + 1; // Convert 0-based index to 1-based for storage
                         $form->workspaceid = $object->topomojo->workspaceid;
                         $form->transforms = 0;
                         $form->qorder = $questionnumber;
-
-                        // TODO check for hint and add as feedback
-
-                        if (preg_match('/##.*##/', $question->answer)) {
-                            $form->transforms = 1;
-                            $form->feedback[0] = ['text' => 'This answer is randomly generated at runtime.', 'format' => '1'];
-                        }
 
                         $saq->save_defaults_for_new_questions($form);
                         $newq = $saq->save_question($q, $form);

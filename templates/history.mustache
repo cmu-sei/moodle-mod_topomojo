@@ -46,7 +46,7 @@ DM24-1175
 }}
 
 <div class = "table-responsive">
-    <table class = "table table-striped">
+    <table class = "table table-striped table-sortable" id="topomojo-attempts-table">
         {{! Using a get_string helper }}
         <caption>
             {{# str }} historycaption, mod_topomojo {{/ str }}
@@ -54,22 +54,28 @@ DM24-1175
         <thead>
             {{#tableheaders}}
                     {{#username}}
-                        <th>{{username}}</th>
+                        <th class="sortable">{{username}}</th>
                     {{/username}}
                     {{#eventguid}}
-                        <th>{{eventguid}}</th>
+                        <th class="sortable">{{eventguid}}</th>
                     {{/eventguid}}
                     {{#variant}}
-                        <th>{{variant}}</th>
+                        <th class="sortable">{{variant}}</th>
                     {{/variant}}
                     {{#name}}
-                        <th>{{name}}</th>
+                        <th class="sortable">{{name}}</th>
                     {{/name}}
-                    <th>{{timestart}}</th>
-                    <th>{{timefinish}}</th>
+                    {{#state}}
+                        <th class="sortable">{{state}}</th>
+                    {{/state}}
+                    <th class="sortable">{{timestart}}</th>
+                    <th class="sortable">{{timefinish}}</th>
                     {{#score}}
-                        <th>{{score}}</th>
+                        <th class="sortable">{{score}}</th>
                     {{/score}}
+                    {{#actions}}
+                        <th>{{actions}}</th>
+                    {{/actions}}
             {{/tableheaders}}
         </thead>
         <tbody>
@@ -87,6 +93,9 @@ DM24-1175
                     {{#moduleurl}}
                         <td><a href="{{moduleurl}}">{{name}}</a></td>
                     {{/moduleurl}}
+                    {{#state}}
+                        <td>{{state}}</td>
+                    {{/state}}
                     <td>{{timestart}}</td>
                     <td>{{timefinish}}</td>
                     {{#attempturl}}
@@ -95,6 +104,13 @@ DM24-1175
                     {{^attempturl}}
                         <td>{{score}}</td>
                     {{/attempturl}}
+                    {{#deleteurl}}
+                        <td>
+                            <a href="{{deleteurl}}" class="delete-attempt-btn" data-attemptid="{{attemptid}}" title="{{#str}}delete{{/str}}">
+                                {{#pix}}t/delete, core, {{#str}}delete{{/str}}{{/pix}}
+                            </a>
+                        </td>
+                    {{/deleteurl}}
                 </tr>
             {{/tabledata}}
         </tbody>

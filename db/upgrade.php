@@ -637,5 +637,33 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2026060200, 'topomojo');
     }
 
+    if ($oldversion < 2026060802) {
+        // Define field submission_count to be added to topomojo_attempts.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('submission_count', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'preview');
+
+        // Conditionally launch add field submission_count.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // TopoMojo savepoint reached.
+        upgrade_mod_savepoint(true, 2026060802, 'topomojo');
+    }
+
+    if ($oldversion < 2026060807) {
+        // Remove submission_count field - replaced by behavior's built-in try tracking.
+        $table = new xmldb_table('topomojo_attempts');
+        $field = new xmldb_field('submission_count');
+
+        // Conditionally drop field submission_count.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // TopoMojo savepoint reached.
+        upgrade_mod_savepoint(true, 2026060807, 'topomojo');
+    }
+
     return true;
 }

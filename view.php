@@ -261,9 +261,12 @@ if (!$activeattempt) {
                     debugging("Gamespace still active - allowing access for exploration", DEBUG_DEVELOPER);
                     // Load the gamespace for read-only/exploration access
                     $object->event = $event;
-                    // Load the finished attempt (but don't treat it as "active" for submission purposes)
-                    $object->openAttempt = new topomojo_attempt();
-                    $object->openAttempt->load_from_record($recentfinished);
+                    // Load the finished attempt for exploration mode
+                    $object->openAttempt = new \mod_topomojo\topomojo_attempt(
+                        $object->get_question_manager(),
+                        $recentfinished,
+                        $context
+                    );
                     // Set a flag to indicate this is read-only exploration mode
                     $object->exploration_mode = true;
                 }
@@ -491,7 +494,8 @@ if ($object->event) {
         );
     }
 
-    if (($object->event->isActive) && (!$activeattempt)) {
+    // Only create a new attempt if we're not in exploration mode
+    if (($object->event->isActive) && (!$activeattempt) && empty($object->exploration_mode)) {
         debugging("active event with no attempt", DEBUG_DEVELOPER);
         $activeattempt = $object->init_attempt($ispreview);
     }

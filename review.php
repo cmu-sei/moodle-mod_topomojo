@@ -99,19 +99,36 @@ if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->
     \core\notification::success(get_string('attemptsdeleted', 'mod_topomojo'));
 }
 
+if (optional_param('delete', 0, PARAM_INT) && confirm_sesskey() && $object->is_instructor()) {
+    $attemptid = required_param('delete', PARAM_INT);
+    topomojo_delete_attempt($attemptid);
+    \core\notification::success(get_string('attemptdeleted', 'mod_topomojo'));
+}
+
 if ($object->is_instructor()) {
-    $attempts = $object->getall_attempts('closed', $review = true);
-    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+    // Show both in-progress and closed attempts to teachers
+    $attempts = $object->getall_attempts('all', $review = true);
+    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true, $showdetail = false, $showdelete = true, $cmid = $cm->id);
+
+    // Initialize sortable table
+    $PAGE->requires->js_call_amd('mod_topomojo/table_sort', 'init', ['topomojo-attempts-table']);
 
     // Only show delete button if there are attempts to delete
     if (!empty($attempts)) {
         $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
 
-        // Initialize the confirmation modal
+        // Initialize the confirmation modal for "Delete All"
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-all-attempts-btn',
             get_string('deleteall', 'mod_topomojo'),
             get_string('deleteallattempts_confirm', 'mod_topomojo')
+        ]);
+
+        // Initialize confirmation for individual delete buttons
+        $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
+            '.delete-attempt-btn',
+            get_string('delete', 'core'),
+            get_string('deleteattempt_confirm', 'mod_topomojo')
         ]);
 
         $deletebutton = $OUTPUT->single_button(

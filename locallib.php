@@ -944,7 +944,8 @@ function get_event($client, $id)
         return $r;
     } else {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        throw new moodle_exception($r->detail);
+        $error_detail = isset($r->detail) ? $r->detail : "HTTP {$client->info['http_code']} error for gamespace $id";
+        throw new moodle_exception($error_detail);
     }
     return;
 }
@@ -1431,10 +1432,12 @@ class mod_topomojo_display_options extends question_display_options
         $options->manualcomment = $options->feedback;
         //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
 
-        if ($topomojo->questiondecimalpoints != -1) {
+        if (isset($topomojo->questiondecimalpoints) && $topomojo->questiondecimalpoints != -1) {
             $options->markdp = $topomojo->questiondecimalpoints;
-        } else {
+        } elseif (isset($topomojo->decimalpoints)) {
             $options->markdp = $topomojo->decimalpoints;
+        } else {
+            $options->markdp = 2; // Default to 2 decimal places
         }
 
         return $options;
@@ -1471,59 +1474,12 @@ class mod_topomojo_display_options extends question_display_options
 /**
  * Count the number of challenge submissions for a given attempt.
  *
- * This function examines the question attempt steps to determine how many times
- * the student has submitted their answers for grading. It looks at the quba
- * (question usage by activity) to count submission actions across all questions.
+ * Returns the value stored in the attempt's submission_count field.
+ * This field is incremented each time the student submits answers for grading.
  *
  * @param \mod_topomojo\topomojo_attempt $attempt The attempt object
  * @return int The number of times answers have been submitted for grading
  */
-function count_attempt_submissions($attempt) {
-    global $DB;
-
-    if (!$attempt || !$attempt->get_quba()) {
-        return 0;
-    }
-
-    $quba = $attempt->get_quba();
-    $slots = $attempt->getSlots();
-
-    if (empty($slots)) {
-        return 0;
-    }
-
-    // Count finish/submit actions by checking question_attempt_steps table
-    // Each submission creates steps with behaviour='finish' across all questions
-    $max_submits = 0;
-
-    foreach ($slots as $slot) {
-        try {
-            $qa = $quba->get_question_attempt($slot);
-            $questionattemptid = $qa->get_database_id();
-
-            // Count steps where behaviour var 'finish' is set
-            $sql = "SELECT COUNT(DISTINCT sequencenumber)
-                    FROM {question_attempt_step_data} qasd
-                    JOIN {question_attempt_steps} qas ON qas.id = qasd.attemptstepid
-                    WHERE qas.questionattemptid = :qaid
-                    AND qasd.name = '-finish'
-                    AND qasd.value = '1'";
-
-            $submit_count = $DB->count_records_sql($sql, ['qaid' => $questionattemptid]);
-
-            if ($submit_count > $max_submits) {
-                $max_submits = $submit_count;
-            }
-        } catch (Exception $e) {
-            debugging("Error counting submissions for slot $slot: " . $e->getMessage(), DEBUG_DEVELOPER);
-            continue;
-        }
-    }
-
-    // Return at least 1 if questions have been answered
-    return max(1, $max_submits);
-}
-
 /**
  * Validates that a TopoMojo workspace exists in the TopoMojo API.
  *

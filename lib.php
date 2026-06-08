@@ -372,6 +372,32 @@ function topomojo_delete_all_attempts($topomojo) {
 }
 
 /**
+ * Delete a single attempt by ID.
+ *
+ * @param int $attemptid The attempt ID to delete
+ * @return void
+ */
+function topomojo_delete_attempt($attemptid) {
+    global $DB;
+
+    $attempt = $DB->get_record('topomojo_attempts', ['id' => $attemptid], '*', MUST_EXIST);
+
+    // Delete the question usage
+    if ($attempt->questionusageid) {
+        question_engine::delete_questions_usage_by_activity($attempt->questionusageid);
+    }
+
+    // Delete the attempt record
+    $DB->delete_records('topomojo_attempts', ['id' => $attemptid]);
+
+    // Recalculate grades for this user
+    $topomojo = $DB->get_record('topomojo', ['id' => $attempt->topomojoid]);
+    if ($topomojo) {
+        topomojo_update_grades($topomojo, $attempt->userid);
+    }
+}
+
+/**
  * Standard callback used by questions_in_use.
  *
  * @param array $questionids of question ids.

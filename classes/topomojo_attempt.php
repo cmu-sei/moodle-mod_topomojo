@@ -399,18 +399,38 @@ class topomojo_attempt {
                         }
                     }
                 }
-                $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
-                if ($when == 'closed') {
+                // Determine state based on $when parameter or time since attempt finished
+                if ($when == 'during') {
+                    // During the attempt (after submission but attempt still INPROGRESS)
+                    $state = \mod_topomojo_display_options::DURING;
+                } else if ($when == 'immediately') {
+                    // Explicitly requested immediate feedback (e.g., from challenge.php after submission)
+                    $state = \mod_topomojo_display_options::IMMEDIATELY_AFTER;
+                } else if ($when == 'closed') {
                     $state = \mod_topomojo_display_options::AFTER_CLOSE;
+                } else if ($when == 'open' && isset($this->attempt->timefinish) && $this->attempt->timefinish > 0) {
+                    // Check if within 2 minutes of attempt finish (quiz-style)
+                    $immediately_after_period = 2 * MINSECS;
+                    if (time() < $this->attempt->timefinish + $immediately_after_period) {
+                        $state = \mod_topomojo_display_options::IMMEDIATELY_AFTER;
+                    } else {
+                        $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
+                    }
+                } else {
+                    $state = \mod_topomojo_display_options::LATER_WHILE_OPEN;
                 }
 
+                // Map review fields to question_display_options properties
+                $valid_fields = ['correctness', 'marks', 'specificfeedback', 'generalfeedback', 'rightanswer'];
                 foreach (\mod_topomojo\topomojo::$reviewfields as $field => $data) {
                     $name = 'review' . $field;
-                    if ($reviewoptions->{$name} & $state) {
+                    if (in_array($field, $valid_fields) && isset($reviewoptions->{$name}) && ($reviewoptions->{$name} & $state)) {
                         if ($field == 'marks') {
                             $options->$field = \question_display_options::MARK_AND_MAX;
+                        } else if ($field == 'specificfeedback') {
+                            $options->feedback = \question_display_options::VISIBLE;
                         } else {
-                                $options->$field = \question_display_options::VISIBLE;
+                            $options->$field = \question_display_options::VISIBLE;
                         }
                     }
                 }

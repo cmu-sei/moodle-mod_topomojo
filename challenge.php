@@ -141,7 +141,15 @@ if ($activeattempt == true) {
     if (empty($object->event) && isset($object->openAttempt)) {
         $attemptdata = $object->openAttempt->get_attempt();
         if (!empty($attemptdata->eventid)) {
-            $object->event = get_event($object->userauth, $attemptdata->eventid);
+            try {
+                $object->event = get_event($object->userauth, $attemptdata->eventid);
+            } catch (Exception $e) {
+                // Gamespace no longer exists (404, 400, etc) - clear the stale eventid
+                debugging("Gamespace {$attemptdata->eventid} not found, clearing event", DEBUG_DEVELOPER);
+                $object->openAttempt->eventid = null;
+                $object->openAttempt->save();
+                $object->event = null;
+            }
         }
     }
 } else if ($activeattempt == false) {
@@ -198,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         debugging("event has already been started", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
-    debugging("stop request received - challenge submission", DEBUG_DEVELOPER);
+    debugging("stop request received - finishing attempt", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
             if (!$activeattempt) {
@@ -206,61 +214,35 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
                 throw new moodle_exception('no attempt to close');
             }
 
-            // Save and grade the submission
-            $object->openAttempt->save_question();
+            // Process and close the attempt
+            // (Questions are already graded via Check buttons in interactive mode)
+            $object->openAttempt->close_attempt();
             $grader = new \mod_topomojo\utils\grade($object);
             $grader->process_attempt($object->openAttempt);
 
-            // Count how many times this attempt has been submitted
-            $submission_count = count_attempt_submissions($object->openAttempt);
-            $max_submissions = (int)$object->topomojo->submissions;
-
-            debugging("Submission $submission_count of $max_submissions (0=unlimited)", DEBUG_DEVELOPER);
-
-            // Determine if we should close the attempt
-            $should_close_attempt = false;
-            if ($max_submissions > 0 && $submission_count >= $max_submissions) {
-                // Reached submission limit - close the attempt
-                $should_close_attempt = true;
-                debugging("Max submissions reached - closing attempt", DEBUG_DEVELOPER);
-            }
-
-            if ($should_close_attempt) {
-                // Close the attempt
-                $object->openAttempt->close_attempt();
-
-                // Only destroy gamespace if endlab checkbox is enabled
-                if ($object->topomojo->endlab) {
-                    debugging("endlab=1, destroying gamespace", DEBUG_DEVELOPER);
-                    stop_event($object->userauth, $object->event->id);
-                    topomojo_end($cm, $context, $topomojo);
-                }
-
-                // Redirect to review page (final)
-                $viewattempturl = new moodle_url(
-                    '/mod/topomojo/viewattempt.php',
-                    ['a' => $object->openAttempt->id, 'action' => 'view']
-                );
-                redirect($viewattempturl);
+            // Only destroy gamespace if endlab checkbox is enabled
+            if ($object->topomojo->endlab) {
+                debugging("endlab=1, destroying gamespace", DEBUG_DEVELOPER);
+                stop_event($object->userauth, $object->event->id);
+                topomojo_end($cm, $context, $topomojo);
             } else {
-                // Keep attempt open - redirect back to challenge page with feedback
-                debugging("Keeping attempt open for more submissions", DEBUG_DEVELOPER);
-                $feedbackurl = new moodle_url(
-                    '/mod/topomojo/challenge.php',
-                    ['id' => $cm->id, 'showfeedback' => 1]
-                );
-                redirect($feedbackurl);
+                debugging("endlab=0, keeping gamespace for exploration", DEBUG_DEVELOPER);
             }
+
+            // Redirect to review page
+            $viewattempturl = new moodle_url(
+                '/mod/topomojo/viewattempt.php',
+                ['a' => $object->openAttempt->id, 'action' => 'view']
+            );
+            redirect($viewattempturl);
         }
     }
 }
 
+// If there's an active attempt but no event, the gamespace was destroyed/timed out
+// The attempt should stay open - user can relaunch or continue working
 if ((!$object->event) && ($activeattempt)) {
-    debugging("active attempt with no event", DEBUG_DEVELOPER);
-    //throw new moodle_exception(('attemptalreadyexists', 'topomojo');
-    $grader = new \mod_topomojo\utils\grade($object);
-    $grader->process_attempt($object->openAttempt);
-    $object->openAttempt->close_attempt();
+    debugging("active attempt with no event - gamespace may have timed out", DEBUG_DEVELOPER);
 }
 
 $grader = new \mod_topomojo\utils\grade($object);
@@ -287,35 +269,57 @@ $action = optional_param('action', '', PARAM_ALPHA);
 
 switch ($action) {
     case "submitquiz":
-        debugging("submitquiz request received", DEBUG_DEVELOPER);
-        if ($object->event) {
-            if ($object->event->isActive) {
-                if (!$activeattempt) {
-                    debugging('no active attempt', DEBUG_DEVELOPER);
-                    throw new moodle_exception('no active attempt');
-                }
+        debugging("submitquiz request received - Check button clicked", DEBUG_DEVELOPER);
+        if ($activeattempt) {
+            // Process the submission through question engine (handles Check button grading)
+            $quba = $object->openAttempt->get_quba();
+            $quba->process_all_actions(time());
 
-                // This is the auto-save action, just save without grading
-                $object->openAttempt->save_question();
+            // Save the changes
+            question_engine::save_questions_usage_by_activity($quba);
+            $object->openAttempt->save();
 
-                // Reload the page
-                redirect($url);
+            // Reload the challenge page to show feedback
+            $challengeurl = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id]);
+            redirect($challengeurl);
+        }
+        break;
+
+    case "finishattempt":
+        debugging("finishattempt request received - Submit Quiz clicked", DEBUG_DEVELOPER);
+        require_sesskey();
+
+        if ($activeattempt) {
+            // Close the attempt (finish all questions and calculate final grade)
+            $object->openAttempt->close_attempt();
+
+            // Process grading
+            $grader = new \mod_topomojo\utils\grade($object);
+            $grader->process_attempt($object->openAttempt);
+
+            debugging("Attempt {$object->openAttempt->id} closed, final grade recorded", DEBUG_DEVELOPER);
+
+            // Handle gamespace based on endlab setting
+            if ($object->topomojo->endlab && $object->event && $object->event->isActive) {
+                // endlab=1: Destroy the gamespace
+                debugging("endlab=1: destroying gamespace", DEBUG_DEVELOPER);
+                stop_event($object->userauth, $object->event->id);
+                topomojo_end($cm, $context, $topomojo);
+            } else {
+                debugging("endlab=0: keeping gamespace running (exploration mode)", DEBUG_DEVELOPER);
             }
+
+            // Redirect to review page
+            $reviewurl = new moodle_url('/mod/topomojo/viewattempt.php', ['a' => $object->openAttempt->id]);
+            redirect($reviewurl);
+        } else {
+            throw new moodle_exception('noactiveattempt', 'mod_topomojo');
         }
         break;
     default:
         if ($object->openAttempt && $object->openAttempt->get_quba()) {
-            if ($object->event->id) {
+            if ($object->event && $object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
-                    $userid = $USER->id;
-                    $max_attempts = $topomojo->attempts;
-                    $current_attempt_count = $DB->count_records('topomojo_attempts', [
-                        'topomojoid' => $topomojo->id,
-                        'userid' => $userid,
-                        'preview' => 0
-                    ]);
-
-                    $endlab = $object->topomojo->endlab;
 
                     // Get the full challenge structure to access variant text
                     $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
@@ -334,87 +338,72 @@ switch ($action) {
 
                     if ($combined_text) {
                         debugging("Combined text length: " . strlen($combined_text) . " chars", DEBUG_DEVELOPER);
-                        if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
-                            // Normal instruction when attempts are not maxed out, no end lab
-                            $renderer->render_challenge_instructions($combined_text);
-                        } elseif ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            // Conditions when attempts are maxed out
-                            if ($endlab == 1) {
-                                // Show end lab warning if the lab is ending
-                                $renderer->render_challenge_instructions_warning_endlab($combined_text);
-                            } else {
-                                // Show warning if max attempts are reached, lab not ending
-                                $renderer->render_challenge_instructions_warning($combined_text);
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
-                        } else {
-                            // Default: show instructions without special formatting (unlimited attempts, no endlab)
-                            $renderer->render_challenge_instructions($combined_text);
-                        }
-                    } else {
-                        // No challenge text; handle general warnings based on attempts and endlab
-                        if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            if ($endlab == 1) {
-                                $renderer->render_warning_endlab();
-                            } else {
-                                $renderer->render_warning();
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        }
+                        $renderer->render_challenge_instructions($combined_text);
                     }
             }
 
-            // Display submission feedback if returning after a submission
-            $showfeedback = optional_param('showfeedback', 0, PARAM_INT);
-            if ($showfeedback && $object->openAttempt) {
-                $submission_count = count_attempt_submissions($object->openAttempt);
-                $max_submissions = (int)$object->topomojo->submissions;
+            // Check if this is a finished attempt in exploration mode
+            $is_finished = $object->openAttempt && $object->openAttempt->state == 'finished';
+
+            // TODO: Show current score for interactive mode (Check buttons)
+            // Temporarily disabled due to lang string cache issue
+            /*
+            if (!$is_finished && $object->openAttempt && $object->topomojo->preferredbehaviour === 'interactive') {
+                $quba = $object->openAttempt->get_quba();
+                $total_mark = 0;
+                $max_mark = 0;
+                $has_graded_questions = false;
+
+                foreach ($quba->get_slots() as $slot) {
+                    $qa = $quba->get_question_attempt($slot);
+                    $max_mark += $qa->get_max_mark();
+                    $fraction = $qa->get_fraction();
+                    if ($fraction !== null) {
+                        $total_mark += $qa->get_mark();
+                        $has_graded_questions = true;
+                    }
+                }
+
+                if ($has_graded_questions && $max_mark > 0) {
+                    $percentage = round(($total_mark / $max_mark) * 100);
+                    echo html_writer::start_div('alert alert-info mt-3');
+                    echo html_writer::tag('h5', 'Current Score');
+                    echo html_writer::tag('p',
+                        round($total_mark, 2) . ' out of ' . round($max_mark, 2) . ' (' . $percentage . '%)',
+                        ['class' => 'font-weight-bold']);
+                    echo html_writer::end_div();
+                }
+            }
+            */
+
+            // Show score and End Lab button for finished attempts with active gamespace
+            if ($is_finished && $object->event && $object->event->isActive) {
                 $current_score = $object->openAttempt->score;
                 $max_score = (int)$object->topomojo->grade;
 
-                // Display submission counter
-                echo html_writer::start_div('alert alert-info mt-3');
-                if ($max_submissions > 0) {
-                    // Show X of Y
-                    echo html_writer::tag('h4', get_string('submission_feedback_header', 'topomojo'));
-                    echo html_writer::tag('p', get_string('submission_count', 'topomojo',
-                        ['current' => $submission_count, 'max' => $max_submissions]));
-
-                    // Show remaining submissions
-                    $remaining = $max_submissions - $submission_count;
-                    if ($remaining > 0) {
-                        echo html_writer::tag('p', get_string('submissions_remaining', 'topomojo', $remaining));
-                    }
-
-                    // Warn if on final submission
-                    if ($remaining == 1) {
-                        echo html_writer::div(
-                            get_string('final_submission_warning', 'topomojo',
-                                ['current' => $submission_count + 1, 'max' => $max_submissions]),
-                            'alert alert-warning mt-2'
-                        );
-                    }
-                } else {
-                    // Unlimited submissions
-                    echo html_writer::tag('h4', get_string('submission_feedback_header', 'topomojo'));
-                    echo html_writer::tag('p', get_string('submission_count_unlimited', 'topomojo',
-                        ['current' => $submission_count]));
-                }
-
-                // Show current score if grading is enabled
+                // Display score prominently
+                echo html_writer::start_div('alert alert-success mt-3');
+                echo html_writer::tag('h3', get_string('your_final_score', 'topomojo'));
                 if ($max_score > 0) {
-                    echo html_writer::tag('p', get_string('submission_graded', 'topomojo',
-                        ['score' => round($current_score, 2), 'maxscore' => $max_score]),
-                        ['class' => 'font-weight-bold']);
+                    $percentage = round(($current_score / $max_score) * 100);
+                    echo html_writer::tag('p',
+                        get_string('score_display', 'topomojo',
+                            ['score' => round($current_score, 2), 'maxscore' => $max_score, 'percentage' => $percentage]),
+                        ['class' => 'lead font-weight-bold']);
                 }
-
+                echo html_writer::tag('p', get_string('exploration_mode_notice', 'topomojo'));
                 echo html_writer::end_div();
+
+                // End Lab button (posts stop_confirmed=yes to destroy gamespace)
+                $endlaburl = new moodle_url('/mod/topomojo/view.php', [
+                    'id' => $cm->id
+                ]);
+                echo html_writer::start_tag('form', ['action' => $endlaburl, 'method' => 'post', 'style' => 'display:inline']);
+                echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'stop_confirmed', 'value' => 'yes']);
+                echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+                echo html_writer::tag('button', get_string('endlab_button', 'topomojo'),
+                    ['type' => 'submit', 'class' => 'btn btn-danger mt-2']);
+                echo html_writer::end_tag('form');
             }
 
             // Render quiz if questions exist

@@ -100,6 +100,11 @@ class topomojo
     public $renderer;
 
     /**
+     * @var bool Whether the user is in exploration mode (attempt finished, gamespace still active)
+     */
+    public $exploration_mode;
+
+    /**
      * @var \stdClass The course object for the activity
      */
     public $course;

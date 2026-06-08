@@ -1,0 +1,56 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+define(['jquery'], function($) {
+    return {
+        init: function(tableId) {
+            var table = $('#' + tableId);
+            var headers = table.find('thead th.sortable');
+            var tbody = table.find('tbody');
+
+            headers.each(function(index) {
+                $(this).css('cursor', 'pointer');
+                $(this).attr('title', 'Click to sort');
+
+                $(this).on('click', function() {
+                    var rows = tbody.find('tr').toArray();
+                    var isAsc = $(this).hasClass('asc');
+
+                    // Remove sort classes from all headers
+                    headers.removeClass('asc desc');
+
+                    // Sort rows
+                    rows.sort(function(a, b) {
+                        var aVal = $(a).find('td').eq(index).text().trim();
+                        var bVal = $(b).find('td').eq(index).text().trim();
+
+                        // Try numeric comparison first
+                        var aNum = parseFloat(aVal);
+                        var bNum = parseFloat(bVal);
+
+                        if (!isNaN(aNum) && !isNaN(bNum)) {
+                            return isAsc ? bNum - aNum : aNum - bNum;
+                        }
+
+                        // String comparison
+                        if (isAsc) {
+                            return bVal.localeCompare(aVal);
+                        } else {
+                            return aVal.localeCompare(bVal);
+                        }
+                    });
+
+                    // Apply sort class
+                    $(this).addClass(isAsc ? 'desc' : 'asc');
+
+                    // Reorder rows
+                    tbody.html(rows);
+                });
+            });
+        }
+    };
+});
