@@ -142,21 +142,40 @@ if ($object->topomojo->importchallenge) {
         }
 
         // Check if random variant mode (variant=0)
+        $total_added = 0;
+        $total_failed = 0;
+
         if ($object->topomojo->variant == 0) {
-            // Random mode - import ALL variants but don't link
+            // Random mode - import ALL variants but don't link to questionorder
             debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
             $addtoquiz = false;
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
                 // $i is already 0-based for array access
-                $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
+                $result = $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
+                if ($result && is_array($result)) {
+                    $total_added += $result['added'];
+                    $total_failed += $result['failed'];
+                }
             }
         } else {
-            // Specific mode - import single variant and link
+            // Specific mode - import single variant and link to questionorder
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
             $variant_index = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
-            $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+            $result = $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+            if ($result && is_array($result)) {
+                $total_added = $result['added'];
+                $total_failed = $result['failed'];
+            }
+        }
+
+        // Show summary notification once after all variants processed
+        if ($total_added > 0) {
+            \core\notification::success(get_string('questionsynced', 'topomojo', $total_added));
+        }
+        if ($total_failed > 0) {
+            \core\notification::error(get_string('questionaddfailed', 'topomojo', $total_failed));
         }
     }
 }
@@ -282,7 +301,11 @@ switch ($action) {
         break;
     default:
         $renderer->print_header();
-        $questions = $questionmanager->get_questions();
+        // For Random mode (variant=0), show all questions from all variants
+        // For Specific mode, show only questions in questionorder
+        $questions = ($topomojo->variant == 0)
+            ? $questionmanager->get_all_questions()
+            : $questionmanager->get_questions();
         $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
 }
 

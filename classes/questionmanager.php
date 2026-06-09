@@ -268,19 +268,19 @@ class questionmanager {
      *
      * @return bool True if added or already present, false on error
      */
-    public function add_question($questionid) {
+    public function add_question($questionid, $update_order = true) {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
             debugging("Question with ID $questionid is already present", DEBUG_DEVELOPER);
 
-            // Even if already present, ensure it's in questionorder
+            // Even if already present, ensure it's in questionorder (if update_order is true)
             $tq_record = $DB->get_record('topomojo_questions', [
                 'topomojoid' => $this->object->topomojo->id,
                 'questionid' => $questionid
             ]);
 
-            if ($tq_record) {
+            if ($tq_record && $update_order) {
                 // Get fresh questionorder from database (cached value may be stale)
                 $topomojo_fresh = $DB->get_record('topomojo', ['id' => $this->object->topomojo->id]);
                 $questionorder = $topomojo_fresh->questionorder;
@@ -303,7 +303,10 @@ class questionmanager {
 
         $topomojoquestionid = $DB->insert_record('topomojo_questions', $question);
 
-        $this->update_questionorder('addquestion', $topomojoquestionid);
+        // Only update questionorder if requested (skip for random mode)
+        if ($update_order) {
+            $this->update_questionorder('addquestion', $topomojoquestionid);
+        }
 
         // Get question_bank_entries via question_versions (not by ID - questionid is question.id not qbe.id)
         $qversion = $DB->get_record('question_versions', ['questionid' => $questionid]);
@@ -440,6 +443,33 @@ class questionmanager {
      */
     public function get_questions() {
         return $this->qbankorderedquestions;
+    }
+
+    /**
+     * Get all questions linked to this activity (for Random mode)
+     * Returns questions from mdl_topomojo_questions, not from questionorder
+     *
+     * @return array Array of topomojo_question objects
+     */
+    public function get_all_questions() {
+        global $DB;
+
+        $tq_records = $DB->get_records('topomojo_questions', ['topomojoid' => $this->object->topomojo->id]);
+        $questions = [];
+
+        foreach ($tq_records as $tq) {
+            $qrecord = $DB->get_record('question', ['id' => $tq->questionid]);
+            if ($qrecord) {
+                $topomojoquestion = new \mod_topomojo\topomojo_question(
+                    $tq->id,
+                    $tq->points,
+                    $qrecord
+                );
+                $questions[$tq->id] = $topomojoquestion;
+            }
+        }
+
+        return $questions;
     }
 
     /**
@@ -1125,6 +1155,13 @@ class questionmanager {
                     $qexists    = 0;
                     $questionid = 0;
 
+                    // Get or create the default category for this activity's context
+                    $cat = question_get_default_category($context->id, true);
+                    if (!$cat) {
+                        debugging("Failed to get default question category for context {$context->id}", DEBUG_DEVELOPER);
+                        throw new \moodle_exception('questioncategorynotfound', 'mod_topomojo');
+                    }
+
                     // ─── Always check for existing questions to avoid duplicates ───────────
                     if (!in_array($cleantext, $deleted_questiontexts, true)) {
 
@@ -1171,12 +1208,7 @@ class questionmanager {
 
                         $q = new stdClass();
                         $saq = new \qtype_mojomatch();
-                        $cat = question_get_default_category($context->id, true); // Create if doesn't exist
-
-                        if (!$cat) {
-                            debugging("Failed to get default question category for context {$context->id}", DEBUG_DEVELOPER);
-                            throw new \moodle_exception('questioncategorynotfound', 'mod_topomojo');
-                        }
+                        // Category already retrieved earlier (line ~1131)
 
                         $q->qtype = 'mojomatch';
                         $form->category = $cat->id;
@@ -1232,8 +1264,10 @@ class questionmanager {
                         debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
 
-                    if ($questionid && $addtoquiz) {
-                        $ok = $this->add_question($questionid);
+                    // Add question to activity regardless of random/specific mode
+                    // In random mode ($addtoquiz=false), questions are added to mdl_topomojo_questions but not to questionorder
+                    if ($questionid) {
+                        $ok = $this->add_question($questionid, $addtoquiz);
 
                         if ($ok === true) {
                             $added_count++;
@@ -1257,13 +1291,8 @@ class questionmanager {
                 }
             }
 
-            // Show summary message after all questions are processed
-            if ($added_count > 0) {
-                \core\notification::success(get_string('questionsynced', 'topomojo', $added_count));
-            }
-            if ($failed_count > 0) {
-                \core\notification::error(get_string('questionaddfailed', 'topomojo', $failed_count));
-            }
+            // Return counts so caller can show summary after all variants are processed
+            return ['added' => $added_count, 'failed' => $failed_count];
         }
     }
 

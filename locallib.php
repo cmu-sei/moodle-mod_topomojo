@@ -1472,15 +1472,6 @@ class mod_topomojo_display_options extends question_display_options
 }
 
 /**
- * Count the number of challenge submissions for a given attempt.
- *
- * Returns the value stored in the attempt's submission_count field.
- * This field is incremented each time the student submits answers for grading.
- *
- * @param \mod_topomojo\topomojo_attempt $attempt The attempt object
- * @return int The number of times answers have been submitted for grading
- */
-/**
  * Validates that a TopoMojo workspace exists in the TopoMojo API.
  *
  * This function is called during course restore to verify that the workspace ID
