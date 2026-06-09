@@ -579,13 +579,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output .= html_writer::end_tag('div');
         $output .= html_writer::end_tag('form');
 
-        // Submit Quiz button in a separate form (so Check buttons don't trigger it)
-        // Posts to challenge.php with finishattempt action to close the attempt
-        $finishurl = new moodle_url('/mod/topomojo/challenge.php', array_merge($params, ['action' => 'finishattempt']));
-        $output .= html_writer::start_tag('form', ['method' => 'post', 'action' => $finishurl]);
-        $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
-        $output .= html_writer::empty_tag('input', ['type' => 'submit', 'value' => 'Submit Quiz', 'class' => 'btn btn-primary mt-3']);
-        $output .= html_writer::end_tag('form');
+        // Submit Quiz button - only show for INPROGRESS attempts (not finished/exploration mode)
+        if ($attempt->state !== 'finished') {
+            // Posts to challenge.php with finishattempt action to close the attempt
+            $finishurl = new moodle_url('/mod/topomojo/challenge.php', array_merge($params, ['action' => 'finishattempt']));
+            $output .= html_writer::start_tag('form', ['method' => 'post', 'action' => $finishurl]);
+            $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+            $output .= html_writer::empty_tag('input', ['type' => 'submit', 'value' => 'Submit Quiz', 'class' => 'btn btn-primary mt-3']);
+            $output .= html_writer::end_tag('form');
+        }
 
         $output .= html_writer::end_div();
         echo $output;

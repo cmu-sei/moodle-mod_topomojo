@@ -153,9 +153,41 @@ if ($activeattempt == true) {
         }
     }
 } else if ($activeattempt == false) {
-    debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
-    // Allow instructors to see preview, redirect students
-    if (!has_capability('mod/topomojo:manage', $context)) {
+    debugging("get_open_attempt returned false - checking for exploration mode", DEBUG_DEVELOPER);
+
+    // Check for exploration mode: FINISHED attempt with active gamespace
+    $finished_attempts = $object->getall_attempts('closed', false, $ispreview);
+    debugging("Found " . count($finished_attempts) . " finished attempts", DEBUG_DEVELOPER);
+
+    if (!empty($finished_attempts)) {
+        // Get most recent finished attempt
+        $latest_finished = reset($finished_attempts);
+        $attempt_data = $latest_finished->get_attempt(); // Get the raw DB record
+        debugging("Checking finished attempt {$attempt_data->id}, eventid: " . ($attempt_data->eventid ?? 'null'), DEBUG_DEVELOPER);
+
+        // Check if it has an active gamespace
+        if (!empty($attempt_data->eventid)) {
+            try {
+                $event = get_event($object->userauth, $attempt_data->eventid);
+                debugging("Got event, isActive: " . ($event->isActive ? 'true' : 'false'), DEBUG_DEVELOPER);
+
+                if ($event && $event->isActive) {
+                    debugging("Found exploration mode: finished attempt {$attempt_data->id} with active gamespace", DEBUG_DEVELOPER);
+                    $object->openAttempt = $latest_finished;
+                    $object->event = $event;
+                    $object->exploration_mode = true;
+                    $activeattempt = true; // Set to true so we render the quiz
+                }
+            } catch (Exception $e) {
+                debugging("Exception checking gamespace {$attempt_data->eventid}: " . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        } else {
+            debugging("Latest finished attempt has no eventid", DEBUG_DEVELOPER);
+        }
+    }
+
+    // If still no attempt (not exploration mode), redirect students
+    if (!$activeattempt && !has_capability('mod/topomojo:manage', $context)) {
         redirect($returnurl);
     }
 }
@@ -394,16 +426,13 @@ switch ($action) {
                 echo html_writer::tag('p', get_string('exploration_mode_notice', 'topomojo'));
                 echo html_writer::end_div();
 
-                // End Lab button (posts stop_confirmed=yes to destroy gamespace)
+                // End Lab button (posts stop_confirmed=yes to destroy gamespace) - use Moodle standard button
                 $endlaburl = new moodle_url('/mod/topomojo/view.php', [
-                    'id' => $cm->id
+                    'id' => $cm->id,
+                    'stop_confirmed' => 'yes',
+                    'sesskey' => sesskey()
                 ]);
-                echo html_writer::start_tag('form', ['action' => $endlaburl, 'method' => 'post', 'style' => 'display:inline']);
-                echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'stop_confirmed', 'value' => 'yes']);
-                echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
-                echo html_writer::tag('button', get_string('endlab_button', 'topomojo'),
-                    ['type' => 'submit', 'class' => 'btn btn-danger mt-2']);
-                echo html_writer::end_tag('form');
+                echo $OUTPUT->single_button($endlaburl, get_string('endlab_button', 'topomojo'), 'post', ['class' => 'btn-danger']);
             }
 
             // Render quiz if questions exist
