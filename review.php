@@ -124,13 +124,6 @@ if ($object->is_instructor()) {
             get_string('deleteallattempts_confirm', 'mod_topomojo')
         ]);
 
-        // Initialize confirmation for individual delete buttons
-        $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
-            '.delete-attempt-btn',
-            get_string('delete', 'core'),
-            get_string('deleteattempt_confirm', 'mod_topomojo')
-        ]);
-
         $deletebutton = $OUTPUT->single_button(
             $deleteurl,
             get_string('deleteallattempts', 'mod_topomojo'),
