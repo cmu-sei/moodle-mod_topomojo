@@ -377,10 +377,9 @@ switch ($action) {
             // Check if this is a finished attempt in exploration mode
             $is_finished = $object->openAttempt && $object->openAttempt->state == 'finished';
 
-            // TODO: Show current score for interactive mode (Check buttons)
-            // Temporarily disabled due to lang string cache issue
-            /*
-            if (!$is_finished && $object->openAttempt && $object->topomojo->preferredbehaviour === 'interactive') {
+            // Show current score for interactive/immediate feedback modes (behaviors that allow Check buttons)
+            $interactive_behaviours = ['interactive', 'immediatefeedback', 'adaptive', 'adaptivenopenalty'];
+            if (!$is_finished && $object->openAttempt && in_array($object->topomojo->preferredbehaviour, $interactive_behaviours)) {
                 $quba = $object->openAttempt->get_quba();
                 $total_mark = 0;
                 $max_mark = 0;
@@ -399,14 +398,14 @@ switch ($action) {
                 if ($has_graded_questions && $max_mark > 0) {
                     $percentage = round(($total_mark / $max_mark) * 100);
                     echo html_writer::start_div('alert alert-info mt-3');
-                    echo html_writer::tag('h5', 'Current Score');
+                    echo html_writer::tag('h5', get_string('current_score', 'topomojo'));
                     echo html_writer::tag('p',
-                        round($total_mark, 2) . ' out of ' . round($max_mark, 2) . ' (' . $percentage . '%)',
+                        get_string('score_display', 'topomojo',
+                            ['score' => round($total_mark, 2), 'maxscore' => round($max_mark, 2), 'percentage' => $percentage]),
                         ['class' => 'font-weight-bold']);
                     echo html_writer::end_div();
                 }
             }
-            */
 
             // Show score and End Lab button for finished attempts with active gamespace
             if ($is_finished && $object->event && $object->event->isActive) {
