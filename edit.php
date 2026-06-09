@@ -109,6 +109,11 @@ $renderer = $object->renderer;
 if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
     \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
 }
+
+// Show warning if attempts exist - changes to TopoMojo challenge won't sync
+if ($topomojohasattempts && has_capability('mod/topomojo:manage', $context)) {
+    \core\notification::warning(get_string('questionsfrozenattempts', 'topomojo'));
+}
 //$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 

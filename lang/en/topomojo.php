@@ -491,6 +491,7 @@ $string['manage_deploy_running_summary'] = 'Deployments running ({$a->progress})
 $string['manage_deploy_running_link'] = 'View adhoc task details';
 $string['randomvariantinfo'] = 'Random variant mode: Questions from all variants have been imported. Each student will be randomly assigned a variant when they first access the activity.';
 $string['cannotaddvariantquestionrandom'] = 'Cannot add variant-specific questions in random variant mode. Only manually created questions (True/False, etc.) can be added.';
+$string['questionsfrozenattempts'] = 'Questions are frozen because attempts exist. Changes made to the TopoMojo challenge (question text, answers, hints, etc.) will NOT sync to Moodle until all attempts are deleted. Existing and new attempts will continue using the current frozen questions to maintain grading consistency.';
 $string['questionsnotimported_teacher'] = 'Questions have not been imported yet. <a href="{$a}">Visit the Questions page</a> or update activity settings to trigger import.';
 $string['questionsnotimported_student'] = 'This activity is not ready yet. Please contact your instructor.';
 $string['nochallengequestions'] = 'This activity has no graded questions. Review questions on the Questions page.';
