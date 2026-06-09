@@ -91,7 +91,7 @@ DM24-1175
                         <td>{{variant}}</td>
                     {{/variant}}
                     {{#moduleurl}}
-                        <td><a href="{{moduleurl}}">{{name}}</a></td>
+                        <td><a href="{{{moduleurl}}}">{{name}}</a></td>
                     {{/moduleurl}}
                     {{#state}}
                         <td>{{state}}</td>
@@ -99,14 +99,14 @@ DM24-1175
                     <td>{{timestart}}</td>
                     <td>{{timefinish}}</td>
                     {{#attempturl}}
-                        <td><a href="{{attempturl}}">{{score}}</a></td>
+                        <td><a href="{{{attempturl}}}">{{score}}</a></td>
                     {{/attempturl}}
                     {{^attempturl}}
                         <td>{{score}}</td>
                     {{/attempturl}}
                     {{#deleteurl}}
                         <td>
-                            <a href="{{deleteurl}}" class="delete-attempt-btn" data-attemptid="{{attemptid}}" title="{{#str}}delete{{/str}}">
+                            <a href="{{{deleteurl}}}" class="delete-attempt-btn" data-attemptid="{{attemptid}}" title="{{#str}}delete{{/str}}">
                                 {{#pix}}t/delete, core, {{#str}}delete{{/str}}{{/pix}}
                             </a>
                         </td>
