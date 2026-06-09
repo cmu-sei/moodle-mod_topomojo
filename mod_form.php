@@ -429,6 +429,10 @@ class mod_topomojo_mod_form extends moodleform_mod
         // How questions behave (question behaviour).
         // Note: mojomatch questions use qbehaviour_mojomatch (supports deferred and interactive modes).
         // This setting applies to any standard Moodle question types mixed into the activity.
+
+        // Lock behavior field if attempts exist (matches mod_quiz behavior)
+        $hasattempts = !empty($this->current->instance) && topomojo_has_attempts($this->current->instance);
+
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
         } else {
@@ -443,6 +447,11 @@ class mod_topomojo_mod_form extends moodleform_mod
             $behaviours
         );
         $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
+
+        // Lock behavior when attempts exist
+        if ($hasattempts) {
+            $mform->hardFreeze('preferredbehaviour');
+        }
 
         // Tries per question (only relevant for interactive mode with multiple tries)
         $submissionoptions = ['0' => get_string('unlimited')];
