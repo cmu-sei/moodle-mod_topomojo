@@ -149,12 +149,27 @@ Follow the procedures below to add a TopoMojo activity to a course in Moodle.
 
 ![grade settings](img/grade-settings.png)
 
-6. Finally, under **Timing**, specify the following:
+6. Under **Question behaviour**, choose **How questions behave**. This controls how challenge questions are graded and whether students may retry. The TopoMojo question behaviour adapts to the selected mode:
+   - **Deferred feedback:** Students answer all questions and submit once at the end. No per-question Check button, no retries, and no penalty.
+   - **Immediate feedback:** Students may Check each question once for immediate grading. A single try per question; no penalty is applied.
+   - **Interactive with multiple tries:** Students may Check a question and retry if wrong, up to the **Maximum Challenge Submissions** limit. A **penalty** is deducted for each wrong try (see *Question weight and penalty* below).
+   - **Adaptive mode:** Like interactive, with penalties applied per submission.
+
+   > **Note:** Question weight and penalty are imported from the TopoMojo challenge; they are not set in Moodle. Penalties only apply under interactive and adaptive modes.
+
+7. Finally, under **Timing**, specify the following:
    - **Open the activity**/**Close the activity:** These are your start/end dates.
    - **Duration:** The total time permitted to complete the lab in minutes.
    - **Extend Lab:** Check to allow the lab time to extend if needed (requires **Countdown** as the Clock value).
 
 ![timing settings](img/timing-settings.png)
+
+### Question weight and penalty
+
+Challenge question **weight** and **penalty** are defined in the TopoMojo workspace challenge and imported automatically. They are not edited in Moodle.
+
+- **Weight** in TopoMojo is a question's share of the total challenge score (TopoMojo normalizes all weights to sum to 1.0). The plugin imports the weight as the Moodle question's point value and scales the activity grade by the ratio of points earned to total points, so each question keeps the same relative share it has in TopoMojo.
+- **Penalty** is the fraction deducted for each wrong try, and applies only under **Interactive** and **Adaptive** question behaviours. A correct answer submitted after wrong tries is scored `1 − (penalty × number of wrong tries)`, floored at 0. For example, with a penalty of `0.1`, a question answered correctly on the third try (after two wrong tries) scores `0.80`. Deferred and immediate feedback modes apply no penalty.
 
 ### Launching a TopoMojo Activity
 

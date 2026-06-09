@@ -46,7 +46,7 @@ DM24-1175
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2026060901;
+$plugin->version = 2026060902;
 
 // This is the version of Moodle this plugin requires.
 $plugin->requires = 2025041400;
@@ -57,7 +57,7 @@ $plugin->component = 'mod_topomojo';
 // This is a list of plugins, this plugin depends on (and their versions).
 $plugin->dependencies = [
   'qtype_mojomatch' => 2026060808,
-  'qbehaviour_mojomatch' => 2026060911,
+  'qbehaviour_mojomatch' => 2026060912,
 ];
 
 // This is a stable release.
@@ -65,4 +65,4 @@ $plugin->dependencies = [
 $plugin->maturity = MATURITY_BETA;
 
 // This is the named version.
-$plugin->release = '1.0.6';
+$plugin->release = '1.0.7';

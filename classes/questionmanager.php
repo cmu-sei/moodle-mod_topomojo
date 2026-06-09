@@ -1218,16 +1218,10 @@ class questionmanager {
                         $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
                         $form->questiontext['text'] = $question->text;
                         $form->questiontext['format'] = '0'; //TODO find out nonhtml
+                        // Map TopoMojo weight directly to Moodle points (use as-is).
                         $form->defaultmark = 1;
-                        if (is_numeric($question->weight)) {
-                            if (floor($question->weight) != $question->weight) {
-                                $form->defaultmark = $question->weight * 10;
-                            } else {
-                                $form->defaultmark = $question->weight;
-                            }
-                        }
-                        if ($form->defaultmark == 0) {
-                            $form->defaultmark = 1;
+                        if (is_numeric($question->weight) && $question->weight > 0) {
+                            $form->defaultmark = (float)$question->weight;
                         }
                         // Read penalty from TopoMojo challenge JSON (default 0.1 = 10%)
                         $form->penalty = isset($question->penalty) && is_numeric($question->penalty)
