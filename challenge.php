@@ -322,6 +322,15 @@ switch ($action) {
         require_sesskey();
 
         if ($activeattempt) {
+            // Capture any answers submitted with the Submit Quiz form before
+            // finishing. In deferred feedback there are no per-question Check
+            // buttons, so the only chance to save responses is here. Processing
+            // the posted fields is harmless for interactive/immediate modes too
+            // (already-saved answers are unchanged).
+            $quba = $object->openAttempt->get_quba();
+            $quba->process_all_actions(time());
+            question_engine::save_questions_usage_by_activity($quba);
+
             // Close the attempt (finish all questions and calculate final grade)
             $object->openAttempt->close_attempt();
 

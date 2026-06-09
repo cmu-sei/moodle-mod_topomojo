@@ -575,19 +575,27 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'slots',
         'value' => implode(',', $attempt->getSlots())]);
 
-        // Finish the question form (Check buttons are inside this form)
+        // Submit Quiz button - only show for INPROGRESS attempts (not finished/exploration mode).
+        // It lives INSIDE the answer form and uses formaction to post the answer
+        // fields to the finishattempt handler. This is essential for deferred
+        // feedback, where there are no per-question Check buttons and Submit Quiz
+        // is the only opportunity to save responses before the attempt closes.
+        if ($attempt->state !== 'finished') {
+            $finishurl = new moodle_url('/mod/topomojo/challenge.php',
+                    array_merge($params, ['action' => 'finishattempt']));
+            $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+            $output .= html_writer::empty_tag('input', [
+                'type' => 'submit',
+                'name' => 'finishattempt',
+                'value' => 'Submit Quiz',
+                'class' => 'btn btn-primary mt-3',
+                'formaction' => $finishurl->out(false),
+            ]);
+        }
+
+        // Finish the question form (Check buttons and Submit Quiz are inside this form)
         $output .= html_writer::end_tag('div');
         $output .= html_writer::end_tag('form');
-
-        // Submit Quiz button - only show for INPROGRESS attempts (not finished/exploration mode)
-        if ($attempt->state !== 'finished') {
-            // Posts to challenge.php with finishattempt action to close the attempt
-            $finishurl = new moodle_url('/mod/topomojo/challenge.php', array_merge($params, ['action' => 'finishattempt']));
-            $output .= html_writer::start_tag('form', ['method' => 'post', 'action' => $finishurl]);
-            $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
-            $output .= html_writer::empty_tag('input', ['type' => 'submit', 'value' => 'Submit Quiz', 'class' => 'btn btn-primary mt-3']);
-            $output .= html_writer::end_tag('form');
-        }
 
         $output .= html_writer::end_div();
         echo $output;
