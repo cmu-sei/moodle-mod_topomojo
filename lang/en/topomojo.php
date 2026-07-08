@@ -118,6 +118,8 @@ $string['configissuerid'] = 'OAuth2 issuer for authentication with TopoMojo API.
 $string['enableoauth'] = 'Enable Oauth2 System Account';
 $string['enableoauth_help'] = 'When enabled, Moodle will authenticate with TopoMojo using OAuth2 instead of an API key. You must configure an OAuth2 issuer in Site administration > Server > OAuth 2 services before enabling this option.';
 $string['configenableoauth'] = 'Enable Oauth2 System Account for integration with TopoMojo.';
+$string['maxextendinterval'] = 'Maximum lab extension interval';
+$string['configmaxextendinterval'] = 'Maximum number of minutes an activity may add when extending a lab. Defaults to 60 minutes.';
 
 // Activity settings
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
@@ -138,7 +140,11 @@ $string['grademethod'] = 'Grading method';
 $string['grademethod_help'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['grademethoddesc'] = 'The grading method defines how the grade for a single attempt of the activity is determined.';
 $string['extendevent'] = 'Extend Lab';
-$string['extendevent_help'] = 'Setting this allows the user to extend the lab by one hour increments.';
+$string['extendevent_help'] = 'Setting this allows the user to extend the lab by the configured interval.';
+$string['extendinterval'] = 'Extend interval';
+$string['extendinterval_help'] = 'Number of minutes to add when the lab is extended.';
+$string['extendintervalmax'] = 'The extend interval cannot be greater than {$a} minutes.';
+$string['extendintervalpositive'] = 'The extend interval must be at least 1 minute.';
 $string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
 $string['duration'] = 'Duration';
 $string['duration_help'] = 'This is the duration of the lab in minutes. Set to 0 to use worspace default from TopoMojo';

@@ -47,6 +47,22 @@ defined('MOODLE_INTERNAL') || die;
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once($CFG->libdir . '/questionlib.php');
 
+define('TOPOMOJO_DEFAULT_EXTEND_INTERVAL', 60);
+
+/**
+ * Returns the configured site maximum for lab extension intervals.
+ *
+ * @return int Maximum lab extension interval in minutes.
+ */
+function topomojo_get_max_extend_interval() {
+    $max = (int) get_config('topomojo', 'maxextendinterval');
+    if ($max <= 0) {
+        return TOPOMOJO_DEFAULT_EXTEND_INTERVAL;
+    }
+
+    return $max;
+}
+
 /**
  * Gets the TopoMojo API URL with trailing slashes removed.
  *
