@@ -202,6 +202,7 @@ class management_repository {
         $now = time();
         $statuslabel = 'None';
         $scheduledtext = '─';
+        $endtimelabel = '─';
         $tooltiphtml = null;
 
         $deploystatus = $row->deploystatus ?? null;
@@ -262,6 +263,10 @@ class management_repository {
             $gamespacetext = (string) $row->attemptgamespaceid;
         }
 
+        if (!empty($row->attemptendtime)) {
+            $endtimelabel = userdate((int) $row->attemptendtime, get_string('strftimedatetime', 'langconfig'));
+        }
+
         $actionhtml = '─';
         if (!empty($attemptid) && $hasquestions) {
             // All attempt states link to viewattempt.php for instructor review
@@ -278,6 +283,7 @@ class management_repository {
             'status_class'   => strtolower($statuslabel),
             'gamespace_text' => $gamespacetext,
             'scheduled_text' => $scheduledtext,
+            'end_time_text'  => $endtimelabel,
             'tooltip_html'   => $tooltiphtml,
             'action_html'    => $actionhtml,
         ];

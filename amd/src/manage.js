@@ -47,9 +47,10 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 const scheduleBtn = document.getElementById('schedule-selected-btn');
                 const cancelBtn = document.getElementById('cancel-selected-btn');
                 const endBtn = document.getElementById('end-selected-btn');
+                const extendBtn = document.getElementById('extend-selected-btn');
 
                 // Count by status
-                let canDeploy = 0, canCancel = 0, canEnd = 0;
+                let canDeploy = 0, canCancel = 0, canEnd = 0, canExtend = 0;
 
                 checkboxes.forEach(cb => {
                     const row = cb.closest('tr');
@@ -68,6 +69,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                         // Can end: Active
                         if (status === 'active') {
                             canEnd++;
+                            canExtend++;
                         }
                     }
                 });
@@ -98,6 +100,13 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                     endBtn.textContent = canEnd > 0 ?
                         'End Selected (' + canEnd + ')' :
                         'End Selected';
+                }
+
+                if (extendBtn) {
+                    extendBtn.disabled = canExtend === 0;
+                    extendBtn.textContent = canExtend > 0 ?
+                        'Extend Selected (' + canExtend + ')' :
+                        'Extend Selected';
                 }
             };
 
@@ -277,6 +286,38 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 });
             };
 
+            const extendSelectedBtn = document.getElementById('extend-selected-btn');
+            if (extendSelectedBtn) {
+                extendSelectedBtn.addEventListener('click', function() {
+                    const selected = Array.from(document.querySelectorAll('.user-checkbox:checked'))
+                        .filter(cb => {
+                            const row = cb.closest('tr');
+                            return row && rowStatus(row) === 'active';
+                        })
+                        .map(cb => cb.value);
+
+                    if (selected.length === 0) {
+                        alert('No active labs selected');
+                        return;
+                    }
+
+                    ModalSaveCancel.create({
+                        title: 'Extend Selected (' + selected.length + ')',
+                        body: $('#extend-modal-content').html()
+                    }).then(function(modal) {
+                        modal.setSaveButtonText('Extend');
+
+                        modal.getRoot().on(ModalEvents.save, function() {
+                            $('#extend-userids').val(selected.join(','));
+                            $('#extend-form').submit();
+                        });
+
+                        modal.show();
+                        return modal;
+                    });
+                });
+            }
+
             const applyUpdate = (user) => {
                 const safeId = String(user.userid).replace(/"/g, '\\"');
                 const row = document.querySelector('tr[data-userid="' + safeId + '"]');
@@ -301,6 +342,10 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 const schedCell = row.querySelector('.cell-scheduled');
                 if (schedCell) {
                     schedCell.textContent = user.scheduled_text || '─';
+                }
+                const endTimeCell = row.querySelector('.cell-end-time');
+                if (endTimeCell) {
+                    endTimeCell.textContent = user.end_time_text || '─';
                 }
                 const actionsCell = row.querySelector('.cell-actions');
                 if (actionsCell) {
