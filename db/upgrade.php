@@ -637,5 +637,16 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2026060200, 'topomojo');
     }
 
+    if ($oldversion < 2026070801) {
+        $table = new xmldb_table('topomojo');
+        $field = new xmldb_field('extendinterval', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '60', 'extendevent');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026070801, 'topomojo');
+    }
+
     return true;
 }

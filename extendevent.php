@@ -48,6 +48,8 @@ require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/filelib.php');
 
+global $DB;
+
 require_login();
 require_sesskey();
 
@@ -68,12 +70,33 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
+    $attempt = $DB->get_record('topomojo_attempts', ['eventid' => $id], 'topomojoid', IGNORE_MULTIPLE);
+    if (!$attempt) {
+        header('HTTP/1.1 500 Error');
+        $response['message'] = "Could not find Moodle activity for gamespace.";
+        $response['id'] = $id;
+        echo json_encode($response);
+        exit;
+    }
+
+    $topomojo = $DB->get_record('topomojo', ['id' => $attempt->topomojoid], '*', MUST_EXIST);
+    $extendinterval = (int) $topomojo->extendinterval;
+    $maxextendinterval = topomojo_get_max_extend_interval();
+    if ($extendinterval < 1 || $extendinterval > $maxextendinterval) {
+        header('HTTP/1.1 500 Error');
+        $response['message'] = "Invalid activity extend interval.";
+        $response['id'] = $id;
+        echo json_encode($response);
+        exit;
+    }
+
     $data = new StdClass();
     $response['oldtime'] = $event->expirationTime;
     $timestamp = new DateTime($event->expirationTime);
-    $timestamp->add(new DateInterval('PT1H'));
+    $timestamp->add(new DateInterval('PT' . $extendinterval . 'M'));
     $posttime = $timestamp->format('Y-m-d\TH:i:s.u\Z');
     $response['posttime'] = $posttime;
+    $response['extendinterval'] = $extendinterval;
     $data->id = $id;
     $data->expirationTime = $posttime;
     $result = extend_event($auth, $data);
@@ -90,5 +113,4 @@ if (!$event) {
 $response['id'] = $id;
 
 echo json_encode($response);
-
 

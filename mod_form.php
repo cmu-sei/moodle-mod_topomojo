@@ -410,6 +410,13 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addElement('checkbox', 'extendevent', get_string('extendevent', 'topomojo'));
         $mform->addHelpButton('extendevent', 'extendevent', 'topomojo');
 
+        $maxextendinterval = topomojo_get_max_extend_interval();
+        $mform->addElement('text', 'extendinterval', get_string('extendinterval', 'topomojo'));
+        $mform->setType('extendinterval', PARAM_INT);
+        $mform->setDefault('extendinterval', $maxextendinterval);
+        $mform->addHelpButton('extendinterval', 'extendinterval', 'topomojo');
+        $mform->hideIf('extendinterval', 'extendevent', 'notchecked');
+
         $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'topomojo'));
 
         $mform->addElement('checkbox', 'importchallenge', get_string('importchallenge', 'topomojo'));
@@ -715,6 +722,19 @@ class mod_topomojo_mod_form extends moodleform_mod
         if (($data['preferredbehaviour'] == 'deferredcbm') || ($data['preferredbehaviour'] == 'immediatecbm')) {
             unset($errors['gradepass']);
         }
+
+        $extendinterval = $data['extendinterval'] ?? null;
+        if (!empty($data['extendevent']) && ($extendinterval === null || $extendinterval === '')) {
+            $errors['extendinterval'] = get_string('required');
+        } else if ($extendinterval !== null && $extendinterval !== '') {
+            $maxextendinterval = topomojo_get_max_extend_interval();
+            if ((int) $extendinterval < 1) {
+                $errors['extendinterval'] = get_string('extendintervalpositive', 'topomojo');
+            } else if ((int) $extendinterval > $maxextendinterval) {
+                $errors['extendinterval'] = get_string('extendintervalmax', 'topomojo', $maxextendinterval);
+            }
+        }
+
         return $errors;
     }
 

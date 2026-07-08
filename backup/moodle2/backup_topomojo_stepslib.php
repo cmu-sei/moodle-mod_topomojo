@@ -55,7 +55,7 @@ class backup_topomojo_activity_structure_step extends backup_questions_activity_
         // Define each element separated
         $topomojo = new backup_nested_element('topomojo', array('id'), array(
             'name', 'intro', 'introformat', 'workspaceid', 'embed',
-            'clock', 'extendevent', 'timeopen', 'timeclose', 'grade',
+            'clock', 'extendevent', 'extendinterval', 'timeopen', 'timeclose', 'grade',
             'grademethod', 'timecreated', 'timemodified', 'reviewattempt',
             'reviewcorrectness', 'reviewmarks', 'reviewspecificfeedback',
             'reviewgeneralfeedback', 'reviewrightanswer', 'reviewoverallfeedback',

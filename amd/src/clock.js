@@ -106,8 +106,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
     };
 
     /**
-     * Extend the duration of the lab by one hour
-     *
+     * Extend the duration of the lab by the configured interval.
      */
     function extendEvent() {
         $.ajax({
@@ -122,7 +121,7 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 'Expires': '-1'
             },
             success: function() {
-                endtime += 3600;
+                window.location.replace(window.location.href);
             },
             error: function(request) {
                 log.debug('moodle-mod_topomojo-extend-event: ' + request);

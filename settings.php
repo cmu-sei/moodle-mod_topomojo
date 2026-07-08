@@ -84,6 +84,15 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('topomojo/autocomplete',
         get_string('autocomplete', 'topomojo'), get_string('configautocomplete', 'topomojo'), 1, $options));
 
+    $settings->add(new admin_setting_configtext(
+        'topomojo/maxextendinterval',
+        get_string('maxextendinterval', 'topomojo'),
+        get_string('configmaxextendinterval', 'topomojo'),
+        60,
+        PARAM_INT,
+        10
+    ));
+
     $settings->add(new admin_setting_configtext('topomojo/topomojoapiurl',
         get_string('topomojoapiurl', 'topomojo'), get_string('configtopomojoapiurl', 'topomojo'), "", PARAM_URL, 60));
 
