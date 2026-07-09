@@ -180,7 +180,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function display_startform($url, $workspace, $markdown, $content_license = null, $isinstructor = false, $bulkdeployurl = null, $has_predeployed = false) {
         $data = new stdClass();
         $data->url = $url;
-        $data->workspace = $workspace;
+        $data->workspaceid = $workspace;
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
         $data->has_predeployed = $has_predeployed;

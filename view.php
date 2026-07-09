@@ -468,6 +468,18 @@ if ((int)$object->topomojo->grade > 0) {
     $showgrade = false;
 }
 
+$challengebutton = '';
+if (!empty($topomojo->questionorder)) {
+    $challengebutton = html_writer::div(
+        html_writer::link(
+            '#topomojo-markdown',
+            get_string('openchallenge', 'mod_topomojo'),
+            ['class' => 'btn btn-primary topomojo-challenge-link']
+        ),
+        'mt-3'
+    );
+}
+
 if ($object->event) {
     // Show preview mode warning if this is a preview attempt (additional check during lab)
     if ($activeattempt && isset($object->openAttempt->preview) && $object->openAttempt->preview == 1) {
@@ -522,6 +534,7 @@ if ($object->event) {
         if ($showgrade) {
             $renderer->display_grade($topomojo);
         }
+        echo $challengebutton;
         echo html_writer::end_div();
         echo html_writer::end_div();
 
@@ -553,6 +566,7 @@ if ($object->event) {
         $renderer->display_detail($topomojo, $topomojo->duration, $code);
         $PAGE->requires->js_call_amd('core/tooltip', 'init');
         $renderer->display_timer();
+        echo $challengebutton;
         echo html_writer::end_div();
         echo html_writer::end_div();
 
@@ -657,6 +671,7 @@ if ($object->event) {
     if ($showgrade) {
         $renderer->display_grade($topomojo);
     }
+    echo $challengebutton;
     echo html_writer::end_div();
     echo html_writer::end_div();
 
