@@ -66,7 +66,7 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                         if (status === 'pending' || status === 'launched' || status === 'scheduled') {
                             canCancel++;
                         }
-                        // Can end: Active
+                        // Can end: In Progress
                         if (status === 'in progress') {
                             canEnd++;
                             canExtend++;
