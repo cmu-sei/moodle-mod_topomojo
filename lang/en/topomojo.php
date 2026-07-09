@@ -128,9 +128,10 @@ $string['workspace'] = 'TopoMojo Workspace';
 $string['filterbyaudience'] = 'Filter by Audience';
 $string['pluginadministration'] = 'TopoMojo administration';
 $string['playerlinktext'] = 'Open lab in new tab';
-$string['clock'] = 'Clock';
-$string['configclock'] = 'Style for clock.';
-$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+$string['openchallenge'] = 'Open Challenge';
+$string['clock'] = 'Timer';
+$string['configclock'] = 'Style for timer.';
+$string['clock_help'] = 'Display no timer, a countup timer, or a countdown timer.';
 $string['firstattempt'] = 'First attempt';
 $string['lastattempt'] = 'Last completed attempt';
 $string['highestattempt'] = 'Highest attempt';
@@ -315,7 +316,6 @@ $string['invalid_points'] = 'Invalid point value';
 
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
-$string['challengeaccessnotice'] = 'Notice: Please access the Challenge questions in a new tab.';
 $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you navigate away from this page.';
 
 // Global Search

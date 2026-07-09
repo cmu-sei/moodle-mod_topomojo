@@ -45,19 +45,29 @@ DM24-1175
             }
 }}
 {{#duration}}
-<div class="notification-style topomojo-notification-box">
-  {{durationtext}}: {{#days}}{{days}} Day(s) {{/days}}
-  {{#hours}}{{hours}} Hour(s) {{/hours}}
-  {{#minutes}}{{minutes}} Minute(s) {{/minutes}}
-  {{#seconds}}{{seconds}} Second(s) {{/seconds}}
-{{/duration}}
-<br>
-{{#code}}
-{{# str }} supportcode, mod_topomojo {{/ str }} {{code}}
-<i class="fa fa-info-circle" data-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
-{{/code}}
+<div class="topomojo-detail-list">
+  <div class="topomojo-detail-item border rounded bg-light">
+    <span class="topomojo-detail-label">{{durationtext}}</span>
+    <span class="topomojo-detail-value">
+      {{#days}}{{days}} Day(s) {{/days}}
+      {{#hours}}{{hours}} Hour(s) {{/hours}}
+      {{#minutes}}{{minutes}} Minute(s) {{/minutes}}
+      {{#seconds}}{{seconds}} Second(s) {{/seconds}}
+    </span>
+  </div>
+  {{#code}}
+  <div class="topomojo-detail-item border rounded bg-light">
+    <span class="topomojo-detail-label">{{# str }} supportcode, mod_topomojo {{/ str }}</span>
+    <span class="topomojo-detail-value">
+      {{code}}
+      <i class="fa fa-info-circle" data-bs-toggle="tooltip" title="This is your support code. Use it for assistance or technical support."></i>
+    </span>
+  </div>
+  {{/code}}
 </div>
+{{/duration}}
 {{#questionorder}}
-    <div class="alert alert-warning">{{#str}} challengeaccessnotice, mod_topomojo {{/str}}</div>
+    <div class="mt-3">
+        <a href="#topomojo-markdown" class="btn btn-primary topomojo-challenge-link">{{#str}} openchallenge, mod_topomojo {{/str}}</a>
+    </div>
 {{/questionorder}}
-

@@ -543,7 +543,14 @@ if ($object->event) {
 
         $code = substr($object->event->id, 0, 8);
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+        echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_detail($topomojo, $topomojo->duration, $code);
+        $PAGE->requires->js_call_amd('core/tooltip', 'init');
+        $renderer->display_timer();
+        echo html_writer::end_div();
+        echo html_writer::end_div();
 
         $jsoptions = ['keepaliveinterval' => 1];
 
@@ -562,7 +569,12 @@ if ($object->event) {
             '#stop_confirmed'
         ]);
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--actions');
+        echo html_writer::tag('div', 'Lab Actions', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
+        echo html_writer::end_div();
+        echo html_writer::end_div();
         // No matter what, start our session timer
         $PAGE->requires->js_call_amd(
             'mod_topomojo/clock',
@@ -613,9 +625,19 @@ if ($object->event) {
                 $vmlist[] = $vmdata;
             }
 
+            echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
+            echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
+            echo html_writer::start_div('topomojo-activity-section__body');
             $renderer->display_embed_page($object->event->markdown, $vmlist);
+            echo html_writer::end_div();
+            echo html_writer::end_div();
         } else {
+            echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
+            echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
+            echo html_writer::start_div('topomojo-activity-section__body');
             $renderer->display_link_page($object->openAttempt->launchpointurl);
+            echo html_writer::end_div();
+            echo html_writer::end_div();
         }
     }
 } else {
@@ -628,7 +650,12 @@ if ($object->event) {
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
     $markdowncutline = "/\n<!-- cut -->\n/";
     $parts = preg_split($markdowncutline, $markdown);
+    echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+    echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+    echo html_writer::start_div('topomojo-activity-section__body');
     $renderer->display_detail($topomojo, $topomojo->duration);
+    echo html_writer::end_div();
+    echo html_writer::end_div();
 
     if ($object->topomojo->showcontentlicense) {
         $license_id = $object->topomojo->contentlicense;

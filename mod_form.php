@@ -792,7 +792,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
             if (!empty($data->extendevent) && $data->clock != 1) {
-                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+                throw new moodle_exception('The "Extend Lab" option requires the "Timer" setting to be set to "Countdown".');
             }
 
             // Check that variant is valid

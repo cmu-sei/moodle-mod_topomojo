@@ -493,6 +493,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
+     * Renders the active timer display.
+     *
+     * @return void
+     */
+    public function display_timer() {
+        echo $this->render_from_template('mod_topomojo/timer', new stdClass());
+    }
+
+    /**
      * Initialize the renderer with some variables
      *
      * @param \mod_topomojo\topomojo $topomojo
