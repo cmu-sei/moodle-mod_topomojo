@@ -457,10 +457,6 @@ if ($object->event) {
 $embed = $topomojo->embed;
 $license_info = null;
 
-$grader = new \mod_topomojo\utils\grade($object);
-$gradepass = $grader->get_grade_item_passing_grade();
-debugging("grade to pass is $gradepass", DEBUG_DEVELOPER);
-
 // Show grade only if a grade is set
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;

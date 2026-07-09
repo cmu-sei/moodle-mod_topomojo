@@ -627,7 +627,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $canreviewmarks = $this->topomojo->canreviewmarks($reviewoptions, $state);
 
         // Show overall grade
-        if ($canreviewmarks && (!$this->topomojo->is_instructor())) {
+        if ($canreviewmarks && (int)$this->topomojo->topomojo->grade > 0 && (!$this->topomojo->is_instructor())) {
             $this->display_grade($this->topomojo->topomojo);
         }
 
