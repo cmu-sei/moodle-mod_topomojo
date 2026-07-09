@@ -564,7 +564,6 @@ if ($object->event) {
         if ($showgrade) {
             $renderer->display_grade($topomojo);
         }
-        echo $challengebutton;
         echo html_writer::end_div();
         echo html_writer::end_div();
 
@@ -701,7 +700,6 @@ if ($object->event) {
     if ($showgrade) {
         $renderer->display_grade($topomojo);
     }
-    echo $challengebutton;
     echo html_writer::end_div();
     echo html_writer::end_div();
 
