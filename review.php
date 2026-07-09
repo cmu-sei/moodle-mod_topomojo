@@ -92,7 +92,6 @@ $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevar
 
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
-// $renderer->display_return_form($returnurl, $id);
 
 if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
     topomojo_delete_all_attempts($topomojo);
@@ -127,5 +126,7 @@ if ($object->is_instructor()) {
     $attempts = $object->get_attempts_by_user($userid, 'closed');
     echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
 }
+
+$renderer->display_return_form($returnurl, $id);
 
 echo $renderer->footer();

@@ -515,11 +515,15 @@ if ($object->event) {
         $markdowncutline = "<!-- cut -->";
         $parts = preg_split($markdowncutline, $markdown);
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+        echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_detail_no_vms($topomojo, $topomojo->duration);
-
         if ($showgrade) {
             $renderer->display_grade($topomojo);
         }
+        echo html_writer::end_div();
+        echo html_writer::end_div();
 
         if ($object->topomojo->showcontentlicense) {
             $license_id = $object->topomojo->contentlicense;
@@ -641,10 +645,6 @@ if ($object->event) {
         }
     }
 } else {
-    if ($showgrade) {
-        $renderer->display_grade($topomojo);
-    }
-
     // TODO check whether the user has any attempts left
 
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
@@ -654,6 +654,9 @@ if ($object->event) {
     echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
     echo html_writer::start_div('topomojo-activity-section__body');
     $renderer->display_detail($topomojo, $topomojo->duration);
+    if ($showgrade) {
+        $renderer->display_grade($topomojo);
+    }
     echo html_writer::end_div();
     echo html_writer::end_div();
 
