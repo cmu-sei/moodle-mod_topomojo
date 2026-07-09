@@ -112,6 +112,25 @@ if (!$healthstatus['healthy']) {
 // causing cross-contamination when multiple activities share the same workspace.
 // Each activity must only see gamespaces created from its own attempts.
 $object->event = null;
+
+// Seed Moodle's Description from TopoMojo on first view, then leave teacher edits alone.
+if (empty(trim(strip_tags($topomojo->intro ?? '')))) {
+    try {
+        $workspace = get_workspace($object->userauth, $topomojo->workspaceid);
+        $description = $workspace->description ?? '';
+        if (!empty(trim($description))) {
+            $parts = explode('<!-- cut -->', $description, 2);
+            $topomojo->intro = trim($parts[0]);
+            $topomojo->introformat = FORMAT_MARKDOWN;
+            $DB->update_record('topomojo', $topomojo);
+            $object->topomojo->intro = $topomojo->intro;
+            $object->topomojo->introformat = $topomojo->introformat;
+        }
+    } catch (Exception $e) {
+        debugging('Failed to seed TopoMojo description: ' . $e->getMessage(), DEBUG_DEVELOPER);
+    }
+}
+
 $renderer = $object->renderer;
 echo $renderer->header();
 
