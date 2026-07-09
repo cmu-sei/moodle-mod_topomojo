@@ -477,7 +477,7 @@ $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
 $string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
 $string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
-$string['extend_confirm_message'] = 'Extend selected active labs by {$a} minute(s)?';
+$string['extend_confirm_message'] = 'Choose how many minutes to extend selected active labs.';
 $string['extendintervalinvalid'] = 'The activity extend interval is invalid.';
 $string['end_time'] = 'End Time';
 $string['status'] = 'Status';
@@ -490,7 +490,7 @@ $string['status_help'] = 'Status values used in this table:
 * **Failed**: deployment failed (hover the cell for the error).
 * **Cancelled**: deployment was cancelled before completing.
 * **Not Started**: an attempt exists but the user has not begun.
-* **Active**: the gamespace is deployed and ready.
+* **In Progress**: the gamespace is deployed and ready.
 * **Abandoned**: user left the attempt without finishing.
 * **Finished**: user completed the attempt.';
 $string['status_started_at'] = 'Started at: {$a}';

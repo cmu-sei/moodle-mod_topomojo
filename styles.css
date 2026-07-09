@@ -163,6 +163,15 @@
     color: #0f172a;
 }
 
+.mod-topomojo-users-table {
+    width: 100%;
+}
+
+.mod-topomojo-users-table th {
+    font-weight: bold;
+    background-color: #f5f5f5;
+}
+
 .spinner {
     margin-left: 10px;
     border: 2px solid #f3f3f3;
