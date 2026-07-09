@@ -485,11 +485,16 @@ if ((int)$object->topomojo->grade > 0) {
 
 $challengebutton = '';
 if (!empty($topomojo->questionorder)) {
+    $challengeurl = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id]);
     $challengebutton = html_writer::div(
         html_writer::link(
-            '#topomojo-markdown',
+            $challengeurl,
             get_string('openchallenge', 'mod_topomojo'),
-            ['class' => 'btn btn-primary topomojo-challenge-link']
+            [
+                'class' => 'btn btn-primary topomojo-challenge-link',
+                'target' => '_blank',
+                'rel' => 'noopener',
+            ]
         ),
         'mt-3'
     );
