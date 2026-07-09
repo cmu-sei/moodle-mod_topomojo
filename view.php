@@ -535,12 +535,22 @@ if ($object->event) {
 
         // Event is old and still no VMs - this is an error
         debugging("no vms after timeout", DEBUG_DEVELOPER);
-        stop_event($object->userauth, $object->event->id);
+        if ($activeattempt && $object->openAttempt) {
+            if ($object->openAttempt->questionusageid) {
+                $object->openAttempt->save_question();
+            }
+            $object->openAttempt->close_attempt();
+        }
+        try {
+            stop_event($object->userauth, $object->event->id);
+        } catch (Exception $e) {
+            debugging('Failed to stop no-VM TopoMojo event: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
         topomojo_end($cm, $context, $topomojo);
 
         $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-        $markdowncutline = "<!-- cut -->";
-        $parts = preg_split($markdowncutline, $markdown);
+        $parts = preg_split('/\s*<!-- cut -->\s*/', $markdown, 2);
+        $labcontent = $parts[1] ?? '';
 
         echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
         echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
@@ -570,7 +580,7 @@ if ($object->event) {
         $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
     } else {
 
         $code = substr($object->event->id, 0, 8);
@@ -677,8 +687,8 @@ if ($object->event) {
     // TODO check whether the user has any attempts left
 
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $markdowncutline = "/\n<!-- cut -->\n/";
-    $parts = preg_split($markdowncutline, $markdown);
+    $parts = preg_split('/\s*<!-- cut -->\s*/', $markdown, 2);
+    $labcontent = $parts[1] ?? '';
     echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
     echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
     echo html_writer::start_div('topomojo-activity-section__body');
@@ -707,7 +717,7 @@ if ($object->event) {
     $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl);
 }
 
 echo $renderer->footer();

@@ -186,10 +186,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->has_predeployed = $has_predeployed;
 
         $data->markdown = $this->clean_markdown($markdown);
+        $data->hascontent = !empty(trim($markdown));
 
         if ($content_license) {
             $data->license_fullname = $content_license->fullname;
             $data->license_source = $content_license->source;
+            $data->hascontent = true;
         }
 
         // Render the data in a Mustache template.
