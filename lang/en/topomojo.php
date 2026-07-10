@@ -128,9 +128,10 @@ $string['workspace'] = 'TopoMojo Workspace';
 $string['filterbyaudience'] = 'Filter by Audience';
 $string['pluginadministration'] = 'TopoMojo administration';
 $string['playerlinktext'] = 'Open lab in new tab';
-$string['clock'] = 'Clock';
-$string['configclock'] = 'Style for clock.';
-$string['clock_help'] = 'Display no clock, a countup timer, or a countdown timer.';
+$string['openchallenge'] = 'Open Challenge';
+$string['clock'] = 'Timer';
+$string['configclock'] = 'Style for timer.';
+$string['clock_help'] = 'Display no timer, a countup timer, or a countdown timer.';
 $string['firstattempt'] = 'First attempt';
 $string['lastattempt'] = 'Last completed attempt';
 $string['highestattempt'] = 'Highest attempt';
@@ -145,7 +146,7 @@ $string['extendinterval'] = 'Extend interval';
 $string['extendinterval_help'] = 'Number of minutes to add when the lab is extended.';
 $string['extendintervalmax'] = 'The extend interval cannot be greater than {$a} minutes.';
 $string['extendintervalpositive'] = 'The extend interval must be at least 1 minute.';
-$string['grade_help'] = 'This setting specifies the maximum grade for the lab. If set to 0, the lesson does not appear in the grades pages.';
+$string['grade_help'] = 'This setting specifies the maximum score for the lab. Set it to 0 to hide grade display for this activity. Grade to pass only sets the passing threshold and does not control grade visibility.';
 $string['duration'] = 'Duration';
 $string['duration_help'] = 'This is the duration of the lab in minutes. Set to 0 to use worspace default from TopoMojo';
 $string['overallfeedback'] = 'Overall feedback';
@@ -215,7 +216,7 @@ $string['eventattemptended'] = 'Attempt ended';
 $string['eventwithoutattempt'] = 'Gamespace exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
-$string['overallgrade'] = 'Overall Grade: ';
+$string['overallgrade'] = 'Overall Grade';
 $string['extendevent'] = 'Extend Lab';
 $string['reviewtext'] = 'Review Activity Attempts';
 $string['durationtext'] = 'Scheduled Duration';
@@ -315,7 +316,6 @@ $string['invalid_points'] = 'Invalid point value';
 
 // Privacy
 $string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
-$string['challengeaccessnotice'] = 'Notice: Please access the Challenge questions in a new tab.';
 $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you navigate away from this page.';
 
 // Global Search
@@ -468,11 +468,18 @@ $string['cancel_selected'] = 'Cancel Selected';
 $string['cancel_selected_help'] = 'Cancel pending/queued deployments for selected users';
 $string['end_selected'] = 'End Selected';
 $string['end_selected_help'] = 'End active gamespace attempts for selected users';
+$string['extend_selected'] = 'Extend Selected';
+$string['extend_selected_help'] = 'Extend active labs for selected users';
 $string['no_users_selected'] = 'No users selected';
 $string['deployment_queued'] = 'Deployment queued for {$a} user(s)';
 $string['deployment_scheduled'] = 'Deployment scheduled for {$a} user(s)';
 $string['deployments_cancelled'] = 'Cancelled {$a} deployment(s)';
 $string['attempts_ended'] = 'Ended {$a} attempt(s)';
+$string['attempts_extended'] = 'Extended {$a->count} active attempt(s) by {$a->minutes} minute(s)';
+$string['attempts_extend_failed'] = 'Failed to extend {$a} selected active attempt(s)';
+$string['extend_confirm_message'] = 'Choose how many minutes to extend selected active labs.';
+$string['extendintervalinvalid'] = 'The activity extend interval is invalid.';
+$string['end_time'] = 'End Time';
 $string['status'] = 'Status';
 $string['status_help'] = 'Status values used in this table:
 
@@ -483,7 +490,7 @@ $string['status_help'] = 'Status values used in this table:
 * **Failed**: deployment failed (hover the cell for the error).
 * **Cancelled**: deployment was cancelled before completing.
 * **Not Started**: an attempt exists but the user has not begun.
-* **Active**: the gamespace is deployed and ready.
+* **In Progress**: the gamespace is deployed and ready.
 * **Abandoned**: user left the attempt without finishing.
 * **Finished**: user completed the attempt.';
 $string['status_started_at'] = 'Started at: {$a}';

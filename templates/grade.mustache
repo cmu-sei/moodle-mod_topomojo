@@ -44,10 +44,9 @@ DM24-1175
             }
 }}
 
-<div class="notification-style topomojo-notification-box">
-    <caption>
-        {{# str }} overallgrade, mod_topomojo {{/ str }}
-    </caption>
-    {{grade}} / {{maxgrade}}
+<div class="topomojo-detail-list topomojo-grade-list mt-3">
+    <div class="topomojo-detail-item border rounded bg-light">
+        <span class="topomojo-detail-label">{{# str }} overallgrade, mod_topomojo {{/ str }}</span>
+        <span class="topomojo-detail-value">{{grade}} / {{maxgrade}}</span>
+    </div>
 </div>
-

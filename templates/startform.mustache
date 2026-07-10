@@ -46,41 +46,52 @@ DM24-1175
 }}
 
 <div class="topomojo-content-area">
-{{#license_fullname}}
-<div class="license-info">
-    <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
-</div>
-{{/license_fullname}}
+    <div class="topomojo-activity-section topomojo-activity-section--actions">
+        <div class="topomojo-activity-section__header">Lab Actions</div>
+        <div class="topomojo-activity-section__body">
+            {{#has_predeployed}}
+            <div class="alert alert-info mb-3">
+                <strong>Gamespace resources deployed.</strong> Your lab environment is ready. Click Start to begin your attempt.
+            </div>
+            {{/has_predeployed}}
 
-{{#has_predeployed}}
-<div class="alert alert-info">
-    <strong>Gamespace resources deployed.</strong> Your lab environment is ready. Click Start to begin your attempt.
-</div>
-{{/has_predeployed}}
+            <form id="start_form" action="{{url}}" method="post" class="d-flex flex-wrap align-items-center gap-2 m-0">
+                <input id="event" type="hidden" name="event" value=""/>
+                <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
+                <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
+                <input id="preview" type="hidden" name="preview" value="0"/>
+                <button id="launch_button" class="btn btn-primary" type="submit">
+                    {{#has_predeployed}}Start Attempt{{/has_predeployed}}{{^has_predeployed}}Launch Lab{{/has_predeployed}}
+                </button>
+                {{#isinstructor}}
+                <button id="preview_button" class="btn btn-secondary" type="button">
+                    Preview Lab
+                </button>
+                <a href="{{bulkdeployurl}}" class="btn btn-secondary" role="button">
+                    Manage Deployments
+                </a>
+                {{/isinstructor}}
+            </form>
+        </div>
+    </div>
 
-<form id="start_form" action="{{url}}" method="post">
-    <input id="event" type="hidden" name="event" value=""/>
-    <input id="workspaceid" type="hidden" name="workspaceid" value="{{workspaceid}}" />
-    <input id="start_confirmed" type="hidden" name="start_confirmed" value=""/>
-    <input id="preview" type="hidden" name="preview" value="0"/>
-    <button id="launch_button" class="btn btn-primary" type="submit">
-        {{#has_predeployed}}Start Attempt{{/has_predeployed}}{{^has_predeployed}}Launch Lab{{/has_predeployed}}
-    </button>
-    {{#isinstructor}}
-    <button id="preview_button" class="btn btn-secondary" type="button">
-        Preview Lab
-    </button>
-    <a href="{{bulkdeployurl}}" class="btn btn-secondary" role="button">
-        Manage Deployments
-    </a>
-    {{/isinstructor}}
-</form>
-<div id="topomojo-markdown">
-{{{markdown}}}
-</div>
-</div>
+    {{#hascontent}}
+    <div class="topomojo-activity-section topomojo-activity-section--content">
+        <div class="topomojo-activity-section__header">Lab Content</div>
+        <div class="topomojo-activity-section__body">
+            {{#license_fullname}}
+            <div class="license-info">
+                <p><strong>License:</strong> <a href="{{license_source}}" target="_blank">{{license_fullname}}</a></p>
+            </div>
+            {{/license_fullname}}
 
-<br>
+            <div id="topomojo-markdown">
+            {{{markdown}}}
+            </div>
+        </div>
+    </div>
+    {{/hascontent}}
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

@@ -180,16 +180,18 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function display_startform($url, $workspace, $markdown, $content_license = null, $isinstructor = false, $bulkdeployurl = null, $has_predeployed = false) {
         $data = new stdClass();
         $data->url = $url;
-        $data->workspace = $workspace;
+        $data->workspaceid = $workspace;
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
         $data->has_predeployed = $has_predeployed;
 
         $data->markdown = $this->clean_markdown($markdown);
+        $data->hascontent = !empty(trim($markdown));
 
         if ($content_license) {
             $data->license_fullname = $content_license->fullname;
             $data->license_source = $content_license->source;
+            $data->hascontent = true;
         }
 
         // Render the data in a Mustache template.
@@ -493,6 +495,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
+     * Renders the active timer display.
+     *
+     * @return void
+     */
+    public function display_timer() {
+        echo $this->render_from_template('mod_topomojo/timer', new stdClass());
+    }
+
+    /**
      * Initialize the renderer with some variables
      *
      * @param \mod_topomojo\topomojo $topomojo
@@ -618,7 +629,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $canreviewmarks = $this->topomojo->canreviewmarks($reviewoptions, $state);
 
         // Show overall grade
-        if ($canreviewmarks && (!$this->topomojo->is_instructor())) {
+        if ($canreviewmarks && (int)$this->topomojo->topomojo->grade > 0 && (!$this->topomojo->is_instructor())) {
             $this->display_grade($this->topomojo->topomojo);
         }
 

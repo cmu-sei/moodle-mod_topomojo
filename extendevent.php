@@ -106,6 +106,12 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
+        $attemptrecord = $DB->get_record('topomojo_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        if ($attemptrecord) {
+            $attemptrecord->endtime = $timestamp->getTimestamp();
+            $attemptrecord->timemodified = time();
+            $DB->update_record('topomojo_attempts', $attemptrecord);
+        }
         header('HTTP/1.1 200 OK');
         $response['message'] = "success";
     }
@@ -113,4 +119,3 @@ if (!$event) {
 $response['id'] = $id;
 
 echo json_encode($response);
-

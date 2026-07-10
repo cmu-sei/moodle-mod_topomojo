@@ -202,6 +202,7 @@ class management_repository {
         $now = time();
         $statuslabel = 'None';
         $scheduledtext = '─';
+        $endtimelabel = '─';
         $tooltiphtml = null;
 
         $deploystatus = $row->deploystatus ?? null;
@@ -217,7 +218,7 @@ class management_repository {
         } else if (!empty($attemptid)) {
             $statemap = [
                 'notstarted' => 'Not Started',
-                'inprogress' => 'Active',
+                'inprogress' => 'In Progress',
                 'abandoned'  => 'Abandoned',
                 'finished'   => 'Finished',
             ];
@@ -234,7 +235,7 @@ class management_repository {
                 . 'data-bs-html="false" tabindex="0" data-bs-trigger="focus" aria-label="Help">'
                 . '<i class="icon fa fa-circle-question text-info fa-fw" title="Error details" role="img" '
                 . 'aria-label="Error details"></i></a>';
-        } else if (in_array($statuslabel, ['Active', 'Finished'], true)
+        } else if (in_array($statuslabel, ['In Progress', 'Finished'], true)
             && (!empty($row->attempttimestart) || !empty($row->attemptendtime))) {
             $datefmt = get_string('strftimedatetime', 'langconfig');
             $parts = [];
@@ -262,14 +263,17 @@ class management_repository {
             $gamespacetext = (string) $row->attemptgamespaceid;
         }
 
+        if (!empty($row->attemptendtime)) {
+            $endtimelabel = userdate((int) $row->attemptendtime, get_string('strftimedatetime', 'langconfig'));
+        }
+
         $actionhtml = '─';
         if (!empty($attemptid) && $hasquestions) {
             // All attempt states link to viewattempt.php for instructor review
             if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::INPROGRESS, \mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
                 $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
-                $buttonclass = $attemptstate === \mod_topomojo\topomojo_attempt::INPROGRESS ? 'btn-outline-primary' : 'btn-outline-secondary';
                 $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
-                    ['class' => 'btn btn-sm ' . $buttonclass, 'target' => '_blank']);
+                    ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
             }
         }
 
@@ -278,6 +282,7 @@ class management_repository {
             'status_class'   => strtolower($statuslabel),
             'gamespace_text' => $gamespacetext,
             'scheduled_text' => $scheduledtext,
+            'end_time_text'  => $endtimelabel,
             'tooltip_html'   => $tooltiphtml,
             'action_html'    => $actionhtml,
         ];

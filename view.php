@@ -112,6 +112,25 @@ if (!$healthstatus['healthy']) {
 // causing cross-contamination when multiple activities share the same workspace.
 // Each activity must only see gamespaces created from its own attempts.
 $object->event = null;
+
+// Seed Moodle's Description from TopoMojo on first view, then leave teacher edits alone.
+if (empty(trim(strip_tags($topomojo->intro ?? '')))) {
+    try {
+        $workspace = get_workspace($object->userauth, $topomojo->workspaceid);
+        $description = $workspace->description ?? '';
+        if (!empty(trim($description))) {
+            $parts = explode('<!-- cut -->', $description, 2);
+            $topomojo->intro = trim($parts[0]);
+            $topomojo->introformat = FORMAT_MARKDOWN;
+            $DB->update_record('topomojo', $topomojo);
+            $object->topomojo->intro = $topomojo->intro;
+            $object->topomojo->introformat = $topomojo->introformat;
+        }
+    } catch (Exception $e) {
+        debugging('Failed to seed TopoMojo description: ' . $e->getMessage(), DEBUG_DEVELOPER);
+    }
+}
+
 $renderer = $object->renderer;
 echo $renderer->header();
 
@@ -457,15 +476,28 @@ if ($object->event) {
 $embed = $topomojo->embed;
 $license_info = null;
 
-$grader = new \mod_topomojo\utils\grade($object);
-$gradepass = $grader->get_grade_item_passing_grade();
-debugging("grade to pass is $gradepass", DEBUG_DEVELOPER);
-
 // Show grade only if a grade is set
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
     $showgrade = false;
+}
+
+$challengebutton = '';
+if (!empty($topomojo->questionorder)) {
+    $challengeurl = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id]);
+    $challengebutton = html_writer::div(
+        html_writer::link(
+            $challengeurl,
+            get_string('openchallenge', 'mod_topomojo'),
+            [
+                'class' => 'btn btn-primary topomojo-challenge-link',
+                'target' => '_blank',
+                'rel' => 'noopener',
+            ]
+        ),
+        'mt-3'
+    );
 }
 
 if ($object->event) {
@@ -508,18 +540,32 @@ if ($object->event) {
 
         // Event is old and still no VMs - this is an error
         debugging("no vms after timeout", DEBUG_DEVELOPER);
-        stop_event($object->userauth, $object->event->id);
+        if ($activeattempt && $object->openAttempt) {
+            if ($object->openAttempt->questionusageid) {
+                $object->openAttempt->save_question();
+            }
+            $object->openAttempt->close_attempt();
+        }
+        try {
+            stop_event($object->userauth, $object->event->id);
+        } catch (Exception $e) {
+            debugging('Failed to stop no-VM TopoMojo event: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
         topomojo_end($cm, $context, $topomojo);
 
         $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-        $markdowncutline = "<!-- cut -->";
-        $parts = preg_split($markdowncutline, $markdown);
+        $parts = preg_split('/\s*<!-- cut -->\s*/', $markdown, 2);
+        $labcontent = $parts[1] ?? '';
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+        echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_detail_no_vms($topomojo, $topomojo->duration);
-
         if ($showgrade) {
             $renderer->display_grade($topomojo);
         }
+        echo html_writer::end_div();
+        echo html_writer::end_div();
 
         if ($object->topomojo->showcontentlicense) {
             $license_id = $object->topomojo->contentlicense;
@@ -538,12 +584,20 @@ if ($object->event) {
         $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
     } else {
 
         $code = substr($object->event->id, 0, 8);
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+        echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_detail($topomojo, $topomojo->duration, $code);
+        $PAGE->requires->js_call_amd('core/tooltip', 'init');
+        $renderer->display_timer();
+        echo $challengebutton;
+        echo html_writer::end_div();
+        echo html_writer::end_div();
 
         $jsoptions = ['keepaliveinterval' => 1];
 
@@ -562,7 +616,12 @@ if ($object->event) {
             '#stop_confirmed'
         ]);
 
+        echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--actions');
+        echo html_writer::tag('div', 'Lab Actions', ['class' => 'topomojo-activity-section__header']);
+        echo html_writer::start_div('topomojo-activity-section__body');
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
+        echo html_writer::end_div();
+        echo html_writer::end_div();
         // No matter what, start our session timer
         $PAGE->requires->js_call_amd(
             'mod_topomojo/clock',
@@ -613,22 +672,36 @@ if ($object->event) {
                 $vmlist[] = $vmdata;
             }
 
+            echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
+            echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
+            echo html_writer::start_div('topomojo-activity-section__body');
             $renderer->display_embed_page($object->event->markdown, $vmlist);
+            echo html_writer::end_div();
+            echo html_writer::end_div();
         } else {
+            echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
+            echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
+            echo html_writer::start_div('topomojo-activity-section__body');
             $renderer->display_link_page($object->openAttempt->launchpointurl);
+            echo html_writer::end_div();
+            echo html_writer::end_div();
         }
     }
 } else {
-    if ($showgrade) {
-        $renderer->display_grade($topomojo);
-    }
-
     // TODO check whether the user has any attempts left
 
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
-    $markdowncutline = "/\n<!-- cut -->\n/";
-    $parts = preg_split($markdowncutline, $markdown);
+    $parts = preg_split('/\s*<!-- cut -->\s*/', $markdown, 2);
+    $labcontent = $parts[1] ?? '';
+    echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--details');
+    echo html_writer::tag('div', 'Lab Details', ['class' => 'topomojo-activity-section__header']);
+    echo html_writer::start_div('topomojo-activity-section__body');
     $renderer->display_detail($topomojo, $topomojo->duration);
+    if ($showgrade) {
+        $renderer->display_grade($topomojo);
+    }
+    echo html_writer::end_div();
+    echo html_writer::end_div();
 
     if ($object->topomojo->showcontentlicense) {
         $license_id = $object->topomojo->contentlicense;
@@ -647,7 +720,7 @@ if ($object->event) {
     $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $parts[0], $license_info, $isinstructor, $bulkdeployurl);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl);
 }
 
 echo $renderer->footer();

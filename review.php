@@ -92,16 +92,17 @@ $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevar
 
 $renderer = $PAGE->get_renderer('mod_topomojo');
 echo $renderer->header();
-// $renderer->display_return_form($returnurl, $id);
 
 if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
     topomojo_delete_all_attempts($topomojo);
     \core\notification::success(get_string('attemptsdeleted', 'mod_topomojo'));
 }
 
+$showgrade = (int)$object->topomojo->grade > 0;
+
 if ($object->is_instructor()) {
     $attempts = $object->getall_attempts('closed', $review = true);
-    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = true);
+    echo $renderer->display_attempts($attempts, $showgrade, $showuser = true);
 
     // Only show delete button if there are attempts to delete
     if (!empty($attempts)) {
@@ -125,7 +126,9 @@ if ($object->is_instructor()) {
 } else {
     $userid = $USER->id;
     $attempts = $object->get_attempts_by_user($userid, 'closed');
-    echo $renderer->display_attempts($attempts, $showgrade = true, $showuser = false);
+    echo $renderer->display_attempts($attempts, $showgrade, $showuser = false);
 }
+
+$renderer->display_return_form($returnurl, $id);
 
 echo $renderer->footer();

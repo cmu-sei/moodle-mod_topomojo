@@ -46,7 +46,7 @@ foreach ($users as $u) {
 usort($users, function($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
-    if ($sort === 'scheduledfor') {
+    if ($sort === 'scheduledfor' || $sort === 'attemptendtime') {
         $val1 = (int)$val1;
         $val2 = (int)$val2;
         $cmp = $val1 <=> $val2;
@@ -104,7 +104,7 @@ foreach (get_roles_used_in_context($context) as $role) {
     $roleopts[$role->id] = role_get_name($role, $context);
 }
 
-echo html_writer::start_div('mod-topomojo-manage');
+echo html_writer::start_div('mod-topomojo-manage mt-3');
 
 echo html_writer::start_tag('form', ['method' => 'get', 'action' => $PAGE->url, 'class' => 'mb-3']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
@@ -116,7 +116,7 @@ echo html_writer::end_tag('form');
 
 $maxbatchsize = get_config('topomojo', 'bulkdeploy_batchsize') ?: 5;
 
-echo html_writer::start_div('bulk-actions mb-3');
+echo html_writer::start_div('bulk-actions d-flex flex-wrap gap-2 mb-3');
 echo html_writer::tag('button', get_string('select_all', 'topomojo'), [
     'id' => 'select-all-btn',
     'class' => 'btn btn-sm btn-secondary',
@@ -162,6 +162,14 @@ echo html_writer::tag('button', get_string('end_selected', 'topomojo'), [
     'disabled' => 'disabled',
     'title' => get_string('end_selected_help', 'topomojo')
 ]);
+echo ' ';
+echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
+    'id' => 'extend-selected-btn',
+    'class' => 'btn btn-info',
+    'type' => 'button',
+    'disabled' => 'disabled',
+    'title' => get_string('extend_selected_help', 'topomojo')
+]);
 echo html_writer::end_div();
 
 // Build sort links for column headers
@@ -176,7 +184,7 @@ $sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilt
 $statusheader = $sortlink('attemptstate', get_string('status', 'topomojo')) .
     ' ' . $OUTPUT->help_icon('status', 'topomojo');
 
-echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table']);
+echo html_writer::start_tag('table', ['class' => 'generaltable mod-topomojo-users-table mt-3']);
 echo '<thead><tr>';
 echo '<th><input type="checkbox" id="select-all-checkbox"></th>';
 echo '<th>' . $sortlink('firstname', 'User') . '</th>';
@@ -184,6 +192,7 @@ echo '<th>' . $sortlink('roletext', 'Role') . '</th>';
 echo '<th>' . $statusheader . '</th>';
 echo '<th>Current or Last Gamespace</th>';
 echo '<th>' . $sortlink('scheduledfor', 'Scheduled For') . '</th>';
+echo '<th>' . $sortlink('attemptendtime', get_string('end_time', 'topomojo')) . '</th>';
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
@@ -221,6 +230,7 @@ foreach ($users as $u) {
     echo '<td class="cell-status">' . $statushtml . '</td>';
     echo '<td class="cell-gamespace">' . s($state['gamespace_text']) . '</td>';
     echo '<td class="cell-scheduled">' . s($state['scheduled_text']) . '</td>';
+    echo '<td class="cell-end-time">' . s($state['end_time_text']) . '</td>';
     echo '<td class="cell-actions">' . $state['action_html'] . '</td>';
     echo '</tr>';
 }
@@ -243,6 +253,15 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', '
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'batchsize', 'id' => 'schedule-batchsize']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledfor', 'id' => 'schedule-timestamp']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'scheduledforlocal', 'id' => 'schedule-datetime']);
+echo html_writer::end_tag('form');
+
+echo html_writer::start_tag('form', ['id' => 'extend-form', 'method' => 'post', 'action' => new moodle_url('/mod/topomojo/manage_action.php'), 'style' => 'display:none;']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'extend_selected']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'userids', 'id' => 'extend-userids']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'extendinterval', 'id' => 'extend-interval']);
+echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::end_tag('form');
 
 // Modal content templates
@@ -264,15 +283,22 @@ echo html_writer::end_div();
 
 echo html_writer::start_div('', ['id' => 'schedule-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('label', get_string('scheduledfor', 'topomojo') . ':', ['for' => 'scheduledfor-input', 'class' => 'd-block mb-2']);
+$defaultschedule = (new DateTimeImmutable('@' . (time() + HOURSECS)))
+    ->setTimezone(core_date::get_user_timezone_object())
+    ->format('Y-m-d\TH:i');
 echo html_writer::empty_tag('input', [
     'type' => 'datetime-local',
     'id' => 'scheduledfor-input',
-    'value' => '',
+    'value' => $defaultschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
     'required' => 'required'
 ]);
-echo html_writer::tag('small', '', ['class' => 'form-text text-muted mb-3', 'id' => 'timezone-display']);
+echo html_writer::tag('small', '', [
+    'class' => 'form-text text-muted mb-3',
+    'id' => 'timezone-display',
+    'data-moodle-timezone' => core_date::get_user_timezone(),
+]);
 echo html_writer::tag('label', get_string('bulkdeploy_batchsize', 'topomojo') . ':', ['for' => 'schedule-batchsize-input', 'class' => 'd-block mb-2']);
 echo html_writer::empty_tag('input', [
     'type' => 'number',
@@ -285,6 +311,22 @@ echo html_writer::empty_tag('input', [
     'required' => 'required'
 ]);
 echo html_writer::tag('small', get_string('bulkdeploy_batchsize_desc', 'topomojo', $maxbatchsize), ['class' => 'form-text text-muted']);
+echo html_writer::end_div();
+
+echo html_writer::start_div('', ['id' => 'extend-modal-content', 'style' => 'display:none;']);
+echo html_writer::tag('p', get_string('extend_confirm_message', 'topomojo'));
+echo html_writer::tag('label', get_string('extendinterval', 'topomojo') . ':', ['for' => 'extend-interval-input', 'class' => 'd-block mb-2']);
+echo html_writer::empty_tag('input', [
+    'type' => 'number',
+    'id' => 'extend-interval-input',
+    'value' => (int) $topomojo->extendinterval,
+    'min' => 1,
+    'max' => topomojo_get_max_extend_interval(),
+    'class' => 'form-control',
+    'style' => 'width: 100px;',
+    'required' => 'required'
+]);
+echo html_writer::tag('small', get_string('extendintervalmax', 'topomojo', topomojo_get_max_extend_interval()), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
 
 echo html_writer::end_div();

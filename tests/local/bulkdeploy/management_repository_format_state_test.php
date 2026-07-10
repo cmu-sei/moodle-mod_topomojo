@@ -124,9 +124,9 @@ final class management_repository_format_state_test extends \advanced_testcase {
         ];
         $state = $repo->format_user_state($row);
 
-        $this->assertSame('Active', $state['status_label']);
+        $this->assertSame('In Progress', $state['status_label']);
         $this->assertNotNull($state['tooltip_html']);
-        $this->assertStringContainsString('Active ⓘ', $state['tooltip_html']);
+        $this->assertStringContainsString('In Progress ⓘ', $state['tooltip_html']);
         $datefmt = get_string('strftimedatetime', 'langconfig');
         $this->assertStringContainsString(
             s(get_string('status_started_at', 'topomojo', userdate($start, $datefmt))),

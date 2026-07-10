@@ -13,6 +13,7 @@
 
 #topomojo-markdown {
     margin-top: 10px;
+    scroll-margin-top: 5rem;
 }
 
 #topomojo-markdown table {
@@ -59,6 +60,13 @@
     border-color: #b8dce2;
 }
 
+#timer.alert {
+    display: inline-flex !important;
+    align-items: center;
+    padding: .375rem .75rem;
+    margin-bottom: 0;
+}
+
 .license-info {
     font-family: Arial, sans-serif; /* Modern font */
     font-size: 14px;          /* Readable font size */
@@ -72,6 +80,96 @@
 
 .license-info a:hover {
     text-decoration: underline; /* Underline on hover */
+}
+
+.topomojo-activity-section {
+    border: 1px solid #cbd5e1;
+    border-radius: .75rem;
+    background: #fff;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+
+.topomojo-activity-section__header {
+    padding: .6rem .85rem;
+    border-bottom: 1px solid #dbeafe;
+    background-color: #e0f2fe;
+    background-image: linear-gradient(135deg, #e0f2fe, #f8fafc);
+    color: #1e3a8a;
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.topomojo-activity-section__body {
+    padding: 1rem;
+}
+
+.topomojo-activity-section__body > :last-child {
+    margin-bottom: 0;
+}
+
+.topomojo-activity-section .topomojo-notification-box {
+    margin-bottom: 0;
+}
+
+.topomojo-lab-timer {
+    margin-top: .75rem;
+}
+
+.topomojo-player-link {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+}
+
+.topomojo-challenge-link {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+}
+
+.topomojo-activity-section--actions .topomojo-activity-section__body {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.topomojo-detail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    align-items: center;
+}
+
+.topomojo-detail-item {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    align-items: baseline;
+    min-height: 2.5rem;
+    padding: .5rem .75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: .5rem;
+    background: #f8fafc;
+}
+
+.topomojo-detail-label {
+    color: #475569;
+    font-weight: 700;
+}
+
+.topomojo-detail-value {
+    color: #0f172a;
+}
+
+.mod-topomojo-users-table {
+    width: 100%;
+}
+
+.mod-topomojo-users-table th {
+    font-weight: bold;
+    background-color: #f5f5f5;
 }
 
 .spinner {

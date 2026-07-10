@@ -44,15 +44,16 @@ DM24-1175
                 "name": ""
             }
 }}
-<div>
-<h5>Virtual Machine Consoles:</h5>
+<div class="mb-3">
+<h5 class="mb-2">Virtual Machine Consoles:</h5>
+    <div class="d-flex flex-wrap align-items-center gap-2">
         {{#vmlist}}
         {{#.}}
                 <button id="{{url}}" class="btn btn-primary console">{{name}}</button>
         {{/.}}
         {{/vmlist}}
+    </div>
 </div>
-<br>
 
 <div id="topomojo-markdown">
 {{{markdown}}}

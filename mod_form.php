@@ -751,8 +751,6 @@ class mod_topomojo_mod_form extends moodleform_mod
      */
     public function data_postprocessing($data)
     {
-        $usetopomojointro = false;
-
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
@@ -779,20 +777,21 @@ class mod_topomojo_mod_form extends moodleform_mod
             if (empty($this->current->instance) && empty($data->name)) {
                 $data->name = $this->workspaces[$selectedworkspace]->name;
             }
-            // TODO make a setting to determine whether we pull this from topomojo or set it in moodle
-            if ($usetopomojointro) {
-                $description = $this->workspaces[$selectedworkspace]->description;
-                $markdowncutline = "<!-- cut -->";
-                $parts = preg_split($markdowncutline, $description);
-                $data->intro = $parts[0];
-                $data->introformat = FORMAT_MARKDOWN;
+            // Seed Moodle's Description from TopoMojo only when the teacher has not set one.
+            if (empty(trim(strip_tags($data->intro ?? ''))) && empty(trim(strip_tags($this->current->intro ?? '')))) {
+                $description = $this->workspaces[$selectedworkspace]->description ?? '';
+                if (!empty(trim($description))) {
+                    $parts = explode('<!-- cut -->', $description, 2);
+                    $data->intro = trim($parts[0]);
+                    $data->introformat = FORMAT_MARKDOWN;
+                }
             }
             // pull durationMinutes from topomojo workspace if set to 0 by the teacher
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
             if (!empty($data->extendevent) && $data->clock != 1) {
-                throw new moodle_exception('The "Extend Lab" option requires the "Clock" setting to be set to "Countdown.');
+                throw new moodle_exception('The "Extend Lab" option requires the "Timer" setting to be set to "Countdown".');
             }
 
             // Check that variant is valid
@@ -826,10 +825,6 @@ class mod_topomojo_mod_form extends moodleform_mod
         } else {
             debugging('name of lab is unknown', DEBUG_DEVELOPER);
             $data->name = "Unknown Lab";
-            if ($usetopomojointro) {
-                $data->intro = "No description available";
-                $data->introeditor['format'] = FORMAT_PLAIN;
-            }
         }
 
         // Handle tags
