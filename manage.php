@@ -62,7 +62,8 @@ echo $OUTPUT->heading(get_string('manage_pageheading', 'topomojo'));
 // Check for active deployments and compute progress summary.
 $has_active_deploys = false;
 foreach ($users as $u) {
-    if (in_array($u->deploystatus, ['pending', 'launched'])) {
+    $isscheduled = !empty($u->scheduledfor) && (int) $u->scheduledfor > time();
+    if (in_array($u->deploystatus, ['pending', 'launched']) && !$isscheduled) {
         $has_active_deploys = true;
         break;
     }

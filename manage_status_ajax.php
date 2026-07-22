@@ -19,9 +19,14 @@ $topomojo = $DB->get_record('topomojo', ['id' => $cm->instance], '*', MUST_EXIST
 
 $manrepo = new management_repository();
 $activejobs = $manrepo->get_active_jobs($topomojo->id);
+$scheduledjobs = $manrepo->get_scheduled_jobs($topomojo->id);
+$nextscheduled = $scheduledjobs ? min(array_map(function($job) {
+    return (int) $job->scheduledfor;
+}, $scheduledjobs)) : null;
 
 $response = [
     'has_active'       => !empty($activejobs),
+    'next_scheduled'   => $nextscheduled,
     'jobs'             => [],
     'updated_users'    => [],
     'progress_summary' => ['ready' => 0, 'total' => 0],
