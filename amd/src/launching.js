@@ -19,7 +19,7 @@ DM24-1175
 */
 
 /**
- * Auto-refresh page while VMs are being provisioned.
+ * Poll gamespace readiness while VMs are being provisioned.
  *
  * @module mod_topomojo/launching
  */
@@ -28,31 +28,72 @@ define(['jquery', 'core/log'], function($, log) {
 
     return {
         /**
-         * Initialize the launching page auto-refresh.
+         * Initialize gamespace readiness polling.
          *
          * @param {Object} params - Configuration parameters
-         * @param {number} params.refreshInterval - Seconds between refresh attempts (default 5)
-         * @param {number} params.maxAttempts - Maximum refresh attempts before stopping (default 24 = 2 minutes at 5s interval)
+         * @param {string} params.statusUrl - Moodle endpoint used to retrieve gamespace status
+         * @param {number} params.cmid - Course module ID
+         * @param {string} params.gamespaceId - TopoMojo gamespace ID
+         * @param {string} params.sesskey - Moodle session key
+         * @param {number} params.pollInterval - Seconds between polls
+         * @param {number} params.maxAttempts - Maximum status polls before the page reloads
          */
         init: function(params) {
-            var refreshInterval = params.refreshInterval || 5;
+            var pollInterval = params.pollInterval || 5;
             var maxAttempts = params.maxAttempts || 24;
             var attemptCount = 0;
+            var timer = null;
+            var reloading = false;
+            var poll;
 
-            log.debug('mod_topomojo/launching: Starting auto-refresh (interval: ' + refreshInterval + 's, max attempts: ' + maxAttempts + ')');
-
-            var refreshTimer = setInterval(function() {
-                attemptCount++;
-                log.debug('mod_topomojo/launching: Refresh attempt ' + attemptCount + ' of ' + maxAttempts);
-
-                if (attemptCount >= maxAttempts) {
-                    clearInterval(refreshTimer);
-                    log.debug('mod_topomojo/launching: Max attempts reached, stopping auto-refresh');
+            var reloadPage = function() {
+                if (reloading) {
+                    return;
                 }
-
-                // Reload the page to check VM status
+                reloading = true;
+                if (timer) {
+                    window.clearTimeout(timer);
+                }
                 window.location.reload();
-            }, refreshInterval * 1000);
+            };
+
+            var schedulePoll = function() {
+                timer = window.setTimeout(poll, pollInterval * 1000);
+            };
+
+            poll = function() {
+                attemptCount++;
+                log.debug('mod_topomojo/launching: Status poll ' + attemptCount + ' of ' + maxAttempts);
+
+                $.ajax({
+                    url: params.statusUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        cmid: params.cmid,
+                        gamespaceid: params.gamespaceId,
+                        sesskey: params.sesskey
+                    }
+                }).done(function(response) {
+                    if (response.ready) {
+                        reloadPage();
+                    }
+                }).fail(function(request, textStatus, errorThrown) {
+                    log.debug('mod_topomojo/launching: Status poll failed: ' +
+                        request.status + ' ' + textStatus + ' ' + errorThrown);
+                }).always(function() {
+                    if (reloading) {
+                        return;
+                    }
+                    if (attemptCount >= maxAttempts) {
+                        reloadPage();
+                        return;
+                    }
+                    schedulePoll();
+                });
+            };
+
+            schedulePoll();
         }
     };
 });

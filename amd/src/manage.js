@@ -9,32 +9,24 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
             }
 
             let timer = null;
+            let poll;
             let inactivePollCount = 0;
+            let pollErrorCount = 0;
             const MAX_INACTIVE_POLLS = 6; // Stop after 6 polls (30 seconds) with no activity
+            const MAX_POLL_ERRORS = 3;
+            const MAX_TIMEOUT_MS = 2147483647;
 
             const rowStatus = (row) => (row.getAttribute('data-status') || '').trim().toLowerCase();
-
-            const hasActiveDeploys = () => {
-                const table = document.querySelector('.mod-topomojo-users-table tbody');
-                if (!table) {
-                    return false;
-                }
-                const rows = table.querySelectorAll('tr');
-                for (const row of rows) {
-                    const status = rowStatus(row);
-                    if (status === 'pending' || status === 'launched'
-                        || status === 'in progress' || status === 'scheduled') {
-                        return true;
-                    }
-                }
-                return false;
-            };
 
             const stop = () => {
                 if (timer) {
                     window.clearTimeout(timer);
                     timer = null;
                 }
+            };
+
+            const schedulePoll = (delay = POLL_MS) => {
+                timer = window.setTimeout(poll, Math.min(delay, MAX_TIMEOUT_MS));
             };
 
             // Re-counts checkbox eligibility from current row data-status. Called whenever:
@@ -380,12 +372,16 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                 }
             };
 
-            const poll = async () => {
+            poll = async () => {
                 try {
                     const url = M.cfg.wwwroot + '/mod/topomojo/manage_status_ajax.php?cmid='
                         + encodeURIComponent(cmid) + '&sesskey=' + encodeURIComponent(sesskey);
                     const resp = await fetch(url, {credentials: 'same-origin'});
+                    if (!resp.ok) {
+                        throw new Error('HTTP ' + resp.status);
+                    }
                     const data = await resp.json();
+                    pollErrorCount = 0;
 
                     if (Array.isArray(data.updated_users)) {
                         data.updated_users.forEach(applyUpdate);
@@ -393,27 +389,35 @@ define(['jquery', 'core/modal_save_cancel', 'core/modal_events'], function($, Mo
                     updateNotification(data);
                     updateBulkActionButtons();
 
-                    const hasActive = hasActiveDeploys();
-                    if (!hasActive) {
+                    if (data.has_active) {
+                        inactivePollCount = 0;
+                        schedulePoll();
+                    } else if (data.next_scheduled) {
+                        inactivePollCount = 0;
+                        const scheduledDelay = (Number(data.next_scheduled) * 1000) - Date.now();
+                        schedulePoll(Math.max(POLL_MS, scheduledDelay));
+                    } else {
                         inactivePollCount++;
                         if (inactivePollCount >= MAX_INACTIVE_POLLS) {
                             stop();
                             return;
                         }
-                    } else {
-                        inactivePollCount = 0;
+                        schedulePoll();
                     }
-
-                    timer = window.setTimeout(poll, POLL_MS);
                 } catch (e) {
                     // eslint-disable-next-line no-console
                     console.error('[Manage] Poll error:', e);
-                    stop();
+                    pollErrorCount++;
+                    if (pollErrorCount >= MAX_POLL_ERRORS) {
+                        stop();
+                        return;
+                    }
+                    schedulePoll();
                 }
             };
 
             // Always start polling on page load
-            timer = window.setTimeout(poll, POLL_MS);
+            schedulePoll();
         }
     };
 });

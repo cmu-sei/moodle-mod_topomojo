@@ -508,12 +508,12 @@ if ($object->event) {
     }
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
-        // Check if event is still launching (within 2 minutes of creation)
+        // Check if event is still launching.
         $eventage = time() - strtotime($object->event->startTime);
-        $launchingtimeout = 120; // 2 minutes in seconds
+        $launchingtimeout = max(1, (int) (get_config('topomojo', 'deploytimeout') ?: 120));
 
         if ($eventage < $launchingtimeout) {
-            // Still launching - show launching state with manual refresh message
+            // Still launching - poll through Moodle until TopoMojo reports VMs.
             debugging("VMs not ready yet, event age: {$eventage}s", DEBUG_DEVELOPER);
 
             $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
@@ -528,11 +528,16 @@ if ($object->event) {
                 $PAGE->requires->js_call_amd('core/tooltip', 'init');
             }
 
-            // Show manual refresh instruction instead of auto-refresh
-            echo html_writer::div(
-                get_string('launching_manual_refresh', 'topomojo'),
-                'alert alert-info mt-3'
-            );
+            $pollinterval = 5;
+            $remainingseconds = max(1, $launchingtimeout - $eventage);
+            $PAGE->requires->js_call_amd('mod_topomojo/launching', 'init', [[
+                'statusUrl' => (new moodle_url('/mod/topomojo/gamespace_status.php'))->out(false),
+                'cmid' => $cm->id,
+                'gamespaceId' => $object->event->id,
+                'sesskey' => sesskey(),
+                'pollInterval' => $pollinterval,
+                'maxAttempts' => max(1, (int) ceil($remainingseconds / $pollinterval)),
+            ]]);
 
             echo $renderer->footer();
             exit;

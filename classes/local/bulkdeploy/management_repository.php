@@ -118,7 +118,7 @@ class management_repository {
     }
 
     /**
-     * Get active jobs for an activity (QUEUED, RUNNING, CANCELLING).
+     * Get active jobs for an activity, excluding jobs scheduled for the future.
      *
      * @param int $topomojoid TopoMojo activity ID
      * @return array Array of job records
@@ -129,10 +129,14 @@ class management_repository {
         $active = [job_status::QUEUED, job_status::RUNNING, job_status::CANCELLING];
         [$insql, $params] = $DB->get_in_or_equal($active, SQL_PARAMS_NAMED);
         $params['topomojoid'] = $topomojoid;
+        $params['queued'] = job_status::QUEUED;
+        $params['now'] = time();
 
         return $DB->get_records_select(
             'topomojo_bulkdeploy_job',
-            "topomojoid = :topomojoid AND status $insql",
+            "topomojoid = :topomojoid
+             AND status $insql
+             AND (status <> :queued OR scheduledfor IS NULL OR scheduledfor <= :now)",
             $params,
             'id DESC'
         );
