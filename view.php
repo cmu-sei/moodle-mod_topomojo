@@ -719,8 +719,9 @@ if ($object->event) {
             echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
             echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
             echo html_writer::start_div('topomojo-activity-section__body');
-            $launchpointurl = $object->event->launchpointUrl
-                ?? ($activeattempt
+            $launchpointurl = !empty($object->event->launchpointUrl)
+                ? $object->event->launchpointUrl
+                : ($activeattempt
                     ? $object->openAttempt->launchpointurl
                     : ($eventattempt->launchpointurl ?? ''));
             $renderer->display_link_page($launchpointurl);
