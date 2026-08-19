@@ -429,7 +429,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
 
         // Only add score if any attempt will display a score
-        $show_any_score = $showgrade && !empty(array_filter($attempts, function($attempt) { return $attempt->questionusageid != 268; }));
+        $show_any_score = $showgrade && !empty(array_filter(
+            $attempts,
+            function($attempt) {
+                return !empty($attempt->questionusageid);
+            }
+        ));
         if ($show_any_score) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
         }
@@ -756,7 +761,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         }
 
         $starturl = new moodle_url('/mod/topomojo/view.php', $params);
-        $button = $this->output->single_button($starturl, 'Return to activity', 'get');
+        $button = $this->output->single_button(
+            $starturl,
+            get_string('returntoactivity', 'mod_topomojo'),
+            'get'
+        );
         $output .= html_writer::div($button, 'topomojo-return-action');
         echo $output;
     }

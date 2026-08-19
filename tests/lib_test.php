@@ -78,12 +78,22 @@ class lib_test extends \advanced_testcase {
         $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
         $student = $this->getDataGenerator()->create_user();
         $now = time();
+        $adminid = get_admin()->id;
+        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
+        $quba = \question_engine::make_questions_usage_by_activity(
+            'mod_topomojo',
+            \context_module::instance($cm->id)
+        );
+        $quba->set_preferred_behaviour('deferredfeedback');
+        \question_engine::save_questions_usage_by_activity($quba);
+        $questionusageid = $quba->get_id();
 
         $finishedpreview = (object)[
             'topomojoid' => $topomojo->id,
-            'userid' => $this->getAdminUser()->id,
+            'userid' => $adminid,
             'preview' => 1,
             'state' => topomojo_attempt::FINISHED,
+            'questionusageid' => $questionusageid,
             'timestart' => $now - 60,
             'timefinish' => $now,
             'timemodified' => $now,
@@ -105,7 +115,7 @@ class lib_test extends \advanced_testcase {
 
         $openpreview = (object)[
             'topomojoid' => $topomojo->id,
-            'userid' => $this->getAdminUser()->id,
+            'userid' => $adminid,
             'preview' => 1,
             'state' => topomojo_attempt::INPROGRESS,
             'timestart' => $now,
@@ -116,6 +126,7 @@ class lib_test extends \advanced_testcase {
 
         $this->assertSame(1, topomojo_delete_finished_preview_attempts($topomojo));
         $this->assertFalse($DB->record_exists('topomojo_attempts', ['id' => $finishedpreview->id]));
+        $this->assertFalse($DB->record_exists('question_usages', ['id' => $questionusageid]));
         $this->assertTrue($DB->record_exists('topomojo_attempts', ['id' => $studentattempt->id]));
         $this->assertTrue($DB->record_exists('topomojo_attempts', ['id' => $openpreview->id]));
     }

@@ -52,12 +52,8 @@ require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
-$preview = optional_param('preview', 0, PARAM_INT);
+$preview = optional_param('preview', 0, PARAM_BOOL);
 global $USER;
-
-if (!in_array($preview, [0, 1], true)) {
-    throw new moodle_exception('invalidparameter');
-}
 
 try {
     if ($id) {
@@ -103,10 +99,10 @@ if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->
 }
 
 if (optional_param('deletepreviews', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
-    topomojo_delete_finished_preview_attempts($topomojo);
+    $deleted = topomojo_delete_finished_preview_attempts($topomojo);
     redirect(
         new moodle_url($url, ['preview' => 1]),
-        get_string('previewattemptsdeleted', 'mod_topomojo')
+        get_string('previewattemptsdeleted', 'mod_topomojo', $deleted)
     );
 }
 

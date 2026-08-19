@@ -382,7 +382,8 @@ function topomojo_delete_all_attempts($topomojo) {
  * @return int The number of preview attempts deleted.
  */
 function topomojo_delete_finished_preview_attempts($topomojo): int {
-    global $DB;
+    global $CFG, $DB;
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
     $conditions = [
         'topomojoid' => $topomojo->id,

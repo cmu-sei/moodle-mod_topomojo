@@ -966,6 +966,76 @@ function get_event($client, $id)
 }
 
 /**
+ * Find the user's latest still-live gamespace after its question attempt has
+ * been finished.
+ *
+ * @param curl $client Authenticated TopoMojo client.
+ * @param int $topomojoid Activity instance id.
+ * @param int $userid Moodle user id.
+ * @param int $preview Requested preview mode.
+ * @param bool $isinstructor Whether the user may fall back to a preview.
+ * @return stdClass|null Object containing attempt, event, and preview, or null.
+ */
+function topomojo_find_live_event_attempt(
+    $client,
+    int $topomojoid,
+    int $userid,
+    int $preview,
+    bool $isinstructor
+): ?stdClass {
+    global $DB;
+
+    $modes = $preview ? [1] : [0];
+    if ($isinstructor && !$preview) {
+        $modes[] = 1;
+    }
+
+    foreach ($modes as $mode) {
+        $attempts = $DB->get_records_sql(
+            "SELECT *
+               FROM {topomojo_attempts}
+              WHERE topomojoid = :topomojoid
+                AND userid = :userid
+                AND preview = :preview
+                AND eventid IS NOT NULL
+           ORDER BY timemodified DESC",
+            [
+                'topomojoid' => $topomojoid,
+                'userid' => $userid,
+                'preview' => $mode,
+            ],
+            0,
+            1
+        );
+        $attempt = reset($attempts);
+        if (!$attempt) {
+            continue;
+        }
+
+        if (!empty($attempt->endtime) && $attempt->endtime < time()) {
+            continue;
+        }
+
+        try {
+            $event = get_event($client, $attempt->eventid);
+        } catch (\Exception $e) {
+            debugging("Gamespace {$attempt->eventid} not found, skipping finished attempt", DEBUG_DEVELOPER);
+            continue;
+        }
+
+        if ($event && $event->isActive) {
+            return (object)[
+                'attempt' => $attempt,
+                'event' => $event,
+                'preview' => $mode,
+            ];
+        }
+    }
+
+    return null;
+}
+
+/**
  * Compares two associative arrays based on their 'whenCreated' timestamps.
  *
  * This function compares the 'whenCreated' values of two associative arrays using a natural order comparison.

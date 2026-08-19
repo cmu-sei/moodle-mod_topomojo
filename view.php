@@ -150,10 +150,9 @@ if (!empty($topomojo->importchallenge) && empty($topomojo->questionorder)) {
     }
 }
 
-// Check if this is a preview attempt
-$ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context) ||
                 has_capability('mod/topomojo:bulkdeploy', $context);
+$ispreview = $isinstructor ? optional_param('preview', 0, PARAM_BOOL) : 0;
 
 // Get active attempt for user: true/false (filtered by preview mode)
 $activeattempt = $object->get_open_attempt($ispreview);
@@ -187,45 +186,17 @@ if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
 // A submitted attempt may be finished while its gamespace remains active. Resolve
 // the live gamespace from the latest submission without creating another QUBA.
 if (!$activeattempt) {
-    $modes = $ispreview == 1 ? [1] : [0];
-    if ($isinstructor && $ispreview == 0) {
-        $modes[] = 1;
-    }
-
-    foreach ($modes as $mode) {
-        $recentattempt = $DB->get_record_sql(
-            "SELECT *
-               FROM {topomojo_attempts}
-              WHERE topomojoid = :topomojoid
-                AND userid = :userid
-                AND preview = :preview
-                AND eventid IS NOT NULL
-           ORDER BY timemodified DESC
-              LIMIT 1",
-            [
-                'topomojoid' => $topomojo->id,
-                'userid' => $userid,
-                'preview' => $mode,
-            ]
-        );
-
-        if (!$recentattempt) {
-            continue;
-        }
-
-        try {
-            $event = get_event($object->userauth, $recentattempt->eventid);
-        } catch (\Exception $e) {
-            debugging("Gamespace {$recentattempt->eventid} not found, skipping finished attempt", DEBUG_DEVELOPER);
-            continue;
-        }
-
-        if ($event && $event->isActive) {
-            $object->event = $event;
-            $eventattempt = $recentattempt;
-            $ispreview = $mode;
-            break;
-        }
+    $liveevent = topomojo_find_live_event_attempt(
+        $object->userauth,
+        $topomojo->id,
+        $userid,
+        $ispreview,
+        $isinstructor
+    );
+    if ($liveevent) {
+        $object->event = $liveevent->event;
+        $eventattempt = $liveevent->attempt;
+        $ispreview = $liveevent->preview;
     }
 }
 
@@ -238,7 +209,7 @@ if ($ispreview == 1) {
 // Check for bulk-deployed attempt if no active attempt found
 $has_predeployed = false;
 if (!$activeattempt) {
-    $bulkdeployrow = $DB->get_record_sql(
+    $bulkdeployrows = $DB->get_records_sql(
         "SELECT bdu.*, bdj.topomojoid
          FROM {topomojo_bulkdeploy_user} bdu
          INNER JOIN {topomojo_bulkdeploy_job} bdj ON bdj.id = bdu.jobid
@@ -246,10 +217,12 @@ if (!$activeattempt) {
          AND bdj.topomojoid = :topomojoid
          AND bdu.status = 'ready'
          AND bdu.gamespaceid IS NOT NULL
-         ORDER BY bdu.id DESC
-         LIMIT 1",
-        ['userid' => $USER->id, 'topomojoid' => $topomojo->id]
+         ORDER BY bdu.id DESC",
+        ['userid' => $USER->id, 'topomojoid' => $topomojo->id],
+        0,
+        1
     );
+    $bulkdeployrow = reset($bulkdeployrows);
 
     if ($bulkdeployrow) {
         debugging("view.php: Found bulk deploy row, gamespaceid=" . $bulkdeployrow->gamespaceid, DEBUG_DEVELOPER);
@@ -404,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     debugging("start request received", DEBUG_DEVELOPER);
 
     // Get preview mode from POST
-    $ispreview = optional_param('preview', 0, PARAM_INT);
+    $ispreview = $isinstructor ? optional_param('preview', 0, PARAM_BOOL) : 0;
 
     // Check not started already
     if (!$object->event) {
@@ -484,12 +457,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
-        $attemptforevent = $DB->record_exists('topomojo_attempts', [
-            'topomojoid' => $topomojo->id,
-            'userid' => $USER->id,
-            'eventid' => $object->event->id,
-            'preview' => $ispreview,
-        ]);
+        $attemptforevent = $DB->record_exists_sql(
+            "SELECT 1
+               FROM {topomojo_attempts}
+              WHERE topomojoid = :topomojoid
+                AND userid = :userid
+                AND " . $DB->sql_compare_text('eventid') . " = " . $DB->sql_compare_text(':eventid') . "
+                AND preview = :preview",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $USER->id,
+                'eventid' => $object->event->id,
+                'preview' => $ispreview,
+            ]
+        );
 
         if (!$attemptforevent) {
             // Recover only events created before Moodle could save their first attempt.
@@ -667,7 +648,7 @@ if ($object->event) {
         // Initialize the end lab confirmation modal
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#end_button',
-            get_string('endlab', 'mod_topomojo'),
+            get_string('stoplab', 'mod_topomojo'),
             get_string('stop_attempt_confirm', 'mod_topomojo'),
             '#stop_confirmed'
         ]);
@@ -738,9 +719,10 @@ if ($object->event) {
             echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
             echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
             echo html_writer::start_div('topomojo-activity-section__body');
-            $launchpointurl = $activeattempt
-                ? $object->openAttempt->launchpointurl
-                : $eventattempt->launchpointurl;
+            $launchpointurl = $object->event->launchpointUrl
+                ?? ($activeattempt
+                    ? $object->openAttempt->launchpointurl
+                    : ($eventattempt->launchpointurl ?? ''));
             $renderer->display_link_page($launchpointurl);
             echo html_writer::end_div();
             echo html_writer::end_div();
