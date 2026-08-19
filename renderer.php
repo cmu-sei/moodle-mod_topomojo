@@ -441,7 +441,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $user = $DB->get_record("user", ['id' => $attempt->userid]);
                     $rowdata->username = fullname($user);
                     $rowdata->eventguid = $attempt->eventid ?: "-";
-                    $rowdata->variant = $attempt->variant ?? "-";
+                    $rowdata->variant = !empty($attempt->variant) ? $attempt->variant : "-";
                 }
                 if ($showdetail) {
                     $topomojo = $DB->get_record("topomojo", ['id' => $attempt->topomojoid]);
@@ -458,6 +458,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 } else {
                     $rowdata->score = "-"; // Hide the score for specific questionusageid
                 }
+                $rowdata->showscore = $show_any_score;
 
                 $data->tabledata[] = $rowdata;
             }
