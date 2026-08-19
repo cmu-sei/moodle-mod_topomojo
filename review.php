@@ -108,7 +108,7 @@ if (optional_param('deletepreviews', 0, PARAM_BOOL) && confirm_sesskey() && $obj
 
 echo $renderer->header();
 
-$showgrade = (int)$object->topomojo->grade > 0;
+$showgrade = $object->is_instructor() || (int)$object->topomojo->grade > 0;
 
 if ($object->is_instructor()) {
     $tabs = [[
