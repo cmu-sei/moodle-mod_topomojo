@@ -372,6 +372,39 @@ function topomojo_delete_all_attempts($topomojo) {
 }
 
 /**
+ * Delete finished instructor preview attempts belonging to a TopoMojo activity.
+ *
+ * Preview attempts are intentionally kept separate from student attempts. This
+ * helper only removes finished previews and their question usages; it does not
+ * alter student attempts, grades, bulk-deploy records, or active gamespaces.
+ *
+ * @param stdClass $topomojo The TopoMojo activity.
+ * @return int The number of preview attempts deleted.
+ */
+function topomojo_delete_finished_preview_attempts($topomojo): int {
+    global $DB;
+
+    $conditions = [
+        'topomojoid' => $topomojo->id,
+        'preview' => 1,
+        'state' => \mod_topomojo\topomojo_attempt::FINISHED,
+    ];
+    $count = $DB->count_records('topomojo_attempts', $conditions);
+    if (!$count) {
+        return 0;
+    }
+
+    $transaction = $DB->start_delegated_transaction();
+    question_engine::delete_questions_usage_by_activities(
+        new qubaids_for_topomojo($topomojo->id, 1, true)
+    );
+    $DB->delete_records('topomojo_attempts', $conditions);
+    $transaction->allow_commit();
+
+    return $count;
+}
+
+/**
  * Standard callback used by questions_in_use.
  *
  * @param array $questionids of question ids.

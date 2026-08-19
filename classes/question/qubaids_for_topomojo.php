@@ -36,19 +36,20 @@ class qubaids_for_topomojo extends \qubaid_join {
      * Constructor.
      *
      * @param int $topomojoid The topomojo to search.
-     * @param bool $includepreviews Whether to include preview attempts
+     * @param int|null $preview Filter by preview status, or null to include both.
      * @param bool $onlyfinished Whether to only include finished attempts or not
      */
-    public function __construct(int $topomojoid, bool $includepreviews = true, bool $onlyfinished = false) {
+    public function __construct(int $topomojoid, ?int $preview = null, bool $onlyfinished = false) {
         $where = 'topomojoa.topomojoid = :topomojoatopomojo';
         $params = ['topomojoatopomojo' => $topomojoid];
 
-        //if (!$includepreviews) {
-        //    $where .= ' AND preview = 0';
-        //}
+        if ($preview !== null) {
+            $where .= ' AND topomojoa.preview = :topomojoapreview';
+            $params['topomojoapreview'] = $preview;
+        }
 
         if ($onlyfinished) {
-            $where .= ' AND state = :statefinished';
+            $where .= ' AND topomojoa.state = :statefinished';
             $params['statefinished'] = topomojo_attempt::FINISHED;
         }
 
