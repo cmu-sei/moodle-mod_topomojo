@@ -756,7 +756,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         }
 
         $starturl = new moodle_url('/mod/topomojo/view.php', $params);
-        $output .= $this->output->single_button($starturl, 'Return to activity', 'get');
+        $button = $this->output->single_button($starturl, 'Return to activity', 'get');
+        $output .= html_writer::div($button, 'topomojo-return-action');
         echo $output;
     }
 

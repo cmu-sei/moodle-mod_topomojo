@@ -135,6 +135,15 @@
     gap: .5rem;
 }
 
+.topomojo-return-action {
+    clear: both;
+    margin-top: 1rem;
+}
+
+.topomojo-return-action .singlebutton {
+    margin: 0;
+}
+
 .topomojo-detail-list {
     display: flex;
     flex-wrap: wrap;

@@ -132,8 +132,59 @@ if ($activeattempt == true) {
     }
 } else if ($activeattempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
+
+    // A finished question attempt can leave its lab running when End Lab is
+    // disabled. The Challenge tab has no active QUBA to render in that state.
+    // Send the user back to the activity page instead of showing content preview.
+    $modes = $ispreview == 1 ? [1] : [0];
+    if ($isinstructor && $ispreview == 0) {
+        $modes[] = 1;
+    }
+
+    foreach ($modes as $mode) {
+        $finishedattempt = $DB->get_record_sql(
+            "SELECT *
+               FROM {topomojo_attempts}
+              WHERE topomojoid = :topomojoid
+                AND userid = :userid
+                AND preview = :preview
+                AND eventid IS NOT NULL
+           ORDER BY timemodified DESC
+              LIMIT 1",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $USER->id,
+                'preview' => $mode,
+            ]
+        );
+
+        if (!$finishedattempt) {
+            continue;
+        }
+
+        try {
+            $event = get_event($object->userauth, $finishedattempt->eventid);
+        } catch (\Exception $e) {
+            debugging("Gamespace {$finishedattempt->eventid} not found, skipping finished attempt", DEBUG_DEVELOPER);
+            continue;
+        }
+
+        if ($event && $event->isActive) {
+            $returnurl = new moodle_url('/mod/topomojo/view.php', [
+                'id' => $cm->id,
+                'preview' => $mode,
+            ]);
+            redirect(
+                $returnurl,
+                get_string('labrunningafterquizsubmission', 'mod_topomojo'),
+                null,
+                \core\output\notification::NOTIFY_INFO
+            );
+        }
+    }
+
     // Allow instructors to see preview, redirect students
-    if (!has_capability('mod/topomojo:manage', $context)) {
+    if (!$isinstructor) {
         redirect($returnurl);
     }
 }
