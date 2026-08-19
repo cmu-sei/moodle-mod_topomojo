@@ -155,41 +155,24 @@ $ispreview = optional_param('preview', 0, PARAM_INT);
 $isinstructor = has_capability('mod/topomojo:manage', $context) ||
                 has_capability('mod/topomojo:bulkdeploy', $context);
 
-// If instructor and no preview param in URL, check for existing attempts to detect preview mode
-if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
-    // Check recent closed attempts for this event to see if they were preview attempts
-    $recentattempt = $DB->get_record_sql(
-        "SELECT preview FROM {topomojo_attempts}
-         WHERE topomojoid = :topomojoid
-         AND userid = :userid
-         AND eventid = :eventid
-         ORDER BY timemodified DESC
-         LIMIT 1",
-        [
-            'topomojoid' => $topomojo->id,
-            'userid' => $userid,
-            'eventid' => $object->event->id
-        ]
-    );
+// Get active attempt for user: true/false (filtered by preview mode)
+$activeattempt = $object->get_open_attempt($ispreview);
 
-    if ($recentattempt) {
-        $ispreview = $recentattempt->preview;
+// Instructors can have a live preview while no regular attempt is open.
+if (!$activeattempt && $isinstructor && $ispreview == 0) {
+    $activeattempt = $object->get_open_attempt(1);
+    if ($activeattempt) {
+        $ispreview = 1;
     }
 }
 
-// Show preview mode banner if in preview mode
-if ($ispreview == 1) {
-    $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
-    echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
-}
-
-// Get active attempt for user: true/false (filtered by preview mode)
-$activeattempt = $object->get_open_attempt($ispreview);
+$eventattempt = null;
 
 // If active attempt found but event not fetched yet, fetch it
 if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
     // Access eventid from the attempt object's internal data
     $attemptdata = $object->openAttempt->get_attempt();
+    $eventattempt = $attemptdata;
     if (!empty($attemptdata->eventid)) {
         try {
             $object->event = get_event($object->userauth, $attemptdata->eventid);
@@ -199,6 +182,57 @@ if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
             $object->event = null;
         }
     }
+}
+
+// A submitted attempt may be finished while its gamespace remains active. Resolve
+// the live gamespace from the latest submission without creating another QUBA.
+if (!$activeattempt) {
+    $modes = $ispreview == 1 ? [1] : [0];
+    if ($isinstructor && $ispreview == 0) {
+        $modes[] = 1;
+    }
+
+    foreach ($modes as $mode) {
+        $recentattempt = $DB->get_record_sql(
+            "SELECT *
+               FROM {topomojo_attempts}
+              WHERE topomojoid = :topomojoid
+                AND userid = :userid
+                AND preview = :preview
+                AND eventid IS NOT NULL
+           ORDER BY timemodified DESC
+              LIMIT 1",
+            [
+                'topomojoid' => $topomojo->id,
+                'userid' => $userid,
+                'preview' => $mode,
+            ]
+        );
+
+        if (!$recentattempt) {
+            continue;
+        }
+
+        try {
+            $event = get_event($object->userauth, $recentattempt->eventid);
+        } catch (\Exception $e) {
+            debugging("Gamespace {$recentattempt->eventid} not found, skipping finished attempt", DEBUG_DEVELOPER);
+            continue;
+        }
+
+        if ($event && $event->isActive) {
+            $object->event = $event;
+            $eventattempt = $recentattempt;
+            $ispreview = $mode;
+            break;
+        }
+    }
+}
+
+// Show preview mode banner only after resolving the active attempt or gamespace.
+if ($ispreview == 1) {
+    $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
+    echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
 }
 
 // Check for bulk-deployed attempt if no active attempt found
@@ -306,7 +340,7 @@ $current_attempt_count = $DB->count_records('topomojo_attempts', [
 ]);
 
 // If the maximum attempts are reached, display the max attempts template and exit
-if ($current_attempt_count >= $max_attempts && $max_attempts != 0) {
+if (!$object->event && $current_attempt_count >= $max_attempts && $max_attempts != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -323,7 +357,7 @@ $allActiveEvents = list_all_active_events($object->userauth);
 $all_active_current_deployed_count = count((array)$allActiveEvents);
 
 //Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
-if ($all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
+if (!$object->event && $all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -352,7 +386,9 @@ foreach ($activeUserEvents ?? [] as $event) {
 }
 
 //If the maximum deployed labs are reached, display the deployed labs template and exit
-if (!in_array($topomojo->workspaceid, $lab_ids) && $user_current_deployed_count >= $max_deployed_labs) {
+if (!$object->event &&
+    !in_array($topomojo->workspaceid, $lab_ids) &&
+    $user_current_deployed_count >= $max_deployed_labs) {
     // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
@@ -423,22 +459,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
         debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
     } else {
-        // If event already exists, no action needed
-        debugging("event has already been started", DEBUG_DEVELOPER);
+        debugging("event and active attempt already exist", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
     debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
-            if (!$activeattempt) {
-                debugging('no attempt to close', DEBUG_DEVELOPER);
-                throw new moodle_exception('no attempt to close');
+            if ($activeattempt) {
+                if ($object->openAttempt->questionusageid) {
+                    $object->openAttempt->save_question();
+                }
+                $object->openAttempt->close_attempt();
+            } else {
+                debugging('ending live gamespace with no open question attempt', DEBUG_DEVELOPER);
             }
-            debugging("but no live event for " . $object->openAttempt->id, DEBUG_DEVELOPER);
-            if ($object->openAttempt->questionusageid) {
-                $object->openAttempt->save_question();
-            }
-            $object->openAttempt->close_attempt();
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
 
@@ -450,11 +484,24 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
 if ($object->event) {
     if (($object->event->isActive) && (!$activeattempt)) {
-        debugging("active event with no attempt", DEBUG_DEVELOPER);
-        $activeattempt = $object->init_attempt($ispreview);
+        $attemptforevent = $DB->record_exists('topomojo_attempts', [
+            'topomojoid' => $topomojo->id,
+            'userid' => $USER->id,
+            'eventid' => $object->event->id,
+            'preview' => $ispreview,
+        ]);
+
+        if (!$attemptforevent) {
+            // Recover only events created before Moodle could save their first attempt.
+            debugging("active event has no Moodle attempt; creating recovery attempt", DEBUG_DEVELOPER);
+            $activeattempt = $object->init_attempt($ispreview);
+        } else {
+            debugging("active event has no open question attempt", DEBUG_DEVELOPER);
+        }
     }
     // Check age and get new link, checking for 30 minute timeout of the url
-    if (($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
+    if ($activeattempt &&
+        ($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
         ((time() - $object->openAttempt->timemodified) > 3600)
     ) {
         debugging("getting new launchpointurl", DEBUG_DEVELOPER);
@@ -484,8 +531,11 @@ if ((int)$object->topomojo->grade > 0) {
 }
 
 $challengebutton = '';
-if (!empty($topomojo->questionorder)) {
-    $challengeurl = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id]);
+if (!empty($topomojo->questionorder) && $activeattempt) {
+    $challengeurl = new moodle_url('/mod/topomojo/challenge.php', [
+        'id' => $cm->id,
+        'preview' => $ispreview,
+    ]);
     $challengebutton = html_writer::div(
         html_writer::link(
             $challengeurl,
@@ -501,10 +551,11 @@ if (!empty($topomojo->questionorder)) {
 }
 
 if ($object->event) {
-    // Show preview mode warning if this is a preview attempt (additional check during lab)
-    if ($activeattempt && isset($object->openAttempt->preview) && $object->openAttempt->preview == 1) {
-        $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
-        echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
+    if (!$activeattempt && $eventattempt) {
+        echo $OUTPUT->notification(
+            get_string('labrunningafterquizsubmission', 'mod_topomojo'),
+            \core\output\notification::NOTIFY_INFO
+        );
     }
 
     if (!isset($object->event->vms) || !is_array($object->event->vms) || empty($object->event->vms)) {
@@ -687,7 +738,10 @@ if ($object->event) {
             echo html_writer::start_div('topomojo-activity-section topomojo-activity-section--workspace');
             echo html_writer::tag('div', 'Lab Workspace', ['class' => 'topomojo-activity-section__header']);
             echo html_writer::start_div('topomojo-activity-section__body');
-            $renderer->display_link_page($object->openAttempt->launchpointurl);
+            $launchpointurl = $activeattempt
+                ? $object->openAttempt->launchpointurl
+                : $eventattempt->launchpointurl;
+            $renderer->display_link_page($launchpointurl);
             echo html_writer::end_div();
             echo html_writer::end_div();
         }

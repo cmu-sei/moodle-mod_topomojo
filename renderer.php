@@ -647,7 +647,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             echo html_writer::tag('p', get_string('noreview', 'topomojo'), ['id' => 'review_notavailable']);
         }
 
-        $this->render_return_button();
+        $this->render_return_button($attempt);
     }
 
     /**
@@ -743,14 +743,20 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      *
      * @return void
      */
-    public function render_return_button() {
+    public function render_return_button($attempt = null) {
         $output = '';
-            $params = [
-                'id' => $this->topomojo->getCM()->id,
-            ];
-            $starturl = new moodle_url('/mod/topomojo/review.php', $params);
-            $output .= $this->output->single_button($starturl, 'Return', 'get');
-            echo $output;
+        $params = [
+            'id' => $this->topomojo->getCM()->id,
+        ];
+
+        if ($attempt) {
+            $attemptdata = $attempt->get_attempt();
+            $params['preview'] = (int)$attemptdata->preview;
+        }
+
+        $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+        $output .= $this->output->single_button($starturl, 'Return to activity', 'get');
+        echo $output;
     }
 
     public function render_no_challenge() {
