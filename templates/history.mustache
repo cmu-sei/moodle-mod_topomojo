@@ -89,15 +89,16 @@ DM24-1175
                     {{/moduleurl}}
                     <td>{{timestart}}</td>
                     <td>{{timefinish}}</td>
-                    {{#attempturl}}
-                        <td><a href="{{attempturl}}">{{score}}</a></td>
-                    {{/attempturl}}
-                    {{^attempturl}}
-                        <td>{{score}}</td>
-                    {{/attempturl}}
+                    {{#showscore}}
+                        {{#attempturl}}
+                            <td><a href="{{attempturl}}">{{score}}</a></td>
+                        {{/attempturl}}
+                        {{^attempturl}}
+                            <td>{{score}}</td>
+                        {{/attempturl}}
+                    {{/showscore}}
                 </tr>
             {{/tabledata}}
         </tbody>
     </table>
 </div>
-

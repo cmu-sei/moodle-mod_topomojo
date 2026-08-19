@@ -64,6 +64,74 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 class lib_test extends \advanced_testcase {
 
     /**
+     * Finished instructor previews can be removed without affecting other attempts.
+     *
+     * @covers ::topomojo_delete_finished_preview_attempts
+     */
+    public function test_topomojo_delete_finished_preview_attempts(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $now = time();
+        $adminid = get_admin()->id;
+        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
+        $quba = \question_engine::make_questions_usage_by_activity(
+            'mod_topomojo',
+            \context_module::instance($cm->id)
+        );
+        $quba->set_preferred_behaviour('deferredfeedback');
+        \question_engine::save_questions_usage_by_activity($quba);
+        $questionusageid = $quba->get_id();
+
+        $finishedpreview = (object)[
+            'topomojoid' => $topomojo->id,
+            'userid' => $adminid,
+            'preview' => 1,
+            'state' => topomojo_attempt::FINISHED,
+            'questionusageid' => $questionusageid,
+            'timestart' => $now - 60,
+            'timefinish' => $now,
+            'timemodified' => $now,
+            'endtime' => $now,
+        ];
+        $finishedpreview->id = $DB->insert_record('topomojo_attempts', $finishedpreview);
+
+        $studentattempt = (object)[
+            'topomojoid' => $topomojo->id,
+            'userid' => $student->id,
+            'preview' => 0,
+            'state' => topomojo_attempt::FINISHED,
+            'timestart' => $now - 60,
+            'timefinish' => $now,
+            'timemodified' => $now,
+            'endtime' => $now,
+        ];
+        $studentattempt->id = $DB->insert_record('topomojo_attempts', $studentattempt);
+
+        $openpreview = (object)[
+            'topomojoid' => $topomojo->id,
+            'userid' => $adminid,
+            'preview' => 1,
+            'state' => topomojo_attempt::INPROGRESS,
+            'timestart' => $now,
+            'timemodified' => $now,
+            'endtime' => $now + HOURSECS,
+        ];
+        $openpreview->id = $DB->insert_record('topomojo_attempts', $openpreview);
+
+        $this->assertSame(1, topomojo_delete_finished_preview_attempts($topomojo));
+        $this->assertFalse($DB->record_exists('topomojo_attempts', ['id' => $finishedpreview->id]));
+        $this->assertFalse($DB->record_exists('question_usages', ['id' => $questionusageid]));
+        $this->assertTrue($DB->record_exists('topomojo_attempts', ['id' => $studentattempt->id]));
+        $this->assertTrue($DB->record_exists('topomojo_attempts', ['id' => $openpreview->id]));
+    }
+
+    /**
      * Test topomojo_supports function.
      *
      * @dataProvider supports_provider

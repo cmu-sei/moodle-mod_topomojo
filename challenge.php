@@ -80,11 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     topomojo_view($topomojo, $course, $cm, $context);
 }
 
-// Print the page header.
-$previewparam = optional_param('preview', 0, PARAM_INT);
-$url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $previewparam]);
-$returnurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $previewparam]);
+$previewparam = optional_param('preview', 0, PARAM_BOOL);
+$isinstructor = has_capability('mod/topomojo:manage', $context) ||
+                has_capability('mod/topomojo:bulkdeploy', $context);
+$ispreview = $isinstructor ? $previewparam : 0;
+$url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $ispreview]);
+$returnurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $ispreview]);
 
+// Print the page header.
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
@@ -102,38 +105,21 @@ $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevar
 // Each activity must only see gamespaces created from its own attempts.
 $object->event = null;
 
-// Check if this is a preview attempt from URL parameter
-$ispreview = $previewparam;
-$isinstructor = has_capability('mod/topomojo:manage', $context);
-
-// If instructor and no preview param in URL, check for existing attempts to detect preview mode
-if ($isinstructor && $ispreview == 0 && $object->event && isset($object->event->id)) {
-    // Check for open attempt to see if it's a preview attempt
-    $openattempt = $DB->get_record_sql(
-        "SELECT preview FROM {topomojo_attempts}
-         WHERE topomojoid = :topomojoid
-         AND userid = :userid
-         AND eventid = :eventid
-         AND state = :state
-         LIMIT 1",
-        [
-            'topomojoid' => $topomojo->id,
-            'userid' => $USER->id,
-            'eventid' => $object->event->id,
-            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS
-        ]
-    );
-
-    if ($openattempt) {
-        $ispreview = $openattempt->preview;
-        // Update URLs to include preview parameter
+// Prefer the requested attempt mode. If the instructor follows the Challenge
+// navigation without a parameter, use their open preview when no regular
+// attempt exists.
+$activeattempt = $object->get_open_attempt($ispreview);
+if (!$activeattempt && $isinstructor && $ispreview == 0) {
+    $activeattempt = $object->get_open_attempt(1);
+    if ($activeattempt) {
+        $ispreview = 1;
         $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $cm->id, 'preview' => $ispreview]);
         $returnurl = new moodle_url('/mod/topomojo/view.php', ['id' => $cm->id, 'preview' => $ispreview]);
+        $pageurl = $url;
+        $PAGE->set_url($pageurl);
     }
 }
 
-// Get active attempt for user
-$activeattempt = $object->get_open_attempt($ispreview);
 if ($activeattempt == true) {
     debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 
@@ -141,13 +127,42 @@ if ($activeattempt == true) {
     if (empty($object->event) && isset($object->openAttempt)) {
         $attemptdata = $object->openAttempt->get_attempt();
         if (!empty($attemptdata->eventid)) {
-            $object->event = get_event($object->userauth, $attemptdata->eventid);
+            try {
+                $object->event = get_event($object->userauth, $attemptdata->eventid);
+            } catch (\Exception $e) {
+                debugging("Gamespace {$attemptdata->eventid} not found, clearing event", DEBUG_DEVELOPER);
+                $object->event = null;
+            }
         }
     }
 } else if ($activeattempt == false) {
     debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
+
+    // A finished question attempt can leave its lab running when End Lab is
+    // disabled. The Challenge tab has no active QUBA to render in that state.
+    // Send the user back to the activity page instead of showing content preview.
+    $liveevent = topomojo_find_live_event_attempt(
+        $object->userauth,
+        $topomojo->id,
+        $USER->id,
+        $ispreview,
+        $isinstructor
+    );
+    if ($liveevent) {
+        $returnurl = new moodle_url('/mod/topomojo/view.php', [
+            'id' => $cm->id,
+            'preview' => $liveevent->preview,
+        ]);
+        redirect(
+            $returnurl,
+            get_string('labrunningafterquizsubmission', 'mod_topomojo'),
+            null,
+            \core\output\notification::NOTIFY_INFO
+        );
+    }
+
     // Allow instructors to see preview, redirect students
-    if (!has_capability('mod/topomojo:manage', $context)) {
+    if (!$isinstructor) {
         redirect($returnurl);
     }
 }

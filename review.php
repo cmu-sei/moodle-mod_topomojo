@@ -52,6 +52,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
+$preview = optional_param('preview', 0, PARAM_BOOL);
 global $USER;
 
 try {
@@ -91,21 +92,63 @@ $pagevars = [];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 
 $renderer = $PAGE->get_renderer('mod_topomojo');
-echo $renderer->header();
 
 if (optional_param('deleteall', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
     topomojo_delete_all_attempts($topomojo);
-    \core\notification::success(get_string('attemptsdeleted', 'mod_topomojo'));
+    redirect($url, get_string('attemptsdeleted', 'mod_topomojo'));
 }
+
+if (optional_param('deletepreviews', 0, PARAM_BOOL) && confirm_sesskey() && $object->is_instructor()) {
+    $deleted = topomojo_delete_finished_preview_attempts($topomojo);
+    redirect(
+        new moodle_url($url, ['preview' => 1]),
+        get_string('previewattemptsdeleted', 'mod_topomojo', $deleted)
+    );
+}
+
+echo $renderer->header();
 
 $showgrade = (int)$object->topomojo->grade > 0;
 
 if ($object->is_instructor()) {
-    $attempts = $object->getall_attempts('closed', $review = true);
+    $tabs = [[
+        new tabobject(
+            'studentattempts',
+            new moodle_url($url, ['preview' => 0]),
+            get_string('studentattempts', 'mod_topomojo')
+        ),
+        new tabobject(
+            'instructorpreviews',
+            new moodle_url($url, ['preview' => 1]),
+            get_string('instructorpreviews', 'mod_topomojo')
+        ),
+    ]];
+    print_tabs($tabs, $preview ? 'instructorpreviews' : 'studentattempts');
+
+    $attempts = $object->getall_attempts('closed', $review = true, $preview);
     echo $renderer->display_attempts($attempts, $showgrade, $showuser = true);
 
-    // Only show delete button if there are attempts to delete
-    if (!empty($attempts)) {
+    if ($preview && !empty($attempts)) {
+        $deleteurl = new moodle_url($PAGE->url, [
+            'preview' => 1,
+            'deletepreviews' => 1,
+            'sesskey' => sesskey(),
+        ]);
+
+        $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
+            '#delete-preview-attempts-btn',
+            get_string('deletepreviewattempts', 'mod_topomojo'),
+            get_string('deletepreviewattempts_confirm', 'mod_topomojo')
+        ]);
+
+        $deletebutton = $OUTPUT->single_button(
+            $deleteurl,
+            get_string('deletepreviewattempts', 'mod_topomojo'),
+            'post',
+            ['class' => 'btn-danger']
+        );
+        echo html_writer::div($deletebutton, '', ['id' => 'delete-preview-attempts-btn']);
+    } else if (!$preview && !empty($attempts)) {
         $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
 
         // Initialize the confirmation modal

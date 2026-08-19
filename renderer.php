@@ -429,7 +429,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
 
         // Only add score if any attempt will display a score
-        $show_any_score = $showgrade && !empty(array_filter($attempts, function($attempt) { return $attempt->questionusageid != 268; }));
+        $show_any_score = $showgrade && !empty(array_filter(
+            $attempts,
+            function($attempt) {
+                return !empty($attempt->questionusageid);
+            }
+        ));
         if ($show_any_score) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
         }
@@ -441,7 +446,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                     $user = $DB->get_record("user", ['id' => $attempt->userid]);
                     $rowdata->username = fullname($user);
                     $rowdata->eventguid = $attempt->eventid ?: "-";
-                    $rowdata->variant = $attempt->variant ?? "-";
+                    $rowdata->variant = !empty($attempt->variant) ? $attempt->variant : "-";
                 }
                 if ($showdetail) {
                     $topomojo = $DB->get_record("topomojo", ['id' => $attempt->topomojoid]);
@@ -458,6 +463,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 } else {
                     $rowdata->score = "-"; // Hide the score for specific questionusageid
                 }
+                $rowdata->showscore = $show_any_score;
 
                 $data->tabledata[] = $rowdata;
             }
@@ -647,7 +653,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             echo html_writer::tag('p', get_string('noreview', 'topomojo'), ['id' => 'review_notavailable']);
         }
 
-        $this->render_return_button();
+        $this->render_return_button($attempt);
     }
 
     /**
@@ -743,14 +749,25 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      *
      * @return void
      */
-    public function render_return_button() {
+    public function render_return_button($attempt = null) {
         $output = '';
-            $params = [
-                'id' => $this->topomojo->getCM()->id,
-            ];
-            $starturl = new moodle_url('/mod/topomojo/review.php', $params);
-            $output .= $this->output->single_button($starturl, 'Return', 'get');
-            echo $output;
+        $params = [
+            'id' => $this->topomojo->getCM()->id,
+        ];
+
+        if ($attempt) {
+            $attemptdata = $attempt->get_attempt();
+            $params['preview'] = (int)$attemptdata->preview;
+        }
+
+        $starturl = new moodle_url('/mod/topomojo/view.php', $params);
+        $button = $this->output->single_button(
+            $starturl,
+            get_string('returntoactivity', 'mod_topomojo'),
+            'get'
+        );
+        $output .= html_writer::div($button, 'topomojo-return-action');
+        echo $output;
     }
 
     public function render_no_challenge() {
