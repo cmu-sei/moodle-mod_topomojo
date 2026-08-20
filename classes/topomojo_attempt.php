@@ -276,6 +276,16 @@ class topomojo_attempt {
     }
 
     /**
+     * Magic isset method for attempt properties.
+     *
+     * @param string $prop The property to check.
+     * @return bool Whether the property is set on the underlying attempt record.
+     */
+    public function __isset($prop) {
+        return isset($this->attempt->$prop);
+    }
+
+    /**
      * magic setter method for this class
      *
      * @param string $prop
