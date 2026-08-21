@@ -106,10 +106,11 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-    $settings->add(new admin_setting_configcheckbox(
+    $settings->add(new mod_topomojo_auth_checkbox_setting(
         'topomojo/enableapikey',
         get_string('enableapikey', 'topomojo'),
-        get_string('configenableapikey', 'topomojo'),
+        get_string('configenableapikey', 'topomojo') . '<br>' .
+            get_string('configapikeymanagerwarning', 'topomojo'),
         0
     ));
 
@@ -118,7 +119,7 @@ if ($ADMIN->fulltree) {
 
     $settings->hide_if('topomojo/apikey', 'topomojo/enableapikey', 'notchecked', 1);
 
-    $settings->add(new admin_setting_configcheckbox(
+    $settings->add(new mod_topomojo_auth_checkbox_setting(
         'topomojo/enablemanagername',
         get_string('enablemanagername', 'topomojo'),
         get_string('configenablemanagername', 'topomojo'),
