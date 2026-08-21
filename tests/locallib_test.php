@@ -152,4 +152,72 @@ class locallib_test extends \advanced_testcase {
         $this->assertNotNull($client);
         $this->assertInstanceOf(\curl::class, $client);
     }
+
+    /**
+     * Test invitation URL generation strips existing launchpoint parameters.
+     */
+    public function test_build_topomojo_invite_url_strips_existing_parameters() {
+        $url = build_topomojo_invite_url(
+            'https://topomojo.example/?t=ticket&g=gamespace',
+            'invite-code'
+        );
+
+        $this->assertSame('https://topomojo.example/?c=invite-code', $url);
+    }
+
+    /**
+     * Test invitation URL generation preserves a deployment path.
+     */
+    public function test_build_topomojo_invite_url_preserves_launchpoint_path() {
+        $url = build_topomojo_invite_url(
+            'https://topomojo.example/lp/?t=ticket&g=gamespace',
+            'invite code'
+        );
+
+        $this->assertSame('https://topomojo.example/lp/?c=invite+code', $url);
+    }
+
+    /**
+     * Test lookup returns the stored launchpoint URL for a gamespace.
+     */
+    public function test_get_topomojo_gamespace_launchpoint_url() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+
+        $generator->create_attempt($topomojo, $user, [
+            'eventid' => 'gamespace-id',
+            'launchpointurl' => 'https://topomojo.example/?t=ticket',
+        ]);
+
+        $this->assertSame(
+            'https://topomojo.example/?t=ticket',
+            get_topomojo_gamespace_launchpoint_url('gamespace-id')
+        );
+    }
+
+    /**
+     * Test lookup returns null when no attempt exists for a gamespace.
+     */
+    public function test_get_topomojo_gamespace_launchpoint_url_returns_null() {
+        $this->resetAfterTest();
+
+        $this->assertNull(get_topomojo_gamespace_launchpoint_url('missing-gamespace'));
+    }
+
+    /**
+     * Test invitation URL generation falls back to the configured base URL.
+     */
+    public function test_build_topomojo_invite_url_falls_back_to_configured_base_url() {
+        $this->resetAfterTest();
+        set_config('topomojobaseurl', 'https://topomojo.example', 'topomojo');
+
+        $this->assertSame(
+            'https://topomojo.example/lp/?c=invite-code',
+            build_topomojo_invite_url('', 'invite-code')
+        );
+    }
 }

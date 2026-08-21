@@ -62,6 +62,7 @@ if (!confirm_sesskey()) {
 
 $response = [];
 
+$launchpointurl = get_topomojo_gamespace_launchpoint_url($id);
 $auth = setup();
 $result = get_invite($auth, $id);
 
@@ -71,7 +72,7 @@ if (!$id || !$result) {
     $response['gamespace'] = $id;
 } else {
     header('HTTP/1.1 200 OK');
-    $invitelinkurl = get_topomojo_base_url() . "/lp/?c=" . $result->code;
+    $invitelinkurl = build_topomojo_invite_url($launchpointurl, $result->code);
     $response['invitelinkurl'] = $invitelinkurl;
 }
 
