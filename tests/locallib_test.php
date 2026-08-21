@@ -48,6 +48,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 /**
  * Unit tests for topomojo locallib functions.
@@ -58,6 +59,256 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  * @covers ::setup
  */
 class locallib_test extends \advanced_testcase {
+
+    /**
+     * Test the API-key and external-manager configuration matrix.
+     *
+     * @dataProvider auth_configuration_provider
+     * @param bool $enableapikey
+     * @param bool $enablemanagername
+     * @param string $managername
+     * @param true|string $expected
+     */
+    public function test_validate_auth_configuration(
+        bool $enableapikey,
+        bool $enablemanagername,
+        string $managername,
+        $expected
+    ) {
+        $result = topomojo_validate_auth_configuration(
+            $enableapikey,
+            $enablemanagername,
+            $managername
+        );
+
+        $this->assertSame($expected, $result);
+    }
+
+    /**
+     * Provides authentication configuration combinations.
+     *
+     * @return array
+     */
+    public static function auth_configuration_provider(): array {
+        return [
+            'API key off, manager off' => [false, false, '', true],
+            'API key off, manager on' => [false, true, '', true],
+            'API key on, manager configured' => [true, true, 'topomojo-manager', true],
+            'API key on, manager off' => [
+                true,
+                false,
+                'topomojo-manager',
+                get_string('configapikeymanagerrequired', 'topomojo'),
+            ],
+            'API key on, manager name empty' => [
+                true,
+                true,
+                '',
+                get_string('configapikeymanagernamerequired', 'topomojo'),
+            ],
+        ];
+    }
+
+    /**
+     * Test that an invalid legacy configuration has a clear runtime error.
+     */
+    public function test_invalid_auth_configuration_has_clear_runtime_error() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('enablemanagername', 0, 'topomojo');
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('configapikeymanagerrequired', 'topomojo'));
+
+        topomojo_require_valid_auth_configuration();
+    }
+
+    /**
+     * Test that API-key authentication requires a manager name at runtime.
+     */
+    public function test_empty_manager_name_has_clear_runtime_error() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+        set_config('managername', ' ', 'topomojo');
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('configapikeymanagernamerequired', 'topomojo'));
+
+        topomojo_require_valid_auth_configuration();
+    }
+
+    /**
+     * Test that the settings checkbox rejects enabling the API key without a manager user.
+     */
+    public function test_setting_rejects_apikey_without_manager() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 0, 'topomojo');
+        set_config('enablemanagername', 0, 'topomojo');
+
+        $setting = new \mod_topomojo_auth_checkbox_setting(
+            'topomojo/enableapikey',
+            'API key',
+            '',
+            0
+        );
+
+        $result = $setting->write_setting(1);
+
+        $this->assertSame(get_string('configapikeymanagerrequired', 'topomojo'), $result);
+        $this->assertEmpty(get_config('topomojo', 'enableapikey'));
+    }
+
+    /**
+     * Test that the settings checkbox accepts the API key when the manager user is enabled.
+     */
+    public function test_setting_accepts_apikey_with_manager() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 0, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+        set_config('managername', 'topomojo-manager', 'topomojo');
+
+        $setting = new \mod_topomojo_auth_checkbox_setting(
+            'topomojo/enableapikey',
+            'API key',
+            '',
+            0
+        );
+
+        $this->assertSame('', $setting->write_setting(1));
+        $this->assertEquals(1, get_config('topomojo', 'enableapikey'));
+    }
+
+    /**
+     * Test that the settings checkbox rejects an API key with no manager name.
+     */
+    public function test_setting_rejects_apikey_without_manager_name() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 0, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+        set_config('managername', '', 'topomojo');
+
+        $setting = new \mod_topomojo_auth_checkbox_setting(
+            'topomojo/enableapikey',
+            'API key',
+            '',
+            0
+        );
+
+        $result = $setting->write_setting(1);
+
+        $this->assertSame(get_string('configapikeymanagernamerequired', 'topomojo'), $result);
+        $this->assertEmpty(get_config('topomojo', 'enableapikey'));
+    }
+
+    /**
+     * Test that disabling the manager user is rejected while the API key is enabled.
+     */
+    public function test_setting_rejects_disabling_manager_with_apikey() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+
+        $setting = new \mod_topomojo_auth_checkbox_setting(
+            'topomojo/enablemanagername',
+            'Manager user',
+            '',
+            0
+        );
+
+        $result = $setting->write_setting(0);
+
+        $this->assertSame(get_string('configapikeymanagerrequired', 'topomojo'), $result);
+        $this->assertEquals(1, get_config('topomojo', 'enablemanagername'));
+    }
+
+    /**
+     * Test that the manager user can be disabled when the API key is disabled.
+     */
+    public function test_setting_allows_disabling_manager_without_apikey() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 0, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+
+        $setting = new \mod_topomojo_auth_checkbox_setting(
+            'topomojo/enablemanagername',
+            'Manager user',
+            '',
+            0
+        );
+
+        $this->assertSame('', $setting->write_setting(0));
+        $this->assertEmpty(get_config('topomojo', 'enablemanagername'));
+    }
+
+    /**
+     * Test that the manager-name setting rejects clearing the value while API-key authentication is enabled.
+     */
+    public function test_manager_name_setting_rejects_empty_value_with_apikey() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('enablemanagername', 1, 'topomojo');
+        set_config('managername', 'topomojo-manager', 'topomojo');
+
+        $setting = new \mod_topomojo_managername_setting(
+            'topomojo/managername',
+            'Manager Name',
+            '',
+            '',
+            PARAM_TEXT,
+            60
+        );
+
+        $result = $setting->write_setting(' ');
+
+        $this->assertSame(get_string('configapikeymanagernamerequired', 'topomojo'), $result);
+        $this->assertSame('topomojo-manager', get_config('topomojo', 'managername'));
+    }
+
+    /**
+     * Test that a submitted API-key configuration requires a manager name.
+     */
+    public function test_manager_name_setting_rejects_empty_submitted_value_with_apikey() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 0, 'topomojo');
+        set_config('enablemanagername', 0, 'topomojo');
+
+        $setting = new \mod_topomojo_managername_setting(
+            'topomojo/managername',
+            'Manager Name',
+            '',
+            '',
+            PARAM_TEXT,
+            60
+        );
+        $post = $_POST;
+
+        try {
+            $_POST['s_topomojo_enableapikey'] = 1;
+            $_POST['s_topomojo_enablemanagername'] = 1;
+
+            $result = $setting->write_setting('');
+        } finally {
+            $_POST = $post;
+        }
+
+        $this->assertSame(get_string('configapikeymanagernamerequired', 'topomojo'), $result);
+        $this->assertEmpty(get_config('topomojo', 'managername'));
+    }
+
+    /**
+     * Test that gamespace-limit lookup rejects an invalid legacy configuration clearly.
+     */
+    public function test_get_gamespace_limit_rejects_invalid_auth_configuration() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('enablemanagername', 0, 'topomojo');
+
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('configapikeymanagerrequired', 'topomojo'));
+
+        get_gamespace_limit(new \curl());
+    }
 
     /**
      * Test setup function with API key enabled and set.
@@ -151,5 +402,73 @@ class locallib_test extends \advanced_testcase {
 
         $this->assertNotNull($client);
         $this->assertInstanceOf(\curl::class, $client);
+    }
+
+    /**
+     * Test invitation URL generation strips existing launchpoint parameters.
+     */
+    public function test_build_topomojo_invite_url_strips_existing_parameters() {
+        $url = build_topomojo_invite_url(
+            'https://topomojo.example/?t=ticket&g=gamespace',
+            'invite-code'
+        );
+
+        $this->assertSame('https://topomojo.example/?c=invite-code', $url);
+    }
+
+    /**
+     * Test invitation URL generation preserves a deployment path.
+     */
+    public function test_build_topomojo_invite_url_preserves_launchpoint_path() {
+        $url = build_topomojo_invite_url(
+            'https://topomojo.example/lp/?t=ticket&g=gamespace',
+            'invite code'
+        );
+
+        $this->assertSame('https://topomojo.example/lp/?c=invite+code', $url);
+    }
+
+    /**
+     * Test lookup returns the stored launchpoint URL for a gamespace.
+     */
+    public function test_get_topomojo_gamespace_launchpoint_url() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+
+        $generator->create_attempt($topomojo, $user, [
+            'eventid' => 'gamespace-id',
+            'launchpointurl' => 'https://topomojo.example/?t=ticket',
+        ]);
+
+        $this->assertSame(
+            'https://topomojo.example/?t=ticket',
+            get_topomojo_gamespace_launchpoint_url('gamespace-id')
+        );
+    }
+
+    /**
+     * Test lookup returns null when no attempt exists for a gamespace.
+     */
+    public function test_get_topomojo_gamespace_launchpoint_url_returns_null() {
+        $this->resetAfterTest();
+
+        $this->assertNull(get_topomojo_gamespace_launchpoint_url('missing-gamespace'));
+    }
+
+    /**
+     * Test invitation URL generation falls back to the configured base URL.
+     */
+    public function test_build_topomojo_invite_url_falls_back_to_configured_base_url() {
+        $this->resetAfterTest();
+        set_config('topomojobaseurl', 'https://topomojo.example', 'topomojo');
+
+        $this->assertSame(
+            'https://topomojo.example/lp/?c=invite-code',
+            build_topomojo_invite_url('', 'invite-code')
+        );
     }
 }
