@@ -113,6 +113,7 @@ $string['endlabmessage'] = 'Notice: Submitting your answers will end the lab and
 $string['configenableapikey'] = 'Enable API key-based integration with TopoMojo.';
 $string['configenablemanagername'] = 'Enable external manager for integration with TopoMojo.';
 $string['configapikeymanagerrequired'] = 'Enable External Manager User must also be enabled when Enable External API Key is enabled.';
+$string['configapikeymanagernamerequired'] = 'Manager Name is required when Enable External API Key is enabled.';
 $string['configapikeymanagerwarning'] = '<strong>Important:</strong> Enable External Manager User must also be enabled when Enable External API Key is enabled. Enter the Manager Name associated with the API key.';
 $string['issuerid'] = 'Issuer Id';
 $string['issuerid_help'] = 'Select the OAuth2 issuer to use for authenticating with the TopoMojo API. The issuer must first be created in Site administration > Server > OAuth 2 services. This is required when OAuth authentication is enabled.';

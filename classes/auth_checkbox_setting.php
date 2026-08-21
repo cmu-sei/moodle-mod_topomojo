@@ -65,8 +65,17 @@ class mod_topomojo_auth_checkbox_setting extends admin_setting_configcheckbox {
             'enablemanagername',
             $this->name === 'enablemanagername' ? $data : get_config('topomojo', 'enablemanagername')
         );
+        $managername = optional_param(
+            's_topomojo_managername',
+            get_config('topomojo', 'managername'),
+            PARAM_TEXT
+        );
 
-        $validation = topomojo_validate_auth_configuration($enableapikey, $enablemanagername);
+        $validation = topomojo_validate_auth_configuration(
+            $enableapikey,
+            $enablemanagername,
+            $managername
+        );
         if ($validation !== true) {
             return $validation;
         }

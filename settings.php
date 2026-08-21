@@ -126,8 +126,8 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-    $settings->add(new admin_setting_configtext('topomojo/managername',
-        get_string('managername', 'topomojo'), get_string('managername', 'topomojo'), "", PARAM_TEXT, 60));
+    $settings->add(new mod_topomojo_managername_setting('topomojo/managername',
+        get_string('managername', 'topomojo'), get_string('configmanagername', 'topomojo'), "", PARAM_TEXT, 60));
 
     $settings->hide_if('topomojo/managername', 'topomojo/enablemanagername', 'notchecked', 1);
 

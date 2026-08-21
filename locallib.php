@@ -134,11 +134,20 @@ function build_topomojo_invite_url($launchpointurl, $code) {
  *
  * @param bool $enableapikey Whether API-key authentication is enabled.
  * @param bool $enablemanagername Whether external manager filtering is enabled.
+ * @param string $managername The external manager name.
  * @return true|string True when the combination is valid, otherwise an error message.
  */
-function topomojo_validate_auth_configuration($enableapikey, $enablemanagername) {
-    if ($enableapikey && !$enablemanagername) {
+function topomojo_validate_auth_configuration($enableapikey, $enablemanagername, $managername) {
+    if (!$enableapikey) {
+        return true;
+    }
+
+    if (!$enablemanagername) {
         return get_string('configapikeymanagerrequired', 'topomojo');
+    }
+
+    if (trim((string) $managername) === '') {
+        return get_string('configapikeymanagernamerequired', 'topomojo');
     }
 
     return true;
@@ -148,16 +157,24 @@ function topomojo_validate_auth_configuration($enableapikey, $enablemanagername)
  * Throws a clear configuration error for an invalid API-key authentication setup.
  *
  * @return void
- * @throws moodle_exception If API-key authentication has no external manager configured.
+ * @throws moodle_exception If API-key authentication is missing an external manager configuration.
  */
 function topomojo_require_valid_auth_configuration() {
+    $enableapikey = get_config('topomojo', 'enableapikey');
+    $enablemanagername = get_config('topomojo', 'enablemanagername');
+    $managername = get_config('topomojo', 'managername');
     $validation = topomojo_validate_auth_configuration(
-        get_config('topomojo', 'enableapikey'),
-        get_config('topomojo', 'enablemanagername')
+        $enableapikey,
+        $enablemanagername,
+        $managername
     );
 
     if ($validation !== true) {
-        throw new moodle_exception('configapikeymanagerrequired', 'topomojo');
+        if (!$enablemanagername) {
+            throw new moodle_exception('configapikeymanagerrequired', 'topomojo');
+        }
+
+        throw new moodle_exception('configapikeymanagernamerequired', 'topomojo');
     }
 }
 
