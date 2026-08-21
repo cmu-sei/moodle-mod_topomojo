@@ -126,6 +126,59 @@ function build_topomojo_invite_url($launchpointurl, $code) {
 }
 
 /**
+ * Validates the authentication settings used by the TopoMojo integration.
+ *
+ * API-key authentication uses Moodle's standard curl client, which does not
+ * provide OAuth user information. The external manager setting is therefore
+ * required when API-key authentication is enabled.
+ *
+ * @param bool $enableapikey Whether API-key authentication is enabled.
+ * @param bool $enablemanagername Whether external manager filtering is enabled.
+ * @param string $managername The external manager name.
+ * @return true|string True when the combination is valid, otherwise an error message.
+ */
+function topomojo_validate_auth_configuration($enableapikey, $enablemanagername, $managername) {
+    if (!$enableapikey) {
+        return true;
+    }
+
+    if (!$enablemanagername) {
+        return get_string('configapikeymanagerrequired', 'topomojo');
+    }
+
+    if (trim((string) $managername) === '') {
+        return get_string('configapikeymanagernamerequired', 'topomojo');
+    }
+
+    return true;
+}
+
+/**
+ * Throws a clear configuration error for an invalid API-key authentication setup.
+ *
+ * @return void
+ * @throws moodle_exception If API-key authentication is missing an external manager configuration.
+ */
+function topomojo_require_valid_auth_configuration() {
+    $enableapikey = get_config('topomojo', 'enableapikey');
+    $enablemanagername = get_config('topomojo', 'enablemanagername');
+    $managername = get_config('topomojo', 'managername');
+    $validation = topomojo_validate_auth_configuration(
+        $enableapikey,
+        $enablemanagername,
+        $managername
+    );
+
+    if ($validation !== true) {
+        if (!$enablemanagername) {
+            throw new moodle_exception('configapikeymanagerrequired', 'topomojo');
+        }
+
+        throw new moodle_exception('configapikeymanagernamerequired', 'topomojo');
+    }
+}
+
+/**
  * Sets up and returns a cURL client with the required headers.
  *
  * This function initializes a cURL client and configures it with the necessary headers,
@@ -631,6 +684,8 @@ function get_gamespace_limit($client)
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
         return;
     }
+
+    topomojo_require_valid_auth_configuration();
 
     $base_url = get_topomojo_api_url();
 

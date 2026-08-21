@@ -87,11 +87,11 @@ By default, all of these fields are empty and should be completed during the set
 
 **TopoMojo Base URL:** The base URL of the TopoMojo server used for linking and embedding (e.g., `https://topomojo.example.com`).
 
-**Enable External API Key:** If the use of the Oauth2 system account is not desired, check this option to enable the use of an API key.
+**Enable External API Key:** If the use of the Oauth2 system account is not desired, check this option to enable the use of an API key. **Enable External Manager User must also be enabled, and the associated Manager Name must be entered.**
 
 **API Key:** The authentication key required for secure communication between Moodle and TopoMojo. This key is issued by the TopoMojo administrator.
 
-**Enable External Manager User:** If the use of the Oauth2 system account is not desired, check this option to set the manager name that holds the API key set.
+**Enable External Manager User:** If the use of the Oauth2 system account is not desired, check this option to set the manager name that holds the API key set. This setting is required when **Enable External API Key** is enabled.
 
 **Manager Name:** Specifies the manager name used for identifying the TopoMojo API integration instance.
 
