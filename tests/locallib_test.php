@@ -154,15 +154,15 @@ class locallib_test extends \advanced_testcase {
     }
 
     /**
-     * Test invitation URL generation for a standalone local launchpoint.
+     * Test invitation URL generation strips existing launchpoint parameters.
      */
-    public function test_build_topomojo_invite_url_for_local_launchpoint() {
+    public function test_build_topomojo_invite_url_strips_existing_parameters() {
         $url = build_topomojo_invite_url(
-            'http://localhost:4204/?t=ticket&g=gamespace',
+            'https://topomojo.example/?t=ticket&g=gamespace',
             'invite-code'
         );
 
-        $this->assertSame('http://localhost:4204/?c=invite-code', $url);
+        $this->assertSame('https://topomojo.example/?c=invite-code', $url);
     }
 
     /**
@@ -190,11 +190,11 @@ class locallib_test extends \advanced_testcase {
 
         $generator->create_attempt($topomojo, $user, [
             'eventid' => 'gamespace-id',
-            'launchpointurl' => 'http://localhost:4204/?t=ticket',
+            'launchpointurl' => 'https://topomojo.example/?t=ticket',
         ]);
 
         $this->assertSame(
-            'http://localhost:4204/?t=ticket',
+            'https://topomojo.example/?t=ticket',
             get_topomojo_gamespace_launchpoint_url('gamespace-id')
         );
     }
