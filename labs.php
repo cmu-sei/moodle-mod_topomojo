@@ -7,7 +7,6 @@ use core_competency\api as comp_api;
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/mod/topomojo/labs.php'));
 $PAGE->set_pagelayout('report');
-$PAGE->requires->css('/mod/topomojo/styles.css');
 $PAGE->set_title(get_string('labslist', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 

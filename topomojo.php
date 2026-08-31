@@ -7,7 +7,6 @@ require_login();
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->set_pagelayout('standard');
-$PAGE->requires->css('/mod/topomojo/styles.css');
 
 $PAGE->set_title(get_string('topomojo', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
