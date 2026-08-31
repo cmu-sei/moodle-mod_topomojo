@@ -9,6 +9,7 @@ global $DB, $OUTPUT, $SITE;
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/mod/topomojo/labofday.php'));
 $PAGE->set_pagelayout('report');
+$PAGE->requires->css('/mod/topomojo/styles.css');
 $PAGE->set_title(get_string('featuredlab', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
