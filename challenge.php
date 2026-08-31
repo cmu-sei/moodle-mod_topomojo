@@ -414,9 +414,9 @@ switch ($action) {
                                 if ($variant_has_text) {
                                     echo '<div class="card mb-3">';
                                     if ($is_random) {
-                                        echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong> (students see one variant based on random assignment)</div>';
+                                        echo '<div class="card-header topomojo-variant-card__header"><strong>Variant-Specific Text</strong> (students see one variant based on random assignment)</div>';
                                     } else {
-                                        echo '<div class="card-header bg-light"><strong>Variant-Specific Text</strong></div>';
+                                        echo '<div class="card-header topomojo-variant-card__header"><strong>Variant-Specific Text</strong></div>';
                                     }
                                     echo '<div class="card-body">';
 
