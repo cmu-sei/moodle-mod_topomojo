@@ -375,14 +375,14 @@ $string['overview_default_content'] = <<<EOT
 TopoMojo is the platform behind hands-on cybersecurity labs. Instructors build labs in <em>workspaces</em>; when you launch from Moodle you get an isolated <em>gamespace</em>, so nothing you do changes the original.
 </p>
 
-<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">On this page</h3>
+<h3>On this page</h3>
 <ul style="margin:0 0 12px 18px;padding:0;">
 <li><strong>View all TopoMojo Labs</strong> to browse everything you have access to.</li>
 <li>Jump into the rotating <strong>Lab of the Day</strong> for a quick, curated pick.</li>
 <li>Open a lab’s Moodle activity and click <strong>Launch Lab</strong> to start your gamespace and follow the built-in guide.</li>
 </ul>
 
-<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">While in a lab</h3>
+<h3>While in a lab</h3>
 <ul style="margin:0 0 12px 18px;padding:0;">
 <li><strong>Timer</strong> counts down your session; use <strong>Extend Lab</strong> if enabled.</li>
 <li><strong>End Lab</strong> cleanly shuts the lab down when you’re finished.</li>
@@ -390,7 +390,7 @@ TopoMojo is the platform behind hands-on cybersecurity labs. Instructors build l
 <li>The <strong>Challenge</strong> tab contains graded questions; <strong>Review Activity Attempts</strong> shows history and scores.</li>
 </ul>
 
-<h3 style="margin:14px 0 6px;font-size:16px;color:#0f172a;">Tips</h3>
+<h3>Tips</h3>
 <ul style="margin:0 8px 0 18px;padding:0;">
 <li>Read the guide first to understand the topology and goals.</li>
 <li>Watch the timer and extend before it hits zero (if allowed).</li>
