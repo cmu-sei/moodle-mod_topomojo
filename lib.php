@@ -77,6 +77,7 @@ function topomojo_supports($feature) {
             return null;
     }
 }
+
 /**
  * Returns all other caps used in module
  * @return array

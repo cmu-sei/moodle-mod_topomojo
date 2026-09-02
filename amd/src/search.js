@@ -46,7 +46,7 @@ define([], function() {
       });
 
       if (emptyStateEl) {
-        emptyStateEl.style.display = visibleCount === 0 ? '' : 'none';
+        emptyStateEl.classList.toggle('d-none', visibleCount !== 0);
       }
 
       if (resultCountEl) {
