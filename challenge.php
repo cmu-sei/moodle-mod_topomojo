@@ -258,8 +258,11 @@ if ((int)$object->topomojo->grade > 0) {
 $renderer = $object->renderer;
 echo $renderer->header();
 
-// Show preview mode warning if this is a preview attempt
-if ($ispreview == 1) {
+// Show preview mode warning only when a preview attempt or gamespace has actually
+// been resolved. A bare ?preview=1 without an attempt shows read-only challenge
+// content (handled below by the dedicated "Challenge Preview" notice); the
+// "attempt will not be recorded" wording is misleading when no attempt exists.
+if ($ispreview == 1 && ($activeattempt || !empty($object->event))) {
     $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
     echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
 }

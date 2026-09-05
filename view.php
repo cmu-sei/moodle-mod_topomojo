@@ -200,8 +200,13 @@ if (!$activeattempt) {
     }
 }
 
-// Show preview mode banner only after resolving the active attempt or gamespace.
-if ($ispreview == 1) {
+// Show preview mode banner only when a preview attempt or gamespace has actually
+// been resolved. A bare ?preview=1 on the URL must not announce preview mode: the
+// start form's launch button posts preview=0 and creates a regular, graded attempt,
+// so a banner shown before any preview attempt exists misleads instructors into
+// leaving real attempt rows behind (freezes question re-import, lands in gradebook).
+$haspreviewattempt = $ispreview == 1 && ($activeattempt || !empty($object->event));
+if ($haspreviewattempt) {
     $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
     echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
 }
