@@ -308,6 +308,26 @@ if ($challenge && isset($challenge->variants[$variant])) {
     }
 }
 
+// A non-empty questionorder can still resolve to zero usable questions - orphaned
+// topomojo_questions links, deleted questions, or a variant that was never imported.
+// Those activities fall through the auto-import branch above (which only fires when
+// questionorder is empty) and render a description with no question section and no
+// explanation. get_questions() resolves questionorder to real question rows, skipping
+// stale/orphaned/empty entries, so an empty result is the reliable signal. Show the
+// same message students get for an empty challenge. On view.php the question manager
+// only exists when questionorder is set, which is exactly this case.
+if (!empty($topomojo->questionorder) && !has_capability('mod/topomojo:manage', $context)
+        && method_exists($object, 'get_question_manager')) {
+    try {
+        $qm = $object->get_question_manager();
+        if ($qm instanceof \mod_topomojo\questionmanager && empty($qm->get_questions())) {
+            echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
+        }
+    } catch (Throwable $e) {
+        debugging('Could not check resolved challenge questions: ' . $e->getMessage(), DEBUG_DEVELOPER);
+    }
+}
+
 
 // Getting completed attempts by user (excluding preview attempts)
 $current_attempt_count = $DB->count_records('topomojo_attempts', [
