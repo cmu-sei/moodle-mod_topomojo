@@ -649,54 +649,96 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2026090501) {
-        // Data hygiene for challenge questions and their grade residue. None of this changes
-        // a student's visible gradebook grade; it removes plugin-owned rows that render as a
-        // missing/blank question section or that could resurface on a future attempt. The
-        // gradebook-side correction (grade_grades) is intentionally NOT done here - it needs a
-        // report-first review before any student grade is altered.
+        // Data hygiene for challenge questions and their grade residue. Steps 1, 2 and 4 remove
+        // plugin-owned rows that render as a missing/blank question section or that could resurface
+        // on a future attempt; step 3 pins version-less references. None of this changes a student's
+        // visible gradebook grade - the gradebook-side correction (grade_grades) is intentionally
+        // NOT done here, it needs a report-first review before any student grade is altered.
+        // Each step logs its count via mtrace() so the upgrade log records what ran on each site.
+        // All steps are idempotent and the savepoint is only reached at the end, so a mid-run
+        // failure re-runs harmlessly.
 
         // 1. Orphan topomojo_questions links: the referenced question no longer exists. These
-        //    accumulate on every re-import and leave stale ids in questionorder (below).
+        //    accumulate on every re-import and leave stale ids in questionorder (step 2). This
+        //    deletion is what creates most of the stale questionorder entries step 2 then cleans,
+        //    so it must run first.
+        $orphanlinks = $DB->count_records_select('topomojo_questions',
+            "NOT EXISTS (SELECT 1 FROM {question} q WHERE q.id = {topomojo_questions}.questionid)");
         $DB->execute("DELETE FROM {topomojo_questions}
                        WHERE NOT EXISTS (SELECT 1 FROM {question} q WHERE q.id = {topomojo_questions}.questionid)");
+        mtrace("mod_topomojo: deleted $orphanlinks orphan topomojo_questions link(s)");
 
         // 2. Stale questionorder ids: entries pointing at topomojo_questions rows that no longer
-        //    exist (including any just deleted above). refresh_questions() already prunes these
+        //    exist (including any just deleted in step 1). refresh_questions() already prunes these
         //    lazily on load; do it in bulk so activities render correctly before first view.
+        //    Activities left with no valid ids get questionorder = NULL, which view.php treats as
+        //    "no questions" (auto-import path / the new zero-question notice) - a visible state
+        //    change, so their ids are logged.
+        $ownedbyactivity = [];
+        $idrs = $DB->get_recordset('topomojo_questions', null, '', 'id, topomojoid');
+        foreach ($idrs as $q) {
+            $ownedbyactivity[$q->topomojoid][$q->id] = true;
+        }
+        $idrs->close();
+
+        $staleremoved = 0;
+        $nulledids = [];
         $rs = $DB->get_recordset_select('topomojo', "questionorder IS NOT NULL AND questionorder <> ''",
             null, '', 'id, questionorder');
         foreach ($rs as $rec) {
-            $owned = array_flip($DB->get_fieldset_select('topomojo_questions', 'id', 'topomojoid = ?', [$rec->id]));
+            $owned = $ownedbyactivity[$rec->id] ?? [];
             $valid = [];
             foreach (explode(',', $rec->questionorder) as $tqid) {
                 $tqid = trim($tqid);
-                if ($tqid !== '' && isset($owned[$tqid])) {
+                if ($tqid === '') {
+                    continue;
+                }
+                if (isset($owned[$tqid])) {
                     $valid[] = $tqid;
+                } else {
+                    $staleremoved++;
                 }
             }
             $neworder = empty($valid) ? null : implode(',', $valid);
             if ($neworder !== $rec->questionorder) {
                 $DB->set_field('topomojo', 'questionorder', $neworder, ['id' => $rec->id]);
+                if ($neworder === null) {
+                    $nulledids[] = $rec->id;
+                }
             }
         }
         $rs->close();
+        mtrace("mod_topomojo: removed $staleremoved stale questionorder id(s)");
+        if (!empty($nulledids)) {
+            mtrace("mod_topomojo: cleared questionorder (now NULL) on " . count($nulledids)
+                . " activity id(s): " . implode(', ', $nulledids));
+        }
 
-        // 3. NULL question_references.version for this plugin's slot references: pin to the
-        //    current (latest) version of the entry so the reference is stable, matching how the
-        //    import path pins new references.
+        // 3. NULL question_references.version for this plugin's slot references. NOT residue
+        //    removal: a NULL version means "always use the latest version", so this PINS the
+        //    reference to the current (latest) version, matching how the import path pins new
+        //    references (#60). Inert unless a new version of one of these questions is created.
+        $nullversionrefs = $DB->count_records_select('question_references',
+            "component = ? AND questionarea = ? AND version IS NULL", ['mod_topomojo', 'slot']);
         $DB->execute("UPDATE {question_references}
                          SET version = (SELECT MAX(qv.version) FROM {question_versions} qv
                                          WHERE qv.questionbankentryid = {question_references}.questionbankentryid)
                        WHERE component = 'mod_topomojo' AND questionarea = 'slot' AND version IS NULL");
+        mtrace("mod_topomojo: pinned $nullversionrefs NULL-version slot reference(s) to latest");
 
         // 4. Orphan topomojo_grades: a grade row with no surviving attempt for that (activity, user).
         //    topomojo_get_user_grades INNER JOINs grades to attempts, so today the join hides these -
         //    but a new attempt would rejoin the stale row and grade the student on a deleted score.
         //    This is plugin-owned data; deleting it changes no gradebook grade.
+        $orphangrades = $DB->count_records_select('topomojo_grades',
+            "NOT EXISTS (SELECT 1 FROM {topomojo_attempts} ta
+                          WHERE ta.topomojoid = {topomojo_grades}.topomojoid
+                            AND ta.userid = {topomojo_grades}.userid)");
         $DB->execute("DELETE FROM {topomojo_grades}
                        WHERE NOT EXISTS (SELECT 1 FROM {topomojo_attempts} ta
                                           WHERE ta.topomojoid = {topomojo_grades}.topomojoid
                                             AND ta.userid = {topomojo_grades}.userid)");
+        mtrace("mod_topomojo: deleted $orphangrades orphan topomojo_grades row(s)");
 
         upgrade_mod_savepoint(true, 2026090501, 'topomojo');
     }
