@@ -1265,8 +1265,10 @@ function topomojo_start($cm, $context, $topomojo)
  *
  * @param object $client The HTTP client used to make the API request.
  * @param int $id The ID of the challenge to retrieve.
- * @return object|null The decoded challenge data object if successful, or null if an error occurs or the data cannot be decoded.
- * @throws moodle_exception If there is an issue with the client or the response code is not 200.
+ * @return object|null The decoded challenge data object if successful, or null if the challenge is
+ *                     unavailable (400/404, any 5xx server error, or a failed connection).
+ * @throws moodle_exception If the client could not be set up, or the API returns an unexpected
+ *                          non-200 status (e.g. an authentication failure).
  */
 function get_challenge($client, $id)
 {
@@ -1281,18 +1283,22 @@ function get_challenge($client, $id)
 
     $response = $client->get($url);
 
-    // TODO handle network error
+    // On a failed connection curl never sets http_code, so info['http_code'] is 0/unset.
+    $httpcode = (int)($client->info['http_code'] ?? 0);
 
-    if ($client->info['http_code'] !== 200) {
-        // Workspace/challenge not found or invalid - return null instead of throwing exception
-        if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
-            debugging('Challenge not found for workspace ' . $id . ': HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
+    if ($httpcode !== 200) {
+        // Treat "no usable challenge" cases as a null return rather than an exception:
+        //   400/404 - workspace or challenge not found / invalid.
+        //   5xx     - TopoMojo server error (the null-server bug returns HTTP 500).
+        //   0       - connection failed, so we never got an http_code.
+        // Callers all handle null (view.php shows the friendly "workspace not found"
+        // message instead of an error page that leaks the API URL).
+        if ($httpcode === 404 || $httpcode === 400 || $httpcode >= 500 || $httpcode === 0) {
+            debugging('get_challenge: no challenge for workspace ' . $id . ' (HTTP ' . $httpcode . ')', DEBUG_DEVELOPER);
             return null;
         }
-        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        //print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
-        throw new moodle_exception($client->info['http_code'] . " for $url");
+        // Unexpected status (e.g. auth failure) - surface an error without leaking the URL.
+        throw new moodle_exception('Error communicating with TopoMojo (HTTP ' . $httpcode . ')');
     }
 
     if (!$response) {
