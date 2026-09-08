@@ -1197,6 +1197,22 @@ class questionmanager {
                         if ($form->defaultmark == 0) {
                             $form->defaultmark = 1;
                         }
+                        // Penalty is a 0-1 fraction of the question mark, deducted per prior
+                        // wrong try by qbehaviour_mojomatch (interactive/adaptive modes only).
+                        // Read it from the challenge JSON so authored penalties are honoured;
+                        // default to 0 (no penalty) when the challenge does not specify one.
+                        // Unlike defaultmark, penalty is NOT scaled with weight - it is already
+                        // a fraction of the mark, so it maps through directly.
+                        $form->penalty = 0;
+                        if (isset($question->penalty) && is_numeric($question->penalty)) {
+                            $penalty = (float)$question->penalty;
+                            if ($penalty < 0 || $penalty > 1) {
+                                debugging("Question penalty {$penalty} is outside the expected 0-1 " .
+                                    "fraction range and will be clamped; penalty must use the same " .
+                                    "0-1 scale as a normalized weight.", DEBUG_DEVELOPER);
+                            }
+                            $form->penalty = max(0, min(1, $penalty));
+                        }
                         $form->usecase = '0'; // Case sensitive, topomojo does tolower() on responses
                         $form->answer = [$question->answer];
                         $form->fraction = ['1'];
