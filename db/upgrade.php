@@ -527,7 +527,7 @@ function xmldb_topomojo_upgrade($oldversion)
         // Savepoint reached.
         upgrade_mod_savepoint(true, 2024102302, 'topomojo');
     }
-    if ($oldversion < 2025022400) {
+    if ($oldversion < 2025022402) {
         // Define field contentlicense to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('contentlicense', XMLDB_TYPE_TEXT, 'medium', null, null, null, null, 'submissions');
