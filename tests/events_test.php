@@ -52,10 +52,10 @@ defined('MOODLE_INTERNAL') || die();
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_topomojo\event\course_module_viewed
- * @covers \mod_topomojo\event\attempt_started
- * @covers \mod_topomojo\event\attempt_ended
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\course_module_viewed::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_started::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_ended::class)]
 class events_test extends \advanced_testcase {
 
     /**

@@ -3,9 +3,7 @@ namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * @covers \mod_topomojo\local\bulkdeploy\management_repository
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\management_repository::class)]
 final class management_repository_test extends \advanced_testcase {
 
     public function test_get_active_jobs_excludes_future_scheduled_jobs(): void {

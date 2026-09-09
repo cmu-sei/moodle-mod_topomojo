@@ -5,9 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
-/**
- * @covers \mod_topomojo\local\bulkdeploy\fake_curl_multi_client
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\fake_curl_multi_client::class)]
 final class curl_multi_client_test extends \advanced_testcase {
     public function test_fake_returns_queued_responses_in_order(): void {
         $fake = new fake_curl_multi_client();

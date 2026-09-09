@@ -60,8 +60,8 @@ require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_topomojo\questionmanager
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\questionmanager::class)]
 class questionmanager_test extends \advanced_testcase {
 
     /**
@@ -105,6 +105,8 @@ class questionmanager_test extends \advanced_testcase {
         // The lazy prune (mirrored in bulk by the upgrade step) leaves questionorder = NULL.
         $reloaded = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
         $this->assertNull($reloaded->questionorder);
+        // Pruning traces which ids it skipped; the resulting questionorder is asserted above.
+        $this->resetDebugging();
     }
 
     /**
@@ -136,6 +138,8 @@ class questionmanager_test extends \advanced_testcase {
         $this->assertSame([], $qm->get_questions());
         $reloaded = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
         $this->assertEquals((string)$tqid, $reloaded->questionorder);
+        // Pruning traces which ids it skipped; the resulting questionorder is asserted above.
+        $this->resetDebugging();
     }
 
     /**

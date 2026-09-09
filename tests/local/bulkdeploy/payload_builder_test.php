@@ -3,9 +3,7 @@ namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * @covers \mod_topomojo\local\bulkdeploy\payload_builder
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\payload_builder::class)]
 final class payload_builder_test extends \advanced_testcase {
     public function test_builds_payload_for_given_user(): void {
         $topomojo = (object) [

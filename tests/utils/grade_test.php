@@ -60,8 +60,8 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_topomojo\utils\grade
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\utils\grade::class)]
 final class grade_test extends \advanced_testcase {
 
     /**
@@ -153,5 +153,7 @@ final class grade_test extends \advanced_testcase {
         foreach ($grades as $awarded) {
             $this->assertEquals(0, $awarded);
         }
+        // topomojo_attempt traces every construction and save at DEBUG_DEVELOPER.
+        $this->resetDebugging();
     }
 }

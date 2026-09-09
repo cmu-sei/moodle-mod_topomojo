@@ -56,17 +56,16 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers ::topomojo_supports
- * @covers ::topomojo_add_instance
- * @covers ::topomojo_update_instance
- * @covers ::topomojo_delete_instance
  */
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_supports')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_add_instance')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_update_instance')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_delete_instance')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_delete_finished_preview_attempts')]
 class lib_test extends \advanced_testcase {
 
     /**
      * Finished instructor previews can be removed without affecting other attempts.
-     *
-     * @covers ::topomojo_delete_finished_preview_attempts
      */
     public function test_topomojo_delete_finished_preview_attempts(): void {
         global $DB;
@@ -133,9 +132,8 @@ class lib_test extends \advanced_testcase {
 
     /**
      * Test topomojo_supports function.
-     *
-     * @dataProvider supports_provider
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('supports_provider')]
     public function test_topomojo_supports($feature, $expected) {
         $this->resetAfterTest();
         $result = topomojo_supports($feature);
@@ -226,9 +224,14 @@ class lib_test extends \advanced_testcase {
         $moduleinfo->visible = 1;
         $moduleinfo->name = $topomojo->name;
         $moduleinfo->workspaceid = $topomojo->workspaceid;
+        // create_module() reads introeditor['itemid'] and cmidnumber directly; a real form
+        // submission always supplies both, so supply them here too rather than letting core
+        // read an undefined key and property.
+        $moduleinfo->cmidnumber = '';
         $moduleinfo->introeditor = [
             'text' => $topomojo->intro,
             'format' => FORMAT_HTML,
+            'itemid' => 0,
         ];
         $cm = create_module($moduleinfo);
         $topomojo->coursemodule = $cm->coursemodule;
@@ -306,6 +309,49 @@ class lib_test extends \advanced_testcase {
     }
 
     /**
+     * An update record that omits course and grade still yields a correct grade item.
+     *
+     * topomojo_grade_item_update() used to read both properties directly. When a caller passed a
+     * partial record, course arrived undefined, grade_update() rejected the call with "Missing
+     * courseid or itemtype", and the grade item was silently never created or updated.
+     */
+    public function test_grade_item_survives_an_update_record_without_course_or_grade(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        // Note: topomojo_add_instance() hardcodes grade to 100, so read back what was stored
+        // rather than asserting a value the generator was asked for.
+        $storedgrade = $DB->get_field('topomojo', 'grade', ['id' => $topomojo->id], MUST_EXIST);
+        $this->assertGreaterThan(0, $storedgrade);
+
+        // Deliberately omit course and grade, as a partial form submission would.
+        $updatedata = new \stdClass();
+        $updatedata->instance = $topomojo->id;
+        $updatedata->coursemodule = $topomojo->cmid;
+        $updatedata->name = 'Partial update';
+        $this->assertObjectNotHasProperty('course', $updatedata);
+        $this->assertObjectNotHasProperty('grade', $updatedata);
+
+        $this->assertTrue(topomojo_update_instance($updatedata, null));
+
+        $item = $DB->get_record('grade_items', [
+            'itemtype' => 'mod',
+            'itemmodule' => 'topomojo',
+            'iteminstance' => $topomojo->id,
+            'itemnumber' => 0,
+        ]);
+        $this->assertNotEmpty($item, 'grade item should exist after a partial update');
+        $this->assertEquals($course->id, $item->courseid);
+        // The stored grade is recovered rather than being flattened to "not graded".
+        $this->assertEquals(GRADE_TYPE_VALUE, $item->gradetype);
+        $this->assertEquals((float) $storedgrade, (float) $item->grademax);
+    }
+
+    /**
      * Test topomojo_delete_instance function.
      */
     public function test_topomojo_delete_instance() {
@@ -328,6 +374,8 @@ class lib_test extends \advanced_testcase {
 
         // Verify it's deleted.
         $this->assertFalse($DB->record_exists('topomojo', ['id' => $topomojo->id]));
+        // Deletion traces its context id at DEBUG_DEVELOPER; nothing here asserts on it.
+        $this->resetDebugging();
     }
 
     /**
