@@ -126,7 +126,8 @@ final class management_repository_format_state_test extends \advanced_testcase {
 
         $this->assertSame('In Progress', $state['status_label']);
         $this->assertNotNull($state['tooltip_html']);
-        $this->assertStringContainsString('In Progress ⓘ', $state['tooltip_html']);
+        $this->assertStringStartsWith('In Progress <a ', $state['tooltip_html']);
+        $this->assertStringContainsString('data-bs-toggle="popover"', $state['tooltip_html']);
         $datefmt = get_string('strftimedatetime', 'langconfig');
         $this->assertStringContainsString(
             s(get_string('status_started_at', 'topomojo', userdate($start, $datefmt))),
@@ -179,7 +180,8 @@ final class management_repository_format_state_test extends \advanced_testcase {
 
         $this->assertSame('Finished', $state['status_label']);
         $this->assertNotNull($state['tooltip_html']);
-        $this->assertStringContainsString('Finished ⓘ', $state['tooltip_html']);
+        $this->assertStringStartsWith('Finished <a ', $state['tooltip_html']);
+        $this->assertStringContainsString('data-bs-toggle="popover"', $state['tooltip_html']);
         $datefmt = get_string('strftimedatetime', 'langconfig');
         $this->assertStringContainsString(
             s(get_string('status_started_at', 'topomojo', userdate($start, $datefmt))),
@@ -211,7 +213,8 @@ final class management_repository_format_state_test extends \advanced_testcase {
 
         $this->assertSame('Failed', $state['status_label']);
         $this->assertNotNull($state['tooltip_html']);
-        $this->assertStringContainsString('Failed ⓘ', $state['tooltip_html']);
+        $this->assertStringStartsWith('Failed <a ', $state['tooltip_html']);
+        $this->assertStringContainsString('data-bs-toggle="popover"', $state['tooltip_html']);
         $this->assertStringContainsString('Topomojo unreachable: HTTP 502', $state['tooltip_html']);
     }
 
@@ -261,7 +264,7 @@ final class management_repository_format_state_test extends \advanced_testcase {
         $this->assertNull($state['tooltip_html']);
     }
 
-    public function test_active_attempt_with_questions_links_to_challenge(): void {
+    public function test_active_attempt_with_questions_links_to_viewattempt(): void {
         $this->resetAfterTest();
         $repo = new management_repository();
         $row = (object) [
@@ -279,8 +282,11 @@ final class management_repository_format_state_test extends \advanced_testcase {
 
         $state = $repo->format_user_state($row, true);
 
-        $this->assertStringContainsString('challenge.php', $state['action_html']);
-        $this->assertStringContainsString('attemptid=42', $state['action_html']);
+        // Every attempt state routes the instructor to viewattempt.php, not challenge.php: see
+        // "Fix gamespace isolation for activities sharing the same workspace" (#67).
+        $this->assertStringContainsString('viewattempt.php', $state['action_html']);
+        $this->assertStringContainsString('a=42', $state['action_html']);
+        $this->assertStringContainsString('action=view', $state['action_html']);
         $this->assertStringContainsString('btn-outline-primary', $state['action_html']);
     }
 
