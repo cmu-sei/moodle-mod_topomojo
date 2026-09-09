@@ -46,7 +46,7 @@ DM24-1175
 defined('MOODLE_INTERNAL') || die();
 
 // This is the version of the plugin.
-$plugin->version = 2026090901;
+$plugin->version = 2026090902;
 
 // This is the version of Moodle this plugin requires.
 $plugin->requires = 2025041400;
@@ -56,7 +56,11 @@ $plugin->component = 'mod_topomojo';
 
 // This is a list of plugins, this plugin depends on (and their versions).
 $plugin->dependencies = [
-  'qtype_mojomatch' => 2025081800,
+  // Interactive/immediate behaviours offered by this activity are graded by
+  // qbehaviour_mojomatch; require the version that implements mode-aware grading
+  // and the per-try penalty, plus the matching question type.
+  'qtype_mojomatch' => 2026090800,
+  'qbehaviour_mojomatch' => 2026090800,
 ];
 
 // This is a stable release.

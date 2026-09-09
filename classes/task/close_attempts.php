@@ -75,6 +75,59 @@ class close_attempts extends \core\task\scheduled_task {
         foreach ($attempts as $attempt) {
             debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
+            $this->grade_attempt($attempt);
+        }
+    }
+
+    /**
+     * Totals the marks of a closed attempt and sends the result to the gradebook.
+     *
+     * close_attempt() only finishes the question usage, it does not total the
+     * marks, so an attempt closed here was left at score 0 with no gradebook
+     * entry even though the question usage held real marks. Every attempt that
+     * runs out of time is closed by this task, so that lost the grade for the
+     * common case. challenge.php and view.php grade the same way after closing.
+     *
+     * The grading has to run as the attempt's own user: process_attempt() reaches
+     * topomojo::getall_attempts(), which filters on $USER, so grading as the cron
+     * user would apply the grading method to an empty list of attempts and store
+     * that as the student's grade.
+     *
+     * @param \mod_topomojo\topomojo_attempt $attempt An attempt that has just been closed.
+     * @return void
+     */
+    protected function grade_attempt($attempt) {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/mod/topomojo/lib.php');
+
+        $settings = $DB->get_record('topomojo', ['id' => $attempt->topomojoid]);
+        if (!$settings) {
+            // The activity is gone, so there is nothing left to grade against.
+            debugging("no topomojo record for attempt $attempt->id, not grading", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $user = $DB->get_record('user', ['id' => $attempt->userid]);
+        if (!$user) {
+            debugging("no user for attempt $attempt->id, not grading", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $course = $DB->get_record('course', ['id' => $settings->course], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('topomojo', $settings->id, $course->id, false, MUST_EXIST);
+        $object = new topomojo($cm, $course, $settings);
+
+        // Leave the page object alone: it was just set up by the topomojo
+        // constructor, and this also keeps the call usable if the task is ever
+        // run outside CLI.
+        \core\cron::setup_user($user, $course, true);
+        try {
+            $grader = new \mod_topomojo\utils\grade($object);
+            $grader->process_attempt($attempt);
+        } finally {
+            // Back to the cron user before moving on to the next attempt.
+            \core\cron::setup_user(null, null, true);
         }
     }
 

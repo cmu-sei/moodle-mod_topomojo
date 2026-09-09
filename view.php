@@ -468,6 +468,12 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                     $object->openAttempt->save_question();
                 }
                 $object->openAttempt->close_attempt();
+                // close_attempt() only finishes the question usage, it does not
+                // total the marks. Without this the attempt is left at score 0 and
+                // the gradebook is never told, even though the question usage holds
+                // real grades. challenge.php does the same after its stop branch.
+                $grader = new \mod_topomojo\utils\grade($object);
+                $grader->process_attempt($object->openAttempt);
             } else {
                 debugging('ending live gamespace with no open question attempt', DEBUG_DEVELOPER);
             }
@@ -607,6 +613,11 @@ if ($object->event) {
                 $object->openAttempt->save_question();
             }
             $object->openAttempt->close_attempt();
+            // Grade what the student did manage to answer before the deployment was
+            // written off, rather than discarding it. close_attempt() on its own
+            // leaves the attempt at score 0 with no gradebook entry.
+            $grader = new \mod_topomojo\utils\grade($object);
+            $grader->process_attempt($object->openAttempt);
         }
         try {
             stop_event($object->userauth, $object->event->id);

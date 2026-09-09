@@ -450,7 +450,6 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->setAdvanced('shuffleanswers', '');
         $mform->setDefault('shuffleanswers', '');
 
-        // TODO if we have mutiple tries, should this be set to interactive with multiple tries?
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
@@ -458,12 +457,17 @@ class mod_topomojo_mod_form extends moodleform_mod
             $currentbehaviour = 'deferredfeedback';
         }
         $behaviours = question_engine::get_behaviour_options($currentbehaviour);
-        // Filter to keep only 'deferredfeedback' behavior in the options.
-        $filteredbehaviours = array_filter($behaviours, function ($behaviour) {
-            return $behaviour == 'deferredfeedback';
-        });
+        // TopoMojo challenges are graded by qbehaviour_mojomatch, which supports
+        // deferred feedback (grade at finish), immediate feedback (grade once per
+        // question), and interactive (multiple tries with a per-try penalty). Offer
+        // just those; other core behaviours (CBM, adaptive) are not supported here.
+        // Filter by behaviour key (not label) so localisation doesn't break it.
+        $allowedbehaviours = ['deferredfeedback', 'immediatefeedback', 'interactive'];
+        $filteredbehaviours = array_filter($behaviours, function ($key) use ($allowedbehaviours) {
+            return in_array($key, $allowedbehaviours, true);
+        }, ARRAY_FILTER_USE_KEY);
 
-        // Replace the behaviors with only deferredfeedback.
+        // Fall back to deferred feedback if none of the expected behaviours are installed.
         $behaviours = !empty($filteredbehaviours) ? $filteredbehaviours : ['deferredfeedback' => 'Deferred feedback'];
 
         $mform->addElement(
