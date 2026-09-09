@@ -165,6 +165,11 @@ class grade {
         }
 
         $quba = $attempt->get_quba();
+        if (!$quba) {
+            // An attempt on a variant with no questions has no usage to total up.
+            debugging("attempt $attempt->id has no question usage to grade", DEBUG_DEVELOPER);
+            return $totalslotpoints;
+        }
 
         $totalpoints = 0;
         $totalslotpoints = 0;
@@ -174,6 +179,12 @@ class grade {
             if (!empty($slotpoints)) {
                 $totalslotpoints = $totalslotpoints + $slotpoints;
             }
+        }
+        if ($totalpoints <= 0) {
+            // Nothing carries any marks, so there is nothing to scale and
+            // dividing by the total would fail.
+            debugging("attempt $attempt->id has no gradable questions", DEBUG_DEVELOPER);
+            return $totalslotpoints;
         }
         $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
