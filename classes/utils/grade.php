@@ -165,27 +165,33 @@ class grade {
         }
 
         $quba = $attempt->get_quba();
-        if (!$quba) {
-            // An attempt on a variant with no questions has no usage to total up.
-            debugging("attempt $attempt->id has no question usage to grade", DEBUG_DEVELOPER);
-            return $totalslotpoints;
+        $slots = $attempt->getSlots();
+
+        // An attempt can legitimately carry no questions: the variant had none to import, or the
+        // attempt was created outside the interactive path (bulk deploy). topomojo_attempt leaves
+        // the question usage null in that case, so there is nothing to total up and no meaningful
+        // fraction to scale. Renderer already handles this state via the 'nochallenge' notice.
+        if (!$quba || !$slots) {
+            debugging("attempt $attempt->id has no question usage; nothing to grade", DEBUG_DEVELOPER);
+            return 0;
         }
 
         $totalpoints = 0;
         $totalslotpoints = 0;
-        foreach ($attempt->getSlots() as $slot) {
+        foreach ($slots as $slot) {
             $totalpoints = $totalpoints + $quba->get_question_max_mark($slot);
             $slotpoints = $quba->get_question_mark($slot);
             if (!empty($slotpoints)) {
                 $totalslotpoints = $totalslotpoints + $slotpoints;
             }
         }
+
+        // Every question carrying a max mark of zero would otherwise divide by zero here.
         if ($totalpoints <= 0) {
-            // Nothing carries any marks, so there is nothing to scale and
-            // dividing by the total would fail.
-            debugging("attempt $attempt->id has no gradable questions", DEBUG_DEVELOPER);
-            return $totalslotpoints;
+            debugging("attempt $attempt->id has questions but no marks available; nothing to grade", DEBUG_DEVELOPER);
+            return 0;
         }
+
         $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
         debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->topomojo->topomojo->grade, DEBUG_DEVELOPER);

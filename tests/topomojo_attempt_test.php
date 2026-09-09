@@ -380,8 +380,10 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $slots = $attempt->getSlots();
 
+        // Not [''] - a layout-less attempt has no slots, and one empty-string slot would be handed
+        // to the question engine as if it were a real question.
         $this->assertIsArray($slots);
-        $this->assertEquals([''], $slots);
+        $this->assertSame([], $slots);
     }
 
     /**
