@@ -542,6 +542,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 ['id' => $cmid]), 'method' => 'post',
                 'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
                 ]);
+        $output .= html_writer::start_tag('div');
         /*
         if ($this->topomojo->is_instructor()) {
             $instructions = get_string('instructortopomojoinst', 'topomojo');
@@ -564,18 +565,33 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $output .= $this->render_question_form($slot, $attempt);
         }
 
-        $params = [
-            'id' => $this->topomojo->getCM()->id,
-            'a' => $attempt->id,
-            'stop' => 'submittopomojo',
-        ];
-
         $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'slots',
         'value' => implode(',', $attempt->getSlots())]);
 
-        $endurl = new moodle_url('/mod/topomojo/view.php', $params);
-        //$output .= $this->output->single_button($endurl, 'Submit Quiz', 'get');
-        $output .= $this->output->single_button($endurl, 'Submit Quiz');
+        // End the attempt with a named submit button on the response form, so that
+        // it posts to the same place the answers do and challenge.php can tell it
+        // apart from a per-question Check by the presence of 'stop'.
+        //
+        // This used to be an $OUTPUT->single_button() pointing at view.php. That
+        // renders its own <form> with a hidden input per URL param, and a nested
+        // <form> is invalid HTML, so the parser dropped the inner start tag and
+        // reparented its inputs into the response form. The button therefore posted
+        // to challenge.php rather than view.php, which is the only reason it ever
+        // worked - view.php has no handler for this post - and the smuggled hidden
+        // stop=submittopomojo rode along on every other submit in the form. Under
+        // deferred feedback there were no other submits, but the interactive and
+        // immediate feedback behaviours add a per-question Check, so the first Check
+        // hit the stop branch and closed the attempt before the student could use
+        // their remaining tries.
+        $output .= html_writer::div(
+            html_writer::empty_tag('input', [
+                'type' => 'submit',
+                'name' => 'stop',
+                'value' => get_string('submitquiz', 'mod_topomojo'),
+                'class' => 'btn btn-primary',
+            ]),
+            'singlebutton'
+        );
 
         // Finish the form.
         $output .= html_writer::end_tag('div');

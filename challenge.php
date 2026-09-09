@@ -238,6 +238,22 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             redirect($viewattempturl);
         }
     }
+} else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['slots'])) {
+    // A post of the response form itself, i.e. anything other than Submit Quiz.
+    // Under deferred feedback the form has no submit button of its own and this
+    // never fires, but the interactive and immediate feedback behaviours add a
+    // per-question Check button, and those posts have to be processed without
+    // closing the attempt so the student keeps their remaining tries.
+    //
+    // save_question() runs question_usage_by_activity::process_all_actions(),
+    // which walks every slot in the request: the slot whose Check was pressed is
+    // graded and has its penalty applied, and the rest are just saved. Redirect
+    // afterwards so a reload does not replay the submission and burn a try.
+    debugging("question response post received", DEBUG_DEVELOPER);
+    if ($activeattempt && $object->event && $object->event->isActive) {
+        $object->openAttempt->save_question();
+        redirect($url);
+    }
 }
 
 if ((!$object->event) && ($activeattempt)) {

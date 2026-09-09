@@ -230,6 +230,7 @@ $string['invitelink'] = 'Generate Invite';
 $string['supportcode'] = 'Support Code: ';
 $string['copyinvite'] = 'Copy Invitation Link';
 $string['stoplab'] = 'End Lab';
+$string['submitquiz'] = 'Submit Quiz';
 $string['returntoactivity'] = 'Return to activity';
 $string['startlab'] = 'Start Lab?';
 $string['start_attempt_confirm'] = 'Are you sure you want to start the attempt? This will deploy the lab on TopoMojo. Your page will refresh once the lab is ready.';

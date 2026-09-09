@@ -448,9 +448,14 @@ class topomojo_attempt {
         $timenow = time();
         $transaction = $DB->start_delegated_transaction();
         $this->quba->process_all_actions($timenow);
-        $this->attempt->timemodified = time();
 
-        //$this->save();
+        // process_all_actions() only mutates the in-memory usage, so the usage has
+        // to be written back or the request is silently discarded. This used to be
+        // commented out and got away with it because the only caller went straight
+        // on to close_attempt(), which saves. The interactive and immediate
+        // feedback behaviours submit answers without closing the attempt, so the
+        // save has to happen here, inside the same transaction as the processing.
+        $this->save();
 
         $transaction->allow_commit();
 
