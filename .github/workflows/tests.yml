@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   test:
-    name: M${{ matrix.moodle-branch }} PHP${{ matrix.php }} ${{ matrix.database }}
+    name: ${{ matrix.moodle-branch }} PHP${{ matrix.php }} ${{ matrix.database }}
     runs-on: ubuntu-24.04
 
     services:
