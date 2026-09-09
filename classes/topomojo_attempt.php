@@ -123,7 +123,10 @@ class topomojo_attempt {
         } else { // else load it up in this class instance
             debugging("loading existing attempt with variant=" . ($dbattempt->variant ?? 'null'), DEBUG_DEVELOPER);
             $this->attempt = $dbattempt;
-            if ($this->attempt->questionusageid) {
+            // An attempt record can arrive without the column set at all: bulk deploy inserts a
+            // partial record, and callers pass hand-built objects. Reading it directly raises an
+            // "undefined property" notice before falling through to the same result.
+            if (!empty($this->attempt->questionusageid)) {
                 $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
             }
         }
@@ -309,7 +312,14 @@ class topomojo_attempt {
      * @return array
      */
     public function getSlots() {
-        return explode(',', $this->attempt->layout ?? '');
+        // explode(',', '') returns [''], which reads downstream as a single question sitting in
+        // slot ''. An attempt whose variant carried no questions has no slots at all, so callers
+        // that foreach over this must get nothing rather than one bogus entry.
+        if (empty($this->attempt->layout)) {
+            return [];
+        }
+
+        return explode(',', $this->attempt->layout);
     }
 
     /**

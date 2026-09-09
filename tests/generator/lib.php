@@ -221,7 +221,9 @@ class mod_topomojo_generator extends testing_module_generator {
         $attempt->timemodified = time();
         $attempt->score = $record['score'] ?? 0;
         $attempt->layout = $record['layout'] ?? '';
-        $attempt->questionusageid = $record['questionusageid'] ?? null;
+        // questionusageid is NOT NULL DEFAULT 0 in db/install.xml: an attempt with no question usage
+        // records 0, not null, or the insert is rejected.
+        $attempt->questionusageid = $record['questionusageid'] ?? 0;
         $attempt->launchpointurl = $record['launchpointurl'] ?? '';
         $attempt->workspaceid = $record['workspaceid'] ?? $topomojo->workspaceid;
         $attempt->eventid = $record['eventid'] ?? '';
