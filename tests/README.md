@@ -10,6 +10,10 @@ This directory contains PHPUnit tests for the mod_topomojo plugin, following Moo
 - **topomojo_attempt_test.php** - Tests for the topomojo_attempt class
 - **topomojo_question_test.php** - Tests for the topomojo_question class
 - **events_test.php** - Tests for Moodle events (course_module_viewed, attempt_started, etc.)
+- **questionmanager_test.php** - Tests for questionorder resolution in the questionmanager
+- **backup/backup_restore_test.php** - Round-trips an activity through backup and restore
+- **utils/grade_test.php** - Tests for grading attempts that carry no questions
+- **local/bulkdeploy/** - Tests for the bulk deploy job, launcher and repositories
 - **generator/lib.php** - Data generator for creating test instances
 
 ## Prerequisites
@@ -61,3 +65,13 @@ The test suite covers:
 - Event triggering and validation
 - API client setup (API key and OAuth)
 - State management (open, closed, unopen)
+- Backup and restore of activity settings, question links and intro files
+- Grading attempts that carry no question usage
+
+### Backup and restore
+
+`backup/backup_restore_test.php` guards the failure that has no other symptom: a column added to
+`db/install.xml` and to `mod_form.php` but forgotten in `backup/moodle2/backup_topomojo_stepslib.php`
+restores as its column default, losing the teacher's setting silently. If you add a column to the
+`topomojo` table, `test_backup_xml_covers_every_activity_column` fails until you either add it to the
+backup structure or add it to `backup_restore_test::NOT_BACKED_UP` with a reason.

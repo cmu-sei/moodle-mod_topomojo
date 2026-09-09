@@ -61,6 +61,26 @@ final class bulkdeploy_run_test extends \advanced_testcase {
         return $task;
     }
 
+    /**
+     * Runs the task and returns what it wrote via mtrace().
+     *
+     * Scheduled tasks log to stdout, which PHPUnit flags as a risky test. Capturing it keeps the
+     * suite quiet and makes the progress log assertable.
+     *
+     * @param \mod_topomojo\task\bulkdeploy_run $task
+     * @return string
+     */
+    private function run_task(\mod_topomojo\task\bulkdeploy_run $task): string {
+        ob_start();
+        try {
+            $task->execute();
+        } finally {
+            $output = ob_get_clean();
+        }
+
+        return $output;
+    }
+
     public function test_processes_batches_of_configured_size_and_marks_completed(): void {
         $this->resetAfterTest();
         $tm = $this->make_topomojo_record();
@@ -78,7 +98,7 @@ final class bulkdeploy_run_test extends \advanced_testcase {
 
         $task = $this->task_with_fake($fake);
         $task->set_custom_data((object) ['jobid' => $jobid]);
-        $task->execute();
+        $this->run_task($task);
 
         $job = $repo->get_job($jobid);
         $this->assertSame(job_status::COMPLETED, $job->status);
@@ -104,7 +124,7 @@ final class bulkdeploy_run_test extends \advanced_testcase {
             $repo->set_job_status($jobid, job_status::CANCELLING);
         });
         $task->set_custom_data((object) ['jobid' => $jobid]);
-        $task->execute();
+        $this->run_task($task);
 
         $job = $repo->get_job($jobid);
         $this->assertSame(job_status::CANCELLED, $job->status);
@@ -124,7 +144,7 @@ final class bulkdeploy_run_test extends \advanced_testcase {
 
         $task = $this->task_with_fake($fake);
         $task->set_custom_data((object) ['jobid' => $jobid]);
-        $task->execute();
+        $this->run_task($task);
 
         $this->assertSame(job_status::FAILED, $repo->get_job($jobid)->status);
         $this->assertNotEmpty($repo->get_job($jobid)->errormessage);
@@ -141,9 +161,80 @@ final class bulkdeploy_run_test extends \advanced_testcase {
         $fake = new fake_curl_multi_client();
         $task = $this->task_with_fake($fake);
         $task->set_custom_data((object) ['jobid' => $jobid]);
-        $task->execute();
+        $output = $this->run_task($task);
 
         $this->assertSame(job_status::CANCELLED, $repo->get_job($jobid)->status);
         $this->assertSame([], $fake->log);
+        $this->assertStringContainsString('terminal', $output);
+    }
+
+    /**
+     * A gamespace TopoMojo reports without an expirationTime still has to yield a storable attempt:
+     * endtime is NOT NULL, so null aborts the insert and fails the whole job.
+     */
+    public function test_attempt_endtime_falls_back_to_the_requested_duration(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $tm = $this->make_topomojo_record();
+        $repo = new job_repository();
+        $userids = $this->make_users(1);
+        $jobid = $repo->create_job($tm->id, 1, 1, 5, null, $userids);
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'g1'])));
+        // No expirationTime, which is what triggered the failed insert.
+        $fake->queue('GET', 'https://api/gamespace/g1', new curl_response(200, 0, json_encode([
+            'isActive' => true,
+            'vms' => [1],
+        ])));
+
+        $before = time();
+        $task = $this->task_with_fake($fake);
+        $task->set_custom_data((object) ['jobid' => $jobid]);
+        $this->run_task($task);
+
+        $this->assertSame(job_status::COMPLETED, $repo->get_job($jobid)->status);
+
+        $attempt = $DB->get_record('topomojo_attempts', ['topomojoid' => $tm->id, 'userid' => $userids[0]]);
+        $this->assertNotFalse($attempt, 'Bulk deploy should have created an attempt for the user.');
+        // The poll body carries no id, so the attempt has to fall back to the launch's gamespace id.
+        $this->assertSame('g1', $attempt->eventid);
+        // make_topomojo_record() sets duration to 60 seconds.
+        $this->assertGreaterThanOrEqual($before + 60, (int) $attempt->endtime);
+        $this->assertLessThanOrEqual(time() + 60, (int) $attempt->endtime);
+    }
+
+    /**
+     * The activity asks for variant 0 (random) and TopoMojo answers with the variant it picked.
+     * That answer has to reach the attempt row, or review grades against the wrong question set.
+     */
+    public function test_attempt_records_the_variant_topomojo_deployed(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $tm = $this->make_topomojo_record();
+        $repo = new job_repository();
+        $userids = $this->make_users(1);
+        $jobid = $repo->create_job($tm->id, 1, 1, 5, null, $userids);
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'g1'])));
+        $fake->queue('GET', 'https://api/gamespace/g1', new curl_response(200, 0, json_encode([
+            'isActive' => true,
+            'vms' => [1],
+            'expirationTime' => '2030-01-01T00:00:00Z',
+            // 0-based over the wire; the column is 1-based.
+            'variant' => 2,
+        ])));
+
+        $task = $this->task_with_fake($fake);
+        $task->set_custom_data((object) ['jobid' => $jobid]);
+        $this->run_task($task);
+
+        $attempt = $DB->get_record('topomojo_attempts', ['topomojoid' => $tm->id, 'userid' => $userids[0]]);
+        $this->assertNotFalse($attempt);
+        $this->assertSame(3, (int) $attempt->variant);
+        $this->assertSame(strtotime('2030-01-01T00:00:00Z'), (int) $attempt->endtime);
     }
 }

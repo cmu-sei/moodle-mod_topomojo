@@ -425,7 +425,9 @@ class locallib_test extends \advanced_testcase {
             'invite code'
         );
 
-        $this->assertSame('https://topomojo.example/lp/?c=invite+code', $url);
+        // moodle_url percent-encodes query values, so a space becomes %20. A '+' would only be
+        // correct for form encoding, not for a URL query component.
+        $this->assertSame('https://topomojo.example/lp/?c=invite%20code', $url);
     }
 
     /**
