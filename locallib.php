@@ -1454,10 +1454,12 @@ function topomojo_question_tostring(
  */
 function topomojo_question_preview_url($topomojo, $question, $variant = null)
 {
-    // Get the appropriate display options.
-    $displayoptions = topomojo_display_options::make_from_topomojo(
+    // Get the appropriate display options. The class is mod_topomojo_display_options;
+    // the unprefixed name used here before does not exist, so any call to this
+    // function died with a class-not-found error.
+    $displayoptions = mod_topomojo_display_options::make_from_topomojo(
         $topomojo,
-        topomojo_display_options::DURING
+        mod_topomojo_display_options::DURING
     );
 
     $maxmark = null;
@@ -1620,9 +1622,12 @@ class mod_topomojo_display_options extends question_display_options
         $options->manualcomment = $options->feedback;
         //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
 
-        if ($topomojo->questiondecimalpoints != -1) {
+        // mod_quiz has questiondecimalpoints/decimalpoints settings; this plugin has
+        // neither column, so only honour them if a caller supplies them and
+        // otherwise leave markdp at the question_display_options default.
+        if (isset($topomojo->questiondecimalpoints) && $topomojo->questiondecimalpoints != -1) {
             $options->markdp = $topomojo->questiondecimalpoints;
-        } else {
+        } else if (isset($topomojo->decimalpoints)) {
             $options->markdp = $topomojo->decimalpoints;
         }
 

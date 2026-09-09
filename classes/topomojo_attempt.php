@@ -37,6 +37,9 @@ DM24-1175
 namespace mod_topomojo;
 
 require_once($CFG->dirroot . '/question/engine/lib.php');
+// For mod_topomojo_display_options, which this class uses to build the display
+// options for both the attempt page and review.
+require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -427,11 +430,30 @@ class topomojo_attempt {
 
             }
         } else {
-            // Default options for during quiz
-            $options->rightanswer = \question_display_options::HIDDEN;
-            $options->numpartscorrect = \question_display_options::HIDDEN;
-            $options->manualcomment = \question_display_options::HIDDEN;
-            $options->manualcommentlink = \question_display_options::HIDDEN;
+            // Options for during the attempt, built from the activity's "During the
+            // attempt" review settings the same way mod_quiz does it in
+            // quiz_attempt::get_display_options(false). These settings already exist
+            // on the settings form and in the admin defaults, but nothing read them:
+            // the options were left at the question_display_options defaults with a
+            // few fields hardcoded, so what the student saw mid-attempt ignored the
+            // configuration entirely.
+            $settings = $this->questionmanager ? $this->questionmanager->gettopomojo()->topomojo : null;
+            if ($settings) {
+                $options = \mod_topomojo_display_options::make_from_topomojo(
+                        $settings, \mod_topomojo_display_options::DURING);
+                // The plugin does not offer question flags, so they stay hidden
+                // rather than taking mod_quiz's quiz_get_flag_option() value.
+                $options->flags = \question_display_options::HIDDEN;
+                $options->context = $this->context;
+            } else {
+                // No question manager, so there are no settings to read (the
+                // close_attempts task builds bare attempts this way). Keep the
+                // conservative defaults this method has always used.
+                $options->rightanswer = \question_display_options::HIDDEN;
+                $options->numpartscorrect = \question_display_options::HIDDEN;
+                $options->manualcomment = \question_display_options::HIDDEN;
+                $options->manualcommentlink = \question_display_options::HIDDEN;
+            }
         }
 
         return $options;
