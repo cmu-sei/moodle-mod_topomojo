@@ -147,7 +147,12 @@ class launcher {
                         // Create attempt record for the user
                         $userid = $useridmap[$entry['rowid']] ?? null;
                         if ($userid) {
-                            $this->create_attempt_for_user($userid, $topomojo, $decoded);
+                            $this->create_attempt_for_user(
+                                $userid,
+                                $topomojo,
+                                $decoded,
+                                $entry['gamespaceid']
+                            );
                         }
                         continue;
                     }
@@ -227,8 +232,14 @@ class launcher {
      * @param int $userid
      * @param \stdClass $topomojo activity record
      * @param \stdClass $gamespace decoded gamespace response from TopoMojo API
+     * @param string $gamespaceid the id returned by the launch, used when the poll omits it
      */
-    private function create_attempt_for_user(int $userid, \stdClass $topomojo, \stdClass $gamespace): void {
+    private function create_attempt_for_user(
+        int $userid,
+        \stdClass $topomojo,
+        \stdClass $gamespace,
+        string $gamespaceid
+    ): void {
         global $DB;
 
         // Check if user already has an open attempt for this activity
@@ -246,7 +257,10 @@ class launcher {
         $attempt = new \stdClass();
         $attempt->topomojoid = $topomojo->id;
         $attempt->userid = $userid;
-        $attempt->eventid = $gamespace->id;
+        // Prefer the id the launch handed us over re-reading it from the poll body: gamespace
+        // isolation resolves a user's lab through this column (see #67), so it must not end up null
+        // just because the poll response left the field out.
+        $attempt->eventid = $gamespace->id ?? $gamespaceid;
         $attempt->workspaceid = $topomojo->workspaceid;
         $attempt->launchpointurl = $gamespace->launchpointUrl ?? '';
         $attempt->state = \mod_topomojo\topomojo_attempt::INPROGRESS;
@@ -254,9 +268,39 @@ class launcher {
         $attempt->timestart = time();
         $attempt->timemodified = time();
         $attempt->timefinish = null;
-        $attempt->endtime = !empty($gamespace->expirationTime) ? strtotime($gamespace->expirationTime) : null;
+        $attempt->endtime = $this->resolve_endtime($topomojo, $gamespace);
+        // Record the variant TopoMojo actually deployed, as topomojo::init_attempt() does: the
+        // API reports it 0-based, the column is 1-based. Without this every bulk-deployed attempt
+        // is variant 0, so a workspace with per-variant questions grades against the wrong set.
+        $attempt->variant = isset($gamespace->variant)
+            ? ((int) $gamespace->variant + 1)
+            : (int) $topomojo->variant;
         $attempt->score = 0;
 
         $DB->insert_record('topomojo_attempts', $attempt);
+    }
+
+    /**
+     * Works out when a bulk-deployed attempt should expire.
+     *
+     * topomojo_attempts.endtime is NOT NULL with no default, so an absent or unparseable
+     * expirationTime cannot simply be stored as null - that rejects the whole insert and fails the
+     * job. Nor can it be stored as 0: close_attempts closes everything whose endtime is in the
+     * past, so 0 would reap the attempt on the next cron run.
+     *
+     * @param \stdClass $topomojo activity record
+     * @param \stdClass $gamespace the gamespace as TopoMojo reported it
+     * @return int a unix timestamp, never null
+     */
+    private function resolve_endtime(\stdClass $topomojo, \stdClass $gamespace): int {
+        $expiry = empty($gamespace->expirationTime) ? false : strtotime($gamespace->expirationTime);
+        if ($expiry !== false) {
+            return $expiry;
+        }
+
+        // Fall back to the window we asked for via the payload's maxMinutes. A duration of 0 means
+        // no limit was requested, so put the attempt beyond the reach of close_attempts instead.
+        $duration = (int) $topomojo->duration;
+        return time() + ($duration > 0 ? $duration : YEARSECS);
     }
 }
