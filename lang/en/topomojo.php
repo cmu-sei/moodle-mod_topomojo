@@ -320,7 +320,41 @@ $string['questionmoveup'] = 'Move question {$a} up';
 $string['invalid_points'] = 'Invalid point value';
 
 // Privacy
-$string['privacy:metadata'] = 'The TopoMojo activity plugin shows data stored in Moodle although the privacy API has not yet been implemented';
+$string['privacy:metadata:core_question'] = 'The TopoMojo activity stores question responses in the question engine.';
+$string['privacy:metadata:topomojo_attempts'] = 'Details of each attempt a user makes at a TopoMojo lab.';
+$string['privacy:metadata:topomojo_attempts:endtime'] = 'The time at which the gamespace for this attempt expires.';
+$string['privacy:metadata:topomojo_attempts:eventid'] = 'The identifier of the TopoMojo gamespace deployed for this attempt.';
+$string['privacy:metadata:topomojo_attempts:launchpointurl'] = 'The URL used to enter the gamespace for this attempt.';
+$string['privacy:metadata:topomojo_attempts:preview'] = 'Whether this attempt is an instructor preview.';
+$string['privacy:metadata:topomojo_attempts:score'] = 'The score achieved on this attempt.';
+$string['privacy:metadata:topomojo_attempts:state'] = 'The state of this attempt.';
+$string['privacy:metadata:topomojo_attempts:timefinish'] = 'The time at which this attempt was finished.';
+$string['privacy:metadata:topomojo_attempts:timemodified'] = 'The time at which this attempt was last modified.';
+$string['privacy:metadata:topomojo_attempts:timestart'] = 'The time at which this attempt was started.';
+$string['privacy:metadata:topomojo_attempts:userid'] = 'The user who made this attempt.';
+$string['privacy:metadata:topomojo_attempts:variant'] = 'The variant of the lab used for this attempt.';
+$string['privacy:metadata:topomojo_attempts:workspaceid'] = 'The identifier of the TopoMojo workspace used for this attempt.';
+$string['privacy:metadata:topomojo_bulkdeploy_job'] = 'Details of each bulk deployment of TopoMojo gamespaces for an activity.';
+$string['privacy:metadata:topomojo_bulkdeploy_job:cancelledby'] = 'The user who cancelled this bulk deployment.';
+$string['privacy:metadata:topomojo_bulkdeploy_job:initiatorid'] = 'The user who started this bulk deployment.';
+$string['privacy:metadata:topomojo_bulkdeploy_job:rolefilter'] = 'The roles this bulk deployment was limited to.';
+$string['privacy:metadata:topomojo_bulkdeploy_job:status'] = 'The status of this bulk deployment.';
+$string['privacy:metadata:topomojo_bulkdeploy_job:timecreated'] = 'The time at which this bulk deployment was created.';
+$string['privacy:metadata:topomojo_bulkdeploy_user'] = 'Details of the gamespace deployed for each user by a bulk deployment.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:errormessage'] = 'Any error reported while deploying a gamespace for this user.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:gamespaceid'] = 'The identifier of the gamespace deployed for this user.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:status'] = 'The status of this user\'s deployment.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:timecompleted'] = 'The time at which this user\'s deployment completed.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:timestarted'] = 'The time at which this user\'s deployment started.';
+$string['privacy:metadata:topomojo_bulkdeploy_user:userid'] = 'The user a gamespace was deployed for.';
+$string['privacy:metadata:topomojo_grades'] = 'Details of the overall grade a user has for a TopoMojo lab.';
+$string['privacy:metadata:topomojo_grades:grade'] = 'The overall grade for this lab.';
+$string['privacy:metadata:topomojo_grades:timemodified'] = 'The time at which this grade was last modified.';
+$string['privacy:metadata:topomojo_grades:userid'] = 'The user this grade belongs to.';
+$string['privacy:path:attempts'] = 'Attempts';
+$string['privacy:path:bulkdeploy'] = 'Bulk deployments';
+$string['privacy:path:deployment'] = 'Deployment';
+$string['privacy:path:grades'] = 'Grades';
 $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you navigate away from this page.';
 
 // Global Search
