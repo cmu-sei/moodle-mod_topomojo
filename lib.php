@@ -131,7 +131,11 @@ function topomojo_add_instance($topomojo, $mform) {
     }
 
     $topomojo->created = time();
-    $topomojo->grade = 100; // Default
+    // Only default the maximum when the form did not supply one. Assigning unconditionally threw
+    // away the value typed on the add form, so a new activity was always created at 100 and the
+    // instructor had to save a second time for the edit form to apply it. Use ?? rather than
+    // empty() so that an explicit 0, which means "not graded", still survives.
+    $topomojo->grade = $topomojo->grade ?? 100;
     $topomojo->endlab = empty($topomojo->endlab) ? 0 : 1;
     $topomojo->showcontentlicense = empty($topomojo->showcontentlicense) ? 0 : 1;
     $topomojo->extendevent = empty($topomojo->extendevent) ? 0 : 1;
