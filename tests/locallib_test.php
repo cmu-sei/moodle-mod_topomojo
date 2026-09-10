@@ -56,19 +56,19 @@ require_once($CFG->libdir . '/adminlib.php');
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers ::setup
  */
+#[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
 class locallib_test extends \advanced_testcase {
 
     /**
      * Test the API-key and external-manager configuration matrix.
      *
-     * @dataProvider auth_configuration_provider
      * @param bool $enableapikey
      * @param bool $enablemanagername
      * @param string $managername
      * @param true|string $expected
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('auth_configuration_provider')]
     public function test_validate_auth_configuration(
         bool $enableapikey,
         bool $enablemanagername,
@@ -338,6 +338,7 @@ class locallib_test extends \advanced_testcase {
         $client = setup();
 
         $this->assertNull($client);
+        $this->assertDebuggingCalled('TopoMojo API key is enabled but not set in config.');
     }
 
     /**
@@ -353,6 +354,7 @@ class locallib_test extends \advanced_testcase {
         $client = setup();
 
         $this->assertNull($client);
+        $this->assertDebuggingCalled('OAuth2 issuer not set and API key is disabled.');
     }
 
     /**
@@ -369,6 +371,7 @@ class locallib_test extends \advanced_testcase {
         $client = setup();
 
         $this->assertNull($client);
+        $this->assertDebuggingCalled('OAuth2 issuer not set and API key is disabled.');
     }
 
     /**

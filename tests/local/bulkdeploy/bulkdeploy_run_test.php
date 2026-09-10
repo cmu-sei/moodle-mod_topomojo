@@ -5,9 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
-/**
- * @covers \mod_topomojo\task\bulkdeploy_run
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\task\bulkdeploy_run::class)]
 final class bulkdeploy_run_test extends \advanced_testcase {
 
     private function make_topomojo_record(): \stdClass {
@@ -148,6 +146,8 @@ final class bulkdeploy_run_test extends \advanced_testcase {
 
         $this->assertSame(job_status::FAILED, $repo->get_job($jobid)->status);
         $this->assertNotEmpty($repo->get_job($jobid)->errormessage);
+        // The failure is already asserted via job status; the trace repeats it with volatile ids.
+        $this->resetDebugging();
     }
 
     public function test_terminal_job_status_is_skipped(): void {

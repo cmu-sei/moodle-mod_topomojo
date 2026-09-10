@@ -5,9 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
-/**
- * @covers \mod_topomojo\local\bulkdeploy\launcher
- */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\launcher::class)]
 final class launcher_test extends \advanced_testcase {
     private function topomojo(): \stdClass {
         return (object) [
@@ -19,8 +17,19 @@ final class launcher_test extends \advanced_testcase {
         ];
     }
 
+    /**
+     * A batch entry's user stub.
+     *
+     * The id stays 0 deliberately: launcher::wait_phase() only calls create_attempt_for_user()
+     * for a truthy id, so these tests exercise the polling transitions without also reaching
+     * attempt creation, which needs a real topomojo record. Setting it at all keeps the launcher
+     * from reading an undefined property.
+     *
+     * @param string $email
+     * @return \stdClass
+     */
     private function user(string $email = 'a@b'): \stdClass {
-        return (object) ['email' => $email, 'username' => 'u'];
+        return (object) ['id' => 0, 'email' => $email, 'username' => 'u'];
     }
 
     private function gamespace_response(string $id, bool $active, bool $hasvms): curl_response {
@@ -91,7 +100,8 @@ final class launcher_test extends \advanced_testcase {
             ['rowid' => $row->id, 'user' => $this->user()],
         ], $this->topomojo());
 
-        $after = reset($repo->get_user_rows($jobid));
+        $afterrows = $repo->get_user_rows($jobid);
+        $after = reset($afterrows);
         $this->assertSame(user_status::FAILED, $after->status);
         $this->assertStringContainsString('HTTP 500', $after->errormessage);
     }
@@ -110,7 +120,8 @@ final class launcher_test extends \advanced_testcase {
             ['rowid' => $row->id, 'user' => $this->user()],
         ], $this->topomojo());
 
-        $after = reset($repo->get_user_rows($jobid));
+        $afterrows = $repo->get_user_rows($jobid);
+        $after = reset($afterrows);
         $this->assertSame(user_status::FAILED, $after->status);
         $this->assertSame('timeout starting gamespace', $after->errormessage);
     }
@@ -129,7 +140,8 @@ final class launcher_test extends \advanced_testcase {
             ['rowid' => $row->id, 'user' => $this->user()],
         ], $this->topomojo());
 
-        $after = reset($repo->get_user_rows($jobid));
+        $afterrows = $repo->get_user_rows($jobid);
+        $after = reset($afterrows);
         $this->assertSame(user_status::FAILED, $after->status);
         $this->assertSame('malformed response', $after->errormessage);
     }
@@ -150,7 +162,8 @@ final class launcher_test extends \advanced_testcase {
             ['rowid' => $row->id, 'user' => $this->user()],
         ], $this->topomojo());
 
-        $after = reset($repo->get_user_rows($jobid));
+        $afterrows = $repo->get_user_rows($jobid);
+        $after = reset($afterrows);
         $this->assertSame(user_status::READY, $after->status);
     }
 
@@ -229,7 +242,8 @@ final class launcher_test extends \advanced_testcase {
             ['rowid' => $row->id, 'user' => $this->user()],
         ], $this->topomojo());
 
-        $after = reset($repo->get_user_rows($jobid));
+        $afterrows = $repo->get_user_rows($jobid);
+        $after = reset($afterrows);
         $this->assertSame(user_status::FAILED, $after->status);
         $this->assertStringContainsString('timeout waiting for VMs', $after->errormessage);
     }

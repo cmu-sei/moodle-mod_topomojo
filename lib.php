@@ -562,7 +562,7 @@ function topomojo_update_grades($topomojo, $userid = 0, $nullifnone = true) {
  * @return int 0 if ok, error code otherwise
  */
 function topomojo_grade_item_update($topomojo, $grades = null) {
-    global $CFG, $OUTPUT;
+    global $CFG, $DB, $OUTPUT;
     require_once($CFG->libdir . '/gradelib.php');
 
     if (property_exists($topomojo, 'cmidnumber')) { // May not be always present.
@@ -570,9 +570,16 @@ function topomojo_grade_item_update($topomojo, $grades = null) {
     } else {
         $params = ['itemname' => $topomojo->name];
     }
-    if ($topomojo->grade > 0) {
+    // A record built from partial form data can omit grade. Recover it from the stored record
+    // rather than defaulting to 0, which would silently strip grading from the activity. Keep the
+    // > 0 test: a negative grade means "graded on a scale", which is not a point maximum.
+    $grade = $topomojo->grade ?? null;
+    if ($grade === null && !empty($topomojo->id)) {
+        $grade = $DB->get_field('topomojo', 'grade', ['id' => $topomojo->id]);
+    }
+    if ($grade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $topomojo->grade;
+        $params['grademax']  = $grade;
         $params['grademin']  = 0;
     } else {
         $params['gradetype'] = GRADE_TYPE_NONE;
@@ -581,7 +588,14 @@ function topomojo_grade_item_update($topomojo, $grades = null) {
         $params['reset'] = true;
         $grades = null;
     }
-    return grade_update('mod/topomojo', $topomojo->course, 'mod', 'topomojo', $topomojo->id, 0, $grades, $params);
+    // Same story for course: an update record assembled from a partial form submission can omit
+    // it. Without a course id grade_update() bails out with "Missing courseid or itemtype" and the
+    // grade item is silently never created, so recover it from the stored record instead.
+    $courseid = $topomojo->course ?? 0;
+    if (empty($courseid) && !empty($topomojo->id)) {
+        $courseid = (int) $DB->get_field('topomojo', 'course', ['id' => $topomojo->id]);
+    }
+    return grade_update('mod/topomojo', $courseid, 'mod', 'topomojo', $topomojo->id, 0, $grades, $params);
 }
 
 

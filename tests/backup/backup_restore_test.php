@@ -68,9 +68,9 @@ require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
  * @category   backup
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \backup_topomojo_activity_structure_step
- * @covers \restore_topomojo_activity_structure_step
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\backup_topomojo_activity_structure_step::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\restore_topomojo_activity_structure_step::class)]
 final class backup_restore_test extends \restore_date_testcase {
 
     /**

@@ -52,9 +52,21 @@ defined('MOODLE_INTERNAL') || die();
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_topomojo\topomojo_attempt
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo_attempt::class)]
 class topomojo_attempt_test extends \advanced_testcase {
+
+    /**
+     * Discard the class-under-test's developer trace output.
+     *
+     * topomojo_attempt traces every construction and save at DEBUG_DEVELOPER, so nearly every
+     * test here trips one of those calls. They carry no assertable meaning - a test that cares
+     * about a specific message asserts it directly and leaves nothing for this to clear.
+     */
+    public function tearDown(): void {
+        $this->resetDebugging();
+        parent::tearDown();
+    }
 
     /**
      * Test attempt class constants.
@@ -103,9 +115,8 @@ class topomojo_attempt_test extends \advanced_testcase {
 
     /**
      * Test getState method.
-     *
-     * @dataProvider state_provider
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('state_provider')]
     public function test_getstate($statevalue, $expected) {
         $this->resetAfterTest();
 

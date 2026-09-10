@@ -3,9 +3,7 @@ namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * @covers \mod_topomojo\local\bulkdeploy\management_repository::format_user_state
- */
+#[\PHPUnit\Framework\Attributes\CoversMethod(\mod_topomojo\local\bulkdeploy\management_repository::class, 'format_user_state')]
 final class management_repository_format_state_test extends \advanced_testcase {
 
     public function test_no_deploy_no_attempt_returns_none(): void {

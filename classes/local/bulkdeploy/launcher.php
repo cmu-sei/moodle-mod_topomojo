@@ -89,10 +89,12 @@ class launcher {
             return;
         }
 
-        // Build a map of rowid -> user for looking up user info
+        // Build a map of rowid -> user for looking up user info. A batch entry can carry a user
+        // object without an id; the consumer below already tolerates a missing value, so read it
+        // defensively rather than raising an "undefined property" notice on the way there.
         $useridmap = [];
         foreach ($batch as $entry) {
-            $useridmap[$entry['rowid']] = $entry['user']->id;
+            $useridmap[$entry['rowid']] = $entry['user']->id ?? null;
         }
 
         $start = $this->now();

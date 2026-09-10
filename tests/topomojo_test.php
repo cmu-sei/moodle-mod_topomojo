@@ -52,8 +52,8 @@ defined('MOODLE_INTERNAL') || die();
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_topomojo\topomojo
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo::class)]
 class topomojo_test extends \advanced_testcase {
 
     /**
@@ -285,6 +285,8 @@ class topomojo_test extends \advanced_testcase {
         $this->assertIsArray($attempts);
         $this->assertCount(1, $attempts);
         $this->assertInstanceOf(topomojo_attempt::class, $attempts[0]);
+        // topomojo_attempt traces every construction at DEBUG_DEVELOPER.
+        $this->resetDebugging();
     }
 
     /**
@@ -315,6 +317,8 @@ class topomojo_test extends \advanced_testcase {
         $this->assertIsArray($attempts);
         $this->assertCount(1, $attempts);
         $this->assertInstanceOf(topomojo_attempt::class, $attempts[0]);
+        // topomojo_attempt traces every construction at DEBUG_DEVELOPER.
+        $this->resetDebugging();
     }
 
     /**
