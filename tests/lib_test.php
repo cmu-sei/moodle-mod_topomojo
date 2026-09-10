@@ -224,8 +224,8 @@ class lib_test extends \advanced_testcase {
         $moduleinfo->visible = 1;
         $moduleinfo->name = $topomojo->name;
         $moduleinfo->workspaceid = $topomojo->workspaceid;
-        // create_module() reads introeditor['itemid'] and cmidnumber directly; a real form
-        // submission always supplies both, so supply them here too rather than letting core
+        // Note that create_module() reads introeditor['itemid'] and cmidnumber directly; a real
+        // form submission always supplies both, so supply them here too rather than letting core
         // read an undefined key and property.
         $moduleinfo->cmidnumber = '';
         $moduleinfo->introeditor = [
