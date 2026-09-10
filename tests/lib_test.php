@@ -266,6 +266,124 @@ class lib_test extends \advanced_testcase {
     }
 
     /**
+     * Build the form data topomojo_add_instance() expects, optionally with a maximum grade.
+     *
+     * Mirrors the fixture in test_topomojo_add_instance(): create_module() reads
+     * introeditor['itemid'] and cmidnumber directly, so both are supplied as a real submission
+     * would.
+     *
+     * @param int $courseid
+     * @param int|null $grade Maximum grade to submit, or null to omit the field entirely.
+     * @return \stdClass
+     */
+    private function add_instance_form_data(int $courseid, ?int $grade): \stdClass {
+        $moduleinfo = new \stdClass();
+        $moduleinfo->modulename = 'topomojo';
+        $moduleinfo->course = $courseid;
+        $moduleinfo->section = 0;
+        $moduleinfo->visible = 1;
+        $moduleinfo->name = 'Graded TopoMojo Activity';
+        $moduleinfo->workspaceid = 'test-workspace-123';
+        $moduleinfo->cmidnumber = '';
+        $moduleinfo->introeditor = ['text' => '', 'format' => FORMAT_HTML, 'itemid' => 0];
+        $cm = create_module($moduleinfo);
+
+        $topomojo = new \stdClass();
+        $topomojo->course = $courseid;
+        $topomojo->coursemodule = $cm->coursemodule;
+        $topomojo->name = $moduleinfo->name;
+        $topomojo->intro = '';
+        $topomojo->introformat = FORMAT_HTML;
+        $topomojo->workspaceid = $moduleinfo->workspaceid;
+        $topomojo->timeopen = 0;
+        $topomojo->timeclose = 0;
+        $topomojo->timelimit = 0;
+        $topomojo->isfeatured = 0;
+        $topomojo->preferredbehaviour = 'deferredfeedback';
+        if ($grade !== null) {
+            $topomojo->grade = $grade;
+        }
+
+        return $topomojo;
+    }
+
+    /**
+     * The maximum grade entered on the add form is kept.
+     *
+     * topomojo_add_instance() used to assign grade = 100 unconditionally, so a new activity was
+     * always created at 100 no matter what was typed. The edit form did honour the value, which
+     * made the workaround "save it a second time" - with nothing telling the instructor that.
+     */
+    public function test_add_instance_keeps_the_grade_from_the_form(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $id = topomojo_add_instance($this->add_instance_form_data($course->id, 75), null);
+
+        $this->assertEquals(75, $DB->get_field('topomojo', 'grade', ['id' => $id], MUST_EXIST));
+
+        // The gradebook item is built from the same value, so it must agree.
+        $item = $DB->get_record('grade_items', [
+            'itemtype' => 'mod',
+            'itemmodule' => 'topomojo',
+            'iteminstance' => $id,
+            'itemnumber' => 0,
+        ]);
+        $this->assertNotEmpty($item, 'grade item should exist after adding a graded activity');
+        $this->assertEquals(GRADE_TYPE_VALUE, $item->gradetype);
+        $this->assertEquals(75.0, (float) $item->grademax);
+    }
+
+    /**
+     * A maximum grade of 0 means "not graded" and must not be defaulted away.
+     *
+     * This is why the fix reads the submitted value with ?? rather than empty(): 0 is a
+     * deliberate choice, not a missing field.
+     */
+    public function test_add_instance_treats_a_zero_grade_as_not_graded(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $id = topomojo_add_instance($this->add_instance_form_data($course->id, 0), null);
+
+        $this->assertEquals(0, $DB->get_field('topomojo', 'grade', ['id' => $id], MUST_EXIST));
+
+        // No gradebook item at all, rather than one with gradetype NONE: grade_update() takes the
+        // "no grade item needed!" early return when asked for GRADE_TYPE_NONE and none exists yet
+        // (lib/gradelib.php:122).
+        $this->assertFalse($DB->record_exists('grade_items', [
+            'itemtype' => 'mod',
+            'itemmodule' => 'topomojo',
+            'iteminstance' => $id,
+            'itemnumber' => 0,
+        ]));
+    }
+
+    /**
+     * An activity added without a grade field still gets the 100 default.
+     */
+    public function test_add_instance_defaults_the_grade_when_the_form_omits_it(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $data = $this->add_instance_form_data($course->id, null);
+        $this->assertObjectNotHasProperty('grade', $data);
+
+        $id = topomojo_add_instance($data, null);
+
+        $this->assertEquals(100, $DB->get_field('topomojo', 'grade', ['id' => $id], MUST_EXIST));
+    }
+
+    /**
      * Test topomojo_update_instance function.
      */
     public function test_topomojo_update_instance() {
@@ -323,8 +441,8 @@ class lib_test extends \advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
-        // Note: topomojo_add_instance() hardcodes grade to 100, so read back what was stored
-        // rather than asserting a value the generator was asked for.
+        // The generator does not submit a grade, so the activity is created at the 100 default.
+        // Read back what was stored rather than restating that default here.
         $storedgrade = $DB->get_field('topomojo', 'grade', ['id' => $topomojo->id], MUST_EXIST);
         $this->assertGreaterThan(0, $storedgrade);
 
