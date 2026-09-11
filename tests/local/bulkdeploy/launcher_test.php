@@ -32,13 +32,86 @@ final class launcher_test extends \advanced_testcase {
         return (object) ['id' => 0, 'email' => $email, 'username' => 'u'];
     }
 
-    private function gamespace_response(string $id, bool $active, bool $hasvms): curl_response {
-        $body = json_encode([
+    /**
+     * A poll response for one gamespace.
+     *
+     * @param string $id gamespace id
+     * @param bool $active whether TopoMojo reports the gamespace as running
+     * @param bool $hasvms whether TopoMojo reports any VMs yet
+     * @param array $extra further fields to merge in, e.g. variant or expirationTime
+     * @return curl_response
+     */
+    private function gamespace_response(string $id, bool $active, bool $hasvms, array $extra = []): curl_response {
+        $body = json_encode($extra + [
             'id' => $id,
             'isActive' => $active,
             'vms' => $hasvms ? [(object)['id' => 'vm-1']] : [],
         ]);
         return new curl_response(200, 0, $body);
+    }
+
+    /**
+     * A real topomojo activity in a real course, plus an enrolled student to deploy for.
+     *
+     * The tests above get by with stubs because they never reach attempt creation. These ones do,
+     * and building a question usage needs a course module to take a context from.
+     *
+     * @return array [\stdClass $topomojo, \stdClass $student]
+     */
+    private function activity_and_student(): array {
+        global $DB;
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $module = $this->getDataGenerator()->create_module('topomojo', [
+            'course' => $course->id,
+            'workspaceid' => 'ws',
+            'variant' => 0,
+            'duration' => 60,
+            'submissions' => 1,
+            'grade' => 100,
+        ]);
+        $topomojo = $DB->get_record('topomojo', ['id' => $module->id], '*', MUST_EXIST);
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        return [$topomojo, $student];
+    }
+
+    /**
+     * Attaches one question to a variant of an activity.
+     *
+     * shortanswer rather than mojomatch: qtype_mojomatch ships no get_..._form_data_... helper, so
+     * core_question_generator cannot build one, and shortanswer is the type it is modelled on and
+     * loads through the same question_bank path. Variant membership is not a property of the
+     * question anyway - both queries involved read it from the qtype_mojomatch_options row below.
+     *
+     * @param \stdClass $topomojo activity record
+     * @param int $variant variant number, 1-based
+     * @return int the question id
+     */
+    private function add_variant_question(\stdClass $topomojo, int $variant): int {
+        global $DB;
+        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $topomojo->course, false, MUST_EXIST);
+        $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
+        $category = $questiongenerator->create_question_category([
+            'contextid' => \context_module::instance($cm->id)->id,
+        ]);
+        $question = $questiongenerator->create_question('shortanswer', null, ['category' => $category->id]);
+
+        $DB->insert_record('qtype_mojomatch_options', (object) [
+            'questionid' => $question->id,
+            'usecase' => 0,
+            'matchtype' => 0,
+            'variant' => $variant,
+            'workspaceid' => $topomojo->workspaceid,
+            'transforms' => 0,
+            'qorder' => 1,
+        ]);
+        $DB->insert_record('topomojo_questions', (object) [
+            'topomojoid' => $topomojo->id,
+            'questionid' => $question->id,
+            'points' => 1,
+        ]);
+
+        return (int) $question->id;
     }
 
     public function test_concurrent_launch_records_gamespaceid_and_marks_launched(): void {
@@ -246,5 +319,184 @@ final class launcher_test extends \advanced_testcase {
         $after = reset($afterrows);
         $this->assertSame(user_status::FAILED, $after->status);
         $this->assertStringContainsString('timeout waiting for VMs', $after->errormessage);
+    }
+
+    public function test_attempt_for_a_variant_with_questions_gets_a_question_usage(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$topomojo, $student] = $this->activity_and_student();
+        $this->add_variant_question($topomojo, 1);
+
+        $repo = new job_repository();
+        $jobid = $repo->create_job($topomojo->id, $topomojo->course, 2, 1, null, [$student->id]);
+        $row = array_values($repo->get_user_rows($jobid))[0];
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-1'])));
+        $fake->queue('GET', 'https://api/gamespace/gs-1', $this->gamespace_response('gs-1', true, true, [
+            // TopoMojo reports the variant 0-based; the column is 1-based.
+            'variant' => 0,
+            'expirationTime' => '2030-01-01T00:00:00Z',
+        ]));
+
+        $launcher = new launcher($repo, $fake, 'https://api', [], 60, 0, 600);
+        $launcher->run_batch($jobid, [
+            ['rowid' => $row->id, 'user' => $student],
+        ], $topomojo);
+        // The attempt and question-engine code paths are chatty at DEBUG_DEVELOPER.
+        $this->resetDebugging();
+
+        $attempt = $DB->get_record('topomojo_attempts', [
+            'topomojoid' => $topomojo->id,
+            'userid' => $student->id,
+        ]);
+        $this->assertNotEmpty($attempt, 'bulk deploy must create an attempt for a ready gamespace');
+
+        // The point of the whole exercise: without a question usage, challenge.php shows the
+        // student "There are no challenge questions to review" and grading finds nothing to mark.
+        $this->assertGreaterThan(
+            0,
+            (int) $attempt->questionusageid,
+            'a bulk-deployed attempt must have a question usage'
+        );
+        $quba = \question_engine::load_questions_usage_by_activity((int) $attempt->questionusageid);
+        $this->assertCount(1, $quba->get_slots(), 'the variant question must be in the usage');
+        $this->assertSame($topomojo->preferredbehaviour, $quba->get_preferred_behaviour());
+        $this->assertNotEmpty($attempt->layout, 'layout must name the slots the usage created');
+
+        // These moved when attempt creation stopped being a hand-built insert.
+        $this->assertSame(\mod_topomojo\topomojo_attempt::INPROGRESS, $attempt->state);
+        $this->assertSame(1, (int) $attempt->variant);
+        $this->assertSame('gs-1', $attempt->eventid);
+        $this->assertSame(0, (int) $attempt->preview);
+        $this->assertSame(strtotime('2030-01-01T00:00:00Z'), (int) $attempt->endtime);
+    }
+
+    public function test_attempt_is_created_when_the_variant_has_no_questions(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$topomojo, $student] = $this->activity_and_student();
+
+        $repo = new job_repository();
+        $jobid = $repo->create_job($topomojo->id, $topomojo->course, 2, 1, null, [$student->id]);
+        $row = array_values($repo->get_user_rows($jobid))[0];
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-1'])));
+        $fake->queue(
+            'GET',
+            'https://api/gamespace/gs-1',
+            $this->gamespace_response('gs-1', true, true, ['variant' => 0])
+        );
+
+        $launcher = new launcher($repo, $fake, 'https://api', [], 60, 0, 600);
+        $launcher->run_batch($jobid, [
+            ['rowid' => $row->id, 'user' => $student],
+        ], $topomojo);
+        // Includes the failed import attempt: no API is configured here, so reaching out to
+        // TopoMojo for the missing questions fails, which is exactly what must not be fatal.
+        $this->resetDebugging();
+
+        $attempt = $DB->get_record('topomojo_attempts', [
+            'topomojoid' => $topomojo->id,
+            'userid' => $student->id,
+        ]);
+        $this->assertNotEmpty($attempt, 'a lab with no questions is still a usable lab');
+        $this->assertSame(0, (int) $attempt->questionusageid, 'an empty usage must not be saved');
+        // An empty string rather than null is what distinguishes the two paths: only
+        // topomojo_attempt sets the column at all.
+        $this->assertSame('', $attempt->layout);
+        $this->assertSame(user_status::READY, $repo->get_user_rows($jobid)[$row->id]->status);
+    }
+
+    public function test_each_user_in_a_batch_gets_their_own_question_usage(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$topomojo, $first] = $this->activity_and_student();
+        $second = $this->getDataGenerator()->create_and_enrol(
+            $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST),
+            'student'
+        );
+        $this->add_variant_question($topomojo, 1);
+
+        $repo = new job_repository();
+        $jobid = $repo->create_job($topomojo->id, $topomojo->course, 2, 2, null, [$first->id, $second->id]);
+        $rows = array_values($repo->get_user_rows($jobid));
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-1'])));
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-2'])));
+        $fake->queue(
+            'GET',
+            'https://api/gamespace/gs-1',
+            $this->gamespace_response('gs-1', true, true, ['variant' => 0])
+        );
+        $fake->queue(
+            'GET',
+            'https://api/gamespace/gs-2',
+            $this->gamespace_response('gs-2', true, true, ['variant' => 0])
+        );
+
+        $launcher = new launcher($repo, $fake, 'https://api', [], 60, 0, 600);
+        $launcher->run_batch($jobid, [
+            ['rowid' => $rows[0]->id, 'user' => $first],
+            ['rowid' => $rows[1]->id, 'user' => $second],
+        ], $topomojo);
+        $this->resetDebugging();
+
+        $usageids = $DB->get_records_menu(
+            'topomojo_attempts',
+            ['topomojoid' => $topomojo->id],
+            'userid ASC',
+            'userid, questionusageid'
+        );
+        $this->assertCount(2, $usageids, 'every deployed user needs their own attempt');
+        foreach ($usageids as $userid => $usageid) {
+            $this->assertGreaterThan(0, (int) $usageid, "user $userid got no question usage");
+        }
+        $this->assertCount(2, array_unique($usageids), 'attempts must not share a question usage');
+    }
+
+    public function test_attempt_is_still_created_when_the_question_usage_cannot_be_built(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $student = $this->getDataGenerator()->create_user();
+
+        // An activity id that resolves to no course module, so the question manager cannot be
+        // built at all. The VMs are already running by the time attempt creation happens, so the
+        // user must still end up with an attempt - no questions, but a usable lab, which is where
+        // every bulk-deployed attempt used to end up.
+        $topomojo = $this->topomojo();
+        $topomojo->id = 999999;
+        $topomojo->course = 999999;
+
+        $repo = new job_repository();
+        $jobid = $repo->create_job($topomojo->id, $topomojo->course, 2, 1, null, [$student->id]);
+        $row = array_values($repo->get_user_rows($jobid))[0];
+
+        $fake = new fake_curl_multi_client();
+        $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-1'])));
+        $fake->queue('GET', 'https://api/gamespace/gs-1', $this->gamespace_response('gs-1', true, true));
+
+        $launcher = new launcher($repo, $fake, 'https://api', [], 60, 0, 600);
+        $launcher->run_batch($jobid, [
+            ['rowid' => $row->id, 'user' => $student],
+        ], $topomojo);
+
+        $messages = array_map(fn($m) => $m->message, $this->getDebuggingMessages());
+        $this->resetDebugging();
+        $this->assertNotEmpty(
+            array_filter($messages, fn($m) => str_contains($m, 'could not load the question manager')),
+            'the fallback must say why it fell back'
+        );
+
+        $attempt = $DB->get_record('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+        $this->assertNotEmpty($attempt, 'a failure to attach questions must not cost the attempt');
+        $this->assertSame((int) $student->id, (int) $attempt->userid);
+        $this->assertSame('gs-1', $attempt->eventid);
+        $this->assertSame(0, (int) $attempt->questionusageid);
+        // Nothing set the column, which is what tells this apart from the path above.
+        $this->assertNull($attempt->layout);
+        $this->assertSame(user_status::READY, $repo->get_user_rows($jobid)[$row->id]->status);
     }
 }

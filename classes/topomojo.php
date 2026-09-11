@@ -394,9 +394,13 @@ class topomojo
     /**
      * Ensure questions exist for a specific variant, import if missing
      *
+     * Public because bulk deploy needs the same guarantee before it builds an attempt's question
+     * usage, and it cannot go through init_attempt() to get it: that method is hardcoded to
+     * $USER, while bulk deploy creates attempts on behalf of other people.
+     *
      * @param int $variant Variant number (1-based)
      */
-    private function ensure_variant_questions_exist($variant) {
+    public function ensure_variant_questions_exist($variant) {
         global $DB, $CFG;
 
         // Check if any questions exist for this variant
