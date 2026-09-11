@@ -43,14 +43,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Listed explicitly rather than as a php x moodle-branch cross-product, because the PHP floor
-        # moves between Moodle releases: 5.0 requires PHP 8.2.0, 5.2 requires PHP 8.3.0. A
-        # cross-product would generate PHP 8.2 + MOODLE_502_STABLE, which cannot install.
-        # Each supported Moodle version is tested on its own PHP floor, where deprecations bite first.
+        # One leg per Moodle version we deploy, on the PHP that deployment runs. Listed explicitly
+        # rather than as a php x moodle-branch cross-product: the PHP floor moves between Moodle
+        # releases (5.0 requires 8.2.0, 5.2 requires 8.3.0), so a cross-product would generate
+        # PHP 8.2 + MOODLE_502_STABLE, which cannot install.
+        #
+        # MOODLE_500_STABLE on PHP 8.2 used to be a third leg, covering 5.0's PHP floor for
+        # downstream installs older than ours. Dropped: nothing we run is on 8.2, and the only thing
+        # it caught that the 8.3 legs do not is 8.3-only syntax reaching someone else's 5.0 site.
+        # Add it back, or a --test-version to phpcs, if this plugin gains installs we do not operate.
         include:
-          - moodle-branch: MOODLE_500_STABLE
-            php: '8.2'
-            database: pgsql
           - moodle-branch: MOODLE_500_STABLE
             php: '8.3'
             database: pgsql
