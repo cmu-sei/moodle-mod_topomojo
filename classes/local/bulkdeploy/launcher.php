@@ -11,6 +11,26 @@ defined('MOODLE_INTERNAL') || die();
  */
 class launcher {
 
+    /**
+     * Question managers built for attempt creation, keyed by topomojo id. Building one constructs a
+     * whole \mod_topomojo\topomojo (which touches $PAGE and loads every question), so it is done
+     * once per activity rather than once per user in the batch.
+     *
+     * A value of false records that construction already failed, so a batch of 30 users does not
+     * retry it 30 times.
+     *
+     * @var array<int, \mod_topomojo\questionmanager|false>
+     */
+    private array $questionmanagers = [];
+
+    /**
+     * Variants whose questions have already been checked this run, keyed "topomojoid:variant".
+     * The check can reach TopoMojo to import a missing variant, so it must not repeat per user.
+     *
+     * @var array<string, true>
+     */
+    private array $ensuredvariants = [];
+
     public function __construct(
         private job_repository $repo,
         private curl_multi_client $client,
@@ -256,7 +276,20 @@ class launcher {
             return;
         }
 
-        $attempt = new \stdClass();
+        // Record the variant TopoMojo actually deployed, as topomojo::init_attempt() does: the
+        // API reports it 0-based, the column is 1-based. Without this every bulk-deployed attempt
+        // is variant 0, so a workspace with per-variant questions grades against the wrong set.
+        $variant = isset($gamespace->variant)
+            ? ((int) $gamespace->variant + 1)
+            : (int) $topomojo->variant;
+
+        // Build the attempt through topomojo_attempt rather than inserting a row directly, so it
+        // gets a question usage. A hand-built insert leaves questionusageid at its column default
+        // of 0, and nothing creates one later: challenge.php only ever loads an existing usage. The
+        // student is then shown "There are no challenge questions to review" and graded 0 on an
+        // activity that has questions.
+        $attempt = $this->new_attempt_object($topomojo, $variant);
+
         $attempt->topomojoid = $topomojo->id;
         $attempt->userid = $userid;
         // Prefer the id the launch handed us over re-reading it from the poll body: gamespace
@@ -266,20 +299,114 @@ class launcher {
         $attempt->workspaceid = $topomojo->workspaceid;
         $attempt->launchpointurl = $gamespace->launchpointUrl ?? '';
         $attempt->state = \mod_topomojo\topomojo_attempt::INPROGRESS;
-        $attempt->preview = 0; // Bulk deploy is never preview
+        $attempt->preview = 0; // Bulk deploy is never preview.
         $attempt->timestart = time();
         $attempt->timemodified = time();
         $attempt->timefinish = null;
         $attempt->endtime = $this->resolve_endtime($topomojo, $gamespace);
-        // Record the variant TopoMojo actually deployed, as topomojo::init_attempt() does: the
-        // API reports it 0-based, the column is 1-based. Without this every bulk-deployed attempt
-        // is variant 0, so a workspace with per-variant questions grades against the wrong set.
-        $attempt->variant = isset($gamespace->variant)
-            ? ((int) $gamespace->variant + 1)
-            : (int) $topomojo->variant;
+        $attempt->variant = $variant;
         $attempt->score = 0;
 
+        if ($attempt instanceof \mod_topomojo\topomojo_attempt) {
+            $attempt->save();
+            return;
+        }
+
         $DB->insert_record('topomojo_attempts', $attempt);
+    }
+
+    /**
+     * Returns an object to populate and persist for a newly deployed gamespace.
+     *
+     * Normally a \mod_topomojo\topomojo_attempt, whose constructor creates the question usage for
+     * the deployed variant; save() then writes its id to questionusageid. Falls back to a plain
+     * stdClass for the caller to insert directly if that cannot be set up — the VMs are already
+     * running by this point, so a failure here must not cost the user their attempt record. They
+     * end up where every bulk-deployed attempt used to be: no questions, but a usable lab.
+     *
+     * @param \stdClass $topomojo activity record
+     * @param int $variant the deployed variant, 1-based
+     * @return \mod_topomojo\topomojo_attempt|\stdClass
+     */
+    private function new_attempt_object(\stdClass $topomojo, int $variant) {
+        $questionmanager = $this->question_manager($topomojo);
+        if (!$questionmanager) {
+            return new \stdClass();
+        }
+
+        try {
+            $object = $questionmanager->gettopomojo();
+
+            // Mirror init_attempt(): a variant whose questions were never imported would otherwise
+            // produce an empty layout, and an attempt with no questions all over again. No need to
+            // refresh the manager afterwards — get_questions_for_variant() queries the database on
+            // every call, which is why the interactive path gets away with the same ordering.
+            //
+            // Caught separately from the usage below: importing reaches out to TopoMojo, and a
+            // workspace with no challenge at all makes get_challenge() throw. That must not cost us
+            // the usage — an activity whose questions are already imported never gets here, and one
+            // whose import fails is no worse off than with an empty usage.
+            $key = $topomojo->id . ':' . $variant;
+            if (!isset($this->ensuredvariants[$key])) {
+                $this->ensuredvariants[$key] = true;
+                try {
+                    $object->ensure_variant_questions_exist($variant);
+                } catch (\Throwable $e) {
+                    debugging(
+                        "bulk deploy could not import questions for topomojo {$topomojo->id} "
+                            . "variant $variant: " . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
+                }
+            }
+
+            return new \mod_topomojo\topomojo_attempt(
+                $questionmanager,
+                null,
+                $object->getContext(),
+                $variant
+            );
+        } catch (\Throwable $e) {
+            debugging(
+                "bulk deploy could not build a question usage for topomojo {$topomojo->id} "
+                    . "variant $variant: " . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+            return new \stdClass();
+        }
+    }
+
+    /**
+     * Question manager for an activity, built once per launcher instance and cached.
+     *
+     * @param \stdClass $topomojo activity record
+     * @return \mod_topomojo\questionmanager|null null if it could not be constructed
+     */
+    private function question_manager(\stdClass $topomojo): ?\mod_topomojo\questionmanager {
+        if (array_key_exists($topomojo->id, $this->questionmanagers)) {
+            return $this->questionmanagers[$topomojo->id] ?: null;
+        }
+
+        global $DB;
+        try {
+            $course = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
+            $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
+            // Same construction close_attempts uses from cron: no page url, so topomojo skips the
+            // renderer init that needs a request context.
+            $object = new \mod_topomojo\topomojo($cm, $course, $topomojo);
+            $manager = new \mod_topomojo\questionmanager($object, $object->renderer);
+        } catch (\Throwable $e) {
+            debugging(
+                "bulk deploy could not load the question manager for topomojo {$topomojo->id}: "
+                    . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+            $this->questionmanagers[$topomojo->id] = false;
+            return null;
+        }
+
+        $this->questionmanagers[$topomojo->id] = $manager;
+        return $manager;
     }
 
     /**

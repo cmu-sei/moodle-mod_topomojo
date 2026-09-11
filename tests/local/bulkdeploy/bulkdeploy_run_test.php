@@ -65,6 +65,11 @@ final class bulkdeploy_run_test extends \advanced_testcase {
      * Scheduled tasks log to stdout, which PHPUnit flags as a risky test. Capturing it keeps the
      * suite quiet and makes the progress log assertable.
      *
+     * Debugging output is dropped for the same reason. make_topomojo_record() inserts a topomojo
+     * row with no course module behind it, so attempt creation cannot build a question usage and
+     * traces why it fell back to a plain insert - once per ready user, in every test here. What
+     * that fallback produces is asserted directly in launcher_test.
+     *
      * @param \mod_topomojo\task\bulkdeploy_run $task
      * @return string
      */
@@ -75,6 +80,7 @@ final class bulkdeploy_run_test extends \advanced_testcase {
         } finally {
             $output = ob_get_clean();
         }
+        $this->resetDebugging();
 
         return $output;
     }
