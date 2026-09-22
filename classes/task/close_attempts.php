@@ -88,10 +88,10 @@ class close_attempts extends \core\task\scheduled_task {
      * runs out of time is closed by this task, so that lost the grade for the
      * common case. challenge.php and view.php grade the same way after closing.
      *
-     * The grading has to run as the attempt's own user: process_attempt() reaches
-     * topomojo::getall_attempts(), which filters on $USER, so grading as the cron
-     * user would apply the grading method to an empty list of attempts and store
-     * that as the student's grade.
+     * The grading runs as the attempt's own user. process_attempt() no longer needs
+     * that - it looks the attempt's user up itself, rather than grading whoever is
+     * logged in - but everything it reaches on the way to the gradebook still runs in
+     * a user context, and the cron user is not a member of the course.
      *
      * @param \mod_topomojo\topomojo_attempt $attempt An attempt that has just been closed.
      * @return void

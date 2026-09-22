@@ -954,7 +954,10 @@ class questionmanager {
             $qrecord
         );
 
-        $attempts = $this->object->getall_attempts('all');
+        // Every user's attempts. This asked getall_attempts() for the logged in user's, so
+        // changing what a question is worth re-marked the instructor's own attempts and left
+        // every student sitting on the old maximum.
+        $attempts = $this->object->getall_attempts('all', false, 0, \mod_topomojo\topomojo::ALL_USERS);
 
         foreach ($attempts as $attempt) {
             if ($slot = $attempt->get_question_slot($q)) {
@@ -963,7 +966,12 @@ class questionmanager {
                 $quba->regrade_question($slot, false, $newpoints);
                 $attempt->save();
             } else {
-                throw new \moodle_exception('invalidslot', 'mod_topomojo', '', null, $attempt->get_attempt());
+                // An attempt that does not hold this question: another variant of the lab, or one
+                // that carried no questions at all. Skipped rather than thrown, which used to
+                // abandon the regrade partway - every attempt before it in the list had already
+                // been saved - and left the activity with two different maximums for one question.
+                debugging("attempt " . $attempt->id . " has no slot for question " . $questionrecord->id .
+                    ", not regrading it", DEBUG_DEVELOPER);
             }
         }
 

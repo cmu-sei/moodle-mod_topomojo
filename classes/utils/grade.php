@@ -97,6 +97,15 @@ class grade {
     /**
      * Processes and updates grades for a given attempt, handling transactions and gradebook updates.
      *
+     * The grade is the grading method applied to every attempt the attempt's own user has made
+     * of the lab. That user is named explicitly rather than taken from the session: an instructor
+     * overriding a question mark, the scheduled task closing an expired attempt and a regrade of
+     * the whole activity all arrive here with somebody else's attempt. This used to ask
+     * getall_attempts() for the attempts of whoever was logged in, so an instructor's override
+     * recalculated the student's grade from the instructor's own attempts - an empty list for a
+     * grader who has never run the lab, which apply_grading_method() turned into no grade at all
+     * and which was then stored over what the student had earned.
+     *
      * @param \stdClass $attempt The attempt object containing attempt details.
      * @return bool True on success, false on failure.
      */
@@ -106,20 +115,40 @@ class grade {
         // Get this attempt grade
         $this->calculate_attempt_grade($attempt);
 
+        $userid = $attempt->userid;
+
         // Get all attempt grades
         $grades = [];
         $attemptsgrades = [];
 
-        // TODO should we be processing just one user here?
-        $attempts = $this->topomojo->getall_attempts('');
+        $userattempts = $this->topomojo->getall_attempts('', false, 0, $userid);
 
-        foreach ($attempts as $attempt) {
-            array_push($attemptsgrades, $attempt->score);
+        // Oldest attempt first, which is the order apply_grading_method() reads first and last
+        // in. getall_attempts() returns them newest first, so FIRSTATTEMPT was taking the newest
+        // attempt and LASTATTEMPT the oldest. Ordering on the id rather than re-using that
+        // query's timemodified: timemodified moves whenever an attempt is regraded, so it does
+        // not record when the attempt was made.
+        usort($userattempts, function ($a, $b) {
+            return $a->id <=> $b->id;
+        });
+
+        foreach ($userattempts as $userattempt) {
+            array_push($attemptsgrades, $userattempt->score);
+        }
+
+        if (!$attemptsgrades) {
+            // Nothing of this user's to grade, so there is no grade to store. Reachable through
+            // a preview attempt, which getall_attempts() excludes. Writing the grading method's
+            // answer for an empty list - false, or a division by zero for the average - over a
+            // grade the user had already earned is the one thing that must not happen here.
+            debugging("no attempts for user $userid in topomojo " . $this->topomojo->topomojo->id .
+                ", leaving the stored grade alone", DEBUG_DEVELOPER);
+            return false;
         }
 
         $grade = $this->apply_grading_method($attemptsgrades);
-        $grades[$attempt->userid] = $grade;
-        debugging("new grade for $attempt->userid in topomojo " . $this->topomojo->topomojo->id . " is $grade", DEBUG_DEVELOPER);
+        $grades[$userid] = $grade;
+        debugging("new grade for $userid in topomojo " . $this->topomojo->topomojo->id . " is $grade", DEBUG_DEVELOPER);
 
         // Run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
@@ -129,7 +158,7 @@ class grade {
         $this->persist_grades($grades, $transaction);
 
         // Update grades to gradebookapi.
-        $updated = topomojo_update_grades($this->topomojo->topomojo, $attempt->userid, $grade);
+        $updated = topomojo_update_grades($this->topomojo->topomojo, $userid, $grade);
 
         if ($updated === GRADE_UPDATE_FAILED) {
             $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
@@ -220,7 +249,11 @@ class grade {
     /**
      * Applies the grading method chosen
      *
-     * @param array $grades The grades for each attempts for a particular user
+     * The grades have to arrive in the order the attempts were made, oldest first: that is all
+     * FIRSTATTEMPT and LASTATTEMPT have to go on, and a caller that hands them over newest first
+     * gets the two exactly the wrong way round.
+     *
+     * @param array $grades The grades for each attempts for a particular user, oldest attempt first
      * @return number
      * @throws \Exception When there is no valid scaletype throws new exception
      */
@@ -229,13 +262,14 @@ class grade {
                   $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
-                // Take the first record (as there should only be one since it was filtered out earlier)
+                // The user's first attempt, which is the first entry because the caller orders
+                // them oldest first.
                 reset($grades);
                 return current($grades);
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT:
-                // Take the last grade (there should only be one, as the last attempt was filtered out earlier)
+                // The user's most recent attempt, which is the last of those entries.
                 return end($grades);
 
                 break;
@@ -313,12 +347,16 @@ class grade {
     /**
      * Save and (re)calculate grades for this lab
      *
+     * Every user's closed attempts, not just the caller's: this runs when an instructor changes
+     * what a question is worth, and it asked getall_attempts() for the logged in user's attempts,
+     * so the regrade reached nobody but the instructor who triggered it.
+     *
      * @param bool $regradeattempts Regrade the question attempts themselves through the question engine
      * @return bool
      */
     public function save_all_grades($regradeattempts = false) {
 
-        $attempts = $this->topomojo->getall_attempts($open = 'closed');
+        $attempts = $this->topomojo->getall_attempts('closed', false, 0, \mod_topomojo\topomojo::ALL_USERS);
 
         foreach ($attempts as $attempt) {
             // If we're regrading attempts, send them off to be re-graded before processing all sessions.
