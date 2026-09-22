@@ -1017,7 +1017,89 @@ class questionmanager {
         }
     
         return $mismatched;
-    }    
+    }
+
+
+    /**
+     * The hint text a challenge question carries, in the shape save_hints() expects.
+     *
+     * A TopoMojo question has at most one hint, so this is a one-entry list or an empty one.
+     * An empty one is not the same as an empty hint: save_hints() skips a blank entry, so
+     * a question with no hint stores no hint row rather than an empty one.
+     *
+     * Only qbehaviour_mojomatch ever grades these questions - qtype_mojomatch's
+     * make_behaviour() returns it whatever behaviour the activity prefers - and it takes the
+     * number of tries from the activity's Submissions setting. So this cannot do what a hint
+     * does under core's interactive behaviour, where the hint count is what decides how many
+     * tries a student gets.
+     *
+     * @param stdClass $question A question from the challenge JSON.
+     * @return array hint entries keyed from 0, for $form->hint
+     */
+    protected static function challenge_question_hints($question) {
+        if (!isset($question->hint) || trim($question->hint) === '') {
+            return [];
+        }
+
+        // FORMAT_MOODLE, matching the question text this hint was authored alongside: the
+        // text arrives as JSON with real line breaks in it and no markup to speak of.
+        return [['text' => trim($question->hint), 'format' => FORMAT_MOODLE]];
+    }
+
+    /**
+     * Point an existing question's hints at what the challenge says they should be.
+     *
+     * Written straight to the table rather than through save_hints(), which wants a whole
+     * question form and a file-area context it has nothing to do with: hint text comes from
+     * the challenge JSON, so it never carries files.
+     *
+     * A hint removed in TopoMojo is removed here too. The questions mirror the challenge, and
+     * a hint nobody can see in TopoMojo should not survive in Moodle.
+     *
+     * @param int      $questionid The Moodle question to update.
+     * @param stdClass $question   The matching question from the challenge JSON.
+     * @return void
+     */
+    protected static function sync_question_hints($questionid, $question) {
+        global $DB;
+
+        $wanted = self::challenge_question_hints($question);
+        $existing = $DB->get_records('question_hints', ['questionid' => $questionid], 'id ASC');
+        $changed = false;
+
+        foreach ($wanted as $hint) {
+            $record = array_shift($existing);
+            if (!$record) {
+                $DB->insert_record('question_hints', (object)[
+                    'questionid' => $questionid,
+                    'hint' => $hint['text'],
+                    'hintformat' => $hint['format'],
+                ]);
+                $changed = true;
+                continue;
+            }
+
+            if ($record->hint !== $hint['text'] || (int)$record->hintformat !== (int)$hint['format']) {
+                $record->hint = $hint['text'];
+                $record->hintformat = $hint['format'];
+                $DB->update_record('question_hints', $record);
+                $changed = true;
+            }
+        }
+
+        // Whatever the challenge no longer accounts for.
+        foreach ($existing as $record) {
+            $DB->delete_records('question_hints', ['id' => $record->id]);
+            $changed = true;
+        }
+
+        if ($changed) {
+            debugging("synced hints for question $questionid from the challenge", DEBUG_DEVELOPER);
+            // The question definition is cached with its hints on it, so a reader that has
+            // already loaded this question would otherwise keep serving the old hint.
+            \question_bank::notify_question_edited($questionid);
+        }
+    }
 
 
     /**
@@ -1085,10 +1167,12 @@ class questionmanager {
 
             // Get answer from topomojo
             $expected_answer = null;
+            $expected_question = null;
             foreach ($challenge->variants[$variant]->sections as $section) {
                 foreach ($section->questions as $topoq) {
                     if (trim(strip_tags($topoq->text)) === $cleantext) {
                         $expected_answer = trim($topoq->answer);
+                        $expected_question = $topoq;
                         break 2;
                     }
                 }
@@ -1104,7 +1188,16 @@ class questionmanager {
                     debugging("Deleting question '{$q->name}' (answer mismatch)", DEBUG_DEVELOPER);
                     $this->delete_question($tq->getId());
                     question_delete_question($questionid);
+                    continue;
                 }
+            }
+
+            // The question survives this import, so anything the checks above do not key on has
+            // to be brought across here: they compare text and answer, and an import where both
+            // still match skips the add loop below entirely. A hint edited in TopoMojo would
+            // otherwise leave the question matching and the stored hint stale forever.
+            if ($expected_question !== null) {
+                self::sync_question_hints($questionid, $expected_question);
             }
         }
 
@@ -1155,6 +1248,12 @@ class questionmanager {
                         if ($rec = $DB->get_record_sql($sql, $params)) {
                             $qexists    = 1;
                             $questionid = $rec->questionid;
+
+                            // The match above is on text, answer, workspace and variant, so a
+                            // hint edited in TopoMojo leaves the question matching and the stored
+                            // hint stale. TopoMojo is the authority for it, so bring it across on
+                            // every import rather than only when the question is created.
+                            self::sync_question_hints($questionid, $question);
                         }
                     }
 
@@ -1230,7 +1329,16 @@ class questionmanager {
                         $form->transforms = 0;
                         $form->qorder = $questionnumber;
 
-                        // TODO check for hint and add as feedback
+                        // The challenge's hint, stored as the question's one core hint. Hints are
+                        // what a behaviour has to show a student who has answered wrongly and has
+                        // tries left, so without this there is nothing to put in front of them
+                        // between tries. Nothing reads it yet: the deferred behaviours never call
+                        // apply_hint(), so until qbehaviour_mojomatch grows a try-again state this
+                        // is stored and inert.
+                        //
+                        // Same format as the question text, because it is the same kind of text -
+                        // authored in TopoMojo, arriving as JSON, and needing its line breaks kept.
+                        $form->hint = self::challenge_question_hints($question);
 
                         if (preg_match('/##.*##/', $question->answer)) {
                             $form->transforms = 1;

@@ -143,6 +143,194 @@ class questionmanager_test extends \advanced_testcase {
     }
 
     /**
+     * A challenge with one question in one section of one variant.
+     *
+     * Shaped like the JSON TopoMojo's /challenge/{id} returns: variants is a list indexed from 0,
+     * which is the index process_variant_questions() is given.
+     *
+     * @param array $question fields to override on the question
+     * @return \stdClass
+     */
+    private function make_challenge(array $question = []): \stdClass {
+        $q = (object)array_merge([
+            'text' => 'What is the flag on the web server?',
+            'hint' => 'Try the document root.',
+            'answer' => 'flag{one}',
+            'grader' => 'match',
+            'weight' => 1,
+            'penalty' => 0,
+        ], $question);
+
+        return (object)[
+            'variants' => [
+                (object)['sections' => [(object)['questions' => [$q]]]],
+            ],
+        ];
+    }
+
+    /**
+     * Imports a challenge into an activity and returns the questionmanager it used.
+     *
+     * @param \stdClass $topomojo the activity created by the generator
+     * @param \stdClass $challenge as returned by make_challenge()
+     * @return questionmanager
+     */
+    private function import_challenge($topomojo, $challenge): questionmanager {
+        global $DB;
+
+        $cm = get_coursemodule_from_instance('topomojo', $topomojo->id);
+        $record = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
+
+        // Stands in for \mod_topomojo\topomojo, whose constructor calls the TopoMojo API.
+        // questionmanager wants the activity record, the course module, and a save() for the
+        // question order it writes back as it links each question in.
+        $object = new class ($record, $cm) {
+            /** @var \stdClass the activity record */
+            public $topomojo;
+            /** @var \stdClass the course module */
+            public $cm;
+
+            /**
+             * Holds the records questionmanager reads the activity out of.
+             *
+             * @param \stdClass $topomojo the activity record
+             * @param \stdClass $cm the course module
+             */
+            public function __construct($topomojo, $cm) {
+                $this->topomojo = $topomojo;
+                $this->cm = $cm;
+            }
+
+            /**
+             * Persists the activity record, as the real class does.
+             *
+             * @return bool
+             */
+            public function save() {
+                global $DB;
+                return $DB->update_record('topomojo', $this->topomojo);
+            }
+        };
+
+        $pagevars = ['pageurl' => new \moodle_url('/mod/topomojo/view.php', ['id' => $cm->id])];
+        $qm = new questionmanager($object, null, $pagevars);
+
+        $qm->process_variant_questions(\context_module::instance($cm->id), $object, 0, $challenge, true);
+
+        return $qm;
+    }
+
+    /**
+     * The hints stored against the only mojomatch question in an activity.
+     *
+     * @param \stdClass $topomojo the activity
+     * @return array hint text, in id order
+     */
+    private function stored_hints($topomojo): array {
+        global $DB;
+
+        $hints = $DB->get_records_sql(
+            "SELECT h.id, h.hint
+               FROM {question_hints} h
+               JOIN {topomojo_questions} tq ON tq.questionid = h.questionid
+              WHERE tq.topomojoid = ?
+           ORDER BY h.id ASC",
+            [$topomojo->id]
+        );
+
+        return array_values(array_map(function ($hint) {
+            return $hint->hint;
+        }, $hints));
+    }
+
+    /**
+     * The hint a challenge question carries is stored as the Moodle question's hint, which is
+     * what a behaviour has to show a student between tries.
+     */
+    public function test_challenge_hint_is_imported() {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+
+        $this->import_challenge($topomojo, $this->make_challenge());
+
+        $this->assertSame(['Try the document root.'], $this->stored_hints($topomojo));
+
+        // And it is on the question definition a behaviour is handed, not just in the table:
+        // apply_hint() reads $question->hints, so a hint that does not survive the load is
+        // one the student can never be shown.
+        $questionid = $DB->get_field('topomojo_questions', 'questionid', ['topomojoid' => $topomojo->id]);
+        $definition = \question_bank::load_question($questionid);
+        $this->assertCount(1, $definition->hints);
+        $this->assertSame('Try the document root.', $definition->hints[0]->hint);
+        $this->resetDebugging();
+    }
+
+    /**
+     * A question with no hint stores no hint row rather than an empty one - an empty hint would
+     * be a blank thing to show the student, which is worse than showing nothing.
+     */
+    public function test_question_without_a_hint_stores_no_hint() {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+
+        $this->import_challenge($topomojo, $this->make_challenge(['hint' => '']));
+
+        $this->assertSame([], $this->stored_hints($topomojo));
+        $this->resetDebugging();
+    }
+
+    /**
+     * A hint edited in TopoMojo reaches an already-imported question.
+     *
+     * The import matches questions on text and answer, so an edit to anything else leaves the
+     * question matching and the add loop skipped: without a resync the stored hint would be
+     * whatever the challenge said the first time it was imported.
+     */
+    public function test_edited_hint_is_resynced_on_reimport() {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+
+        $this->import_challenge($topomojo, $this->make_challenge());
+        $this->assertSame(['Try the document root.'], $this->stored_hints($topomojo));
+
+        // Same text and same answer, so the question itself is reused untouched.
+        $this->import_challenge($topomojo, $this->make_challenge(['hint' => 'Read the nginx config.']));
+
+        $this->assertSame(['Read the nginx config.'], $this->stored_hints($topomojo));
+        $this->resetDebugging();
+    }
+
+    /**
+     * A hint removed in TopoMojo is removed here too. The questions mirror the challenge, so a
+     * hint the author has taken away should not go on being shown.
+     */
+    public function test_removed_hint_is_deleted_on_reimport() {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+
+        $this->import_challenge($topomojo, $this->make_challenge());
+        $this->assertSame(['Try the document root.'], $this->stored_hints($topomojo));
+
+        $this->import_challenge($topomojo, $this->make_challenge(['hint' => '']));
+
+        $this->assertSame([], $this->stored_hints($topomojo));
+        $this->resetDebugging();
+    }
+
+    /**
      * Sanity check: an empty questionorder resolves to zero questions without touching the record.
      */
     public function test_empty_questionorder_resolves_empty() {
