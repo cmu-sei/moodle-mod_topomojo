@@ -347,12 +347,16 @@ class grade {
     /**
      * Save and (re)calculate grades for this lab
      *
+     * Every user's closed attempts, not just the caller's: this runs when an instructor changes
+     * what a question is worth, and it asked getall_attempts() for the logged in user's attempts,
+     * so the regrade reached nobody but the instructor who triggered it.
+     *
      * @param bool $regradeattempts Regrade the question attempts themselves through the question engine
      * @return bool
      */
     public function save_all_grades($regradeattempts = false) {
 
-        $attempts = $this->topomojo->getall_attempts($open = 'closed');
+        $attempts = $this->topomojo->getall_attempts('closed', false, 0, \mod_topomojo\topomojo::ALL_USERS);
 
         foreach ($attempts as $attempt) {
             // If we're regrading attempts, send them off to be re-graded before processing all sessions.
