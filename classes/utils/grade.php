@@ -123,6 +123,15 @@ class grade {
 
         $userattempts = $this->topomojo->getall_attempts('', false, 0, $userid);
 
+        // Oldest attempt first, which is the order apply_grading_method() reads first and last
+        // in. getall_attempts() returns them newest first, so FIRSTATTEMPT was taking the newest
+        // attempt and LASTATTEMPT the oldest. Ordering on the id rather than re-using that
+        // query's timemodified: timemodified moves whenever an attempt is regraded, so it does
+        // not record when the attempt was made.
+        usort($userattempts, function ($a, $b) {
+            return $a->id <=> $b->id;
+        });
+
         foreach ($userattempts as $userattempt) {
             array_push($attemptsgrades, $userattempt->score);
         }
@@ -240,7 +249,11 @@ class grade {
     /**
      * Applies the grading method chosen
      *
-     * @param array $grades The grades for each attempts for a particular user
+     * The grades have to arrive in the order the attempts were made, oldest first: that is all
+     * FIRSTATTEMPT and LASTATTEMPT have to go on, and a caller that hands them over newest first
+     * gets the two exactly the wrong way round.
+     *
+     * @param array $grades The grades for each attempts for a particular user, oldest attempt first
      * @return number
      * @throws \Exception When there is no valid scaletype throws new exception
      */
@@ -249,13 +262,14 @@ class grade {
                   $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
-                // Take the first record (as there should only be one since it was filtered out earlier)
+                // The user's first attempt, which is the first entry because the caller orders
+                // them oldest first.
                 reset($grades);
                 return current($grades);
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT:
-                // Take the last grade (there should only be one, as the last attempt was filtered out earlier)
+                // The user's most recent attempt, which is the last of those entries.
                 return end($grades);
 
                 break;

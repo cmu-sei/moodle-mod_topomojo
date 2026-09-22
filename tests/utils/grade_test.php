@@ -199,6 +199,35 @@ final class grade_test extends \advanced_testcase {
     }
 
     /**
+     * FIRSTATTEMPT has to grade the user's first attempt, and LASTATTEMPT their most recent.
+     *
+     * getall_attempts() returns attempts newest first and apply_grading_method() reads the first
+     * entry for FIRSTATTEMPT and the last for LASTATTEMPT, so the two settings graded each other's
+     * attempt: a lab set to "first attempt" scored whatever the student had most recently done.
+     */
+    public function test_first_and_last_attempt_grade_the_attempt_they_name(): void {
+        [$object, $attempts, $user] = $this->activity_with_scored_attempts(
+            \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT,
+            [25.0, 100.0]
+        );
+
+        // Graded from the newest attempt, to prove the choice is not simply the attempt handed in.
+        (new grade($object))->process_attempt(end($attempts));
+        $this->resetDebugging();
+        $this->assertEquals(25.0, $this->stored_grade($object->topomojo, $user->id));
+
+        [$object, $attempts, $user] = $this->activity_with_scored_attempts(
+            \mod_topomojo\utils\scaletypes::TOPOMOJO_LASTATTEMPT,
+            [25.0, 100.0]
+        );
+
+        // And from the oldest, for the same reason.
+        (new grade($object))->process_attempt(reset($attempts));
+        $this->resetDebugging();
+        $this->assertEquals(100.0, $this->stored_grade($object->topomojo, $user->id));
+    }
+
+    /**
      * Grading somebody else's attempt has to grade them, not whoever is logged in.
      *
      * This is what an instructor overriding a question mark does, and process_attempt() used to
