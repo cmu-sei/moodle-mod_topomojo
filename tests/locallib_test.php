@@ -58,6 +58,7 @@ require_once($CFG->libdir . '/adminlib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_configure_api_client')]
 class locallib_test extends \advanced_testcase {
 
     /**
@@ -475,5 +476,97 @@ class locallib_test extends \advanced_testcase {
             'https://topomojo.example/lp/?c=invite-code',
             build_topomojo_invite_url('', 'invite-code')
         );
+    }
+
+    /**
+     * Read the private options of a \curl instance.
+     *
+     * @param \curl $client Client to inspect.
+     * @return array The cURL options in force.
+     */
+    private function curl_options(\curl $client): array {
+        $options = \Closure::bind(
+            static function (\curl $client): array {
+                return (array) $client->options;
+            },
+            null,
+            \curl::class
+        );
+        return $options($client);
+    }
+
+    /**
+     * The API key must not travel over a connection nobody has authenticated.
+     */
+    public function test_the_api_client_verifies_the_peer_certificate() {
+        $this->resetAfterTest();
+
+        // What \curl hands out by default, and what the helper is for: verification off,
+        // no request timeout at all, and up to ten redirects replaying the headers.
+        $client = new \curl();
+        $this->assertSame(0, $this->curl_options($client)['CURLOPT_SSL_VERIFYPEER']);
+
+        topomojo_configure_api_client($client);
+
+        $options = $this->curl_options($client);
+        $this->assertSame(1, $options['CURLOPT_SSL_VERIFYPEER']);
+        $this->assertSame(2, $options['CURLOPT_SSL_VERIFYHOST']);
+    }
+
+    /**
+     * TopoMojo is called while pages render and from cron, so the calls are bounded.
+     */
+    public function test_the_api_client_requests_are_time_bounded() {
+        $this->resetAfterTest();
+        $client = new \curl();
+
+        $this->assertArrayNotHasKey('CURLOPT_TIMEOUT', $this->curl_options($client));
+
+        topomojo_configure_api_client($client);
+
+        $options = $this->curl_options($client);
+        $this->assertSame(TOPOMOJO_API_CONNECT_TIMEOUT, $options['CURLOPT_CONNECTTIMEOUT']);
+        $this->assertSame(TOPOMOJO_API_TIMEOUT, $options['CURLOPT_TIMEOUT']);
+    }
+
+    /**
+     * A redirect would carry x-api-key to the host that asked for it, because the header
+     * filter core applies on a cross-host redirect only matches Authorization.
+     */
+    public function test_an_api_key_client_does_not_follow_redirects() {
+        $this->resetAfterTest();
+
+        $bearer = topomojo_configure_api_client(new \curl());
+        $this->assertSame(1, $this->curl_options($bearer)['CURLOPT_FOLLOWLOCATION']);
+
+        $apikey = topomojo_configure_api_client(new \curl(), true);
+        $this->assertSame(0, $this->curl_options($apikey)['CURLOPT_FOLLOWLOCATION']);
+    }
+
+    /**
+     * And setup() is where that happens, so no caller has to remember to.
+     */
+    public function test_setup_returns_a_configured_api_key_client() {
+        $this->resetAfterTest();
+        set_config('enableapikey', 1, 'topomojo');
+        set_config('apikey', 'test-api-key-12345', 'topomojo');
+
+        $options = $this->curl_options(setup());
+
+        $this->assertSame(1, $options['CURLOPT_SSL_VERIFYPEER']);
+        $this->assertSame(2, $options['CURLOPT_SSL_VERIFYHOST']);
+        $this->assertSame(TOPOMOJO_API_CONNECT_TIMEOUT, $options['CURLOPT_CONNECTTIMEOUT']);
+        $this->assertSame(TOPOMOJO_API_TIMEOUT, $options['CURLOPT_TIMEOUT']);
+        $this->assertSame(0, $options['CURLOPT_FOLLOWLOCATION']);
+    }
+
+    /**
+     * A failed setup() returns null, and configuring that must not fatal.
+     */
+    public function test_configuring_a_missing_client_is_harmless() {
+        $this->resetAfterTest();
+
+        $this->assertNull(topomojo_configure_api_client(null));
+        $this->assertFalse(topomojo_configure_api_client(false));
     }
 }
