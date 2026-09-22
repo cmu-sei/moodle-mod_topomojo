@@ -50,6 +50,14 @@ class topomojo
 {
 
     /**
+     * Asks getall_attempts() for every user's attempts rather than one user's.
+     *
+     * Zero is safe to use for this: an attempt always belongs to a real user, so no row
+     * carries it as a userid.
+     */
+    const ALL_USERS = 0;
+
+    /**
      * @var \stdClass Contains information about the current event, such as launch point URL, workspace ID, and expiration time
      */
     public $event;
@@ -267,9 +275,11 @@ class topomojo
      * @param string $state The state of the attempts to retrieve. Can be 'open', 'closed', or 'all'. Default is 'all'.
      * @param bool $review Indicates whether review access is permitted. Default is `false`.
      * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
+     * @param int|null $userid Whose attempts to retrieve: a user id, self::ALL_USERS for everyone's,
+     *      or null to keep the $review behaviour of returning the logged in user's own.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts matching the criteria.
      */
-    public function getall_attempts($state = 'all', $review = false, $preview = 0)
+    public function getall_attempts($state = 'all', $review = false, $preview = 0, $userid = null)
     {
         global $DB, $USER;
 
@@ -298,7 +308,15 @@ class topomojo
                 // Add no condition for state when 'all' or something other than open/closed
         }
 
-        if ((!$review) || (!$this->is_instructor())) {
+        if (!is_null($userid)) {
+            // The caller named whose attempts it wants. Grading has to: the user being graded
+            // is not the logged in one when an instructor overrides a mark, when the scheduled
+            // task closes an expired attempt, or when a regrade walks the whole activity.
+            if ($userid !== self::ALL_USERS) {
+                $where[] = 'userid = ?';
+                $sqlparams[] = $userid;
+            }
+        } else if ((!$review) || (!$this->is_instructor())) {
             // Debugging("getall_attempts for user", DEBUG_DEVELOPER);
             $where[] = 'userid = ?';
             $sqlparams[] = $USER->id;
