@@ -39,6 +39,14 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
                 };
             }
 
+            // A gamespace with no expiration time yet leaves view.php handing us 0.
+            // There is no session to time out, and counting down from the epoch is
+            // what makes the timer announce "Your time has expired" over a lab that
+            // is still coming up.
+            if (!endtime) {
+                return;
+            }
+
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -53,6 +61,11 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         countdown: function() {
+
+            if (!endtime) {
+                return;
+            }
+
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var remaining = endtime - timenow;
@@ -84,6 +97,13 @@ define(['jquery', 'core/config', 'core/log'], function($, config, log) {
         },
 
         countup: function() {
+
+            // Same reason as above: with no start time the elapsed display reads as
+            // decades, counted from the epoch.
+            if (!starttime) {
+                return;
+            }
+
             setInterval(function() {
                 var timenow = Math.round(new Date().getTime() / 1000);
                 var running = timenow - starttime;
