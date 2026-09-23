@@ -523,8 +523,7 @@ if ($object->event) {
     }
     $eventid = $object->event->id;
     $starttime = strtotime($object->event->startTime);
-    debugging("expirationTime: " . $object->event->expirationTime, DEBUG_DEVELOPER);
-    $endtime = strtotime(datetime: $object->event->expirationTime);
+    $endtime = strtotime($object->event->expirationTime);
 } else {
     $eventid = null;
     $starttime = null;
