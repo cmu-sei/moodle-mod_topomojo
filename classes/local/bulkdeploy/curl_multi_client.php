@@ -26,6 +26,44 @@ class curl_response {
  */
 class curl_multi_client {
 
+    /** @var int Seconds to wait for TopoMojo to accept the connection. */
+    const CONNECT_TIMEOUT_SECONDS = 5;
+
+    /**
+     * cURL options for one request, so the security-relevant ones can be asserted.
+     *
+     * Every request here carries a credential - the API key or a system bearer token -
+     * in its headers, and this client talks to libcurl directly rather than through
+     * \curl, so none of Moodle's handling applies: verification is set explicitly rather
+     * than left to the libcurl build, and redirects are not followed at all, because
+     * nothing would strip x-api-key from one that crossed hosts.
+     *
+     * @param array $req one request from the list execute() was given.
+     * @return array cURL option constant => value.
+     */
+    public static function request_options(array $req): array {
+        $options = [
+            CURLOPT_URL => $req['url'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => (int) ($req['timeout'] ?? 60),
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_FOLLOWLOCATION => false,
+        ];
+
+        if (!empty($req['headers'])) {
+            $options[CURLOPT_HTTPHEADER] = $req['headers'];
+        }
+
+        if (($req['method'] ?? 'GET') === 'POST') {
+            $options[CURLOPT_POST] = true;
+            $options[CURLOPT_POSTFIELDS] = (string) ($req['body'] ?? '');
+        }
+
+        return $options;
+    }
+
     /**
      * Execute a list of requests concurrently and return their results in
      * the same order.
@@ -45,16 +83,7 @@ class curl_multi_client {
         $handles = [];
         foreach ($requests as $i => $req) {
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $req['url']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, (int) ($req['timeout'] ?? 60));
-            if (!empty($req['headers'])) {
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $req['headers']);
-            }
-            if (($req['method'] ?? 'GET') === 'POST') {
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, (string) ($req['body'] ?? ''));
-            }
+            curl_setopt_array($ch, self::request_options($req));
             curl_multi_add_handle($multi, $ch);
             $handles[$i] = $ch;
         }

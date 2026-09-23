@@ -49,6 +49,12 @@ require_once($CFG->libdir . '/questionlib.php');
 
 define('TOPOMOJO_DEFAULT_EXTEND_INTERVAL', 60);
 
+/** @var int Seconds to wait for the TopoMojo API to accept a connection. */
+define('TOPOMOJO_API_CONNECT_TIMEOUT', 5);
+
+/** @var int Seconds to wait for an ordinary TopoMojo API call; deploys raise this themselves. */
+define('TOPOMOJO_API_TIMEOUT', 15);
+
 /**
  * Returns the configured site maximum for lab extension intervals.
  *
@@ -179,6 +185,50 @@ function topomojo_require_valid_auth_configuration() {
 }
 
 /**
+ * Applies certificate verification and bounded request times to a TopoMojo API client.
+ *
+ * \curl - which \core\oauth2\client also extends - sets CURLOPT_SSL_VERIFYPEER to 0,
+ * so without this the API key or the bearer token goes out over a TLS connection
+ * nobody has authenticated: any host that can answer for the API URL gets the
+ * credential and can return whatever gamespace it likes.
+ *
+ * \curl also has no default CURLOPT_TIMEOUT, only a 30 second connect timeout. TopoMojo
+ * is called while pages render and from cron, so an API that accepts the connection and
+ * then stalls holds a Moodle session lock or the sole cron worker until PHP-FPM gives up.
+ * The one call that legitimately takes minutes, start_event(), raises CURLOPT_TIMEOUT to
+ * the deploytimeout setting itself.
+ *
+ * @param curl|\core\oauth2\client|null $client Client to configure, or null from a failed setup.
+ * @param bool $bearsapikey Whether the client carries the API key in a request header.
+ * @return curl|\core\oauth2\client|null The same client.
+ */
+function topomojo_configure_api_client($client, $bearsapikey = false) {
+    if (!$client) {
+        return $client;
+    }
+
+    $options = [
+        'CURLOPT_SSL_VERIFYPEER' => 1,
+        'CURLOPT_SSL_VERIFYHOST' => 2,
+        'CURLOPT_CONNECTTIMEOUT' => TOPOMOJO_API_CONNECT_TIMEOUT,
+        'CURLOPT_TIMEOUT' => TOPOMOJO_API_TIMEOUT,
+    ];
+
+    if ($bearsapikey) {
+        // Core follows up to ten redirects, and strips the request headers on a
+        // cross-host one only if they are named Authorization (lib/filelib.php). That
+        // filter does not match x-api-key, so a redirect hands the key to whichever host
+        // the response chose. The API has no reason to redirect, so a 3xx is reported to
+        // the caller as a 3xx rather than followed.
+        $options['CURLOPT_FOLLOWLOCATION'] = 0;
+    }
+
+    $client->setopt($options);
+
+    return $client;
+}
+
+/**
  * Sets up and returns a cURL client with the required headers.
  *
  * This function initializes a cURL client and configures it with the necessary headers,
@@ -204,7 +254,7 @@ function setup()
         ];
         $client->setHeader($headers);
 
-        return $client;
+        return topomojo_configure_api_client($client, true);
     } else {
         // Use OAuth2 system client
         if (get_config('topomojo', 'enableoauth')) {
@@ -232,7 +282,7 @@ function setup()
             return null;
         }
 
-        return $client;
+        return topomojo_configure_api_client($client);
     }
 }
 
@@ -1515,7 +1565,9 @@ function topomojo_check_health($client = null, $forcerecheck = false)
     }
 
     if ($client === null) {
-        $client = new curl();
+        // Unauthenticated, but still over TLS this Moodle has verified: an answer from a
+        // host that is not TopoMojo would otherwise report the API as healthy.
+        $client = topomojo_configure_api_client(new curl());
     }
 
     // Make health check request.
