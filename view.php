@@ -527,7 +527,7 @@ if ($object->event) {
     $endtime = strtotime(datetime: $object->event->expirationTime);
 } else {
     $eventid = null;
-    $startime = null;
+    $starttime = null;
     $endtime = null;
 }
 
