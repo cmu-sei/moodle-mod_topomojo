@@ -269,18 +269,6 @@ final class backup_restore_test extends \restore_date_testcase {
     }
 
     /**
-     * Discards the debugging() calls the restore steps emit at DEBUG_DEVELOPER.
-     *
-     * restore_topomojo_activity_structure_step traces its own progress with debugging(), and
-     * advanced_testcase fails a test that leaves debugging messages unasserted. The exact number
-     * varies with the number of questions, so the messages are discarded rather than counted -
-     * they are the plugin's own tracing, not a signal about the behaviour under test.
-     */
-    private function discard_restore_tracing(): void {
-        $this->resetDebugging();
-    }
-
-    /**
      * Every column of the topomojo table is either in the backup structure or on the
      * deliberately-excluded list.
      *
@@ -311,7 +299,6 @@ final class backup_restore_test extends \restore_date_testcase {
         [$course, $original] = $this->create_course_with_configured_topomojo();
 
         $newcourseid = $this->backup_and_restore($course);
-        $this->discard_restore_tracing();
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 
@@ -347,7 +334,6 @@ final class backup_restore_test extends \restore_date_testcase {
         ]);
 
         $newcourseid = $this->backup_and_restore($course);
-        $this->discard_restore_tracing();
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 
@@ -388,7 +374,6 @@ final class backup_restore_test extends \restore_date_testcase {
         $this->assertSame($names, $expectednames, 'Precondition: questions are linked in order.');
 
         $newcourseid = $this->backup_and_restore($course);
-        $this->discard_restore_tracing();
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 
@@ -440,7 +425,6 @@ final class backup_restore_test extends \restore_date_testcase {
         ], 'network diagram');
 
         $newcourseid = $this->backup_and_restore($course);
-        $this->discard_restore_tracing();
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
         $restoredcm = get_coursemodule_from_instance('topomojo', $restored->id, $newcourseid, false, MUST_EXIST);
@@ -477,7 +461,6 @@ final class backup_restore_test extends \restore_date_testcase {
         } catch (\restore_step_exception $e) {
             $this->assertMatchesRegularExpression('/workspace/i', $e->getMessage());
         } finally {
-            $this->discard_restore_tracing();
             // A restore that throws mid-plan never reaches its own cleanup, and the backup_ids_temp
             // table it leaves behind makes the database complain when the process tears down.
             \restore_controller_dbops::drop_restore_temp_tables($backupid);
@@ -521,7 +504,6 @@ final class backup_restore_test extends \restore_date_testcase {
         $this->assertStringNotContainsString('55.00', $activityxml);
 
         $newcourseid = $this->restore_to_new_course($course, 'topomojo-user-data');
-        $this->discard_restore_tracing();
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 

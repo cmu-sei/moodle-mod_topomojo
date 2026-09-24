@@ -66,9 +66,8 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         if ($this->task->get_old_moduleversion() < 2025022800) {
             // no references to restore
         } else {
-            debugging("calling add_question_references", DEBUG_DEVELOPER);
+            $this->log('adding question reference paths', backup::LOG_DEBUG);
             $this->add_question_references($quizquestioninstance, $paths);
-            debugging("calling add_question_set_references", DEBUG_DEVELOPER);
             $this->add_question_set_references($quizquestioninstance, $paths);
         }
 
@@ -150,10 +149,15 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $this->apply_activity_instance($newitemid);
     }
 
+    /**
+     * Required by restore_questions_activity_structure_step, but nothing to do here.
+     *
+     * The quiz records the new usage id on quiz_attempts.uniqueid; topomojo does not restore
+     * attempts, so there is no record to point at the new usage.
+     *
+     * @param int $newusageid
+     */
     protected function inform_new_usage_id($newusageid) {
-        global $DB;
-        debugging("inform_new_usage_id", DEBUG_DEVELOPER);
-        return;
     }
 
     protected function after_execute() {
@@ -164,10 +168,8 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $this->add_related_files('mod_topomojo', 'intro', null);
 
         $module = $DB->get_record('topomojo', ['id' => $this->get_new_parentid('topomojo')]);
-        debugging("questionorder was: $module->questionorder", DEBUG_DEVELOPER);
-
         $module->questionorder = implode(",", $this->questionorder);
-        debugging("questionorder is now: $module->questionorder", DEBUG_DEVELOPER);
+        $this->log('questionorder rebuilt as ' . $module->questionorder, backup::LOG_DEBUG);
 
         $DB->update_record('topomojo', $module);
 
@@ -187,7 +189,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $data->topomojoid = $this->get_new_parentid('topomojo');
 
         $newitemid = $DB->insert_record('topomojo_questions', $data);
-        debugging("added question $newitemid", DEBUG_DEVELOPER);
+        $this->log('added question ' . $newitemid, backup::LOG_DEBUG);
 
         // Add mapping, restore of slot tags (for random questions) need it.
         $this->set_mapping('topomojo_question_instance', $oldid, $newitemid);
@@ -209,7 +211,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
     protected function process_topomojo_question_legacy_instance($data) {
         global $DB;
 
-        debugging("process_topomojo_question_legacy_instance", DEBUG_DVELOPER);
+        $this->log('building legacy question reference for slot ' . $data->id, backup::LOG_DEBUG);
 
         $questionid = $this->get_mappingid('question', $data->questionid);
         $sql = 'SELECT qbe.id as questionbankentryid,
@@ -265,7 +267,6 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
      * @param array $data the data from the XML file.
      */
     public function process_question_reference($data) {
-        debugging("process_question_reference", DEBUG_DEVELOPER);
         global $DB;
         $data = (object) $data;
         $data->usingcontextid = $this->get_mappingid('context', $data->usingcontextid);
