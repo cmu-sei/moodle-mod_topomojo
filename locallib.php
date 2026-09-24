@@ -1743,7 +1743,7 @@ function topomojo_validate_workspace($workspaceid) {
             return false;
         }
 
-        $url = rtrim($apiurl, '/') . '/api/workspace/' . $workspaceid;
+        $url = $apiurl . '/workspace/' . $workspaceid;
         $response = $client->get($url);
 
         if ($client->info['http_code'] === 200) {
