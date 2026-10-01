@@ -29,16 +29,24 @@ jobs:
         run: |
           OLDRELEASE=${{ steps.get_latest.outputs.release }}
           PREVIOUSVERSION=$(grep "plugin->version" version.php | sed -e "s/.*= \(.*\);.*/\1/")
-          if [ $OLDRELEASE -ne $PREVIOUSVERSION ]; then
-              echo "Version already updated in PR"
+          # Only a version ABOVE the latest release counts as already bumped. The
+          # old test was -ne, which also matched a branch cut before the last
+          # release merged: it read "behind main" as "ahead of main", skipped the
+          # bump, and passed green, so the PR shipped under a version sites
+          # already had.
+          if [ "$PREVIOUSVERSION" -gt "$OLDRELEASE" ]; then
+              echo "Version already updated in PR ($PREVIOUSVERSION > released $OLDRELEASE)"
               exit 0
           fi
-          OLDDATE=$(echo $PREVIOUSVERSION | cut -b 1-8)
+          # Count up from the latest release, not from this branch's version:
+          # a stale branch would otherwise bump to a number at or below the
+          # release it is meant to supersede.
+          OLDDATE=$(echo $OLDRELEASE | cut -b 1-8)
           NEWDATE=$(date +%Y%m%d)
           if [ $OLDDATE -ne $NEWDATE ]; then
               NEWVERSION=$NEWDATE\00
           else
-              OLDVERS=$(echo $PREVIOUSVERSION | cut -b 9-10)
+              OLDVERS=$(echo $OLDRELEASE | cut -b 9-10)
               OLDVERS=${OLDVERS#0}
               let NEWVERS=(OLDVERS + 1)
               NEWVERSION=$OLDDATE$(printf %02d $NEWVERS)
