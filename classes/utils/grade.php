@@ -90,7 +90,6 @@ class grade {
             array_push($grades, $rec->grade);
         }
         // User should only have one grade entry in the topomojo grades table for each activity
-        debugging("user $userid has " . count($grades) . " grades for $topomojo->id", DEBUG_DEVELOPER);
         return $grades;
     }
 
@@ -141,14 +140,11 @@ class grade {
             // a preview attempt, which getall_attempts() excludes. Writing the grading method's
             // answer for an empty list - false, or a division by zero for the average - over a
             // grade the user had already earned is the one thing that must not happen here.
-            debugging("no attempts for user $userid in topomojo " . $this->topomojo->topomojo->id .
-                ", leaving the stored grade alone", DEBUG_DEVELOPER);
             return false;
         }
 
         $grade = $this->apply_grading_method($attemptsgrades);
         $grades[$userid] = $grade;
-        debugging("new grade for $userid in topomojo " . $this->topomojo->topomojo->id . " is $grade", DEBUG_DEVELOPER);
 
         // Run the whole thing on a transaction (persisting to our table and gradebook updates).
         $transaction = $DB->start_delegated_transaction();
@@ -201,7 +197,6 @@ class grade {
         // the question usage null in that case, so there is nothing to total up and no meaningful
         // fraction to scale. Renderer already handles this state via the 'nochallenge' notice.
         if (!$quba || !$slots) {
-            debugging("attempt $attempt->id has no question usage; nothing to grade", DEBUG_DEVELOPER);
             return 0;
         }
 
@@ -223,8 +218,6 @@ class grade {
 
         $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
-        debugging("$scaledpoints = ($totalslotpoints / $totalpoints) * " . $this->topomojo->topomojo->grade, DEBUG_DEVELOPER);
-        debugging("new score for $attempt->id is $scaledpoints", DEBUG_DEVELOPER);
 
         $attempt->score = $scaledpoints;
         $attempt->save();
@@ -258,8 +251,6 @@ class grade {
      * @throws \Exception When there is no valid scaletype throws new exception
      */
     protected function apply_grading_method($grades) {
-        debugging("grade method is " . $this->topomojo->topomojo->grademethod . " for " .
-                  $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         switch ($this->topomojo->topomojo->grademethod) {
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_FIRSTATTEMPT:
                 // The user's first attempt, which is the first entry because the caller orders
@@ -336,7 +327,6 @@ class grade {
                 }
 
             }
-            debugging("persisted $grade for $userid in topomojo " . $this->topomojo->topomojo->id, DEBUG_DEVELOPER);
         }
 
         return true;

@@ -15,6 +15,7 @@ This directory contains PHPUnit tests for the mod_topomojo plugin, following Moo
 - **utils/grade_test.php** - Tests for grading attempts that carry no questions
 - **local/bulkdeploy/** - Tests for the bulk deploy job, launcher and repositories
 - **generator/lib.php** - Data generator for creating test instances
+- **behat/smoke.feature** - Behat smoke test for the pages that render without the TopoMojo API (the lab directory, course index, Manage Deployments and the settings page); runs in CI
 
 ## Prerequisites
 

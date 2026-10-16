@@ -310,7 +310,6 @@ function topomojo_delete_references($topomojoid): void {
     $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
     $context = context_module::instance($cm->id);
 
-    debugging("topomojo_delete_references usingcontextid $context->id", DEBUG_DEVELOPER);
 
     $conditions = [
         'usingcontextid' => $context->id,
@@ -734,7 +733,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
                 if (!$keep) {
                     $workspace_changed = ($options->workspaceid !== $topomojo->workspaceid);
                     $reason = $workspace_changed ? "different workspace" : "different variant";
-                    debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
 
                     // Unlink from activity
                     $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
@@ -742,7 +740,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
 
                     // If workspace changed, delete from question bank entirely
                     if ($workspace_changed) {
-                        debugging("Deleting question from question bank: {$question->name}", DEBUG_DEVELOPER);
                         question_delete_question($question->id);
                     }
                 }
@@ -771,10 +768,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
 
     $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
     $DB->update_record('topomojo', $topomojo);
-
-    if (!empty($deleted_ids)) {
-        debugging("Cleaned up " . count($deleted_ids) . " mismatched questions", DEBUG_DEVELOPER);
-    }
 
     return $deleted_ids;
 }
@@ -825,13 +818,10 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
         if ($topomojo->variant == 0) {
             // Random mode - import ALL variants but DON'T link to activity (addtoquiz=false)
             // Questions will be linked per-student during deployment
-            debugging("Random mode: importing all variants (not linking to activity)", DEBUG_DEVELOPER);
 
             // Clean up previously linked questions (only if no attempts exist)
             $hasattempts = topomojo_has_attempts($topomojo->id);
-            if ($hasattempts) {
-                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
-            } else {
+            if (!$hasattempts) {
                 // Remove any previously linked questions imported from THIS workspace
                 // Query database directly since questionmanager might have stale data
                 $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
@@ -842,7 +832,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                     // Check if this question was imported from this workspace
                     $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
                     if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                        debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
                         $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
                         $deleted_ids[] = $tq_record->id;
                     }
@@ -860,9 +849,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                     $order_array = array_intersect($order_array, array_map('strval', $valid_ids));
                     $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
                     $DB->update_record('topomojo', $topomojo);
-                    debugging("Cleaned questionorder for random mode", DEBUG_DEVELOPER);
-                } elseif (!empty($deleted_ids)) {
-                    debugging("Removed TopoMojo questions but questionorder was already empty", DEBUG_DEVELOPER);
                 }
             }
 
@@ -881,8 +867,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                 topomojo_cleanup_questions($topomojo, $topomojo->variant);
                 // Refresh topomojoobj with cleaned questionorder
                 $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
-            } else {
-                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
             }
 
             $addtoquiz = true;
@@ -891,7 +875,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
         }
 
-        debugging("Auto-imported questions for activity {$topomojo->id}", DEBUG_DEVELOPER);
 
     } catch (Exception $e) {
         debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);

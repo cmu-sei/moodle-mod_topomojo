@@ -115,7 +115,7 @@ final class grade_test extends \advanced_testcase {
             $DB->get_record('topomojo_attempts', ['id' => $row->id])
         );
 
-        // Loading an attempt emits developer-level tracing that would otherwise fail the test.
+        // Loading an attempt no longer traces; this only clears fault-path debugging() from the fixture.
         $this->resetDebugging();
 
         return [$object, $attempt];
@@ -280,8 +280,8 @@ final class grade_test extends \advanced_testcase {
         $DB->set_field('topomojo_attempts', 'preview', 1, ['id' => $attempt->id]);
 
         $this->assertFalse((new grade($object))->process_attempt($attempt));
-        // Not assertDebuggingCalled(): loading an attempt traces at developer level too, so the
-        // one message that matters is not the only one waiting.
+        // process_attempt() returns false without a debugging() message; the reset only clears
+        // fault-path output from loading the attempt.
         $this->resetDebugging();
         $kept = $this->stored_grade($object->topomojo, $user->id);
         $this->assertEquals(70.0, $kept, 'the grade the user had earned should still be there');
@@ -319,7 +319,7 @@ final class grade_test extends \advanced_testcase {
         foreach ($grades as $awarded) {
             $this->assertEquals(0, $awarded);
         }
-        // topomojo_attempt traces every construction and save at DEBUG_DEVELOPER.
+        // Constructing and saving an attempt no longer traces; this only clears fault-path debugging().
         $this->resetDebugging();
     }
 }

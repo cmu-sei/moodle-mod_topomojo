@@ -242,7 +242,7 @@ class topomojo
     /**
      * Retrieves the currently open attempt.
      *
-     * This function checks for attempts with the state 'open'. It logs debug messages if there are multiple or no open attempts.
+     * This function checks for attempts with the state 'open'. It logs a debug message if there are multiple open attempts.
      * If exactly one open attempt is found, it sets this attempt as the current open attempt and returns `true`.
      * If no open attempts are found or if there is more than one open attempt, it returns `false`.
      *
@@ -255,10 +255,8 @@ class topomojo
             debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
             return false;
         } else if (count($attempts) == 0) {
-            debugging("could not find an open attempt", DEBUG_DEVELOPER);
             return false;
         }
-        debugging("open attempt found", DEBUG_DEVELOPER);
 
         // Get the first (and only) value in the array
         $this->openAttempt = reset($attempts);
@@ -432,19 +430,16 @@ class topomojo
         );
 
         if ($exists) {
-            debugging("Questions for variant $variant already exist", DEBUG_DEVELOPER);
             return;
         }
 
         // Questions missing - import them now
-        debugging("Questions for variant $variant missing, importing from TopoMojo", DEBUG_DEVELOPER);
 
         require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
         $auth = setup();
         $challenge = get_challenge($auth, $this->topomojo->workspaceid);
 
         if (!$challenge || !isset($challenge->variants[$variant - 1])) {
-            debugging("Cannot import variant $variant - not found in TopoMojo challenge", DEBUG_DEVELOPER);
             return;
         }
 
@@ -460,25 +455,20 @@ class topomojo
         $variant_index = $variant - 1; // Convert to 0-based for array access
         $questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
 
-        debugging("Successfully imported variant $variant questions", DEBUG_DEVELOPER);
     }
 
     public function init_attempt($preview = 0)
     {
         global $DB, $USER;
 
-        debugging("init_attempt called with preview=$preview", DEBUG_DEVELOPER);
 
         $attempt = $this->get_open_attempt($preview);
         if ($attempt === true) {
-            debugging("init_attempt found " . $this->openAttempt->id . " with preview=" . $this->openAttempt->preview, DEBUG_DEVELOPER);
             return true;
         }
-        debugging("init_attempt could not find attempt by calling get_open_attempt, creating new attempt with preview=$preview", DEBUG_DEVELOPER);
 
         // Determine which variant TopoMojo deployed (converts from 0-based to 1-based)
         $deployed_variant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
-        debugging("TopoMojo deployed variant $deployed_variant", DEBUG_DEVELOPER);
 
         // Check if questions exist for this variant, import if missing
         $this->ensure_variant_questions_exist($deployed_variant);
@@ -498,14 +488,9 @@ class topomojo
         $attempt->eventid = $this->event->id;
         $attempt->preview = $preview;
         $attempt->variant = $deployed_variant;
-        debugging("endtime for new attempt set to " . $attempt->endtime, DEBUG_DEVELOPER);
-        if ($preview) {
-            debugging("This is a PREVIEW attempt", DEBUG_DEVELOPER);
-        }
 
         if ($attempt->save()) {
             $this->openAttempt = $attempt;
-            debugging("saved attempt", DEBUG_DEVELOPER);
         } else {
             debugging("could not save new attempt", DEBUG_DEVELOPER);
             return false;

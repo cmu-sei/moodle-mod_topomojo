@@ -230,7 +230,6 @@ if (!$activeattempt) {
     $bulkdeployrow = reset($bulkdeployrows);
 
     if ($bulkdeployrow) {
-        debugging("view.php: Found bulk deploy row, gamespaceid=" . $bulkdeployrow->gamespaceid, DEBUG_DEVELOPER);
         // Check if there's an attempt for this specific gamespace
         $existingattempt = $DB->get_record_sql(
             "SELECT * FROM {topomojo_attempts}
@@ -399,7 +398,6 @@ if (!$object->event &&
 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    debugging("start request received", DEBUG_DEVELOPER);
 
     // Get preview mode from POST
     $ispreview = $isinstructor ? optional_param('preview', 0, PARAM_BOOL) : 0;
@@ -428,11 +426,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
 
         if ($object->event) {
             // If the event is created successfully, proceed
-            debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $eventid = $object->event->id;
             $activeattempt = $object->init_attempt($ispreview);
 
-            debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
 
             if (!$activeattempt) {
                 debugging("init_attempt failed");
@@ -444,7 +440,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
         } else {
             // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT)
             if ($object->userauth->errno == 28) {
-                debugging("start_event timed out, deployment may still be in progress", DEBUG_DEVELOPER);
                 // Skip markdown fetch - curl client is in bad state after timeout
                 $renderer->display_timeout($topomojo, '', null);
                 echo $renderer->footer();
@@ -455,12 +450,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");
         }
 
-        debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
-    } else {
-        debugging("event and active attempt already exist", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop_confirmed']) && $_POST['stop_confirmed'] === "yes") {
-    debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
             if ($activeattempt) {
@@ -474,8 +465,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 // real grades. challenge.php does the same after its stop branch.
                 $grader = new \mod_topomojo\utils\grade($object);
                 $grader->process_attempt($object->openAttempt);
-            } else {
-                debugging('ending live gamespace with no open question attempt', DEBUG_DEVELOPER);
             }
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
@@ -507,8 +496,6 @@ if ($object->event) {
             // Recover only events created before Moodle could save their first attempt.
             debugging("active event has no Moodle attempt; creating recovery attempt", DEBUG_DEVELOPER);
             $activeattempt = $object->init_attempt($ispreview);
-        } else {
-            debugging("active event has no open question attempt", DEBUG_DEVELOPER);
         }
     }
     // Check age and get new link, checking for 30 minute timeout of the url
@@ -516,7 +503,6 @@ if ($object->event) {
         ($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
         ((time() - $object->openAttempt->timemodified) > 3600)
     ) {
-        debugging("getting new launchpointurl", DEBUG_DEVELOPER);
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
         $object->openAttempt->save();
@@ -576,7 +562,6 @@ if ($object->event) {
 
         if ($eventage < $launchingtimeout) {
             // Still launching - poll through Moodle until TopoMojo reports VMs.
-            debugging("VMs not ready yet, event age: {$eventage}s", DEBUG_DEVELOPER);
 
             $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
             $markdowncutline = "<!-- cut -->";
