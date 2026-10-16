@@ -178,7 +178,6 @@ class questionmanager {
             }
         }
 
-        debugging("Loaded " . count($questions) . " questions for variant $variant", DEBUG_DEVELOPER);
         return $questions;
     }
 
@@ -272,7 +271,6 @@ class questionmanager {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-            debugging("Question with ID $questionid is already present", DEBUG_DEVELOPER);
 
             // Even if already present, ensure it's in questionorder
             $tq_record = $DB->get_record('topomojo_questions', [
@@ -357,7 +355,6 @@ class questionmanager {
                 $questionreferences->version = null;
             } else {
                 $questionreferences->version = $version;
-                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
             }
 
             $DB->insert_record('question_references', $questionreferences);
@@ -385,14 +382,12 @@ class questionmanager {
                 $questionreferences->version = null;
             } else {
                 $questionreferences->version = $version;
-                debugging("Pinned question $questionid to version $version", DEBUG_DEVELOPER);
             }
 
             $DB->insert_record('question_references', $questionreferences);
         }
 
         // If we get here return true
-        debugging("Success: Question ID $questionid added to TopoMojo $question->topomojoid", DEBUG_DEVELOPER);
         return true;
     }
 
@@ -530,7 +525,6 @@ class questionmanager {
             //$variant = 1;
             $event = get_event($this->gettopomojo()->userauth, $gamespaceid);
             $variant = $event->variant;
-            debugging("this event has variant $variant", DEBUG_DEVELOPER);
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
         if (!isset($challenge->challenge->sections)) {
                 debugging("no sections set!", DEBUG_DEVELOPER);
@@ -539,7 +533,6 @@ class questionmanager {
         foreach ($challenge->challenge->sections as $section) {
             foreach ($section->questions as $question) {
                     $questionid = 0;
-                    debugging("checking for question with variant $variant", DEBUG_DEVELOPER);
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, [$question->text]);
                 if (count($records)) {
@@ -548,11 +541,8 @@ class questionmanager {
                             $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $record->id]);
                         if ($options) {
                             if ($variant == $options->variant) {
-                                debugging("question exists for variant " . $options->variant, DEBUG_DEVELOPER);
                                 $questionid = $record->id;
                                 break;
-                            } else {
-                                debugging("event $variant not a match to question variant $record->variant", DEBUG_DEVELOPER);
                             }
                         } else {
                             debugging("no options found for question", DEBUG_DEVELOPER);
@@ -561,7 +551,6 @@ class questionmanager {
                 }
 
                 if ($questionid) {
-                    debugging("question found with id $questionid", DEBUG_DEVELOPER);
                         //$table = 'question_attempts';
                         //$questionusageid = $quba->get_id();
                         //$dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
@@ -571,8 +560,6 @@ class questionmanager {
                         //  update quba with the correct answer
                         //$DB->update_record($table, $dataobject);
 
-                } else {
-                    debugging("question was not found on moodle", DEBUG_DEVELOPER);
                 }
             }
         }
@@ -592,10 +579,8 @@ class questionmanager {
         // Get questions for this variant (or all if no variant specified)
         if ($variant !== null) {
             $variant_questions = $this->get_questions_for_variant($variant);
-            debugging("Adding " . count($variant_questions) . " questions for variant $variant to quba", DEBUG_DEVELOPER);
         } else {
             $variant_questions = $this->get_questions();
-            debugging("Adding " . count($variant_questions) . " questions (all variants) to quba", DEBUG_DEVELOPER);
         }
 
         // Extract question IDs
@@ -608,7 +593,6 @@ class questionmanager {
         }
 
         if (empty($questionids)) {
-            debugging("No questions to add to quba", DEBUG_DEVELOPER);
             return [];
         }
 
@@ -890,7 +874,6 @@ class questionmanager {
             if ($new_order !== $this->object->topomojo->questionorder) {
                 $this->object->topomojo->questionorder = $new_order;
                 $DB->update_record('topomojo', $this->object->topomojo);
-                debugging("Cleaned stale IDs from questionorder", DEBUG_DEVELOPER);
             }
         }
 
@@ -914,7 +897,6 @@ class questionmanager {
 
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
-                debugging("Updating questionbankorder to have question with ID {$questionid} and text: " . $questions[$questionid]->questiontext, DEBUG_DEVELOPER);
 
                 // Create topomojo question and add it to the array if questiontext is not null
                 $topomojoquestion = new \mod_topomojo\topomojo_question(
@@ -960,18 +942,15 @@ class questionmanager {
         $attempts = $this->object->getall_attempts('all', false, 0, \mod_topomojo\topomojo::ALL_USERS);
 
         foreach ($attempts as $attempt) {
+            // An attempt that does not hold this question: another variant of the lab, or one
+            // that carried no questions at all. Skipped rather than thrown, which used to
+            // abandon the regrade partway - every attempt before it in the list had already
+            // been saved - and left the activity with two different maximums for one question.
             if ($slot = $attempt->get_question_slot($q)) {
                 $quba = $attempt->get_quba();
                 $quba->set_max_mark($slot, $newpoints);
                 $quba->regrade_question($slot, false, $newpoints);
                 $attempt->save();
-            } else {
-                // An attempt that does not hold this question: another variant of the lab, or one
-                // that carried no questions at all. Skipped rather than thrown, which used to
-                // abandon the regrade partway - every attempt before it in the list had already
-                // been saved - and left the activity with two different maximums for one question.
-                debugging("attempt " . $attempt->id . " has no slot for question " . $questionrecord->id .
-                    ", not regrading it", DEBUG_DEVELOPER);
             }
         }
 
@@ -1094,7 +1073,6 @@ class questionmanager {
         }
 
         if ($changed) {
-            debugging("synced hints for question $questionid from the challenge", DEBUG_DEVELOPER);
             // The question definition is cached with its hints on it, so a reader that has
             // already loaded this question would otherwise keep serving the old hint.
             \question_bank::notify_question_edited($questionid);
@@ -1131,7 +1109,6 @@ class questionmanager {
 
         // Check if variant exists
         if (!isset($challenge->variants[$variant])) {
-            debugging("Variant $variant does not exist in challenge (has " . count($challenge->variants) . " variants)", DEBUG_DEVELOPER);
             return; // No questions to import
         }
 
@@ -1159,7 +1136,6 @@ class questionmanager {
             // Check if question text exists in TopoMojo
             if (!in_array($cleantext, $expected_questiontexts)) {
                 $mismatched_questions[] = $q->name;
-                debugging("Deleting question '{$q->name}' (not part of current challenge)", DEBUG_DEVELOPER);
                 $this->delete_question($tq->getId());
                 question_delete_question($questionid);
                 continue;
@@ -1185,7 +1161,6 @@ class questionmanager {
                 if (trim($storedanswer) !== $expected_answer) {
                     $mismatched_questions[] = $q->name;
                     $deleted_questiontexts[] = $cleantext;
-                    debugging("Deleting question '{$q->name}' (answer mismatch)", DEBUG_DEVELOPER);
                     $this->delete_question($tq->getId());
                     question_delete_question($questionid);
                     continue;
@@ -1210,7 +1185,6 @@ class questionmanager {
             foreach ($challenge->variants[$variant]->sections as $section) {
                 $count = count($section->questions);
                 $variant_display = $variant + 1; // Convert to 1-based for display (matches TopoMojo UI)
-                debugging("Found $count question(s) for Variant $variant_display on TopoMojo server", DEBUG_DEVELOPER);
 
                 foreach ($section->questions as $question) {
                     $questionnumber++;
@@ -1259,7 +1233,6 @@ class questionmanager {
 
                     // Create a new question if it doesn't exist
                     if (!$qexists) {
-                        debugging("Adding a new mojomatch question to database", DEBUG_DEVELOPER);
 
                         $form = new stdClass();
                         if ($question->grader == 'matchAll') {
@@ -1348,7 +1321,6 @@ class questionmanager {
                         $saq->save_defaults_for_new_questions($form);
                         $newq = $saq->save_question($q, $form);
                         $questionid = $newq->id;
-                        debugging("Added new question $questionid to the database", DEBUG_DEVELOPER);
                     }
 
                     if ($questionid && $addtoquiz) {

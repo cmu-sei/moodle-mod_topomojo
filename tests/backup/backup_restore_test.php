@@ -367,7 +367,8 @@ final class backup_restore_test extends \restore_date_testcase {
                 ['category' => $category->id, 'name' => $name]);
             $this->assertTrue($questionmanager->add_question($question->id));
         }
-        // add_question() traces every insert with debugging(); that is not what is under test here.
+        // add_question() no longer traces inserts; this only clears fault-path debugging(), which is
+        // not what is under test here.
         $this->resetDebugging();
 
         $expectednames = $this->question_names_in_order($topomojo->id);

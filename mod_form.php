@@ -263,7 +263,6 @@ class mod_topomojo_mod_form extends moodleform_mod
                 $mform->addElement('select', 'workspaceid', get_string('workspace', 'topomojo'), $labs);
             }
         } else {
-            debugging('need to manually select id', DEBUG_DEVELOPER);
             $mform->addElement('text', 'workspaceid', get_string('workspace', 'topomojo'));
             $mform->setType('workspaceid', PARAM_ALPHANUMEXT);
         }
@@ -820,7 +819,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                 debugging("Workspace has no variants - switching to variant 1", DEBUG_DEVELOPER);
                 $data->variant = 1;
             } else if ((($variants == 0) && ($data->variant == 1))) {
-                debugging("no variants configured in workspace challenge - using variant 1", DEBUG_DEVELOPER);
+                // No variants configured in the workspace challenge: variant 1 stands.
             } else if ($data->variant > $variants) {
                 // Auto-switch to highest available variant
                 debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);

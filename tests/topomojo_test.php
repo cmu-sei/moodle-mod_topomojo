@@ -285,7 +285,7 @@ class topomojo_test extends \advanced_testcase {
         $this->assertIsArray($attempts);
         $this->assertCount(1, $attempts);
         $this->assertInstanceOf(topomojo_attempt::class, $attempts[0]);
-        // topomojo_attempt traces every construction at DEBUG_DEVELOPER.
+        // Loading attempts no longer traces; this only clears fault-path debugging() from the fixture.
         $this->resetDebugging();
     }
 
@@ -317,7 +317,7 @@ class topomojo_test extends \advanced_testcase {
         $this->assertIsArray($attempts);
         $this->assertCount(1, $attempts);
         $this->assertInstanceOf(topomojo_attempt::class, $attempts[0]);
-        // topomojo_attempt traces every construction at DEBUG_DEVELOPER.
+        // Loading attempts no longer traces; this only clears fault-path debugging() from the fixture.
         $this->resetDebugging();
     }
 

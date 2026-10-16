@@ -492,7 +492,7 @@ class lib_test extends \advanced_testcase {
 
         // Verify it's deleted.
         $this->assertFalse($DB->record_exists('topomojo', ['id' => $topomojo->id]));
-        // Deletion traces its context id at DEBUG_DEVELOPER; nothing here asserts on it.
+        // Deletion no longer traces; this only clears fault-path debugging(), which nothing here asserts on.
         $this->resetDebugging();
     }
 
