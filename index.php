@@ -108,7 +108,7 @@ foreach ($topomojos as $topomojo) {
         $printsection = '<span class="smallinfo">'.userdate($topomojo->timemodified)."</span>";
     }
 
-    $extra = empty($cm->extra) ? '' : $cm->extra;
+    $extra = empty($cm->onclick) ? '' : 'onclick="' . s($cm->onclick) . '"';
     $icon = '';
     if (!empty($cm->icon)) {
         // Each topomojo has an icon in 2.0
