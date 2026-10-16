@@ -570,6 +570,69 @@ function get_workspace($client, $id)
 }
 
 /**
+ * Asks TopoMojo how many more gamespaces of a workspace fit in free hypervisor memory.
+ *
+ * Advisory only: TopoMojo reserves nothing, and other workloads on the same hypervisor can
+ * take the room before anyone launches. Any failure returns null so the caller can leave
+ * the estimate off the page; a TopoMojo without the capacity endpoint answers 404.
+ *
+ * @param curl $client An instance of the curl class used for making HTTP requests.
+ * @param string $id The workspace id.
+ * @param int $count The number of launches the instructor still expects.
+ *
+ * @return stdClass|null The capacity estimate, or null when it could not be fetched.
+ */
+function topomojo_get_capacity($client, $id, $count) {
+    if ($client == null || empty($id)) {
+        return null;
+    }
+
+    $url = get_topomojo_api_url() . "/workspace/" . rawurlencode($id) . "/capacity?count=" . max(1, (int) $count);
+
+    // The activity page waits on this, so give up quickly rather than hold it. curl keeps
+    // per-request options for later requests, so the short timeout goes on a copy; on the
+    // shared client it would also cut short the launch that follows on the same page.
+    $client = clone $client;
+    $response = $client->get($url, null, ['CURLOPT_TIMEOUT' => 5, 'CURLOPT_CONNECTTIMEOUT' => 3]);
+
+    if (($client->info['http_code'] ?? 0) !== 200 || !$response) {
+        debugging('response code ' . ($client->info['http_code'] ?? 0) . " for $url", DEBUG_DEVELOPER);
+        return null;
+    }
+
+    $r = json_decode($response);
+
+    return is_object($r) ? $r : null;
+}
+
+/**
+ * Counts the students who could still launch this activity: enrolled users who can view it,
+ * minus instructors and anyone with a gamespace already running from a regular attempt.
+ *
+ * @param stdClass $topomojo The activity instance.
+ * @param context_module $context The activity context.
+ *
+ * @return int The number of launches still to come.
+ */
+function topomojo_count_pending_launches($topomojo, $context) {
+    global $DB;
+
+    $students = get_enrolled_users($context, 'mod/topomojo:view', 0, 'u.id', null, 0, 0, true);
+    $instructors = get_users_by_capability($context, 'mod/topomojo:manage', 'u.id');
+
+    $launched = $DB->get_fieldset_select(
+        'topomojo_attempts',
+        'DISTINCT userid',
+        'topomojoid = :topomojoid AND state = :state AND preview = 0',
+        ['topomojoid' => $topomojo->id, 'state' => \mod_topomojo\topomojo_attempt::INPROGRESS]
+    );
+
+    $pending = array_diff_key($students, $instructors, array_flip($launched));
+
+    return count($pending);
+}
+
+/**
  * Retrieves a list of workspaces from the TopoMojo API.
  *
  * This function sends a request to the TopoMojo API to get details about all workspaces. It handles

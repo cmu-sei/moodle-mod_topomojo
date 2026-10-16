@@ -149,6 +149,55 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
     }
 
+    /**
+     * Shows instructors an advisory estimate of how many more labs the hypervisor has room for.
+     *
+     * @param stdClass $capacity The response from the TopoMojo capacity endpoint.
+     * @param int $pending Students who have not launched yet.
+     */
+    public function display_capacity($capacity, $pending) {
+        // A workspace with no vms is not limited by anything, so there is nothing to say.
+        if (!isset($capacity->fits)) {
+            return;
+        }
+
+        $a = (object) ['fits' => (int) $capacity->fits, 'pending' => (int) $pending];
+
+        // No one waiting covers both a class that has all launched and one with no students yet.
+        if ($a->pending == 0 && $a->fits > 0) {
+            $key = 'capacity_nopending';
+            $level = \core\output\notification::NOTIFY_INFO;
+        } else if ($a->pending == 0) {
+            $key = 'capacity_none';
+            $level = \core\output\notification::NOTIFY_WARNING;
+        } else if ($a->fits >= $a->pending) {
+            $key = 'capacity_enough';
+            $level = \core\output\notification::NOTIFY_SUCCESS;
+        } else if ($a->fits > 0) {
+            $key = 'capacity_short';
+            $level = \core\output\notification::NOTIFY_WARNING;
+        } else {
+            $key = 'capacity_none';
+            $level = \core\output\notification::NOTIFY_ERROR;
+        }
+
+        $message = get_string($key, 'mod_topomojo', $a);
+
+        if (($capacity->limitedBy ?? null) === 'pool') {
+            $message .= ' ' . get_string('capacity_limit_pool', 'mod_topomojo');
+        } else if (($capacity->limitedBy ?? null) === 'memory') {
+            $message .= ' ' . get_string('capacity_limit_memory', 'mod_topomojo');
+        }
+
+        $asof = strtotime($capacity->asOf ?? '');
+        if ($asof) {
+            $time = userdate($asof, get_string('strftimetime', 'langconfig') . ' %Z');
+            $message .= ' ' . get_string('capacity_asof', 'mod_topomojo', $time);
+        }
+
+        echo $this->output->notification(s($message), $level, false);
+    }
+
     public function display_detail_max_gamespaces($topomojo, $markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);

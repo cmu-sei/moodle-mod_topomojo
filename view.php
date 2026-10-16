@@ -211,6 +211,15 @@ if ($haspreviewattempt) {
     echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
 }
 
+// Advisory: tell instructors whether the hypervisor has room for the students still to launch.
+if ($isinstructor) {
+    $pending = topomojo_count_pending_launches($topomojo, $context);
+    $capacity = topomojo_get_capacity($object->userauth, $topomojo->workspaceid, $pending);
+    if ($capacity) {
+        $renderer->display_capacity($capacity, $pending);
+    }
+}
+
 // Check for bulk-deployed attempt if no active attempt found
 $has_predeployed = false;
 if (!$activeattempt) {
