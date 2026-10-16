@@ -4,8 +4,9 @@ Feature: TopoMojo pages that render without the TopoMojo API
   As a teacher, a student and an administrator
   I need the lab directory, the course index, Manage Deployments and the plugin settings to work
 
-  # The view page and the activity form both call the TopoMojo API while they render, and
-  # report the unconfigured API through debugging(), so they are not covered here.
+  # The view page, and the activity form in the Dropdown and Searchable workspace selection
+  # modes, call the TopoMojo API while they render and report the unconfigured API through
+  # debugging(), so they are not covered here.
 
   Background:
     Given the following "users" exist:
@@ -36,6 +37,20 @@ Feature: TopoMojo pages that render without the TopoMojo API
     And I click on ".lab-clear" "css_element"
     And I should see "Alpha lab"
     And I should see "Bravo lab"
+
+  Scenario: The activity form in Manual mode saves the entered name and workspace id
+    Given the following config values are set as admin:
+      | autocomplete | 2 | topomojo |
+    And I log in as "teacher1"
+    And I add a "topomojo" activity to course "Course 1" section "1"
+    And I should see "New TopoMojo"
+    And "input[name='workspaceid'][type='text']" "css_element" should exist
+    When I set the following fields to these values:
+      | name        | Charlie lab        |
+      | workspaceid | behat-workspace-01 |
+    And I press "Save and return to course"
+    Then I should see "Charlie lab"
+    And I should not see "Unknown Lab"
 
   Scenario: The course index lists the TopoMojo activities
     When I am on the "C1" "mod_topomojo > Index" page logged in as "student1"
