@@ -57,10 +57,10 @@ class mod_topomojo_generator extends testing_module_generator {
      * Creates a new instance of mod_topomojo.
      *
      * @param array|stdClass $record Record of properties for the new instance.
-     * @param array $options General options for the module.
+     * @param array|null $options General options for the module.
      * @return stdClass The created instance.
      */
-    public function create_instance($record = null, array $options = null) {
+    public function create_instance($record = null, ?array $options = null) {
         global $CFG;
         require_once($CFG->dirroot . '/mod/topomojo/lib.php');
 
