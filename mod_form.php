@@ -825,8 +825,8 @@ class mod_topomojo_mod_form extends moodleform_mod
                 debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);
                 $data->variant = $variants;
             }
-        } else {
-            debugging('name of lab is unknown', DEBUG_DEVELOPER);
+        } else if (trim($data->name ?? '') === '') {
+            // No workspace list to seed the name from (Manual mode, or the list fetch failed).
             $data->name = "Unknown Lab";
         }
 
