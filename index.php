@@ -119,7 +119,7 @@ foreach ($topomojos as $topomojo) {
     $table->data[] = [
         $printsection,
         "<a $class $extra href=\"view.php?id=$cm->id\">".$icon.format_string($topomojo->name)."</a>",
-        format_module_intro('conole', $topomojo, $cm->id)];
+        format_module_intro('topomojo', $topomojo, $cm->id)];
 }
 
 echo html_writer::table($table);
