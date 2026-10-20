@@ -365,11 +365,14 @@ class provider_test extends \core_privacy\tests\provider_testcase {
 
         [$jobid, $rowid] = $this->create_bulkdeploy($this->topomojo1, $this->student1->id, $this->student1->id);
 
+        // The ready row's gamespace is live; with no API configured ending it is logged twice
+        // (setup() and the helper) and the rows still go.
         provider::delete_data_for_user(new approved_contextlist(
             $this->student1,
             'mod_topomojo',
             [$this->context_for($this->topomojo1)->id]
         ));
+        $this->assertDebuggingCalledCount(2);
 
         $this->assertFalse($DB->record_exists('topomojo_bulkdeploy_user', ['id' => $rowid]));
         $this->assertTrue($DB->record_exists('topomojo_bulkdeploy_job', ['id' => $jobid]));

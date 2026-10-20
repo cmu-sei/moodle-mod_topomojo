@@ -376,6 +376,98 @@ function topomojo_delete_all_attempts($topomojo) {
 }
 
 /**
+ * Find the gamespaces still running for some users of a TopoMojo activity.
+ *
+ * Covers the users' unfinished attempts and their bulk deployments that are launched or ready.
+ *
+ * @param int $topomojoid The topomojo activity id.
+ * @param array $userids The users whose gamespaces to find.
+ * @return array Gamespace GUIDs, possibly with empty values and duplicates.
+ */
+function topomojo_live_gamespace_ids($topomojoid, array $userids): array {
+    global $DB;
+
+    if (empty($userids)) {
+        return [];
+    }
+    [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'liveusr');
+
+    [$donesql, $doneparams] = $DB->get_in_or_equal(
+        [\mod_topomojo\topomojo_attempt::FINISHED, \mod_topomojo\topomojo_attempt::ABANDONED],
+        SQL_PARAMS_NAMED,
+        'done',
+        false
+    );
+    $attempts = $DB->get_fieldset_select(
+        'topomojo_attempts',
+        'eventid',
+        "topomojoid = :topomojoid AND state $donesql AND userid $usersql",
+        array_merge(['topomojoid' => $topomojoid], $doneparams, $userparams)
+    );
+
+    [$statussql, $statusparams] = $DB->get_in_or_equal(
+        [
+            \mod_topomojo\local\bulkdeploy\user_status::LAUNCHED,
+            \mod_topomojo\local\bulkdeploy\user_status::READY,
+        ],
+        SQL_PARAMS_NAMED,
+        'st'
+    );
+    $deployed = $DB->get_fieldset_select(
+        'topomojo_bulkdeploy_user',
+        'gamespaceid',
+        "jobid IN (SELECT id FROM {topomojo_bulkdeploy_job} WHERE topomojoid = :topomojoid)
+            AND status $statussql AND userid $usersql",
+        array_merge(['topomojoid' => $topomojoid], $statusparams, $userparams)
+    );
+
+    return array_merge($attempts, $deployed);
+}
+
+/**
+ * End TopoMojo gamespaces best-effort, for callers that are about to forget them.
+ *
+ * Nothing here throws: an unconfigured client or a failed call is logged via debugging() and the
+ * caller carries on.
+ *
+ * @param array $gamespaceids Gamespace GUIDs; empty and duplicate values are ignored.
+ * @param object|null $client TopoMojo API client to use; null resolves one through setup().
+ */
+function topomojo_end_gamespaces(array $gamespaceids, $client = null) {
+    global $CFG;
+
+    $gamespaceids = array_unique(array_filter(array_map(fn($id) => trim((string)$id), $gamespaceids), 'strlen'));
+    if (empty($gamespaceids)) {
+        return;
+    }
+
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+
+    if ($client === null) {
+        try {
+            $client = setup();
+        } catch (\Throwable $e) {
+            $client = null;
+            debugging('topomojo_end_gamespaces: client setup failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
+    if (!$client) {
+        debugging('topomojo_end_gamespaces: no TopoMojo client, ' . count($gamespaceids) . ' gamespace(s) left running',
+            DEBUG_DEVELOPER);
+        return;
+    }
+
+    foreach ($gamespaceids as $gamespaceid) {
+        try {
+            stop_event($client, $gamespaceid);
+        } catch (\Throwable $e) {
+            debugging("topomojo_end_gamespaces: stop_event failed for gamespace $gamespaceid: " . $e->getMessage(),
+                DEBUG_DEVELOPER);
+        }
+    }
+}
+
+/**
  * Delete finished instructor preview attempts belonging to a TopoMojo activity.
  *
  * Preview attempts are intentionally kept separate from student attempts. This
