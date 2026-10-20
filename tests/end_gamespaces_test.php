@@ -51,6 +51,7 @@ require_once($CFG->dirroot . '/mod/topomojo/lib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_live_gamespace_ids')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_end_gamespaces')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_delete_all_attempts')]
 final class end_gamespaces_test extends \advanced_testcase {
     /** @var \stdClass The activity under test. */
     protected $topomojo;
@@ -147,7 +148,7 @@ final class end_gamespaces_test extends \advanced_testcase {
     }
 
     /**
-     * Only the user's unfinished attempts and launched or ready deployments count.
+     * Only unfinished attempts and launched or ready deployments count, limited to the given users.
      */
     public function test_live_gamespace_ids_limited_to_users(): void {
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
@@ -165,6 +166,10 @@ final class end_gamespaces_test extends \advanced_testcase {
         sort($ids);
         $this->assertSame(['launching', 'live', 'live'], $ids);
         $this->assertSame([], topomojo_live_gamespace_ids($this->topomojo->id, []));
+
+        $all = topomojo_live_gamespace_ids($this->topomojo->id);
+        sort($all);
+        $this->assertSame(['launching', 'live', 'live', 'other-live'], $all);
     }
 
     /**
@@ -208,5 +213,33 @@ final class end_gamespaces_test extends \advanced_testcase {
     public function test_end_gamespaces_skips_empty_list(): void {
         topomojo_end_gamespaces(['', null, '  ']);
         $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Wiping the activity ends attempt and bulk-deploy gamespaces once each, then removes the rows.
+     */
+    public function test_delete_all_attempts_ends_attempt_gamespaces(): void {
+        global $DB;
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+        $generator->create_attempt($this->topomojo, $this->student, ['eventid' => 'live']);
+        $generator->create_attempt($this->topomojo, $this->other, [
+            'eventid' => 'done',
+            'state' => topomojo_attempt::FINISHED,
+        ]);
+        $this->add_bulkdeploy($this->student, 'live', 'ready');
+        $this->add_bulkdeploy($this->other, 'deployed', 'ready');
+        $client = $this->stub_client(200);
+
+        topomojo_delete_all_attempts($this->topomojo, $client);
+
+        $urls = $client->urls;
+        sort($urls);
+        $this->assertSame([
+            'https://topomojo.invalid/api/gamespace/deployed/complete',
+            'https://topomojo.invalid/api/gamespace/live/complete',
+        ], $urls);
+        $this->assertSame(0, $DB->count_records('topomojo_attempts', ['topomojoid' => $this->topomojo->id]));
+        $this->assertSame(0, $DB->count_records('topomojo_bulkdeploy_job', ['topomojoid' => $this->topomojo->id]));
     }
 }
