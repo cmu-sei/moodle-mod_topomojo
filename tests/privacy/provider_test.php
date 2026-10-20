@@ -182,6 +182,31 @@ class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertContains('topomojo_bulkdeploy_user', $names);
         $this->assertContains('topomojo_bulkdeploy_job', $names);
         $this->assertContains('core_question', $names);
+        $this->assertContains('topomojo', $names);
+    }
+
+    /**
+     * The external location must list exactly the user fields the gamespace payload sends.
+     */
+    public function test_get_metadata_external_location(): void {
+        $collection = new \core_privacy\local\metadata\collection('mod_topomojo');
+        $collection = provider::get_metadata($collection);
+
+        $external = null;
+        foreach ($collection->get_collection() as $item) {
+            if ($item instanceof \core_privacy\local\metadata\types\external_location) {
+                $external = $item;
+            }
+        }
+
+        $this->assertNotNull($external);
+        $this->assertEquals('topomojo', $external->get_name());
+        $this->assertEquals(['subjectId', 'subjectName'], array_keys($external->get_privacy_fields()));
+
+        $user = (object) ['email' => 'student@example.com', 'username' => 'student'];
+        $topomojo = (object) ['submissions' => 1, 'duration' => 3600, 'grade' => 100, 'variant' => 0];
+        $payload = \mod_topomojo\local\bulkdeploy\payload_builder::build('ws', $topomojo, $user);
+        $this->assertEquals(array_keys($external->get_privacy_fields()), array_keys((array) $payload->players[0]));
     }
 
     /**

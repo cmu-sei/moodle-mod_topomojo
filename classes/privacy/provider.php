@@ -112,6 +112,14 @@ class provider implements
             'timecreated' => 'privacy:metadata:topomojo_bulkdeploy_job:timecreated',
         ], 'privacy:metadata:topomojo_bulkdeploy_job');
 
+        // Starting a gamespace, from the activity or a bulk deployment, registers the user as its
+        // player (payload_builder). Nothing else user-identifying leaves Moodle: the API client
+        // authenticates as the site, not the user, and answers are graded locally.
+        $collection->add_external_location_link('topomojo', [
+            'subjectId' => 'privacy:metadata:topomojo:subjectid',
+            'subjectName' => 'privacy:metadata:topomojo:subjectname',
+        ], 'privacy:metadata:topomojo');
+
         // Each attempt owns a question usage, so the question engine holds the responses.
         $collection->add_subsystem_link('core_question', [], 'privacy:metadata:core_question');
 
