@@ -112,6 +112,14 @@ class provider implements
             'timecreated' => 'privacy:metadata:topomojo_bulkdeploy_job:timecreated',
         ], 'privacy:metadata:topomojo_bulkdeploy_job');
 
+        // Starting a gamespace, from the activity or a bulk deployment, registers the user as its
+        // player (payload_builder). Nothing else user-identifying leaves Moodle: the API client
+        // authenticates as the site, not the user, and answers are graded locally.
+        $collection->add_external_location_link('topomojo', [
+            'subjectId' => 'privacy:metadata:topomojo:subjectid',
+            'subjectName' => 'privacy:metadata:topomojo:subjectname',
+        ], 'privacy:metadata:topomojo');
+
         // Each attempt owns a question usage, so the question engine holds the responses.
         $collection->add_subsystem_link('core_question', [], 'privacy:metadata:core_question');
 
@@ -500,11 +508,14 @@ class provider implements
     /**
      * Remove the given users' attempts, grades and bulk-deploy rows from one activity.
      *
+     * Their running gamespaces are ended best-effort first.
+     *
      * @param int $topomojoid The topomojo activity id.
      * @param array $userids The users to remove.
      */
     protected static function delete_users_in_activity(int $topomojoid, array $userids) {
-        global $DB;
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/mod/topomojo/lib.php');
 
         if (empty($userids)) {
             return;
@@ -512,6 +523,10 @@ class provider implements
 
         [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'usr');
         $params = array_merge(['topomojoid' => $topomojoid], $inparams);
+
+        // End the users' running gamespaces first, best-effort: once their rows are gone nothing in
+        // Moodle points at those gamespaces any more.
+        topomojo_end_gamespaces(topomojo_live_gamespace_ids($topomojoid, $userids));
 
         // Question usages first: once the attempt rows are gone there is nothing left to find them
         // by, since every qubaid condition here resolves usages through topomojo_attempts.
