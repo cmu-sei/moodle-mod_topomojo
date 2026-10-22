@@ -73,7 +73,6 @@ class close_attempts extends \core\task\scheduled_task {
         $attempts = $this->getall_expired_attempts('open');
 
         foreach ($attempts as $attempt) {
-            debugging("scheduled task is closing attempt $attempt->id", DEBUG_DEVELOPER);
             $attempt->close_attempt();
             $this->grade_attempt($attempt);
         }
@@ -172,14 +171,12 @@ class close_attempts extends \core\task\scheduled_task {
 
         $sql = "SELECT * FROM {topomojo_attempts} WHERE $wherestring";
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
-        debugging("we found " . count($dbattempts) . " expired and inprogress attempts", DEBUG_DEVELOPER);
 
         $attempts = [];
 
         // Create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
             $id = $dbattempt->topomojoid;
-            debugging("Attempt found for tm id $id", DEBUG_DEVELOPER);
     
             // Check if the corresponding topomojo record exists
             if (!$DB->record_exists('topomojo', ['id' => $id])) {
@@ -201,7 +198,6 @@ class close_attempts extends \core\task\scheduled_task {
             $attempts[] = new topomojo_attempt($questionmanager, $dbattempt);
         }
     
-        debugging("successfully loaded " . count($attempts) . " attempt to be closed", DEBUG_DEVELOPER);
  
         return $attempts;
 

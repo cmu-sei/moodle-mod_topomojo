@@ -310,7 +310,6 @@ function topomojo_delete_references($topomojoid): void {
     $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
     $context = context_module::instance($cm->id);
 
-    debugging("topomojo_delete_references usingcontextid $context->id", DEBUG_DEVELOPER);
 
     $conditions = [
         'usingcontextid' => $context->id,
@@ -326,22 +325,19 @@ function topomojo_delete_references($topomojoid): void {
  * Delete all attempts and bulk-deploy state belonging to a topomojo activity.
  *
  * Removes question_usage rows, topomojo_attempts, topomojo_grades, and the
- * activity's topomojo_bulkdeploy_user / topomojo_bulkdeploy_job rows. For each
- * bulk-deploy row that still references a gamespace, calls stop_event() on the
- * TopoMojo API best-effort; failures are logged via debugging() and do not
- * abort the wipe.
+ * activity's topomojo_bulkdeploy_user / topomojo_bulkdeploy_job rows. Before the
+ * rows go, the gamespaces of unfinished attempts and of every bulk-deploy row
+ * that references one are ended best-effort; failures are logged via debugging()
+ * and do not abort the wipe.
  *
  * @param stdClass $topomojo The topomojo object.
+ * @param object|null $client TopoMojo API client to use; null resolves one through setup().
  */
-function topomojo_delete_all_attempts($topomojo) {
+function topomojo_delete_all_attempts($topomojo, $client = null) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
-    question_engine::delete_questions_usage_by_activities(new qubaids_for_topomojo($topomojo->id));
-    $DB->delete_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
-    $DB->delete_records('topomojo_grades', ['topomojoid' => $topomojo->id]);
 
-    // Stop any running gamespaces tracked by bulk-deploy and remove the rows.
-    // Best-effort: a failed stop_event() must not abort the wipe.
+    $gamespaceids = topomojo_live_gamespace_ids($topomojo->id);
     $jobids = $DB->get_fieldset_select(
         'topomojo_bulkdeploy_job',
         'id',
@@ -350,29 +346,127 @@ function topomojo_delete_all_attempts($topomojo) {
     );
     if ($jobids) {
         [$insql, $params] = $DB->get_in_or_equal($jobids, SQL_PARAMS_NAMED, 'jid');
-        $deployrows = $DB->get_records_select(
+        $gamespaceids = array_merge($gamespaceids, $DB->get_fieldset_select(
             'topomojo_bulkdeploy_user',
+            'gamespaceid',
             "jobid $insql AND gamespaceid IS NOT NULL AND gamespaceid <> ''",
-            $params,
-            '',
-            'id, gamespaceid'
-        );
-        // If auth is unavailable, the rows are still deleted. Any running
-        // gamespaces on the TopoMojo side will be orphaned and must expire
-        // naturally; we accept this leak risk in exchange for keeping the
-        // wipe operation reliable when the API is unreachable.
-        $auth = setup();
-        if ($auth) {
-            foreach ($deployrows as $row) {
-                try {
-                    stop_event($auth, $row->gamespaceid);
-                } catch (\Throwable $e) {
-                    debugging("topomojo_delete_all_attempts: stop_event failed for gamespace {$row->gamespaceid}: " . $e->getMessage(), DEBUG_DEVELOPER);
-                }
-            }
-        }
+            $params
+        ));
+    }
+
+    // If the API is unavailable the rows are still deleted. Any running gamespace on the
+    // TopoMojo side is orphaned and must expire on its own; that leak is accepted in
+    // exchange for a wipe that works when the API is unreachable.
+    topomojo_end_gamespaces($gamespaceids, $client);
+
+    question_engine::delete_questions_usage_by_activities(new qubaids_for_topomojo($topomojo->id));
+    $DB->delete_records('topomojo_attempts', ['topomojoid' => $topomojo->id]);
+    $DB->delete_records('topomojo_grades', ['topomojoid' => $topomojo->id]);
+
+    if ($jobids) {
         $DB->delete_records_select('topomojo_bulkdeploy_user', "jobid $insql", $params);
         $DB->delete_records('topomojo_bulkdeploy_job', ['topomojoid' => $topomojo->id]);
+    }
+}
+
+/**
+ * Find the gamespaces still running for a TopoMojo activity, optionally limited to some users.
+ *
+ * Covers unfinished attempts and bulk deployments that are launched or ready.
+ *
+ * @param int $topomojoid The topomojo activity id.
+ * @param array|null $userids Limit to these users; null means every user.
+ * @return array Gamespace GUIDs, possibly with empty values and duplicates.
+ */
+function topomojo_live_gamespace_ids($topomojoid, ?array $userids = null): array {
+    global $DB;
+
+    if ($userids === []) {
+        return [];
+    }
+    $usersql = '';
+    $userparams = [];
+    if ($userids !== null) {
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'liveusr');
+        $usersql = "AND userid $usersql";
+    }
+
+    [$donesql, $doneparams] = $DB->get_in_or_equal(
+        [\mod_topomojo\topomojo_attempt::FINISHED, \mod_topomojo\topomojo_attempt::ABANDONED],
+        SQL_PARAMS_NAMED,
+        'done',
+        false
+    );
+    $attempts = $DB->get_fieldset_select(
+        'topomojo_attempts',
+        'eventid',
+        "topomojoid = :topomojoid AND state $donesql $usersql",
+        array_merge(['topomojoid' => $topomojoid], $doneparams, $userparams)
+    );
+
+    [$statussql, $statusparams] = $DB->get_in_or_equal(
+        [
+            \mod_topomojo\local\bulkdeploy\user_status::LAUNCHED,
+            \mod_topomojo\local\bulkdeploy\user_status::READY,
+        ],
+        SQL_PARAMS_NAMED,
+        'st'
+    );
+    $deployed = $DB->get_fieldset_select(
+        'topomojo_bulkdeploy_user',
+        'gamespaceid',
+        "jobid IN (SELECT id FROM {topomojo_bulkdeploy_job} WHERE topomojoid = :topomojoid)
+            AND status $statussql $usersql",
+        array_merge(['topomojoid' => $topomojoid], $statusparams, $userparams)
+    );
+
+    return array_merge($attempts, $deployed);
+}
+
+/**
+ * End TopoMojo gamespaces best-effort, for callers that are about to forget them.
+ *
+ * Nothing here throws: an unconfigured client or a failed call is logged via debugging() and the
+ * caller carries on.
+ *
+ * @param array $gamespaceids Gamespace GUIDs; empty and duplicate values are ignored.
+ * @param object|null $client TopoMojo API client to use; null resolves one through setup().
+ */
+function topomojo_end_gamespaces(array $gamespaceids, $client = null) {
+    global $CFG;
+
+    $gamespaceids = array_unique(array_filter(array_map(fn($id) => trim((string)$id), $gamespaceids), 'strlen'));
+    if (empty($gamespaceids)) {
+        return;
+    }
+
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
+
+    if ($client === null) {
+        try {
+            $client = setup();
+        } catch (\Throwable $e) {
+            $client = null;
+            debugging('topomojo_end_gamespaces: client setup failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
+    if (!$client) {
+        debugging(
+            'topomojo_end_gamespaces: no TopoMojo client, ' . count($gamespaceids) . ' gamespace(s) left running',
+            DEBUG_DEVELOPER
+        );
+        return;
+    }
+
+    foreach ($gamespaceids as $gamespaceid) {
+        try {
+            stop_event($client, $gamespaceid);
+        } catch (\Throwable $e) {
+            debugging(
+                "topomojo_end_gamespaces: stop_event failed for gamespace $gamespaceid: " . $e->getMessage(),
+                DEBUG_DEVELOPER
+            );
+        }
     }
 }
 
@@ -734,7 +828,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
                 if (!$keep) {
                     $workspace_changed = ($options->workspaceid !== $topomojo->workspaceid);
                     $reason = $workspace_changed ? "different workspace" : "different variant";
-                    debugging("Removing question ($reason): {$question->name}", DEBUG_DEVELOPER);
 
                     // Unlink from activity
                     $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
@@ -742,7 +835,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
 
                     // If workspace changed, delete from question bank entirely
                     if ($workspace_changed) {
-                        debugging("Deleting question from question bank: {$question->name}", DEBUG_DEVELOPER);
                         question_delete_question($question->id);
                     }
                 }
@@ -771,10 +863,6 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
 
     $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
     $DB->update_record('topomojo', $topomojo);
-
-    if (!empty($deleted_ids)) {
-        debugging("Cleaned up " . count($deleted_ids) . " mismatched questions", DEBUG_DEVELOPER);
-    }
 
     return $deleted_ids;
 }
@@ -825,13 +913,10 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
         if ($topomojo->variant == 0) {
             // Random mode - import ALL variants but DON'T link to activity (addtoquiz=false)
             // Questions will be linked per-student during deployment
-            debugging("Random mode: importing all variants (not linking to activity)", DEBUG_DEVELOPER);
 
             // Clean up previously linked questions (only if no attempts exist)
             $hasattempts = topomojo_has_attempts($topomojo->id);
-            if ($hasattempts) {
-                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
-            } else {
+            if (!$hasattempts) {
                 // Remove any previously linked questions imported from THIS workspace
                 // Query database directly since questionmanager might have stale data
                 $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
@@ -842,7 +927,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                     // Check if this question was imported from this workspace
                     $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
                     if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                        debugging("Removing variant-specific question from this workspace: {$question->name}", DEBUG_DEVELOPER);
                         $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
                         $deleted_ids[] = $tq_record->id;
                     }
@@ -860,9 +944,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                     $order_array = array_intersect($order_array, array_map('strval', $valid_ids));
                     $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
                     $DB->update_record('topomojo', $topomojo);
-                    debugging("Cleaned questionorder for random mode", DEBUG_DEVELOPER);
-                } elseif (!empty($deleted_ids)) {
-                    debugging("Removed TopoMojo questions but questionorder was already empty", DEBUG_DEVELOPER);
                 }
             }
 
@@ -881,8 +962,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                 topomojo_cleanup_questions($topomojo, $topomojo->variant);
                 // Refresh topomojoobj with cleaned questionorder
                 $topomojoobj->topomojo->questionorder = $topomojo->questionorder;
-            } else {
-                debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
             }
 
             $addtoquiz = true;
@@ -891,7 +970,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
         }
 
-        debugging("Auto-imported questions for activity {$topomojo->id}", DEBUG_DEVELOPER);
 
     } catch (Exception $e) {
         debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);

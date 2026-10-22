@@ -321,6 +321,9 @@ $string['invalid_points'] = 'Invalid point value';
 
 // Privacy
 $string['privacy:metadata:core_question'] = 'The TopoMojo activity stores question responses in the question engine.';
+$string['privacy:metadata:topomojo'] = 'To start a lab, the user is registered as the player of a gamespace on the external TopoMojo server.';
+$string['privacy:metadata:topomojo:subjectid'] = 'The part of the user\'s email address before the @, used as the player identifier.';
+$string['privacy:metadata:topomojo:subjectname'] = 'The user\'s username, used as the player name.';
 $string['privacy:metadata:topomojo_attempts'] = 'Details of each attempt a user makes at a TopoMojo lab.';
 $string['privacy:metadata:topomojo_attempts:endtime'] = 'The time at which the gamespace for this attempt expires.';
 $string['privacy:metadata:topomojo_attempts:eventid'] = 'The identifier of the TopoMojo gamespace deployed for this attempt.';

@@ -57,11 +57,11 @@ defined('MOODLE_INTERNAL') || die();
 class topomojo_attempt_test extends \advanced_testcase {
 
     /**
-     * Discard the class-under-test's developer trace output.
+     * Discard any fault-path debugging() output left by a test.
      *
-     * topomojo_attempt traces every construction and save at DEBUG_DEVELOPER, so nearly every
-     * test here trips one of those calls. They carry no assertable meaning - a test that cares
-     * about a specific message asserts it directly and leaves nothing for this to clear.
+     * topomojo_attempt no longer traces construction or save; what can remain is fault output such
+     * as a failed record write. A test that cares about a specific message asserts it directly and
+     * leaves nothing for this to clear.
      */
     public function tearDown(): void {
         $this->resetDebugging();

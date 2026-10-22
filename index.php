@@ -108,7 +108,7 @@ foreach ($topomojos as $topomojo) {
         $printsection = '<span class="smallinfo">'.userdate($topomojo->timemodified)."</span>";
     }
 
-    $extra = empty($cm->extra) ? '' : $cm->extra;
+    $extra = empty($cm->onclick) ? '' : 'onclick="' . s($cm->onclick) . '"';
     $icon = '';
     if (!empty($cm->icon)) {
         // Each topomojo has an icon in 2.0
@@ -119,7 +119,7 @@ foreach ($topomojos as $topomojo) {
     $table->data[] = [
         $printsection,
         "<a $class $extra href=\"view.php?id=$cm->id\">".$icon.format_string($topomojo->name)."</a>",
-        format_module_intro('conole', $topomojo, $cm->id)];
+        format_module_intro('topomojo', $topomojo, $cm->id)];
 }
 
 echo html_writer::table($table);

@@ -337,7 +337,6 @@ function list_events($client, $workspaceid)
             array_push($matches, $event);
         }
     }
-    debugging("list_events found " . count($matches) . " active events", DEBUG_DEVELOPER);
 
     usort($matches, 'whenCreated');
     return $matches;
@@ -388,7 +387,6 @@ function list_all_active_events($client)
         }
     }
 
-    debugging("list_all_active_events found " . count($matches) . " active events", DEBUG_DEVELOPER);
 
     usort($matches, 'whenCreated');
     return $matches;
@@ -865,7 +863,6 @@ function get_gamespace_limit($client)
 function start_event($client, $id, $topomojo)
 {
     global $USER;
-    debugging("starting gamespace from workspace $id", DEBUG_DEVELOPER);
 
     if ($client == null) {
         debugging('error with client in start_event', DEBUG_DEVELOPER);;
@@ -1281,11 +1278,9 @@ function get_active_event($history)
     }
     foreach ($history as $odx) {
         if (($odx['isActive'] == true)) {
-            debugging("we found an active event in the history pulled from topomojo", DEBUG_DEVELOPER);
             return (object)$odx;
         }
     }
-    debugging("there are no active events in the history pulled from topomojo", DEBUG_DEVELOPER);
     return null;
 }
 

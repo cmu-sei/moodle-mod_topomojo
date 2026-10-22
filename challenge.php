@@ -121,7 +121,6 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 }
 
 if ($activeattempt == true) {
-    debugging("get_open_attempt returned attemptid " . $object->openAttempt->id, DEBUG_DEVELOPER);
 
     // If active attempt found but event not fetched yet, fetch it
     if (empty($object->event) && isset($object->openAttempt)) {
@@ -136,7 +135,6 @@ if ($activeattempt == true) {
         }
     }
 } else if ($activeattempt == false) {
-    debugging("get_open_attempt returned false", DEBUG_DEVELOPER);
 
     // A finished question attempt can leave its lab running when End Lab is
     // disabled. The Challenge tab has no active QUBA to render in that state.
@@ -169,7 +167,6 @@ if ($activeattempt == true) {
 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
-    debugging("start request received", DEBUG_DEVELOPER);
 
     // Check not started already
     if (!$object->event) {
@@ -194,9 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
         // TODO check for open attempt and check for status of its event
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
-            debugging("new event created " . $object->event->id, DEBUG_DEVELOPER);
             $activeattempt = $object->init_attempt($ispreview);
-            debugging("init_attempt returned $activeattempt", DEBUG_DEVELOPER);
             if (!$activeattempt) {
                 debugging("init_attempt failed");
                 throw new moodle_exception('init_attempt failed');
@@ -206,14 +201,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             throw new moodle_exception("start_event failed");
         }
-        debugging("new event created with variant " . $object->event->variant, DEBUG_DEVELOPER);
         // Contact topomojo and pull the correct answers for this attempt
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
-    } else {
-        debugging("event has already been started", DEBUG_DEVELOPER);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
-    debugging("stop request received", DEBUG_DEVELOPER);
     if ($object->event) {
         if ($object->event->isActive) {
             if (!$activeattempt) {
@@ -249,7 +240,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
     // which walks every slot in the request: the slot whose Check was pressed is
     // graded and has its penalty applied, and the rest are just saved. Redirect
     // afterwards so a reload does not replay the submission and burn a try.
-    debugging("question response post received", DEBUG_DEVELOPER);
     if ($activeattempt && $object->event && $object->event->isActive) {
         $object->openAttempt->save_question();
         redirect($url);
@@ -257,7 +247,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 }
 
 if ((!$object->event) && ($activeattempt)) {
-    debugging("active attempt with no event", DEBUG_DEVELOPER);
     //throw new moodle_exception(('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
     $grader->process_attempt($object->openAttempt);
@@ -287,7 +276,6 @@ $action = optional_param('action', '', PARAM_ALPHA);
 
 switch ($action) {
     case "submitquiz":
-        debugging("submitquiz request received", DEBUG_DEVELOPER);
         if ($object->event) {
             if ($object->event->isActive) {
                 if (!$activeattempt) {
@@ -328,12 +316,10 @@ switch ($action) {
                         $variant_text = $full_challenge->variants[$deployed_variant]->text;
                         if (!empty($variant_text)) {
                             $combined_text .= "\n\n" . $variant_text;
-                            debugging("Appended variant $deployed_variant text (" . strlen($variant_text) . " chars)", DEBUG_DEVELOPER);
                         }
                     }
 
                     if ($combined_text) {
-                        debugging("Combined text length: " . strlen($combined_text) . " chars", DEBUG_DEVELOPER);
                         if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
                             // Normal instruction when attempts are not maxed out, no end lab
                             $renderer->render_challenge_instructions($combined_text);
@@ -392,7 +378,6 @@ switch ($action) {
 
                     // Get challenge structure
                     $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-                    debugging("Preview mode - challenge retrieved: " . ($full_challenge ? "yes" : "no"), DEBUG_DEVELOPER);
 
                     if ($full_challenge) {
                         // Show challenge markdown (shared across all variants)
@@ -403,12 +388,10 @@ switch ($action) {
                             $renderer->render_challenge_instructions($full_challenge->text, false);
                             echo '</div></div>';
                             $has_content = true;
-                            debugging("Challenge text length: " . strlen($full_challenge->text), DEBUG_DEVELOPER);
                         }
 
                         // Show variant-specific texts
                         if (isset($full_challenge->variants)) {
-                            debugging("Variants count: " . count($full_challenge->variants), DEBUG_DEVELOPER);
 
                             if (count($full_challenge->variants) > 0) {
                                 $is_random = ($object->topomojo->variant == 0);
@@ -469,7 +452,6 @@ switch ($action) {
                     }
 
                     if (!$has_content) {
-                        debugging("No challenge text or variant text found", DEBUG_DEVELOPER);
                         echo $OUTPUT->notification(
                             'No challenge or variant markdown configured in TopoMojo.',
                             \core\output\notification::NOTIFY_INFO

@@ -99,7 +99,6 @@ class topomojo_attempt {
 
         // If empty create new attempt
         if (empty($dbattempt)) {
-            debugging("creating new attempt with variant=" . ($variant ?? 'null'), DEBUG_DEVELOPER);
             $this->attempt = new \stdClass();
 
             if ($this->questionmanager) {
@@ -118,13 +117,11 @@ class topomojo_attempt {
                 if (!empty($attemptlayout)) {
                     \question_engine::save_questions_usage_by_activity($this->quba);
                 } else {
-                    debugging("Variant $variant has no questions - QUBA created but empty", DEBUG_DEVELOPER);
                     // Don't save empty QUBA - it will cause errors when trying to render
                     $this->quba = null;
                 }
             }
         } else { // else load it up in this class instance
-            debugging("loading existing attempt with variant=" . ($dbattempt->variant ?? 'null'), DEBUG_DEVELOPER);
             $this->attempt = $dbattempt;
             // An attempt record can arrive without the column set at all: bulk deploy inserts a
             // partial record, and callers pass hand-built objects. Reading it directly raises an
@@ -210,10 +207,8 @@ class topomojo_attempt {
      */
     public function save() {
         global $DB;
-        debugging("call to attempt->save()", DEBUG_DEVELOPER);
         // first save the question usage by activity object
         if ($this->quba) {
-            debugging("save function - quba in the attempt obj", DEBUG_DEVELOPER);
             \question_engine::save_questions_usage_by_activity($this->quba);
 
             // this is here because for new usages there is no id until we save it
@@ -223,24 +218,20 @@ class topomojo_attempt {
         if (isset($this->attempt->id)) { // update the existing record
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
-                debugging("updated existing attempt record" . $this->attempt->id, DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
                 return false; // return false on failure
             }
         } else {
-            debugging("inserting new record into db", DEBUG_DEVELOPER);
             // insert new record
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
                 $this->attempt->id = $newid;
-                debugging("created new attempt record $newid", DEBUG_DEVELOPER);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
                 return false; // return false on failure
             }
         }
-        debugging("saved attempt", DEBUG_DEVELOPER);
         return true; // return true if we get here
     }
 

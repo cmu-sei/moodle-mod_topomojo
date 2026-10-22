@@ -121,15 +121,12 @@ if ($object->topomojo->importchallenge) {
     require_once("$CFG->dirroot/mod/topomojo/lib.php");
     if (!$topomojohasattempts) {
         topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
-    } else {
-        debugging("Skipping cleanup - activity has attempts", DEBUG_DEVELOPER);
     }
 
     $questions = $questionmanager->get_questions();
 
     // Only import if no questions have been imported yet
     if (empty($questions)) {
-        debugging("No questions found - triggering import", DEBUG_DEVELOPER);
 
         $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
         if (!$challenge) {
@@ -139,7 +136,6 @@ if ($object->topomojo->importchallenge) {
         // Check if random variant mode (variant=0)
         if ($object->topomojo->variant == 0) {
             // Random mode - import ALL variants but don't link
-            debugging("Random mode: importing all variants", DEBUG_DEVELOPER);
             $addtoquiz = false;
             $variant_count = count($challenge->variants);
             for ($i = 0; $i < $variant_count; $i++) {
