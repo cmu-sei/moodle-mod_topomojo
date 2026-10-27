@@ -1757,3 +1757,48 @@ function topomojo_validate_workspace($workspaceid) {
         return false;
     }
 }
+
+/**
+ * Finds the attempt for a gamespace.
+ *
+ * topomojo_attempts.eventid is a TEXT column, so it cannot go in a conditions array:
+ * Moodle throws textconditionsnotallowed on every database.
+ *
+ * @param string $gamespaceid TopoMojo gamespace ID.
+ * @param string $fields Fields to return.
+ * @return stdClass|false The attempt, or false when none matches.
+ */
+function topomojo_get_attempt_by_gamespace($gamespaceid, $fields = '*') {
+    global $DB;
+
+    return $DB->get_record_select(
+        'topomojo_attempts',
+        $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid'),
+        ['eventid' => $gamespaceid],
+        $fields,
+        IGNORE_MULTIPLE
+    );
+}
+
+/**
+ * Checks whether a user has an attempt on an activity for a gamespace.
+ *
+ * @param int $topomojoid Activity instance ID.
+ * @param int $userid Moodle user ID.
+ * @param string $gamespaceid TopoMojo gamespace ID.
+ * @return bool True when such an attempt exists.
+ */
+function topomojo_user_has_gamespace_attempt($topomojoid, $userid, $gamespaceid) {
+    global $DB;
+
+    return $DB->record_exists_select(
+        'topomojo_attempts',
+        'topomojoid = :topomojoid AND userid = :userid AND '
+            . $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid'),
+        [
+            'topomojoid' => $topomojoid,
+            'userid' => $userid,
+            'eventid' => $gamespaceid,
+        ]
+    );
+}

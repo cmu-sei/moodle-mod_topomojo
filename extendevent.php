@@ -70,7 +70,7 @@ if (!$event) {
     header('HTTP/1.1 500 Error');
     $response['message'] = "error with get_event";
 } else {
-    $attempt = $DB->get_record('topomojo_attempts', ['eventid' => $id], 'topomojoid', IGNORE_MULTIPLE);
+    $attempt = topomojo_get_attempt_by_gamespace($id, 'topomojoid');
     if (!$attempt) {
         header('HTTP/1.1 500 Error');
         $response['message'] = "Could not find Moodle activity for gamespace.";
@@ -106,7 +106,7 @@ if (!$event) {
         $response['event'] = $event;
         $response['data'] = $data;
     } else {
-        $attemptrecord = $DB->get_record('topomojo_attempts', ['eventid' => $id], '*', IGNORE_MULTIPLE);
+        $attemptrecord = topomojo_get_attempt_by_gamespace($id);
         if ($attemptrecord) {
             $attemptrecord->endtime = $timestamp->getTimestamp();
             $attemptrecord->timemodified = time();

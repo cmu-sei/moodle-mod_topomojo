@@ -59,6 +59,8 @@ require_once($CFG->libdir . '/adminlib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversFunction('setup')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_configure_api_client')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_get_attempt_by_gamespace')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_user_has_gamespace_attempt')]
 class locallib_test extends \advanced_testcase {
 
     /**
@@ -568,5 +570,87 @@ class locallib_test extends \advanced_testcase {
 
         $this->assertNull(topomojo_configure_api_client(null));
         $this->assertFalse(topomojo_configure_api_client(false));
+    }
+
+    /**
+     * Test the gamespace lookup finds an attempt through the TEXT eventid column.
+     */
+    public function test_get_attempt_by_gamespace() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+        $gamespaceid = 'a1b2c3d4-0000-4000-8000-000000000001';
+        $attempt = $generator->create_attempt($topomojo, $user, ['eventid' => $gamespaceid]);
+        $generator->create_attempt($topomojo, $user, ['eventid' => 'a1b2c3d4-0000-4000-8000-000000000002']);
+
+        $found = topomojo_get_attempt_by_gamespace($gamespaceid);
+
+        $this->assertEquals($attempt->id, $found->id);
+        $this->assertEquals($gamespaceid, $found->eventid);
+    }
+
+    /**
+     * Test the gamespace lookup returns only the fields asked for.
+     */
+    public function test_get_attempt_by_gamespace_returns_requested_fields() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+        $generator->create_attempt($topomojo, $user, ['eventid' => 'gamespace-id']);
+
+        $found = topomojo_get_attempt_by_gamespace('gamespace-id', 'topomojoid');
+
+        $this->assertEquals(['topomojoid' => $topomojo->id], (array)$found);
+    }
+
+    /**
+     * Test the gamespace lookup returns false when no attempt has the gamespace.
+     */
+    public function test_get_attempt_by_gamespace_returns_false_when_missing() {
+        $this->resetAfterTest();
+
+        $this->assertFalse(topomojo_get_attempt_by_gamespace('missing-gamespace'));
+    }
+
+    /**
+     * Test the gamespace lookup tolerates more than one attempt on the same gamespace.
+     */
+    public function test_get_attempt_by_gamespace_tolerates_duplicates() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+        $generator->create_attempt($topomojo, $user, ['eventid' => 'gamespace-id']);
+        $generator->create_attempt($topomojo, $user, ['eventid' => 'gamespace-id']);
+
+        $this->assertNotFalse(topomojo_get_attempt_by_gamespace('gamespace-id'));
+    }
+
+    /**
+     * Test the attempt check matches on activity, user and gamespace together.
+     */
+    public function test_user_has_gamespace_attempt() {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $other = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $otheruser = $this->getDataGenerator()->create_user();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_topomojo');
+        $generator->create_attempt($topomojo, $user, ['eventid' => 'gamespace-id']);
+
+        $this->assertTrue(topomojo_user_has_gamespace_attempt($topomojo->id, $user->id, 'gamespace-id'));
+        $this->assertFalse(topomojo_user_has_gamespace_attempt($topomojo->id, $user->id, 'other-gamespace'));
+        $this->assertFalse(topomojo_user_has_gamespace_attempt($topomojo->id, $otheruser->id, 'gamespace-id'));
+        $this->assertFalse(topomojo_user_has_gamespace_attempt($other->id, $user->id, 'gamespace-id'));
     }
 }
