@@ -66,17 +66,8 @@ foreach ($rows as $r) {
 
     // Show appropriate button based on status and whether attempt exists
     if ($r->status === 'ready' && !empty($r->gamespaceid)) {
-        // Check if user has an active attempt. eventid is TEXT, so it cannot go in a conditions array.
-        $hasattempt = $DB->record_exists_select(
-            'topomojo_attempts',
-            'topomojoid = :topomojoid AND userid = :userid AND '
-                . $DB->sql_compare_text('eventid') . ' = ' . $DB->sql_compare_text(':eventid'),
-            [
-                'topomojoid' => $job->topomojoid,
-                'userid' => $r->userid,
-                'eventid' => $r->gamespaceid,
-            ]
-        );
+        // Check if user has an active attempt
+        $hasattempt = topomojo_user_has_gamespace_attempt($job->topomojoid, $r->userid, $r->gamespaceid);
 
         if ($hasattempt) {
             // Has attempt - show End button
