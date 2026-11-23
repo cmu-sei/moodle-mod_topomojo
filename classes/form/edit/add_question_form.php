@@ -71,7 +71,6 @@ class add_question_form extends \moodleform {
 
         $mform = $this->_form;
         $topomojo = $this->_customdata['topomojo'];
-        ;
 
         $mform->addElement('static', 'questionid', get_string('question', 'topomojo'), $this->_customdata['questionname']);
 

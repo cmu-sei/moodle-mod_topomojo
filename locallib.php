@@ -800,7 +800,6 @@ function start_event($client, $id, $topomojo) {
 
     if ($client == null) {
         debugging('error with client in start_event', DEBUG_DEVELOPER);
-        ;
         return;
     }
 
@@ -869,7 +868,6 @@ function stop_event($client, $id) {
 
     if ($client == null) {
         debugging('error with client in stop_event', DEBUG_DEVELOPER);
-        ;
         return;
     }
 
@@ -945,7 +943,6 @@ function get_ticket($client) {
 
     if ($client == null) {
         debugging('error with client in get_ticket', DEBUG_DEVELOPER);
-        ;
         return;
     }
 
@@ -991,7 +988,6 @@ function get_invite($client, $id) {
 
     if ($client == null) {
         debugging('error with client in get_invite', DEBUG_DEVELOPER);
-        ;
         return;
     }
 
@@ -1071,13 +1067,11 @@ function get_event($client, $id) {
 
     if ($client == null) {
         debugging('error with client in get_event', DEBUG_DEVELOPER);
-        ;
         return;
     }
 
     if ($id == null) {
         debugging('error with id in get_event', DEBUG_DEVELOPER);
-        ;
         return;
     }
 

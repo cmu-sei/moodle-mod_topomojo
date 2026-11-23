@@ -208,7 +208,6 @@ class mod_topomojo_mod_form extends moodleform_mod
                                 $tagsarray = explode(', ', $tagsarray);
                             } else {
                                 $tagsarray = $workspace->tags;
-                                ;
                             }
                         }
 
