@@ -36,12 +36,12 @@ DM24-1175
 
 namespace mod_topomojo;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot . '/question/engine/lib.php');
 // For mod_topomojo_display_options, which this class uses to build the display
 // options for both the attempt page and review.
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * topomojo Attempt wrapper class to encapsulate functions needed to individual
