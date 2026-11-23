@@ -75,23 +75,23 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('manage_pageheading', 'topomojo'));
 
 // Check for active deployments and compute progress summary.
-$has_active_deploys = false;
+$hasactivedeploys = false;
 foreach ($users as $u) {
     $isscheduled = !empty($u->scheduledfor) && (int) $u->scheduledfor > time();
     if (in_array($u->deploystatus, ['pending', 'launched']) && !$isscheduled) {
-        $has_active_deploys = true;
+        $hasactivedeploys = true;
         break;
     }
 }
 
-$summary_ready = 0;
-$summary_total = 0;
-if ($has_active_deploys) {
+$summaryready = 0;
+$summarytotal = 0;
+if ($hasactivedeploys) {
     $activejobs = $manrepo->get_active_jobs($topomojo->id);
     foreach ($activejobs as $job) {
         $progress = $manrepo->get_job_progress($job->id);
-        $summary_ready += (int) $progress->ready;
-        $summary_total += (int) $job->totalusers;
+        $summaryready += (int) $progress->ready;
+        $summarytotal += (int) $job->totalusers;
     }
 }
 
@@ -103,16 +103,16 @@ $linkhtml = html_writer::link(
     get_string('manage_deploy_running_link', 'topomojo'),
     ['target' => '_blank']
 );
-$progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
+$progresshtml = html_writer::span((string) $summaryready, 'deploy-summary-ready')
     . '/'
-    . html_writer::span((string) $summary_total, 'deploy-summary-total');
+    . html_writer::span((string) $summarytotal, 'deploy-summary-total');
 $summaryhtml = get_string(
     'manage_deploy_running_summary',
     'topomojo',
     (object) ['progress' => $progresshtml, 'link' => $linkhtml]
 );
 
-$notifstyle = $has_active_deploys ? '' : 'display:none;';
+$notifstyle = $hasactivedeploys ? '' : 'display:none;';
 echo html_writer::start_div('alert alert-info', [
     'id' => 'deploy-notification',
     'role' => 'alert',

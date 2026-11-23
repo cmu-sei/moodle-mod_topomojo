@@ -271,20 +271,20 @@ class questionmanager {
 
         if ($this->is_question_already_present($questionid)) {
             // Even if already present, ensure it's in questionorder
-            $tq_record = $DB->get_record('topomojo_questions', [
+            $tqrecord = $DB->get_record('topomojo_questions', [
                 'topomojoid' => $this->object->topomojo->id,
                 'questionid' => $questionid,
             ]);
 
-            if ($tq_record) {
+            if ($tqrecord) {
                 // Get fresh questionorder from database (cached value may be stale)
-                $topomojo_fresh = $DB->get_record('topomojo', ['id' => $this->object->topomojo->id]);
-                $questionorder = $topomojo_fresh->questionorder;
-                $order_array = !empty($questionorder) ? explode(',', $questionorder) : [];
+                $topomojofresh = $DB->get_record('topomojo', ['id' => $this->object->topomojo->id]);
+                $questionorder = $topomojofresh->questionorder;
+                $orderarray = !empty($questionorder) ? explode(',', $questionorder) : [];
 
-                if (!in_array($tq_record->id, $order_array)) {
+                if (!in_array($tqrecord->id, $orderarray)) {
                     debugging("Question present but not in order, adding to questionorder", DEBUG_DEVELOPER);
-                    $this->update_questionorder('addquestion', $tq_record->id);
+                    $this->update_questionorder('addquestion', $tqrecord->id);
                 }
             }
 
@@ -575,14 +575,14 @@ class questionmanager {
 
         // Get questions for this variant (or all if no variant specified)
         if ($variant !== null) {
-            $variant_questions = $this->get_questions_for_variant($variant);
+            $variantquestions = $this->get_questions_for_variant($variant);
         } else {
-            $variant_questions = $this->get_questions();
+            $variantquestions = $this->get_questions();
         }
 
         // Extract question IDs
         $questionids = [];
-        foreach ($variant_questions as $vq) {
+        foreach ($variantquestions as $vq) {
             $qid = $vq->getQuestion()->id;
             if (!in_array($qid, $questionids)) {
                 $questionids[] = $qid;
@@ -597,7 +597,7 @@ class questionmanager {
 
         // Loop through and add questions to quba
         $attemptquestionorder = [];
-        foreach ($variant_questions as $vq) {
+        foreach ($variantquestions as $vq) {
             $questionid = $vq->getQuestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
             $attemptquestionorder[$vq->getId()] = $quba->add_question($q, $vq->getPoints());
@@ -837,12 +837,12 @@ class questionmanager {
 
         // Using the question order saved in topomojo object, get the qbank question ids from the topomojo questions
         $orderedquestionids = [];
-        $had_stale = false;
+        $hadstale = false;
         foreach ($questionorder as $qorder) {
             // Skip if this ID doesn't exist in topomojoquestions (stale data)
             if (!isset($this->topomojoquestions[$qorder])) {
                 debugging("Skipping stale question order ID: $qorder", DEBUG_DEVELOPER);
-                $had_stale = true;
+                $hadstale = true;
                 continue;
             }
             // Store the topomojo question id as the key so that it can be used later when adding question time to
@@ -851,11 +851,11 @@ class questionmanager {
         }
 
         // Clean up stale IDs from database
-        if ($had_stale) {
-            $valid_ids = array_keys($orderedquestionids);
-            $new_order = !empty($valid_ids) ? implode(',', $valid_ids) : null;
-            if ($new_order !== $this->object->topomojo->questionorder) {
-                $this->object->topomojo->questionorder = $new_order;
+        if ($hadstale) {
+            $validids = array_keys($orderedquestionids);
+            $neworder = !empty($validids) ? implode(',', $validids) : null;
+            if ($neworder !== $this->object->topomojo->questionorder) {
+                $this->object->topomojo->questionorder = $neworder;
                 $DB->update_record('topomojo', $this->object->topomojo);
             }
         }
@@ -1085,11 +1085,11 @@ class questionmanager {
         require_once($CFG->dirroot . '/question/type/mojomatch/questiontype.php');
         $currentquestions = $this->get_questions();
 
-        $added_count = 0;
-        $failed_count = 0;
+        $addedcount = 0;
+        $failedcount = 0;
 
         // Step 1: Get questions from topomojo
-        $expected_questiontexts = [];
+        $expectedquestiontexts = [];
 
         // Check if variant exists
         if (!isset($challenge->variants[$variant])) {
@@ -1099,13 +1099,13 @@ class questionmanager {
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
                 if (!empty($q->text)) {
-                    $expected_questiontexts[] = trim(strip_tags($q->text));
+                    $expectedquestiontexts[] = trim(strip_tags($q->text));
                 }
             }
         }
 
-        $mismatched_questions = [];
-        $deleted_questiontexts = [];
+        $mismatchedquestions = [];
+        $deletedquestiontexts = [];
 
         // Step 2: Delete moodle activity questions if they do not match those in topomojo
         foreach ($currentquestions as $tq) {
@@ -1118,33 +1118,33 @@ class questionmanager {
             $questionid = $q->id;
 
             // Check if question text exists in TopoMojo
-            if (!in_array($cleantext, $expected_questiontexts)) {
-                $mismatched_questions[] = $q->name;
+            if (!in_array($cleantext, $expectedquestiontexts)) {
+                $mismatchedquestions[] = $q->name;
                 $this->delete_question($tq->getId());
                 question_delete_question($questionid);
                 continue;
             }
 
             // Get answer from topomojo
-            $expected_answer = null;
-            $expected_question = null;
+            $expectedanswer = null;
+            $expectedquestion = null;
             foreach ($challenge->variants[$variant]->sections as $section) {
                 foreach ($section->questions as $topoq) {
                     if (trim(strip_tags($topoq->text)) === $cleantext) {
-                        $expected_answer = trim($topoq->answer);
-                        $expected_question = $topoq;
+                        $expectedanswer = trim($topoq->answer);
+                        $expectedquestion = $topoq;
                         break 2;
                     }
                 }
             }
 
             // Get answer from moodle db and compare it with topomojo, if they do not match, delete question
-            if ($expected_answer !== null) {
+            if ($expectedanswer !== null) {
                 $storedanswer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
 
-                if (trim($storedanswer) !== $expected_answer) {
-                    $mismatched_questions[] = $q->name;
-                    $deleted_questiontexts[] = $cleantext;
+                if (trim($storedanswer) !== $expectedanswer) {
+                    $mismatchedquestions[] = $q->name;
+                    $deletedquestiontexts[] = $cleantext;
                     $this->delete_question($tq->getId());
                     question_delete_question($questionid);
                     continue;
@@ -1155,12 +1155,12 @@ class questionmanager {
             // to be brought across here: they compare text and answer, and an import where both
             // still match skips the add loop below entirely. A hint edited in TopoMojo would
             // otherwise leave the question matching and the stored hint stale forever.
-            if ($expected_question !== null) {
-                self::sync_question_hints($questionid, $expected_question);
+            if ($expectedquestion !== null) {
+                self::sync_question_hints($questionid, $expectedquestion);
             }
         }
 
-        if (!empty($mismatched_questions) || empty($currentquestions)) {
+        if (!empty($mismatchedquestions) || empty($currentquestions)) {
             $questionnumber = 0;
             $type = 'info';
             $message = '';
@@ -1168,14 +1168,14 @@ class questionmanager {
             // Add new questions when necessary, if found in array (answers), or if question texts do not match
             foreach ($challenge->variants[$variant]->sections as $section) {
                 $count = count($section->questions);
-                $variant_display = $variant + 1; // Convert to 1-based for display (matches TopoMojo UI)
+                $variantdisplay = $variant + 1; // Convert to 1-based for display (matches TopoMojo UI)
 
                 foreach ($section->questions as $question) {
                     $questionnumber++;
 
                     // Skip empty questions (check before strip_tags to avoid deprecated warning)
                     if (empty($question->text)) {
-                        debugging("Skipping empty question in Variant $variant_display", DEBUG_DEVELOPER);
+                        debugging("Skipping empty question in Variant $variantdisplay", DEBUG_DEVELOPER);
                         continue;
                     }
 
@@ -1185,7 +1185,7 @@ class questionmanager {
                     $questionid = 0;
 
                     // ─── Always check for existing questions to avoid duplicates ───────────
-                    if (!in_array($cleantext, $deleted_questiontexts, true)) {
+                    if (!in_array($cleantext, $deletedquestiontexts, true)) {
                         // try to find *exact* match (text + answer + workspace + variant)
                         $sql = "SELECT q.id AS questionid
                                 FROM {question} q
@@ -1243,9 +1243,9 @@ class questionmanager {
                         $q->qtype = 'mojomatch';
                         $form->category = $cat->id;
                         // Name format: "Activity Name - Variant 1 - Question text preview..."
-                        $variant_number = $variant + 1; // Convert 0-based index to 1-based for display
-                        $question_preview = mb_substr(strip_tags($question->text), 0, 50);
-                        $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
+                        $variantnumber = $variant + 1; // Convert 0-based index to 1-based for display
+                        $questionpreview = mb_substr(strip_tags($question->text), 0, 50);
+                        $form->name = $object->topomojo->name . " - Variant " . $variantnumber . " - " . $questionpreview;
                         $form->questiontext['text'] = $question->text;
                         $form->questiontext['format'] = '0'; // TODO find out nonhtml
                         $form->defaultmark = 1;
@@ -1309,7 +1309,7 @@ class questionmanager {
                         $ok = $this->add_question($questionid);
 
                         if ($ok === true) {
-                            $added_count++;
+                            $addedcount++;
                         } else {
                             $exists = $DB->record_exists('topomojo_questions', [
                                 'topomojoid' => $this->object->topomojo->id,
@@ -1318,9 +1318,9 @@ class questionmanager {
 
                             if ($exists) {
                                 debugging("add_question() returned false but the linkage exists; suppressing failure toast.", DEBUG_DEVELOPER);
-                                $added_count++;
+                                $addedcount++;
                             } else {
-                                $failed_count++;
+                                $failedcount++;
                             }
                         }
                     }
@@ -1331,11 +1331,11 @@ class questionmanager {
             }
 
             // Show summary message after all questions are processed
-            if ($added_count > 0) {
-                \core\notification::success(get_string('questionsynced', 'topomojo', $added_count));
+            if ($addedcount > 0) {
+                \core\notification::success(get_string('questionsynced', 'topomojo', $addedcount));
             }
-            if ($failed_count > 0) {
-                \core\notification::error(get_string('questionaddfailed', 'topomojo', $failed_count));
+            if ($failedcount > 0) {
+                \core\notification::error(get_string('questionaddfailed', 'topomojo', $failedcount));
             }
         }
     }

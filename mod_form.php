@@ -389,14 +389,14 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes, hours, days.
-        $allowed_units = [
+        $allowedunits = [
             MINSECS, // Minutes (60 seconds)
             HOURSECS, // Hours (3600 seconds)
             DAYSECS, // Days (86400 seconds)
             // SECONDS is implied and usually always available implicitly or explicitly if needed.
         ];
         $options = [
-            'units' => $allowed_units, // Pass the array of allowed units
+            'units' => $allowedunits, // Pass the array of allowed units
             'defaultunit' => HOURSECS, // Optional: set days as the default selection
         ];
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), $options);

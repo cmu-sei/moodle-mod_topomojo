@@ -192,7 +192,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
  *
  * @param object $quiz the quiz object.
  */
-function topomojo_after_add_or_update($topomojo, $is_update = false) {
+function topomojo_after_add_or_update($topomojo, $isupdate = false) {
     global $DB;
     $cmid = $topomojo->coursemodule;
 
@@ -205,7 +205,7 @@ function topomojo_after_add_or_update($topomojo, $is_update = false) {
 
     // Auto-import challenge questions if enabled
     // Only run on UPDATE to avoid transaction issues during ADD
-    if ($is_update && !empty($topomojo->importchallenge) && !empty($topomojo->workspaceid)) {
+    if ($isupdate && !empty($topomojo->importchallenge) && !empty($topomojo->workspaceid)) {
         topomojo_auto_import_questions($topomojo, $context, $cmid);
     }
     // On ADD, questions will import on first edit.php visit (fallback already exists)
@@ -833,35 +833,35 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
  * For variant changes: unlinks from activity but keeps in question bank
  *
  * @param stdClass $topomojo Activity instance
- * @param int $target_variant 1-based target variant (or 0 for random)
+ * @param int $targetvariant 1-based target variant (or 0 for random)
  * @return array Count of deleted question IDs
  */
-function topomojo_cleanup_questions($topomojo, $target_variant) {
+function topomojo_cleanup_questions($topomojo, $targetvariant) {
     global $DB, $CFG;
     require_once($CFG->libdir . '/questionlib.php');
 
-    $deleted_ids = [];
-    $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+    $deletedids = [];
+    $linkedquestions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
 
-    foreach ($linked_questions as $tq_record) {
-        $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+    foreach ($linkedquestions as $tqrecord) {
+        $question = $DB->get_record('question', ['id' => $tqrecord->questionid]);
         if ($question && $question->qtype === 'mojomatch') {
             $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
             if ($options) {
                 // Keep if: same workspace AND (random mode OR same variant)
                 $keep = ($options->workspaceid === $topomojo->workspaceid) &&
-                        ($target_variant == 0 || $options->variant == $target_variant);
+                        ($targetvariant == 0 || $options->variant == $targetvariant);
 
                 if (!$keep) {
-                    $workspace_changed = ($options->workspaceid !== $topomojo->workspaceid);
-                    $reason = $workspace_changed ? "different workspace" : "different variant";
+                    $workspacechanged = ($options->workspaceid !== $topomojo->workspaceid);
+                    $reason = $workspacechanged ? "different workspace" : "different variant";
 
                     // Unlink from activity
-                    $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                    $deleted_ids[] = $tq_record->id;
+                    $DB->delete_records('topomojo_questions', ['id' => $tqrecord->id]);
+                    $deletedids[] = $tqrecord->id;
 
                     // If workspace changed, delete from question bank entirely
-                    if ($workspace_changed) {
+                    if ($workspacechanged) {
                         question_delete_question($question->id);
                     }
                 }
@@ -870,28 +870,28 @@ function topomojo_cleanup_questions($topomojo, $target_variant) {
     }
 
     // Rebuild questionorder
-    $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id], 'id ASC');
-    $remaining_ids = array_keys($remaining_questions);
+    $remainingquestions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id], 'id ASC');
+    $remainingids = array_keys($remainingquestions);
 
-    $order_array = [];
+    $orderarray = [];
     if (!empty($topomojo->questionorder)) {
-        $old_order = explode(',', $topomojo->questionorder);
-        foreach ($old_order as $id) {
-            if (in_array($id, $remaining_ids)) {
-                $order_array[] = $id;
+        $oldorder = explode(',', $topomojo->questionorder);
+        foreach ($oldorder as $id) {
+            if (in_array($id, $remainingids)) {
+                $orderarray[] = $id;
             }
         }
     }
-    foreach ($remaining_ids as $id) {
-        if (!in_array($id, $order_array)) {
-            $order_array[] = $id;
+    foreach ($remainingids as $id) {
+        if (!in_array($id, $orderarray)) {
+            $orderarray[] = $id;
         }
     }
 
-    $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
+    $topomojo->questionorder = !empty($orderarray) ? implode(',', $orderarray) : null;
     $DB->update_record('topomojo', $topomojo);
 
-    return $deleted_ids;
+    return $deletedids;
 }
 
 /**
@@ -946,16 +946,16 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             if (!$hasattempts) {
                 // Remove any previously linked questions imported from THIS workspace
                 // Query database directly since questionmanager might have stale data
-                $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-                $deleted_ids = [];
-                foreach ($linked_questions as $tq_record) {
-                    $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                $linkedquestions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+                $deletedids = [];
+                foreach ($linkedquestions as $tqrecord) {
+                    $question = $DB->get_record('question', ['id' => $tqrecord->questionid]);
                     if ($question && $question->qtype === 'mojomatch') {
                         // Check if this question was imported from this workspace
                         $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
                         if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                            $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                            $deleted_ids[] = $tq_record->id;
+                            $DB->delete_records('topomojo_questions', ['id' => $tqrecord->id]);
+                            $deletedids[] = $tqrecord->id;
                         }
                     }
                 }
@@ -963,20 +963,20 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                 // Always validate and clean questionorder in random mode
                 // Remove any IDs that no longer exist in topomojo_questions table
                 if (!empty($topomojo->questionorder)) {
-                    $order_array = explode(',', $topomojo->questionorder);
-                    $remaining_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-                    $valid_ids = array_keys($remaining_questions);
+                    $orderarray = explode(',', $topomojo->questionorder);
+                    $remainingquestions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
+                    $validids = array_keys($remainingquestions);
 
                     // Keep only IDs that still exist
-                    $order_array = array_intersect($order_array, array_map('strval', $valid_ids));
-                    $topomojo->questionorder = !empty($order_array) ? implode(',', $order_array) : null;
+                    $orderarray = array_intersect($orderarray, array_map('strval', $validids));
+                    $topomojo->questionorder = !empty($orderarray) ? implode(',', $orderarray) : null;
                     $DB->update_record('topomojo', $topomojo);
                 }
             }
 
             $addtoquiz = false;
-            $variant_count = count($challenge->variants);
-            for ($i = 0; $i < $variant_count; $i++) {
+            $variantcount = count($challenge->variants);
+            for ($i = 0; $i < $variantcount; $i++) {
                 // $i is already 0-based for array access
                 $questionmanager->process_variant_questions($context, $topomojoobj, $i, $challenge, $addtoquiz);
             }
@@ -993,8 +993,8 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
 
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-            $variant_index = $topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
-            $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
+            $variantindex = $topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
+            $questionmanager->process_variant_questions($context, $topomojoobj, $variantindex, $challenge, $addtoquiz);
         }
     } catch (Exception $e) {
         debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);

@@ -52,11 +52,11 @@ require_once("$CFG->dirroot/tag/lib.php");
 if ($ADMIN->fulltree) {
     // General settings
     // Fetch all available OAuth2 issuers.
-    $oauth_options = [];
+    $oauthoptions = [];
     $issuers = \core\oauth2\api::get_all_issuers();
     if ($issuers) {
         foreach ($issuers as $issuer) {
-            $oauth_options[$issuer->get('id')] = s($issuer->get('name'));
+            $oauthoptions[$issuer->get('id')] = s($issuer->get('name'));
         }
     }
 
@@ -73,7 +73,7 @@ if ($ADMIN->fulltree) {
         get_string('issuerid', 'topomojo'),
         get_string('configissuerid', 'topomojo'),
         0,
-        $oauth_options
+        $oauthoptions
     ));
 
     $settings->hide_if('topomojo/issuerid', 'topomojo/enableoauth', 'notchecked', 1);

@@ -212,7 +212,7 @@ if ($haspreviewattempt) {
 }
 
 // Check for bulk-deployed attempt if no active attempt found
-$has_predeployed = false;
+$haspredeployed = false;
 if (!$activeattempt) {
     $bulkdeployrows = $DB->get_records_sql(
         "SELECT bdu.*, bdj.topomojoid
@@ -259,12 +259,12 @@ if (!$activeattempt) {
             }
         } else {
             // Gamespace deployed but NO attempt yet - show "Start Attempt" UI
-            $has_predeployed = true;
+            $haspredeployed = true;
         }
     }
 }
 
-$max_attempts = $topomojo->attempts;
+$maxattempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
@@ -331,7 +331,7 @@ if (
 
 
 // Getting completed attempts by user (excluding preview attempts)
-$current_attempt_count = $DB->count_records('topomojo_attempts', [
+$currentattemptcount = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
     'state' => \mod_topomojo\topomojo_attempt::FINISHED,
@@ -339,11 +339,11 @@ $current_attempt_count = $DB->count_records('topomojo_attempts', [
 ]);
 
 // If the maximum attempts are reached, display the max attempts template and exit
-if (!$object->event && $current_attempt_count >= $max_attempts && $max_attempts != 0) {
+if (!$object->event && $currentattemptcount >= $maxattempts && $maxattempts != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $parts[0]);
+    $renderer->display_detail_max_attempts($topomojo, $maxattempts, $currentattemptcount, $parts[0]);
     echo $renderer->footer();
     exit;
 }
@@ -352,11 +352,11 @@ if (!$object->event && $current_attempt_count >= $max_attempts && $max_attempts 
 $gamespacelimit = get_gamespace_limit($object->userauth);
 
 // Getting all active events without filters
-$allActiveEvents = list_all_active_events($object->userauth);
-$all_active_current_deployed_count = count((array)$allActiveEvents);
+$allactiveevents = list_all_active_events($object->userauth);
+$allactivecurrentdeployedcount = count((array)$allactiveevents);
 
 // Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
-if (!$object->event && $all_active_current_deployed_count > $gamespacelimit && $gamespacelimit != 0) {
+if (!$object->event && $allactivecurrentdeployedcount > $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -365,36 +365,36 @@ if (!$object->event && $all_active_current_deployed_count > $gamespacelimit && $
     exit;
 }
 
-$activeUserEvents = [];
+$activeuserevents = [];
 
 // Getting active user event for specific user
-$activeUserEvents = user_events($object->userauth, $allActiveEvents);
+$activeuserevents = user_events($object->userauth, $allactiveevents);
 // Count of those active user events
-$user_current_deployed_count  = count((array)$activeUserEvents);
+$usercurrentdeployedcount  = count((array)$activeuserevents);
 
 // Getting max deployed lab for each user in moodle
-$max_deployed_labs = get_config('topomojo', 'maxdeployedlabs');
+$maxdeployedlabs = get_config('topomojo', 'maxdeployedlabs');
 
-$lab_names = [];
-$lab_ids = [];
+$labnames = [];
+$labids = [];
 
 // Getting workspace names and ids
-foreach ($activeUserEvents ?? [] as $event) {
-    $lab_names[] = $event['name'];
-    $lab_ids[] = $event['workspaceId'];
+foreach ($activeuserevents ?? [] as $event) {
+    $labnames[] = $event['name'];
+    $labids[] = $event['workspaceId'];
 }
 
 // If the maximum deployed labs are reached, display the deployed labs template and exit
 if (
     !$object->event &&
-    !in_array($topomojo->workspaceid, $lab_ids) &&
-    $user_current_deployed_count >= $max_deployed_labs
+    !in_array($topomojo->workspaceid, $labids) &&
+    $usercurrentdeployedcount >= $maxdeployedlabs
 ) {
     // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
-    $renderer->display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $user_current_deployed_count, $parts[0], $lab_names);
+    $renderer->display_detail_max_deployed_labs($topomojo, $maxdeployedlabs, $usercurrentdeployedcount, $parts[0], $labnames);
     echo $renderer->footer();
     exit;
 }
@@ -521,7 +521,7 @@ if ($object->event) {
 
 // Pull values from the settings
 $embed = $topomojo->embed;
-$license_info = null;
+$licenseinfo = null;
 
 // Show grade only if a grade is set
 if ((int)$object->topomojo->grade > 0) {
@@ -628,8 +628,8 @@ if ($object->event) {
         echo html_writer::end_div();
 
         if ($object->topomojo->showcontentlicense) {
-            $license_id = $object->topomojo->contentlicense;
-            $license_info = license_manager::get_license_by_shortname($license_id);
+            $licenseid = $object->topomojo->contentlicense;
+            $licenseinfo = license_manager::get_license_by_shortname($licenseid);
         }
 
         // Initialize the launch lab confirmation modal with AJAX
@@ -644,7 +644,7 @@ if ($object->event) {
         $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
         // Display start form
-        $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl, $has_predeployed);
+        $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $licenseinfo, $isinstructor, $bulkdeployurl, $haspredeployed);
     } else {
         $code = substr($object->event->id, 0, 8);
 
@@ -709,21 +709,21 @@ if ($object->event) {
 
             $vmlist = [];
             foreach ($object->event->vms as $vm) {
-                $isVisible   = is_array($vm) ? $vm['isVisible'] : $vm->isVisible;
-                if (!$isVisible) {
+                $isvisible   = is_array($vm) ? $vm['isVisible'] : $vm->isVisible;
+                if (!$isvisible) {
                     continue;
                 }
 
                 $name        = is_array($vm) ? $vm['name'] : $vm->name;
-                $isolationId = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
+                $isolationid = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
 
                 if ($usecf) {
                     // ConsoleForge-style
                     $vmdata['url'] = $baseurl . '/c?name=' . rawurlencode($name)
-                        . '&sessionId=' . rawurlencode($isolationId);
+                        . '&sessionId=' . rawurlencode($isolationid);
                 } else {
                     // Legacy /mks style
-                    $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationId)
+                    $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationid)
                         . '&v=' . rawurlencode($name);
                 }
 
@@ -768,8 +768,8 @@ if ($object->event) {
     echo html_writer::end_div();
 
     if ($object->topomojo->showcontentlicense) {
-        $license_id = $object->topomojo->contentlicense;
-        $license_info = license_manager::get_license_by_shortname($license_id);
+        $licenseid = $object->topomojo->contentlicense;
+        $licenseinfo = license_manager::get_license_by_shortname($licenseid);
     }
 
     // Initialize the launch lab confirmation modal
@@ -784,7 +784,7 @@ if ($object->event) {
     $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
     // Display start form
-    $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $license_info, $isinstructor, $bulkdeployurl);
+    $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $licenseinfo, $isinstructor, $bulkdeployurl);
 }
 
 echo $renderer->footer();

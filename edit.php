@@ -135,8 +135,8 @@ if ($object->topomojo->importchallenge) {
         if ($object->topomojo->variant == 0) {
             // Random mode - import ALL variants but don't link
             $addtoquiz = false;
-            $variant_count = count($challenge->variants);
-            for ($i = 0; $i < $variant_count; $i++) {
+            $variantcount = count($challenge->variants);
+            for ($i = 0; $i < $variantcount; $i++) {
                 // $i is already 0-based for array access
                 $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
             }
@@ -144,8 +144,8 @@ if ($object->topomojo->importchallenge) {
             // Specific mode - import single variant and link
             $addtoquiz = true;
             // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-            $variant_index = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
-            $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+            $variantindex = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
+            $questionmanager->process_variant_questions($context, $object, $variantindex, $challenge, $addtoquiz);
         }
     }
 }
@@ -172,12 +172,12 @@ switch ($action) {
 
                 // Validate variant before adding (only in specific mode)
                 if ($object->topomojo->variant != 0 && $question && $question->qtype === 'mojomatch') {
-                    $question_variant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
+                    $questionvariant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
 
-                    if ($question_variant && $question_variant != $object->topomojo->variant) {
+                    if ($questionvariant && $questionvariant != $object->topomojo->variant) {
                         $type = 'error';
                         $message = get_string('wrongvariantadd', 'topomojo', [
-                            'question_variant' => $question_variant,
+                            'question_variant' => $questionvariant,
                             'activity_variant' => $object->topomojo->variant,
                         ]);
                         $renderer->setMessage($type, $message);

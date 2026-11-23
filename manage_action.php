@@ -146,8 +146,8 @@ switch ($action) {
 
         $auth = setup();
         $cancelled = 0;
-        $jobsToCancel = [];
-        $jobsToRefresh = [];
+        $jobstocancel = [];
+        $jobstorefresh = [];
         $repo = new job_repository();
 
         foreach ($userids as $uid) {
@@ -170,17 +170,17 @@ switch ($action) {
 
                 $repo->set_user_status($deployrow->id, 'cancelled', 'Manually cancelled', '');
                 $cancelled++;
-                $jobsToRefresh[$deployrow->jobid] = true;
+                $jobstorefresh[$deployrow->jobid] = true;
 
                 // Track jobs that need adhoc task cancellation
                 if (!empty($deployrow->scheduledfor)) {
-                    $jobsToCancel[$deployrow->jobid] = true;
+                    $jobstocancel[$deployrow->jobid] = true;
                 }
             }
         }
 
         // Cancel adhoc tasks for scheduled jobs
-        foreach (array_keys($jobsToCancel) as $jobid) {
+        foreach (array_keys($jobstocancel) as $jobid) {
             // Find matching tasks
             $tasks = $DB->get_records('task_adhoc', [
                 'component' => 'mod_topomojo',
@@ -194,7 +194,7 @@ switch ($action) {
             }
         }
 
-        foreach (array_keys($jobsToRefresh) as $jobid) {
+        foreach (array_keys($jobstorefresh) as $jobid) {
             if (!$repo->get_active_user_rows($jobid)) {
                 $repo->set_job_status($jobid, \mod_topomojo\local\bulkdeploy\job_status::CANCELLED);
                 $repo->set_job_cancelled_by($jobid, (int) $USER->id);

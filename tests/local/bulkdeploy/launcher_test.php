@@ -260,8 +260,8 @@ final class launcher_test extends \advanced_testcase {
         $repo = new job_repository();
         $jobid = $repo->create_job(1, 1, 1, 2, null, [10, 11]);
         $rows = array_values($repo->get_user_rows($jobid));
-        $rowid_a = (int) $rows[0]->id;
-        $rowid_b = (int) $rows[1]->id;
+        $rowida = (int) $rows[0]->id;
+        $rowidb = (int) $rows[1]->id;
 
         $fake = new fake_curl_multi_client();
         $fake->queue('POST', 'https://api/gamespace', new curl_response(200, 0, json_encode(['id' => 'gs-a'])));
@@ -273,7 +273,7 @@ final class launcher_test extends \advanced_testcase {
         $fake->queue('GET', 'https://api/gamespace/gs-b', $this->gamespace_response('gs-b', true, true));
 
         // Subclass to inject a cancellation between poll cycles via sleep_seconds().
-        $launcher = new class ($repo, $fake, 'https://api', [], 60, 1, 600, $rowid_a) extends launcher {
+        $launcher = new class ($repo, $fake, 'https://api', [], 60, 1, 600, $rowida) extends launcher {
             public function __construct(
                 job_repository $repo,
                 curl_multi_client $client,
@@ -304,21 +304,21 @@ final class launcher_test extends \advanced_testcase {
         };
 
         $launcher->run_batch($jobid, [
-            ['rowid' => $rowid_a, 'user' => $this->user('a@b')],
-            ['rowid' => $rowid_b, 'user' => $this->user('c@d')],
+            ['rowid' => $rowida, 'user' => $this->user('a@b')],
+            ['rowid' => $rowidb, 'user' => $this->user('c@d')],
         ], $this->topomojo());
 
         $after = $repo->get_user_rows($jobid);
         $this->assertSame(
             user_status::CANCELLED,
-            $after[$rowid_a]->status,
+            $after[$rowida]->status,
             'externally cancelled row must keep CANCELLED status'
         );
-        $this->assertSame(user_status::READY, $after[$rowid_b]->status);
+        $this->assertSame(user_status::READY, $after[$rowidb]->status);
 
         // gs-a should have been polled exactly once (first cycle only).
-        $gets_a = array_filter($fake->log, fn($r) => $r['url'] === 'https://api/gamespace/gs-a');
-        $this->assertCount(1, $gets_a, 'cancelled gamespace must not be polled after cancellation');
+        $getsa = array_filter($fake->log, fn($r) => $r['url'] === 'https://api/gamespace/gs-a');
+        $this->assertCount(1, $getsa, 'cancelled gamespace must not be polled after cancellation');
     }
 
     public function test_wait_ceiling_marks_failed_when_never_ready(): void {

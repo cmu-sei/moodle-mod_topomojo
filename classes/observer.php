@@ -93,8 +93,8 @@ class observer {
             return false;
         }
 
-        $reFindMarkedHref = '~href\s*=\s*["\'][^"\']*/mod/topomojo/view\.php\?id=(\d+)~i';
-        $reHasMarker      = '~data-labofday\s*=\s*(?:"1"|\'1\'|1)~i';
+        $refindmarkedhref = '~href\s*=\s*["\'][^"\']*/mod/topomojo/view\.php\?id=(\d+)~i';
+        $rehasmarker      = '~data-labofday\s*=\s*(?:"1"|\'1\'|1)~i';
 
         foreach ($blocks as $bi) {
             if (empty($bi->configdata)) {
@@ -106,10 +106,10 @@ class observer {
             }
 
             $text = $config->text;
-            if (!preg_match($reHasMarker, $text)) {
+            if (!preg_match($rehasmarker, $text)) {
                 continue;
             }
-            if (preg_match($reFindMarkedHref, $text, $m)) {
+            if (preg_match($refindmarkedhref, $text, $m)) {
                 $current = (int)$m[1];
                 if ($current === $cmid) {
                     return true;

@@ -418,8 +418,8 @@ function moodle_events($client, $events) {
             }
         } else {
             $userinfo = $client->get_userinfo();
-            $managerId = $userinfo['idnumber'];
-            if ($event['managerId'] == $managerId) {
+            $managerid = $userinfo['idnumber'];
+            if ($event['managerId'] == $managerid) {
                 array_push($eventsmoodle, $event);
             }
         }
@@ -724,13 +724,13 @@ function get_gamespace_limit($client) {
 
     topomojo_require_valid_auth_configuration();
 
-    $base_url = get_topomojo_api_url();
+    $baseurl = get_topomojo_api_url();
 
     if (get_config('topomojo', 'enableapikey') && get_config('topomojo', 'enablemanagername')) {
         $xapikey = get_config('topomojo', 'apikey');
         $managername = get_config('topomojo', 'managername');
 
-        $url = $base_url . "/users?Term=" . urlencode($managername);
+        $url = $baseurl . "/users?Term=" . urlencode($managername);
 
         // Set the Authorization header for the request
         $headers = [
@@ -739,26 +739,26 @@ function get_gamespace_limit($client) {
         ];
     } else {
         $userinfo = $client->get_userinfo();
-        $managerId = $userinfo['idnumber'];
+        $managerid = $userinfo['idnumber'];
 
         // Base URL from configuration and construct endpoint with the term parameter
-        $url = $base_url . "/user/" . $managerId;
+        $url = $baseurl . "/user/" . $managerid;
     }
 
     // Perform the GET request
     $response = $client->get($url);
 
     // Decode the JSON response
-    $response_data = json_decode($response, true);
+    $responsedata = json_decode($response, true);
 
     // Check if decoding was successful
-    if (!$response_data) {
+    if (!$responsedata) {
         debugging('Could not decode JSON response', DEBUG_DEVELOPER);
         return;
     }
 
-    if (isset($response_data[0]['gamespaceLimit'])) {
-        return $response_data[0]['gamespaceLimit'];
+    if (isset($responsedata[0]['gamespaceLimit'])) {
+        return $responsedata[0]['gamespaceLimit'];
     } else {
         debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
         return null;

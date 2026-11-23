@@ -86,7 +86,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
-    public function display_detail_no_vms($topomojo, $duration, $code = false, $showWarning = true) {
+    public function display_detail_no_vms($topomojo, $duration, $code = false, $showwarning = true) {
         $data = new stdClass();
         $data->name = $topomojo->name;
         $data->intro = $topomojo->intro;
@@ -106,7 +106,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             'seconds' => $seconds,
         ];
         // Add the flag to the data object
-        $data->showWarning = $showWarning;
+        $data->showWarning = $showwarning;
 
         echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
     }
@@ -126,24 +126,24 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/launching', $data);
     }
 
-    public function display_detail_max_attempts($topomojo, $max_attempts, $current_attempt_count, $markdown) {
+    public function display_detail_max_attempts($topomojo, $maxattempts, $currentattemptcount, $markdown) {
         $data = new stdClass();
-        $data->max_attempts = $max_attempts;
-        $data->current_attempt_count = $current_attempt_count;
-        $data->is_max_reached = ($current_attempt_count >= $max_attempts);
+        $data->max_attempts = $maxattempts;
+        $data->current_attempt_count = $currentattemptcount;
+        $data->is_max_reached = ($currentattemptcount >= $maxattempts);
         $data->markdown = $this->clean_markdown($markdown);
 
         echo $this->render_from_template('mod_topomojo/max_attempts', $data);
     }
 
 
-    public function display_detail_max_deployed_labs($topomojo, $max_deployed_labs, $current_deployed_count, $markdown, $lab_names) {
+    public function display_detail_max_deployed_labs($topomojo, $maxdeployedlabs, $currentdeployedcount, $markdown, $labnames) {
         $data = new stdClass();
-        $data->max_deployed_labs = $max_deployed_labs;
-        $data->current_deployed_count = $current_deployed_count;
-        $data->is_max_reached = ($current_deployed_count >= $max_deployed_labs);
+        $data->max_deployed_labs = $maxdeployedlabs;
+        $data->current_deployed_count = $currentdeployedcount;
+        $data->is_max_reached = ($currentdeployedcount >= $maxdeployedlabs);
         $data->markdown = $this->clean_markdown($markdown);
-        $data->lab_names = $lab_names;
+        $data->lab_names = $labnames;
 
         echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
     }
@@ -176,20 +176,20 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param string $markdown The Markdown content to be displayed in the start form.
      * @return void
      */
-    public function display_startform($url, $workspace, $markdown, $content_license = null, $isinstructor = false, $bulkdeployurl = null, $has_predeployed = false) {
+    public function display_startform($url, $workspace, $markdown, $contentlicense = null, $isinstructor = false, $bulkdeployurl = null, $haspredeployed = false) {
         $data = new stdClass();
         $data->url = $url;
         $data->workspaceid = $workspace;
         $data->isinstructor = $isinstructor;
         $data->bulkdeployurl = $bulkdeployurl ? $bulkdeployurl->out(false) : null;
-        $data->has_predeployed = $has_predeployed;
+        $data->has_predeployed = $haspredeployed;
 
         $data->markdown = $this->clean_markdown($markdown);
         $data->hascontent = !empty(trim($markdown));
 
-        if ($content_license) {
-            $data->license_fullname = $content_license->fullname;
-            $data->license_source = $content_license->source;
+        if ($contentlicense) {
+            $data->license_fullname = $contentlicense->fullname;
+            $data->license_source = $contentlicense->source;
             $data->hascontent = true;
         }
 
@@ -263,12 +263,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      * @param string $markdown The Markdown-formatted instructions to be rendered.
      * @return void
      */
-    public function render_challenge_instructions($markdown, $hasQuiz = true) {
+    public function render_challenge_instructions($markdown, $hasquiz = true) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
         $data->showWarning = false; // No warning in normal instructions
         $data->endlab = false;      // Not an end-lab scenario
-        $data->hasQuiz = $hasQuiz;  // Whether there are quiz questions (controls beforeunload warning)
+        $data->hasQuiz = $hasquiz;  // Whether there are quiz questions (controls beforeunload warning)
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -427,13 +427,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
 
         // Only add score if any attempt will display a score
-        $show_any_score = $showgrade && !empty(array_filter(
+        $showanyscore = $showgrade && !empty(array_filter(
             $attempts,
             function ($attempt) {
                 return !empty($attempt->questionusageid);
             }
         ));
-        if ($show_any_score) {
+        if ($showanyscore) {
             $data->tableheaders->score = get_string('score', 'mod_topomojo');
         }
 
@@ -461,7 +461,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 } else {
                     $rowdata->score = "-"; // Hide the score for specific questionusageid
                 }
-                $rowdata->showscore = $show_any_score;
+                $rowdata->showscore = $showanyscore;
 
                 $data->tabledata[] = $rowdata;
             }
@@ -818,8 +818,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $markdown = implode("\n", $cleanlines);
 
         // Process markdown inside html tags
-        $htmlTagsToProcess = ['p', 'summary', 'details'];
-        foreach ($htmlTagsToProcess as $tag) {
+        $htmltagstoprocess = ['p', 'summary', 'details'];
+        foreach ($htmltagstoprocess as $tag) {
             $markdown = preg_replace_callback("/<{$tag}>(.*?)<\/{$tag}>/is", function ($matches) use ($tag) {
                 $inner = $matches[1];
                 $rendered = format_text($inner, FORMAT_MARKDOWN, [

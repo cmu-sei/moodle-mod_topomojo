@@ -443,8 +443,8 @@ class topomojo
         $questionmanager = $this->questionmanager;
 
         $context = $this->getContext();
-        $variant_index = $variant - 1; // Convert to 0-based for array access
-        $questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
+        $variantindex = $variant - 1; // Convert to 0-based for array access
+        $questionmanager->process_variant_questions($context, $this, $variantindex, $challenge, true);
     }
 
     public function init_attempt($preview = 0) {
@@ -456,13 +456,13 @@ class topomojo
         }
 
         // Determine which variant TopoMojo deployed (converts from 0-based to 1-based)
-        $deployed_variant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
+        $deployedvariant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
 
         // Check if questions exist for this variant, import if missing
-        $this->ensure_variant_questions_exist($deployed_variant);
+        $this->ensure_variant_questions_exist($deployedvariant);
 
         // Create a new attempt with variant
-        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager, variant: $deployed_variant);
+        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager, variant: $deployedvariant);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -475,7 +475,7 @@ class topomojo
         $attempt->endtime = strtotime($this->event->expirationTime);
         $attempt->eventid = $this->event->id;
         $attempt->preview = $preview;
-        $attempt->variant = $deployed_variant;
+        $attempt->variant = $deployedvariant;
 
         if ($attempt->save()) {
             $this->openAttempt = $attempt;
