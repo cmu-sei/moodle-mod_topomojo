@@ -64,7 +64,7 @@ $plugin->dependencies = [
 ];
 
 // This is a stable release.
-// $plugin->maturity = MATURITY_STABLE;.
+// $plugin->maturity = MATURITY_STABLE;
 $plugin->maturity = MATURITY_BETA;
 
 // This is the named version.

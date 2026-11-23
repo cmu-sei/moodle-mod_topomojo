@@ -76,7 +76,7 @@ require_capability('mod/topomojo:view', $context);
 // if ($_SERVER['REQUEST_METHOD'] == "GET") {
 // Completion and trigger events.
 // topomojo_view($topomojo, $course, $cm, $context);
-// }.
+// }
 
 // Print the page header.
 $url = new moodle_url('/mod/topomojo/viewattempt.php', ['a' => $a]);

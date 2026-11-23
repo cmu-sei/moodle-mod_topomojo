@@ -169,7 +169,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-    // $oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));.
+    // $oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
 
     // Update the database.
     $topomojo->id = $topomojo->instance;

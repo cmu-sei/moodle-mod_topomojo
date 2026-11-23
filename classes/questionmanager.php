@@ -520,7 +520,7 @@ class questionmanager {
         global $DB;
 
             // TODO use the right variant
-            // $variant = 1;.
+            // $variant = 1;
             $event = get_event($this->gettopomojo()->userauth, $gamespaceid);
             $variant = $event->variant;
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
@@ -556,7 +556,7 @@ class questionmanager {
                         // TODO check the variant and the number
                         // $dataobject->rightanswer = $question->answer;
                         // update quba with the correct answer
-                        // $DB->update_record($table, $dataobject);.
+                        // $DB->update_record($table, $dataobject);
                 }
             }
         }
