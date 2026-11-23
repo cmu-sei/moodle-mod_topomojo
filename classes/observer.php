@@ -129,7 +129,8 @@ class observer {
             if (empty($bi->configdata)) {
                 continue;
             }
-            $config = @unserialize(base64_decode($bi->configdata));
+            // Block config is stored as base64 of a serialized stdClass. Invalid data reads as an object with no text.
+            $config = @unserialize_object(base64_decode($bi->configdata));
             if (empty($config) || empty($config->text)) {
                 continue;
             }
