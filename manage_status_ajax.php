@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 define('AJAX_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
@@ -20,7 +35,7 @@ $topomojo = $DB->get_record('topomojo', ['id' => $cm->instance], '*', MUST_EXIST
 $manrepo = new management_repository();
 $activejobs = $manrepo->get_active_jobs($topomojo->id);
 $scheduledjobs = $manrepo->get_scheduled_jobs($topomojo->id);
-$nextscheduled = $scheduledjobs ? min(array_map(function($job) {
+$nextscheduled = $scheduledjobs ? min(array_map(function ($job) {
     return (int) $job->scheduledfor;
 }, $scheduledjobs)) : null;
 
@@ -51,7 +66,7 @@ foreach ($activejobs as $job) {
 
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id);
 
-$attemptids = array_filter(array_map(function($u) {
+$attemptids = array_filter(array_map(function ($u) {
     return $u->attemptid ?? null;
 }, $users));
 $attemptswithq = [];

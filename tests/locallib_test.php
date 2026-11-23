@@ -61,8 +61,7 @@ require_once($CFG->libdir . '/adminlib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_configure_api_client')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_get_attempt_by_gamespace')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_user_has_gamespace_attempt')]
-class locallib_test extends \advanced_testcase {
-
+final class locallib_test extends \advanced_testcase {
     /**
      * Test the API-key and external-manager configuration matrix.
      *
@@ -77,7 +76,7 @@ class locallib_test extends \advanced_testcase {
         bool $enablemanagername,
         string $managername,
         $expected
-    ) {
+    ): void {
         $result = topomojo_validate_auth_configuration(
             $enableapikey,
             $enablemanagername,
@@ -115,7 +114,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that an invalid legacy configuration has a clear runtime error.
      */
-    public function test_invalid_auth_configuration_has_clear_runtime_error() {
+    public function test_invalid_auth_configuration_has_clear_runtime_error(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('enablemanagername', 0, 'topomojo');
@@ -129,7 +128,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that API-key authentication requires a manager name at runtime.
      */
-    public function test_empty_manager_name_has_clear_runtime_error() {
+    public function test_empty_manager_name_has_clear_runtime_error(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -144,7 +143,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that the settings checkbox rejects enabling the API key without a manager user.
      */
-    public function test_setting_rejects_apikey_without_manager() {
+    public function test_setting_rejects_apikey_without_manager(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 0, 'topomojo');
         set_config('enablemanagername', 0, 'topomojo');
@@ -165,7 +164,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that the settings checkbox accepts the API key when the manager user is enabled.
      */
-    public function test_setting_accepts_apikey_with_manager() {
+    public function test_setting_accepts_apikey_with_manager(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 0, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -185,7 +184,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that the settings checkbox rejects an API key with no manager name.
      */
-    public function test_setting_rejects_apikey_without_manager_name() {
+    public function test_setting_rejects_apikey_without_manager_name(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 0, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -207,7 +206,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that disabling the manager user is rejected while the API key is enabled.
      */
-    public function test_setting_rejects_disabling_manager_with_apikey() {
+    public function test_setting_rejects_disabling_manager_with_apikey(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -228,7 +227,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that the manager user can be disabled when the API key is disabled.
      */
-    public function test_setting_allows_disabling_manager_without_apikey() {
+    public function test_setting_allows_disabling_manager_without_apikey(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 0, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -247,7 +246,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that the manager-name setting rejects clearing the value while API-key authentication is enabled.
      */
-    public function test_manager_name_setting_rejects_empty_value_with_apikey() {
+    public function test_manager_name_setting_rejects_empty_value_with_apikey(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('enablemanagername', 1, 'topomojo');
@@ -271,7 +270,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that a submitted API-key configuration requires a manager name.
      */
-    public function test_manager_name_setting_rejects_empty_submitted_value_with_apikey() {
+    public function test_manager_name_setting_rejects_empty_submitted_value_with_apikey(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 0, 'topomojo');
         set_config('enablemanagername', 0, 'topomojo');
@@ -302,7 +301,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that gamespace-limit lookup rejects an invalid legacy configuration clearly.
      */
-    public function test_get_gamespace_limit_rejects_invalid_auth_configuration() {
+    public function test_get_gamespace_limit_rejects_invalid_auth_configuration(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('enablemanagername', 0, 'topomojo');
@@ -316,7 +315,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test setup function with API key enabled and set.
      */
-    public function test_setup_with_apikey() {
+    public function test_setup_with_apikey(): void {
         $this->resetAfterTest();
 
         // Set config for API key.
@@ -331,7 +330,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test setup function with API key enabled but not set.
      */
-    public function test_setup_with_apikey_not_set() {
+    public function test_setup_with_apikey_not_set(): void {
         $this->resetAfterTest();
 
         // Enable API key but don't set it.
@@ -347,7 +346,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test setup function with API key disabled and no OAuth.
      */
-    public function test_setup_without_apikey_or_oauth() {
+    public function test_setup_without_apikey_or_oauth(): void {
         $this->resetAfterTest();
 
         // Disable API key and OAuth.
@@ -363,7 +362,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test setup function with OAuth enabled but no issuer ID.
      */
-    public function test_setup_with_oauth_no_issuer() {
+    public function test_setup_with_oauth_no_issuer(): void {
         $this->resetAfterTest();
 
         // Disable API key, enable OAuth but don't set issuer.
@@ -380,7 +379,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test setup function configuration priority (API key over OAuth).
      */
-    public function test_setup_apikey_priority() {
+    public function test_setup_apikey_priority(): void {
         $this->resetAfterTest();
 
         // Set both API key and OAuth, API key should take priority.
@@ -398,7 +397,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test that setup returns correct client type.
      */
-    public function test_setup_returns_curl_client() {
+    public function test_setup_returns_curl_client(): void {
         $this->resetAfterTest();
 
         set_config('enableapikey', 1, 'topomojo');
@@ -413,7 +412,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test invitation URL generation strips existing launchpoint parameters.
      */
-    public function test_build_topomojo_invite_url_strips_existing_parameters() {
+    public function test_build_topomojo_invite_url_strips_existing_parameters(): void {
         $url = build_topomojo_invite_url(
             'https://topomojo.example/?t=ticket&g=gamespace',
             'invite-code'
@@ -425,7 +424,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test invitation URL generation preserves a deployment path.
      */
-    public function test_build_topomojo_invite_url_preserves_launchpoint_path() {
+    public function test_build_topomojo_invite_url_preserves_launchpoint_path(): void {
         $url = build_topomojo_invite_url(
             'https://topomojo.example/lp/?t=ticket&g=gamespace',
             'invite code'
@@ -439,7 +438,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test lookup returns the stored launchpoint URL for a gamespace.
      */
-    public function test_get_topomojo_gamespace_launchpoint_url() {
+    public function test_get_topomojo_gamespace_launchpoint_url(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -461,7 +460,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test lookup returns null when no attempt exists for a gamespace.
      */
-    public function test_get_topomojo_gamespace_launchpoint_url_returns_null() {
+    public function test_get_topomojo_gamespace_launchpoint_url_returns_null(): void {
         $this->resetAfterTest();
 
         $this->assertNull(get_topomojo_gamespace_launchpoint_url('missing-gamespace'));
@@ -470,7 +469,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test invitation URL generation falls back to the configured base URL.
      */
-    public function test_build_topomojo_invite_url_falls_back_to_configured_base_url() {
+    public function test_build_topomojo_invite_url_falls_back_to_configured_base_url(): void {
         $this->resetAfterTest();
         set_config('topomojobaseurl', 'https://topomojo.example', 'topomojo');
 
@@ -500,7 +499,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * The API key must not travel over a connection nobody has authenticated.
      */
-    public function test_the_api_client_verifies_the_peer_certificate() {
+    public function test_the_api_client_verifies_the_peer_certificate(): void {
         $this->resetAfterTest();
 
         // What \curl hands out by default, and what the helper is for: verification off,
@@ -518,7 +517,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * TopoMojo is called while pages render and from cron, so the calls are bounded.
      */
-    public function test_the_api_client_requests_are_time_bounded() {
+    public function test_the_api_client_requests_are_time_bounded(): void {
         $this->resetAfterTest();
         $client = new \curl();
 
@@ -535,7 +534,7 @@ class locallib_test extends \advanced_testcase {
      * A redirect would carry x-api-key to the host that asked for it, because the header
      * filter core applies on a cross-host redirect only matches Authorization.
      */
-    public function test_an_api_key_client_does_not_follow_redirects() {
+    public function test_an_api_key_client_does_not_follow_redirects(): void {
         $this->resetAfterTest();
 
         $bearer = topomojo_configure_api_client(new \curl());
@@ -548,7 +547,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * And setup() is where that happens, so no caller has to remember to.
      */
-    public function test_setup_returns_a_configured_api_key_client() {
+    public function test_setup_returns_a_configured_api_key_client(): void {
         $this->resetAfterTest();
         set_config('enableapikey', 1, 'topomojo');
         set_config('apikey', 'test-api-key-12345', 'topomojo');
@@ -565,7 +564,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * A failed setup() returns null, and configuring that must not fatal.
      */
-    public function test_configuring_a_missing_client_is_harmless() {
+    public function test_configuring_a_missing_client_is_harmless(): void {
         $this->resetAfterTest();
 
         $this->assertNull(topomojo_configure_api_client(null));
@@ -575,7 +574,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test the gamespace lookup finds an attempt through the TEXT eventid column.
      */
-    public function test_get_attempt_by_gamespace() {
+    public function test_get_attempt_by_gamespace(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -595,7 +594,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test the gamespace lookup returns only the fields asked for.
      */
-    public function test_get_attempt_by_gamespace_returns_requested_fields() {
+    public function test_get_attempt_by_gamespace_returns_requested_fields(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -612,7 +611,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test the gamespace lookup returns false when no attempt has the gamespace.
      */
-    public function test_get_attempt_by_gamespace_returns_false_when_missing() {
+    public function test_get_attempt_by_gamespace_returns_false_when_missing(): void {
         $this->resetAfterTest();
 
         $this->assertFalse(topomojo_get_attempt_by_gamespace('missing-gamespace'));
@@ -621,7 +620,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test the gamespace lookup tolerates more than one attempt on the same gamespace.
      */
-    public function test_get_attempt_by_gamespace_tolerates_duplicates() {
+    public function test_get_attempt_by_gamespace_tolerates_duplicates(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -637,7 +636,7 @@ class locallib_test extends \advanced_testcase {
     /**
      * Test the attempt check matches on activity, user and gamespace together.
      */
-    public function test_user_has_gamespace_attempt() {
+    public function test_user_has_gamespace_attempt(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();

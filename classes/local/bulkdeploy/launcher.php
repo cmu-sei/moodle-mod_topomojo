@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
@@ -8,9 +23,9 @@ defined('MOODLE_INTERNAL') || die();
  * then poll until all are ready (or the wait ceiling fires).
  *
  * Stateless; one instance can be reused for multiple batches.
+ * @package mod_topomojo
  */
 class launcher {
-
     /**
      * Question managers built for attempt creation, keyed by topomojo id. Building one constructs a
      * whole \mod_topomojo\topomojo (which touches $PAGE and loads every question), so it is done
@@ -36,10 +51,11 @@ class launcher {
         private curl_multi_client $client,
         private string $apibaseurl,
         private array $authheaders,
-        private int $requesttimeout,   // per-request cURL timeout (seconds)
-        private int $pollintervalsec,   // sleep between poll cycles
+        private int $requesttimeout, // per-request cURL timeout (seconds)
+        private int $pollintervalsec, // sleep between poll cycles
         private int $waitceilingsec     // max wait time per batch, in seconds
-    ) {}
+    ) {
+    }
 
     /**
      * @param int $jobid
@@ -160,7 +176,8 @@ class launcher {
                 $laststatus[$entry['gamespaceid']] = $this->extract_state($resp->body);
                 if ($resp->httpcode === 200) {
                     $decoded = json_decode($resp->body);
-                    if (is_object($decoded)
+                    if (
+                        is_object($decoded)
                         && !empty($decoded->isActive)
                         && !empty($decoded->vms)
                         && is_array($decoded->vms)
@@ -268,7 +285,7 @@ class launcher {
         $existing = $DB->get_record('topomojo_attempts', [
             'topomojoid' => $topomojo->id,
             'userid' => $userid,
-            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS
+            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS,
         ]);
 
         if ($existing) {

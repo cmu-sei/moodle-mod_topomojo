@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -65,7 +65,7 @@ $strintro        = get_string('moduleintro');
 $strlastmodified = get_string('lastmodified');
 
 $PAGE->set_url('/mod/topomojo/index.php', ['id' => $course->id]);
-$PAGE->set_title($course->shortname.': '.$strtopomojos);
+$PAGE->set_title($course->shortname . ': ' . $strtopomojos);
 $PAGE->navbar->add($strtopomojos);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strtopomojos);
@@ -81,7 +81,7 @@ $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
 if ($usesections) {
-    $strsectionname = get_string('sectionname', 'format_'.$course->format);
+    $strsectionname = get_string('sectionname', 'format_' . $course->format);
     $table->head  = [$strsectionname, $strname, $strintro];
     $table->align = ['center', 'left', 'left'];
 } else {
@@ -105,7 +105,7 @@ foreach ($topomojos as $topomojo) {
             $currentsection = $topomojo->section;
         }
     } else {
-        $printsection = '<span class="smallinfo">'.userdate($topomojo->timemodified)."</span>";
+        $printsection = '<span class="smallinfo">' . userdate($topomojo->timemodified) . "</span>";
     }
 
     $extra = empty($cm->onclick) ? '' : 'onclick="' . s($cm->onclick) . '"';
@@ -118,7 +118,7 @@ foreach ($topomojos as $topomojo) {
     $class = $topomojo->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed
     $table->data[] = [
         $printsection,
-        "<a $class $extra href=\"view.php?id=$cm->id\">".$icon.format_string($topomojo->name)."</a>",
+        "<a $class $extra href=\"view.php?id=$cm->id\">" . $icon . format_string($topomojo->name) . "</a>",
         format_module_intro('topomojo', $topomojo, $cm->id)];
 }
 

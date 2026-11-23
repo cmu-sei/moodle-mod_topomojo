@@ -49,7 +49,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_topomojo_auth_checkbox_setting extends admin_setting_configcheckbox {
-
     /**
      * Writes the setting after validating the submitted authentication pair.
      *

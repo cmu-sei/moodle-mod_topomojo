@@ -1,15 +1,33 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_topomojo;
 
 defined('MOODLE_INTERNAL') || die();
 
 class observer {
-
     public static function cm_deleted(\core\event\course_module_deleted $event): void {
-        if (($event->other['modulename'] ?? '') !== 'topomojo') { return; }
+        if (($event->other['modulename'] ?? '') !== 'topomojo') {
+            return;
+        }
 
         $deletedcmid = $event->objectid ?? ($event->other['cmid'] ?? null);
-        if (!$deletedcmid) { return; }
+        if (!$deletedcmid) {
+            return;
+        }
 
         if (self::frontpage_current_cmid_equals((int)$deletedcmid)) {
             // Run scheduled task logic immediately
@@ -22,10 +40,14 @@ class observer {
         global $DB;
 
         $cm = $event->get_record_snapshot('course_modules', $event->objectid);
-        if (!$cm) { return; }
+        if (!$cm) {
+            return;
+        }
 
         $module = $DB->get_record('modules', ['id' => $cm->module], 'name', IGNORE_MISSING);
-        if (!$module || $module->name !== 'topomojo') { return; }
+        if (!$module || $module->name !== 'topomojo') {
+            return;
+        }
 
         // If it is now hidden, and the front page link currently points to this cmid, run task.
         if ((int)$cm->visible === 0 && self::frontpage_current_cmid_equals((int)$cm->id)) {
@@ -38,10 +60,14 @@ class observer {
         global $DB;
 
         $cm = $event->get_record_snapshot('course_modules', $event->objectid);
-        if (!$cm) { return; }
+        if (!$cm) {
+            return;
+        }
 
         $module = $DB->get_record('modules', ['id' => $cm->module], 'name', IGNORE_MISSING);
-        if (!$module || $module->name !== 'topomojo') { return; }
+        if (!$module || $module->name !== 'topomojo') {
+            return;
+        }
 
         if ((int)$cm->visible === 0 && self::frontpage_current_cmid_equals((int)$cm->id)) {
             $task = new \mod_topomojo\task\rotate_labofday_adhoc();
@@ -63,21 +89,31 @@ class observer {
             'blockname'       => 'html',
             'parentcontextid' => $frontcontext->id,
         ]);
-        if (!$blocks) { return false; }
+        if (!$blocks) {
+            return false;
+        }
 
         $reFindMarkedHref = '~href\s*=\s*["\'][^"\']*/mod/topomojo/view\.php\?id=(\d+)~i';
         $reHasMarker      = '~data-labofday\s*=\s*(?:"1"|\'1\'|1)~i';
 
         foreach ($blocks as $bi) {
-            if (empty($bi->configdata)) { continue; }
+            if (empty($bi->configdata)) {
+                continue;
+            }
             $config = @unserialize(base64_decode($bi->configdata));
-            if (empty($config) || empty($config->text)) { continue; }
+            if (empty($config) || empty($config->text)) {
+                continue;
+            }
 
             $text = $config->text;
-            if (!preg_match($reHasMarker, $text)) { continue; }
+            if (!preg_match($reHasMarker, $text)) {
+                continue;
+            }
             if (preg_match($reFindMarkedHref, $text, $m)) {
                 $current = (int)$m[1];
-                if ($current === $cmid) { return true; }
+                if ($current === $cmid) {
+                    return true;
+                }
             }
         }
         return false;

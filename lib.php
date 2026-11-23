@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -53,7 +53,7 @@ use mod_topomojo\question\qubaids_for_topomojo;
  * @return mixed True if module supports feature, false if not, null if doesn't know
  */
 function topomojo_supports($feature) {
-    switch($feature) {
+    switch ($feature) {
         case FEATURE_MOD_ARCHETYPE:
             return MOD_ARCHETYPE_OTHER;
         case FEATURE_GROUPS:
@@ -121,7 +121,7 @@ function topomojo_get_post_actions() {
  */
 function topomojo_add_instance($topomojo, $mform) {
     global $CFG, $DB;
-    require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
+    require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
     $cmid = $topomojo->coursemodule;
 
@@ -169,7 +169,7 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
         return $result;
     }
     // Get the current value, so we can see what changed.
-    //$oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
+    // $oldtopomojo = $DB->get_record('topomojo', array('id' => $topomojo->instance));
 
     // Update the database.
     $topomojo->id = $topomojo->instance;
@@ -184,7 +184,6 @@ function topomojo_update_instance(stdClass $topomojo, $mform) {
     topomojo_after_add_or_update($topomojo, true); // true = this is an update
 
     return true;
-
 }
 
 /**
@@ -309,7 +308,6 @@ function topomojo_delete_references($topomojoid): void {
 
     $cm = get_coursemodule_from_instance('topomojo', $topomojoid);
     $context = context_module::instance($cm->id);
-
 
     $conditions = [
         'usingcontextid' => $context->id,
@@ -511,8 +509,10 @@ function topomojo_delete_finished_preview_attempts($topomojo): int {
  * @return bool whether any of these questions are used by any instance of this module.
  */
 function topomojo_questions_in_use($questionids) {
-    return question_engine::questions_in_use($questionids,
-            new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid'));
+    return question_engine::questions_in_use(
+        $questionids,
+        new qubaid_join('{topomojo_attempts} topomojoa', 'topomojoa.questionusageid')
+    );
 }
 
 /**
@@ -529,7 +529,7 @@ function topomojo_get_coursemodule_info($coursemodule) {
     global $DB;
 
     // Fetch the topomojo instance from the database.
-    $dbparams = array('id' => $coursemodule->instance);
+    $dbparams = ['id' => $coursemodule->instance];
     $fields = 'id, name, intro, introformat';
     if (! $topomojo = $DB->get_record('topomojo', $dbparams, $fields)) {
         return false; // Return false if the record cannot be found.
@@ -604,8 +604,10 @@ function topomojo_check_updates_since(cm_info $cm, $from, $filter = []) {
  * @param \core_calendar\action_factory $factory
  * @return \core_calendar\local\event\entities\action_interface|null
  */
-function mod_topomojo_core_calendar_provide_event_action(calendar_event $event,
-                                                       \core_calendar\action_factory $factory) {
+function mod_topomojo_core_calendar_provide_event_action(
+    calendar_event $event,
+    \core_calendar\action_factory $factory
+) {
     $cm = get_fast_modinfo($event->courseid)->instances['topomojo'][$event->instance];
 
     $completion = new \completion_info($cm->get_course());
@@ -637,9 +639,7 @@ function topomojo_update_grades($topomojo, $userid = 0, $nullifnone = true) {
     require_once($CFG->libdir . '/gradelib.php');
     if ($topomojo->grade == 0) {
         topomojo_grade_item_update($topomojo);
-
     } else if ($grades = topomojo_get_user_grades($topomojo, $userid)) {
-
         $status = topomojo_grade_item_update($topomojo, $grades);
     } else if ($userid && $nullifnone) {
         $grade = new stdClass();
@@ -708,8 +708,16 @@ function topomojo_grade_item_delete($topomojo) {
     global $CFG;
     require_once($CFG->libdir . '/gradelib.php');
 
-    return grade_update('mod/topomojo', $topomojo->course, 'mod', 'topomojo', $topomojo->id, 0,
-            null, ['deleted' => 1]);
+    return grade_update(
+        'mod/topomojo',
+        $topomojo->course,
+        'mod',
+        'topomojo',
+        $topomojo->id,
+        0,
+        null,
+        ['deleted' => 1]
+    );
 }
 
 /**
@@ -769,33 +777,52 @@ function topomojo_extend_settings_navigation($settingsnav, $context) {
     }
 
     $url = new moodle_url('/mod/topomojo/challenge.php', ['id' => $settingsnav->get_page()->cm->id]);
-    $node = navigation_node::create(get_string('challengetext', 'mod_topomojo'),
-            new moodle_url($url),
-            navigation_node::TYPE_SETTING, null, 'mod_topomojo_challenge', new pix_icon('i/grades', 'grades'));
+    $node = navigation_node::create(
+        get_string('challengetext', 'mod_topomojo'),
+        new moodle_url($url),
+        navigation_node::TYPE_SETTING,
+        null,
+        'mod_topomojo_challenge',
+        new pix_icon('i/grades', 'grades')
+    );
     $context->add_node($node, $beforekey);
 
     $url = new moodle_url('/mod/topomojo/review.php', ['id' => $settingsnav->get_page()->cm->id]);
-    $node = navigation_node::create(get_string('reviewtext', 'mod_topomojo'),
-            new moodle_url($url),
-            navigation_node::TYPE_SETTING, null, 'mod_topomojo_review', new pix_icon('i/grades', 'grades'));
+    $node = navigation_node::create(
+        get_string('reviewtext', 'mod_topomojo'),
+        new moodle_url($url),
+        navigation_node::TYPE_SETTING,
+        null,
+        'mod_topomojo_review',
+        new pix_icon('i/grades', 'grades')
+    );
     $context->add_node($node, $beforekey);
 
     if (has_capability('mod/topomojo:manage', $settingsnav->get_page()->cm->context)) {
         $url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $settingsnav->get_page()->cm->id]);
-        $node = navigation_node::create(get_string('questions', 'mod_topomojo'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_edit', new pix_icon('i/edit', ''));
+        $node = navigation_node::create(
+            get_string('questions', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_topomojo_edit',
+            new pix_icon('i/edit', '')
+        );
         $context->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/topomojo:bulkdeploy', $settingsnav->get_page()->cm->context)) {
         $url = new moodle_url('/mod/topomojo/manage.php', ['id' => $settingsnav->get_page()->cm->id]);
-        $node = navigation_node::create(get_string('manage_button', 'mod_topomojo'),
-                new moodle_url($url),
-                navigation_node::TYPE_SETTING, null, 'mod_topomojo_manage', new pix_icon('i/users', ''));
+        $node = navigation_node::create(
+            get_string('manage_button', 'mod_topomojo'),
+            new moodle_url($url),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_topomojo_manage',
+            new pix_icon('i/users', '')
+        );
         $context->add_node($node, $beforekey);
     }
-
 }
 
 /**
@@ -920,18 +947,18 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
                 // Remove any previously linked questions imported from THIS workspace
                 // Query database directly since questionmanager might have stale data
                 $linked_questions = $DB->get_records('topomojo_questions', ['topomojoid' => $topomojo->id]);
-            $deleted_ids = [];
-            foreach ($linked_questions as $tq_record) {
-                $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
-                if ($question && $question->qtype === 'mojomatch') {
-                    // Check if this question was imported from this workspace
-                    $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
-                    if ($options && $options->workspaceid === $topomojo->workspaceid) {
-                        $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
-                        $deleted_ids[] = $tq_record->id;
+                $deleted_ids = [];
+                foreach ($linked_questions as $tq_record) {
+                    $question = $DB->get_record('question', ['id' => $tq_record->questionid]);
+                    if ($question && $question->qtype === 'mojomatch') {
+                        // Check if this question was imported from this workspace
+                        $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $question->id]);
+                        if ($options && $options->workspaceid === $topomojo->workspaceid) {
+                            $DB->delete_records('topomojo_questions', ['id' => $tq_record->id]);
+                            $deleted_ids[] = $tq_record->id;
+                        }
                     }
                 }
-            }
 
                 // Always validate and clean questionorder in random mode
                 // Remove any IDs that no longer exist in topomojo_questions table
@@ -969,8 +996,6 @@ function topomojo_auto_import_questions($topomojo, $context, $cmid) {
             $variant_index = $topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
             $questionmanager->process_variant_questions($context, $topomojoobj, $variant_index, $challenge, $addtoquiz);
         }
-
-
     } catch (Exception $e) {
         debugging('Failed to auto-import questions: ' . $e->getMessage(), DEBUG_DEVELOPER);
         // Don't throw - let activity save succeed even if import fails

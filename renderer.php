@@ -49,7 +49,6 @@ use mod_topomojo\traits\renderer_base;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_topomojo_renderer extends \plugin_renderer_base {
-
     use renderer_base;
 
     /**
@@ -82,7 +81,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             'days' => $days,
             'hours' => $hours,
             'minutes' => $minutes,
-            'seconds' => $seconds
+            'seconds' => $seconds,
         ];
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
@@ -104,7 +103,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             'days' => $days,
             'hours' => $hours,
             'minutes' => $minutes,
-            'seconds' => $seconds
+            'seconds' => $seconds,
         ];
         // Add the flag to the data object
         $data->showWarning = $showWarning;
@@ -231,7 +230,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data = new stdClass();
         $data->url = $url;
         $data->id = $id;
-        $data->returntext = get_string('returntext', 'mod_topomojo');;
+        $data->returntext = get_string('returntext', 'mod_topomojo');
+        ;
         echo $this->render_from_template('mod_topomojo/returnform', $data);
     }
 
@@ -251,7 +251,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->playerlinktext = get_string('playerlinktext', 'mod_topomojo');
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/link', $data);
-
     }
 
     /**
@@ -344,7 +343,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         // Render the data in a Mustache template.
         echo $this->render_from_template('mod_topomojo/embed', $data);
-
     }
 
     /**
@@ -431,7 +429,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         // Only add score if any attempt will display a score
         $show_any_score = $showgrade && !empty(array_filter(
             $attempts,
-            function($attempt) {
+            function ($attempt) {
                 return !empty($attempt->questionusageid);
             }
         ));
@@ -531,17 +529,21 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $output = '';
 
-        //$output .= html_writer::start_div();
-        //$output .= $this->topomojo_intro();
-        //$output .= html_writer::end_div();
+        // $output .= html_writer::start_div();
+        // $output .= $this->topomojo_intro();
+        // $output .= html_writer::end_div();
 
         $output .= html_writer::start_div('', ['id' => 'topomojoview']);
         // Start the form.
-        $output .= html_writer::start_tag('form',
-                ['action' => new moodle_url($pageurl,
-                ['id' => $cmid]), 'method' => 'post',
+        $output .= html_writer::start_tag(
+            'form',
+            ['action' => new moodle_url(
+                $pageurl,
+                ['id' => $cmid]
+            ), 'method' => 'post',
                 'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
-                ]);
+            ]
+        );
         $output .= html_writer::start_tag('div');
         /*
         if ($this->topomojo->is_instructor()) {
@@ -639,10 +641,9 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             echo html_writer::start_div('topomojobox');
             echo html_writer::tag('p', get_string('notopen', 'topomojo') . userdate($timeopen), ['id' => 'quiz_notavailable']);
             echo html_writer::end_tag('div');
-
         } else if ($state == 'closed') {
             echo html_writer::start_div('topomojobox');
-            echo html_writer::tag('p', get_string('closed', 'topomojo'). userdate($timeclose), ['id' => 'quiz_notavailable']);
+            echo html_writer::tag('p', get_string('closed', 'topomojo') . userdate($timeclose), ['id' => 'quiz_notavailable']);
             echo html_writer::end_tag('div');
         }
 
@@ -691,11 +692,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $action = clone($this->pageurl);
 
-        $output .= html_writer::start_tag('form',
+        $output .= html_writer::start_tag(
+            'form',
             ['action'  => '', 'method' => 'post',
                   'enctype' => 'multipart/form-data', 'accept-charset' => 'utf-8',
                   'id'      => 'q' . $qnum, 'class' => 'topomojo_question',
-                  'name'    => 'q' . $qnum]);
+            'name'    => 'q' . $qnum]
+        );
 
         $output .= $attempt->render_question($slot, true, 'edit');
 
@@ -798,11 +801,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     private function clean_markdown($markdown) {
-        $cleanlines = array();
+        $cleanlines = [];
         $url = get_topomojo_base_url();
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
-        //Match the pattern for markdown images
+        // Match the pattern for markdown images
         // Match markdown images and skip ones where the URL already starts with 'http' or 'https'
         $pattern = '/(!\[.*\]\()(?!https?:\/\/)(.*\))/i';
         $replace = '${1}' . $url . '/${2}';
@@ -811,7 +814,6 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $clean = preg_replace($pattern, $replace, $line);
             $cleanlines[] = $clean;
         }
-
 
         $markdown = implode("\n", $cleanlines);
 
@@ -823,7 +825,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 $rendered = format_text($inner, FORMAT_MARKDOWN, [
                     'trusted' => true,
                     'noclean' => true,
-                    'filter' => false
+                    'filter' => false,
                 ]);
                 return "<$tag>$rendered</$tag>";
             }, $markdown);
@@ -832,7 +834,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $options = [
             'trusted' => true,
             'noclean' => true,
-            'filter' => false
+            'filter' => false,
         ];
 
         $cleaned = format_text($markdown, FORMAT_MARKDOWN, $options);
@@ -842,5 +844,4 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         return $cleaned;
     }
-
 }

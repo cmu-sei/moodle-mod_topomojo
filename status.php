@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
@@ -33,26 +48,27 @@ $rows = $repo->get_user_rows($jobid);
 
 echo html_writer::start_div('mod-topomojo-bulkdeploy-status', ['data-jobid' => $jobid]);
 echo html_writer::tag('p', "Status: <span data-role='job-status'>" . s($job->status) . "</span>");
-echo html_writer::tag('p',
+echo html_writer::tag(
+    'p',
     "Total: {$job->totalusers} &middot; "
-  . "Ready: <span data-role='count-ready'>" . (int)($counts['ready'] ?? 0) . "</span> &middot; "
-  . "Failed: <span data-role='count-failed'>" . (int)($counts['failed'] ?? 0) . "</span> &middot; "
-  . "Skipped: <span data-role='count-skipped'>" . (int)($counts['skipped'] ?? 0) . "</span> &middot; "
-  . "Cancelled: <span data-role='count-cancelled'>" . (int)($counts['cancelled'] ?? 0) . "</span>"
+    . "Ready: <span data-role='count-ready'>" . (int)($counts['ready'] ?? 0) . "</span> &middot; "
+    . "Failed: <span data-role='count-failed'>" . (int)($counts['failed'] ?? 0) . "</span> &middot; "
+    . "Skipped: <span data-role='count-skipped'>" . (int)($counts['skipped'] ?? 0) . "</span> &middot; "
+    . "Cancelled: <span data-role='count-cancelled'>" . (int)($counts['cancelled'] ?? 0) . "</span>"
 );
 
 if (!job_status::is_terminal($job->status)) {
     echo html_writer::start_tag('form', [
         'method' => 'post',
         'action' => new moodle_url('/mod/topomojo/bulkdeploy_cancel.php'),
-        'class' => 'mt-2'
+        'class' => 'mt-2',
     ]);
     echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'jobid', 'value' => $jobid]);
     echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
     echo html_writer::empty_tag('input', [
         'type' => 'submit',
         'value' => get_string('bulkdeploy_cancel', 'topomojo'),
-        'class' => 'btn btn-secondary'
+        'class' => 'btn btn-secondary',
     ]);
     echo html_writer::end_tag('form');
 }
@@ -75,7 +91,7 @@ foreach ($rows as $r) {
                 'jobid' => $jobid,
                 'rowid' => $r->id,
                 'gamespaceid' => $r->gamespaceid,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]);
             echo html_writer::link($endurl, 'End', ['class' => 'btn btn-sm btn-secondary']);
         } else {
@@ -84,17 +100,17 @@ foreach ($rows as $r) {
                 'jobid' => $jobid,
                 'rowid' => $r->id,
                 'gamespaceid' => $r->gamespaceid,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]);
             echo html_writer::link($launchurl, 'Launch', ['class' => 'btn btn-sm btn-primary', 'target' => '_blank']);
         }
-    } elseif (($r->status === 'pending' || $r->status === 'launched') && !empty($r->gamespaceid)) {
+    } else if (($r->status === 'pending' || $r->status === 'launched') && !empty($r->gamespaceid)) {
         // Still deploying - show Cancel button
         $endurl = new moodle_url('/mod/topomojo/bulkdeploy_end_gamespace.php', [
             'jobid' => $jobid,
             'rowid' => $r->id,
             'gamespaceid' => $r->gamespaceid,
-            'sesskey' => sesskey()
+            'sesskey' => sesskey(),
         ]);
         echo html_writer::link($endurl, 'Cancel', ['class' => 'btn btn-sm btn-danger btn-sm']);
     }

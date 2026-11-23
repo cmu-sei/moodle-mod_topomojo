@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -48,7 +48,7 @@ require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 
 require_login();
-//require_sesskey();
+// require_sesskey();
 
 // Require the session key - want to make sure that this isn't called
 // maliciously to keep a session alive longer than intended.
@@ -65,4 +65,3 @@ echo json_encode($response);
 
 // Update the session.
 \core\session\manager::touch_session(session_id());
-

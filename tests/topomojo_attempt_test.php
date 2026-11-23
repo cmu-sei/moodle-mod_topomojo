@@ -54,8 +54,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo_attempt::class)]
-class topomojo_attempt_test extends \advanced_testcase {
-
+final class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Discard any fault-path debugging() output left by a test.
      *
@@ -71,7 +70,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt class constants.
      */
-    public function test_attempt_constants() {
+    public function test_attempt_constants(): void {
         $this->assertEquals('notstarted', topomojo_attempt::NOTSTARTED);
         $this->assertEquals('inprogress', topomojo_attempt::INPROGRESS);
         $this->assertEquals('abandoned', topomojo_attempt::ABANDONED);
@@ -81,7 +80,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt construction with no data (new attempt).
      */
-    public function test_attempt_construction_new() {
+    public function test_attempt_construction_new(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -94,7 +93,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt construction with existing data.
      */
-    public function test_attempt_construction_existing() {
+    public function test_attempt_construction_existing(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -117,7 +116,7 @@ class topomojo_attempt_test extends \advanced_testcase {
      * Test getState method.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('state_provider')]
-    public function test_getstate($statevalue, $expected) {
+    public function test_getstate($statevalue, $expected): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -146,7 +145,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test getState with invalid state throws exception.
      */
-    public function test_getstate_invalid() {
+    public function test_getstate_invalid(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -163,7 +162,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test setState method.
      */
-    public function test_setstate() {
+    public function test_setstate(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -197,7 +196,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test setState with invalid state.
      */
-    public function test_setstate_invalid() {
+    public function test_setstate_invalid(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -213,7 +212,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test save method for new attempt.
      */
-    public function test_save_new_attempt() {
+    public function test_save_new_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -244,7 +243,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test save method for existing attempt.
      */
-    public function test_save_existing_attempt() {
+    public function test_save_existing_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -278,7 +277,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test close_attempt method.
      */
-    public function test_close_attempt() {
+    public function test_close_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -314,7 +313,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __get method.
      */
-    public function test_magic_get() {
+    public function test_magic_get(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -332,7 +331,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __get with undefined property.
      */
-    public function test_magic_get_undefined() {
+    public function test_magic_get_undefined(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -348,7 +347,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __set method.
      */
-    public function test_magic_set() {
+    public function test_magic_set(): void {
         $this->resetAfterTest();
 
         $attempt = new topomojo_attempt(null);
@@ -363,7 +362,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test getSlots method.
      */
-    public function test_getslots() {
+    public function test_getslots(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -381,7 +380,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test getSlots with empty layout.
      */
-    public function test_getslots_empty() {
+    public function test_getslots_empty(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -400,7 +399,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test get_question_number method.
      */
-    public function test_get_question_number() {
+    public function test_get_question_number(): void {
         $this->resetAfterTest();
 
         $attempt = new topomojo_attempt(null);

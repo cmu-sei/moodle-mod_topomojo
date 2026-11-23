@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -121,7 +120,6 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 }
 
 if ($activeattempt == true) {
-
     // If active attempt found but event not fetched yet, fetch it
     if (empty($object->event) && isset($object->openAttempt)) {
         $attemptdata = $object->openAttempt->get_attempt();
@@ -135,7 +133,6 @@ if ($activeattempt == true) {
         }
     }
 } else if ($activeattempt == false) {
-
     // A finished question attempt can leave its lab running when End Lab is
     // disabled. The Challenge tab has no active QUBA to render in that state.
     // Send the user back to the activity page instead of showing content preview.
@@ -167,7 +164,6 @@ if ($activeattempt == true) {
 
 // Handle start/stop form action
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
-
     // Check not started already
     if (!$object->event) {
         // Check for conflicting gamespace from another activity sharing this workspace
@@ -176,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             $conflicturl = new moodle_url('/mod/topomojo/view.php', ['id' => $conflict->cmid]);
             $conflictdata = (object)[
                 'activityname' => $conflict->activityname,
-                'activityurl' => $conflicturl->out()
+                'activityurl' => $conflicturl->out(),
             ];
             echo $OUTPUT->header();
             echo $OUTPUT->notification(
@@ -247,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 }
 
 if ((!$object->event) && ($activeattempt)) {
-    //throw new moodle_exception(('attemptalreadyexists', 'topomojo');
+    // throw new moodle_exception(('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
     $grader->process_attempt($object->openAttempt);
     $object->openAttempt->close_attempt();
@@ -300,7 +296,7 @@ switch ($action) {
                     $current_attempt_count = $DB->count_records('topomojo_attempts', [
                         'topomojoid' => $topomojo->id,
                         'userid' => $userid,
-                        'preview' => 0
+                        'preview' => 0,
                     ]);
 
                     $endlab = $object->topomojo->endlab;
@@ -312,54 +308,54 @@ switch ($action) {
                     $combined_text = $challenge->text ?? '';
 
                     // Append variant-specific text if available
-                    if ($full_challenge && $deployed_variant !== null && isset($full_challenge->variants[$deployed_variant]->text)) {
-                        $variant_text = $full_challenge->variants[$deployed_variant]->text;
-                        if (!empty($variant_text)) {
-                            $combined_text .= "\n\n" . $variant_text;
-                        }
+                if ($full_challenge && $deployed_variant !== null && isset($full_challenge->variants[$deployed_variant]->text)) {
+                    $variant_text = $full_challenge->variants[$deployed_variant]->text;
+                    if (!empty($variant_text)) {
+                        $combined_text .= "\n\n" . $variant_text;
                     }
+                }
 
-                    if ($combined_text) {
-                        if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
-                            // Normal instruction when attempts are not maxed out, no end lab
-                            $renderer->render_challenge_instructions($combined_text);
-                        } elseif ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            // Conditions when attempts are maxed out
-                            if ($endlab == 1) {
-                                // Show end lab warning if the lab is ending
-                                $renderer->render_challenge_instructions_warning_endlab($combined_text);
-                            } else {
-                                // Show warning if max attempts are reached, lab not ending
-                                $renderer->render_challenge_instructions_warning($combined_text);
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
+                if ($combined_text) {
+                    if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
+                        // Normal instruction when attempts are not maxed out, no end lab
+                        $renderer->render_challenge_instructions($combined_text);
+                    } else if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
+                        // Conditions when attempts are maxed out
+                        if ($endlab == 1) {
+                            // Show end lab warning if the lab is ending
+                            $renderer->render_challenge_instructions_warning_endlab($combined_text);
                         } else {
-                            // Default: show instructions without special formatting (unlimited attempts, no endlab)
-                            $renderer->render_challenge_instructions($combined_text);
+                            // Show warning if max attempts are reached, lab not ending
+                            $renderer->render_challenge_instructions_warning($combined_text);
                         }
+                    } else if ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
+                        $renderer->render_challenge_instructions_endlab($combined_text);
+                    } else if ($max_attempts == 0 && $endlab == 1) {
+                        $renderer->render_challenge_instructions_endlab($combined_text);
                     } else {
-                        // No challenge text; handle general warnings based on attempts and endlab
-                        if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            if ($endlab == 1) {
-                                $renderer->render_warning_endlab();
-                            } else {
-                                $renderer->render_warning();
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        }
+                        // Default: show instructions without special formatting (unlimited attempts, no endlab)
+                        $renderer->render_challenge_instructions($combined_text);
                     }
+                } else {
+                    // No challenge text; handle general warnings based on attempts and endlab
+                    if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
+                        if ($endlab == 1) {
+                            $renderer->render_warning_endlab();
+                        } else {
+                            $renderer->render_warning();
+                        }
+                    } else if ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
+                        $renderer->render_endlab();
+                    } else if ($max_attempts == 0 && $endlab == 1) {
+                        $renderer->render_endlab();
+                    }
+                }
             }
 
             // Render quiz if questions exist
             if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
-            } elseif (isset($challenge) && empty($challenge->text)) {
+            } else if (isset($challenge) && empty($challenge->text)) {
                 // No challenge text and no questions - show informational message
                 echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), \core\output\notification::NOTIFY_WARNING);
             }
@@ -392,7 +388,6 @@ switch ($action) {
 
                         // Show variant-specific texts
                         if (isset($full_challenge->variants)) {
-
                             if (count($full_challenge->variants) > 0) {
                                 $is_random = ($object->topomojo->variant == 0);
                                 $variant_has_text = false;

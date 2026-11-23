@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -49,7 +49,6 @@ require_once($CFG->libdir . '/formslib.php');
   * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
 class add_question_form extends \moodleform {
-
     /**
      * Overriding parent function to account for namespace in the class name
      * so that client validation works
@@ -71,7 +70,8 @@ class add_question_form extends \moodleform {
     public function definition() {
 
         $mform = $this->_form;
-        $topomojo = $this->_customdata['topomojo'];;
+        $topomojo = $this->_customdata['topomojo'];
+        ;
 
         $mform->addElement('static', 'questionid', get_string('question', 'topomojo'), $this->_customdata['questionname']);
 
@@ -89,7 +89,6 @@ class add_question_form extends \moodleform {
         }
 
         $this->add_action_buttons(true, $savestring);
-
     }
 
     /**
@@ -112,6 +111,4 @@ class add_question_form extends \moodleform {
 
         return $errors;
     }
-
 }
-

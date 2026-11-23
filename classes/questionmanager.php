@@ -56,7 +56,6 @@ use stdClass;
   * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
 class questionmanager {
-
     /** @var topomojo */
     protected $topomojo;
 
@@ -199,19 +198,20 @@ class questionmanager {
         $topomojoquestion = $DB->get_record('topomojo_questions', ['id' => $questionid], '*', MUST_EXIST);
         $qrecord = $DB->get_record('question', ['id' => $topomojoquestion->questionid], '*', MUST_EXIST);
 
-        $mform = new add_question_form($actionurl,
+        $mform = new add_question_form(
+            $actionurl,
             [
                 'topomojo' => $topomojoquestion->topomojoid,
                 'questionname' => $qrecord->name,
                 'defaultmark' => $topomojoquestion->points,
-                'edit' => true]);
+            'edit' => true]
+        );
 
         // Form handling
         if ($mform->is_cancelled()) {
             // Redirect back to list questions page
             $this->baseurl->remove_params('action');
             redirect($this->baseurl, null, 0);
-
         } else if ($data = $mform->get_data()) {
             // Process data from the form
             if (number_format($data->points, 2) != $topomojoquestion->points) {
@@ -230,7 +230,6 @@ class questionmanager {
             // Ensure there is no action or questionid in the baseurl
             $this->baseurl->remove_params('action', 'questionid');
             redirect($this->baseurl, null, 0);
-
         } else {
             // Display the form
             $mform->set_data(['points' => number_format($topomojoquestion->points, 2)]);
@@ -271,11 +270,10 @@ class questionmanager {
         global $DB;
 
         if ($this->is_question_already_present($questionid)) {
-
             // Even if already present, ensure it's in questionorder
             $tq_record = $DB->get_record('topomojo_questions', [
                 'topomojoid' => $this->object->topomojo->id,
-                'questionid' => $questionid
+                'questionid' => $questionid,
             ]);
 
             if ($tq_record) {
@@ -347,7 +345,7 @@ class questionmanager {
 
             // Pin to current version for historical stability
             $version = $DB->get_field('question_versions', 'version', [
-                'questionid' => $questionid
+                'questionid' => $questionid,
             ], IGNORE_MULTIPLE);
 
             if ($version === false) {
@@ -374,7 +372,7 @@ class questionmanager {
 
             // Pin to current version for historical stability
             $version = $DB->get_field('question_versions', 'version', [
-                'questionid' => $questionid
+                'questionid' => $questionid,
             ], IGNORE_MULTIPLE);
 
             if ($version === false) {
@@ -522,7 +520,7 @@ class questionmanager {
         global $DB;
 
             // TODO use the right variant
-            //$variant = 1;
+            // $variant = 1;
             $event = get_event($this->gettopomojo()->userauth, $gamespaceid);
             $variant = $event->variant;
             $challenge = get_gamespace_challenge($this->gettopomojo()->userauth, $gamespaceid);
@@ -536,7 +534,7 @@ class questionmanager {
                     $sql = "select * from {question} where " . $DB->sql_compare_text('questiontext') . " = ? ";
                     $records = $DB->get_records_sql($sql, [$question->text]);
                 if (count($records)) {
-                        //echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
+                        // echo "<br>" . count($records) . " questions exists with text: $question->text <br>";
                     foreach ($records as $record) {
                             $options = $DB->get_record('qtype_mojomatch_options', ['questionid' => $record->id]);
                         if ($options) {
@@ -551,15 +549,14 @@ class questionmanager {
                 }
 
                 if ($questionid) {
-                        //$table = 'question_attempts';
-                        //$questionusageid = $quba->get_id();
-                        //$dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
+                        // $table = 'question_attempts';
+                        // $questionusageid = $quba->get_id();
+                        // $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
 
                         // TODO check the variant and the number
-                        //$dataobject->rightanswer = $question->answer;
-                        //  update quba with the correct answer
-                        //$DB->update_record($table, $dataobject);
-
+                        // $dataobject->rightanswer = $question->answer;
+                        // update quba with the correct answer
+                        // $DB->update_record($table, $dataobject);
                 }
             }
         }
@@ -637,7 +634,6 @@ class questionmanager {
     protected function set_question_order($questionorder) {
         $this->object->topomojo->questionorder = $questionorder;
         return $this->object->save();
-
     }
 
     /**
@@ -655,7 +651,6 @@ class questionmanager {
 
         switch ($action) {
             case 'addquestion':
-
                 $questionorder = $this->get_question_order();
                 if (empty($questionorder)) {
                     $questionorder = $questionid;
@@ -671,12 +666,10 @@ class questionmanager {
                 return true;
                 break;
             case 'deletequestion':
-
                 $questionorder = $this->get_question_order();
                 $questionorder = explode(',', $questionorder);
 
                 foreach ($questionorder as $index => $qorder) {
-
                     if ($qorder == $questionid) {
                         unset($questionorder[$index]);
                         break;
@@ -692,14 +685,11 @@ class questionmanager {
 
                 break;
             case 'movequestionup':
-
                 $questionorder = $this->get_question_order();
                 $questionorder = explode(',', $questionorder);
 
                 foreach ($questionorder as $index => $qorder) {
-
                     if ($qorder == $questionid) {
-
                         if ($index == 0) {
                             return false; // can't move first question up
                         }
@@ -723,16 +713,13 @@ class questionmanager {
 
                 break;
             case 'movequestiondown':
-
                 $questionorder = $this->get_question_order();
                 $questionorder = explode(',', $questionorder);
 
                 $questionordercount = count($questionorder);
 
                 foreach ($questionorder as $index => $qorder) {
-
                     if ($qorder == $questionid) {
-
                         if ($index == $questionordercount - 1) {
                             return false; // can't move last question down
                         }
@@ -756,7 +743,6 @@ class questionmanager {
 
                 break;
             case 'replaceorder':
-
                 $questionorder = $this->get_question_order();
                 $questionorder = explode(',', $questionorder);
 
@@ -774,7 +760,6 @@ class questionmanager {
                 }
 
                 if ($allmatch) {
-
                     $newquestionorder = implode(',', $fullorder);
                     $this->set_question_order($newquestionorder);
                     $this->refresh_questions();
@@ -842,12 +827,10 @@ class questionmanager {
         $questionorder = $this->object->topomojo->questionorder ?? null;
 
         // Generate empty array for ordered questions for no question order
-        if (empty($questionorder) ) {
-
+        if (empty($questionorder)) {
             $this->qbankorderedquestions = [];
 
             return;
-
         } else { // Otherwise explode it and continue on
             $questionorder = explode(',', $questionorder);
         }
@@ -884,7 +867,7 @@ class questionmanager {
         }
 
         // Get qbank questions based on the question ids from the topomojo questions table
-        list($sql, $params) = $DB->get_in_or_equal($orderedquestionids);
+        [$sql, $params] = $DB->get_in_or_equal($orderedquestionids);
         $query = 'SELECT * FROM {question} WHERE id ' . $sql;
         $questions = $DB->get_records_sql($query, $params);
 
@@ -892,12 +875,11 @@ class questionmanager {
         $qbankorderedquestions = [];
         foreach ($orderedquestionids as $topomojoqid => $questionid) {
             // Log the question object for debugging
-            //debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
-            //debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
+            // debugging("Checking question with ID {$questionid}", DEBUG_DEVELOPER);
+            // debugging(print_r($questions[$questionid], true), DEBUG_DEVELOPER);
 
             // Check if the question and question text are not empty
             if (!empty($questions[$questionid]) && !empty($questions[$questionid]->questiontext)) {
-
                 // Create topomojo question and add it to the array if questiontext is not null
                 $topomojoquestion = new \mod_topomojo\topomojo_question(
                     $topomojoqid,
@@ -963,38 +945,40 @@ class questionmanager {
             throw new \moodle_exception('cannotgrade', 'mod_topomojo');
         }
     }
-  
+
     public function detect_mismatched_questions($object, $variant, $challenge) {
         global $DB;
-    
+
         $mismatched = [];
         $currentquestions = $this->get_questions();
-    
+
         $expected = [];
         foreach ($challenge->variants[$variant]->sections as $section) {
             foreach ($section->questions as $q) {
                 $expected[trim(strip_tags($q->text))] = trim($q->answer);
             }
         }
-    
+
         foreach ($currentquestions as $tq) {
             $q = $tq->getQuestion();
-            if ($q->qtype !== 'mojomatch') continue;
-    
+            if ($q->qtype !== 'mojomatch') {
+                continue;
+            }
+
             $questiontext = trim(strip_tags($q->questiontext));
             $questionid = $q->id;
-    
+
             $answer = $DB->get_field('question_answers', 'answer', ['question' => $questionid]);
-    
+
             if (!isset($expected[$questiontext]) || $expected[$questiontext] !== trim($answer)) {
                 $mismatched[] = [
                     'id' => $tq->getId(),
                     'questiontext' => $questiontext,
-                    'name' => $q->name
+                    'name' => $q->name,
                 ];
             }
         }
-    
+
         return $mismatched;
     }
 
@@ -1202,7 +1186,6 @@ class questionmanager {
 
                     // ─── Always check for existing questions to avoid duplicates ───────────
                     if (!in_array($cleantext, $deleted_questiontexts, true)) {
-
                         // try to find *exact* match (text + answer + workspace + variant)
                         $sql = "SELECT q.id AS questionid
                                 FROM {question} q
@@ -1216,7 +1199,7 @@ class questionmanager {
                             'questiontext' => $cleantext,
                             'answer'       => trim($question->answer),
                             'workspaceid'  => $object->topomojo->workspaceid,
-                            'variant'      => $variant + 1 // Convert 0-based index to 1-based for DB
+                            'variant'      => $variant + 1, // Convert 0-based index to 1-based for DB
                         ];
 
                         if ($rec = $DB->get_record_sql($sql, $params)) {
@@ -1233,7 +1216,6 @@ class questionmanager {
 
                     // Create a new question if it doesn't exist
                     if (!$qexists) {
-
                         $form = new stdClass();
                         if ($question->grader == 'matchAll') {
                             $form->matchtype = '1'; // matchall
@@ -1265,7 +1247,7 @@ class questionmanager {
                         $question_preview = mb_substr(strip_tags($question->text), 0, 50);
                         $form->name = $object->topomojo->name . " - Variant " . $variant_number . " - " . $question_preview;
                         $form->questiontext['text'] = $question->text;
-                        $form->questiontext['format'] = '0'; //TODO find out nonhtml
+                        $form->questiontext['format'] = '0'; // TODO find out nonhtml
                         $form->defaultmark = 1;
                         if (is_numeric($question->weight)) {
                             if (floor($question->weight) != $question->weight) {
@@ -1331,7 +1313,7 @@ class questionmanager {
                         } else {
                             $exists = $DB->record_exists('topomojo_questions', [
                                 'topomojoid' => $this->object->topomojo->id,
-                                'questionid' => $questionid
+                                'questionid' => $questionid,
                             ]);
 
                             if ($exists) {
@@ -1363,17 +1345,17 @@ class questionmanager {
         $context = \context_module::instance($cm->id); // Context of the TopoMojo activity
         $capability = 'mod/topomojo:manage';
 
-        $users = get_users_by_capability($context, $capability, 'u.*', 'u.lastname ASC');  
-    
+        $users = get_users_by_capability($context, $capability, 'u.*', 'u.lastname ASC');
+
         if (!$users) {
             debugging("No instructors found to notify for mismatched questions.");
             return;
         }
-    
+
         $subject = "TopoMojo question mismatch in '{$activityname}' activity.";
         $body = "\n\nPlease review the activity question/answer list, ";
         $body .= "it no longer matches the current question list from the TopoMojo challenge:\n\n";
-    
+
         foreach ($users as $user) {
             $eventdata = new \core\message\message();
             $eventdata->notification      = 1;
@@ -1390,7 +1372,4 @@ class questionmanager {
             $result = message_send($eventdata);
         }
     }
-    
 }
-
-

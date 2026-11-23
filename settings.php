@@ -44,7 +44,7 @@ DM24-1175
 // This line protects the file from being accessed by a URL directly.
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/mod/topomojo/locallib.php');
+require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 require_once("$CFG->dirroot/tag/lib.php");
 
 // This is used for performance, we don't need to know about these settings on every page in Moodle, only when
@@ -68,21 +68,33 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-    $settings->add(new admin_setting_configselect('topomojo/issuerid',
+    $settings->add(new admin_setting_configselect(
+        'topomojo/issuerid',
         get_string('issuerid', 'topomojo'),
         get_string('configissuerid', 'topomojo'),
         0,
-        $oauth_options));
+        $oauth_options
+    ));
 
     $settings->hide_if('topomojo/issuerid', 'topomojo/enableoauth', 'notchecked', 1);
 
     $options = [get_string('displaylink', 'topomojo'), get_string('embedlab', 'topomojo')];
-    $settings->add(new admin_setting_configselect('topomojo/embed',
-        get_string('embed', 'topomojo'), get_string('configembed', 'topomojo'), 1, $options));
+    $settings->add(new admin_setting_configselect(
+        'topomojo/embed',
+        get_string('embed', 'topomojo'),
+        get_string('configembed', 'topomojo'),
+        1,
+        $options
+    ));
 
     $options = ['Dropdown', 'Searchable', 'Manual'];
-    $settings->add(new admin_setting_configselect('topomojo/autocomplete',
-        get_string('autocomplete', 'topomojo'), get_string('configautocomplete', 'topomojo'), 1, $options));
+    $settings->add(new admin_setting_configselect(
+        'topomojo/autocomplete',
+        get_string('autocomplete', 'topomojo'),
+        get_string('configautocomplete', 'topomojo'),
+        1,
+        $options
+    ));
 
     $settings->add(new admin_setting_configtext(
         'topomojo/maxextendinterval',
@@ -93,11 +105,23 @@ if ($ADMIN->fulltree) {
         10
     ));
 
-    $settings->add(new admin_setting_configtext('topomojo/topomojoapiurl',
-        get_string('topomojoapiurl', 'topomojo'), get_string('configtopomojoapiurl', 'topomojo'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/topomojoapiurl',
+        get_string('topomojoapiurl', 'topomojo'),
+        get_string('configtopomojoapiurl', 'topomojo'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
-    $settings->add(new admin_setting_configtext('topomojo/topomojobaseurl',
-        get_string('topomojobaseurl', 'topomojo'), get_string('configtopomojobaseurl', 'topomojo'), "", PARAM_URL, 60));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/topomojobaseurl',
+        get_string('topomojobaseurl', 'topomojo'),
+        get_string('configtopomojobaseurl', 'topomojo'),
+        "",
+        PARAM_URL,
+        60
+    ));
 
     $settings->add(new admin_setting_configcheckbox(
         'topomojo/usingconsoleforge',
@@ -114,8 +138,14 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-    $settings->add(new admin_setting_configtext('topomojo/apikey',
-        get_string('apikey', 'topomojo'), get_string('configapikey', 'topomojo'), "", PARAM_ALPHANUMEXT, 60));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/apikey',
+        get_string('apikey', 'topomojo'),
+        get_string('configapikey', 'topomojo'),
+        "",
+        PARAM_ALPHANUMEXT,
+        60
+    ));
 
     $settings->hide_if('topomojo/apikey', 'topomojo/enableapikey', 'notchecked', 1);
 
@@ -126,37 +156,70 @@ if ($ADMIN->fulltree) {
         0
     ));
 
-    $settings->add(new mod_topomojo_managername_setting('topomojo/managername',
-        get_string('managername', 'topomojo'), get_string('configmanagername', 'topomojo'), "", PARAM_TEXT, 60));
+    $settings->add(new mod_topomojo_managername_setting(
+        'topomojo/managername',
+        get_string('managername', 'topomojo'),
+        get_string('configmanagername', 'topomojo'),
+        "",
+        PARAM_TEXT,
+        60
+    ));
 
     $settings->hide_if('topomojo/managername', 'topomojo/enablemanagername', 'notchecked', 1);
 
-    $settings->add(new admin_setting_configtext('topomojo/maxattempts',
-        get_string('maxattemptlabel', 'topomojo'), get_string('maxattemptdesc', 'topomojo'), 10, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/maxattempts',
+        get_string('maxattemptlabel', 'topomojo'),
+        get_string('maxattemptdesc', 'topomojo'),
+        10,
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configtext('topomojo/maxdeployedlabs',
-        get_string('maxdeployedlabel', 'topomojo'), get_string('maxdeployedlabsdesc', 'topomojo'), 2, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/maxdeployedlabs',
+        get_string('maxdeployedlabel', 'topomojo'),
+        get_string('maxdeployedlabsdesc', 'topomojo'),
+        2,
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configtext('topomojo/deploytimeout',
-        get_string('deploytimeout', 'topomojo'), get_string('configdeploytimeout', 'topomojo'), 120, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'topomojo/deploytimeout',
+        get_string('deploytimeout', 'topomojo'),
+        get_string('configdeploytimeout', 'topomojo'),
+        120,
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configtext('topomojo/bulkdeploy_waittimeout',
+    $settings->add(new admin_setting_configtext(
+        'topomojo/bulkdeploy_waittimeout',
         get_string('bulkdeploy_waittimeout', 'topomojo'),
         get_string('configbulkdeploy_waittimeout', 'topomojo'),
         600,
-        PARAM_INT));
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configtext('topomojo/bulkdeploy_batchsize',
+    $settings->add(new admin_setting_configtext(
+        'topomojo/bulkdeploy_batchsize',
         get_string('bulkdeploy_batchsize', 'topomojo'),
         get_string('configbulkdeploy_batchsize', 'topomojo'),
         5,
-        PARAM_INT));
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('topomojo/tagimport',
-        get_string('tagimport', 'topomojo'), get_string('configtagimport', 'topomojo'), 0));
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/tagimport',
+        get_string('tagimport', 'topomojo'),
+        get_string('configtagimport', 'topomojo'),
+        0
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('topomojo/tagcreate',
-        get_string('tagcreate', 'topomojo'), get_string('configtagcreate', 'topomojo'), 0));
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/tagcreate',
+        get_string('tagcreate', 'topomojo'),
+        get_string('configtagcreate', 'topomojo'),
+        0
+    ));
 
     $settings->hide_if('topomojo/tagcreate', 'topomojo/tagimport', 'notchecked', 1);
 
@@ -171,21 +234,33 @@ if ($ADMIN->fulltree) {
         }
     }
 
-    $settings->add(new admin_setting_configselect('topomojo/tagcollection',
-        get_string('tagcollection', 'topomojo'), get_string('configtagcollection', 'topomojo'), 1, $collectionnames));
+    $settings->add(new admin_setting_configselect(
+        'topomojo/tagcollection',
+        get_string('tagcollection', 'topomojo'),
+        get_string('configtagcollection', 'topomojo'),
+        1,
+        $collectionnames
+    ));
 
     $settings->hide_if('topomojo/tagcollection', 'topomojo/tagcreate', 'notchecked', 1);
     $settings->hide_if('topomojo/tagcollection', 'topomojo/tagimport', 'notchecked', 1);
 
-    $settings->add(new admin_setting_configcheckbox('topomojo/tagmap',
-        get_string('tagmap', 'topomojo'), get_string('configtagmap', 'topomojo'), 0));
+    $settings->add(new admin_setting_configcheckbox(
+        'topomojo/tagmap',
+        get_string('tagmap', 'topomojo'),
+        get_string('configtagmap', 'topomojo'),
+        0
+    ));
 
     $settings->hide_if('topomojo/tagmap', 'topomojo/tagcreate', 'notchecked', 1);
     $settings->hide_if('topomojo/tagmap', 'topomojo/tagimport', 'notchecked', 1);
 
     // Review options.
-    $settings->add(new admin_setting_heading('reviewheading',
-            get_string('reviewoptionsheading', 'topomojo'), ''));
+    $settings->add(new admin_setting_heading(
+        'reviewheading',
+        get_string('reviewoptionsheading', 'topomojo'),
+        ''
+    ));
     foreach (mod_topomojo_admin_review_setting::fields() as $field => $name) {
         $default = mod_topomojo_admin_review_setting::all_on();
         $forceduring = null;
@@ -195,8 +270,12 @@ if ($ADMIN->fulltree) {
             $default = $default ^ mod_topomojo_admin_review_setting::DURING;
             $forceduring = false;
         }
-        $settings->add(new mod_topomojo_admin_review_setting('topomojo/review' . $field,
-                $name, '', $default, $forceduring));
+        $settings->add(new mod_topomojo_admin_review_setting(
+            'topomojo/review' . $field,
+            $name,
+            '',
+            $default,
+            $forceduring
+        ));
     }
-
 }

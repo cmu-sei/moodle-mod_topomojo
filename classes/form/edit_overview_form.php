@@ -49,15 +49,13 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class edit_overview_form extends \moodleform
 {
-
     /**
      * Overriding parent function to account for namespace in the class name
      * so that client validation works
      *
      * @return mixed|string
      */
-    protected function get_form_identifier()
-    {
+    protected function get_form_identifier() {
         $class = get_class($this);
         return preg_replace('/[^a-z0-9_]/i', '_', $class);
     }
@@ -66,8 +64,7 @@ class edit_overview_form extends \moodleform
      * Adds form fields to the form
      *
      */
-    public function definition()
-    {
+    public function definition() {
         $mform = $this->_form;
 
         $mform->addElement('header', 'overviewheader', get_string('overview_edit_header', 'mod_topomojo'));
@@ -93,8 +90,7 @@ class edit_overview_form extends \moodleform
      *
      * @return array $errors
      */
-    public function validation($data, $files)
-    {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         return $errors;
     }

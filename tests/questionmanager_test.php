@@ -62,8 +62,7 @@ require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\questionmanager::class)]
-class questionmanager_test extends \advanced_testcase {
-
+final class questionmanager_test extends \advanced_testcase {
     /**
      * Build a questionmanager for a topomojo record without going through the topomojo class
      * (which would call setup() and hit the TopoMojo API).
@@ -84,7 +83,7 @@ class questionmanager_test extends \advanced_testcase {
      * A questionorder pointing at a topomojo_questions id that no longer exists resolves to zero
      * questions and is pruned to NULL - exactly what the upgrade step produces for orphaned activities.
      */
-    public function test_stale_questionorder_id_resolves_empty_and_prunes_to_null() {
+    public function test_stale_questionorder_id_resolves_empty_and_prunes_to_null(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -114,7 +113,7 @@ class questionmanager_test extends \advanced_testcase {
      * questionorder still points at a live topomojo_questions row, so it is NOT pruned - this is the
      * other zero-question case view.php must handle (questionorder non-empty, no usable questions).
      */
-    public function test_orphan_topomojo_questions_link_resolves_empty() {
+    public function test_orphan_topomojo_questions_link_resolves_empty(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -247,7 +246,7 @@ class questionmanager_test extends \advanced_testcase {
      * The hint a challenge question carries is stored as the Moodle question's hint, which is
      * what a behaviour has to show a student between tries.
      */
-    public function test_challenge_hint_is_imported() {
+    public function test_challenge_hint_is_imported(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -273,7 +272,7 @@ class questionmanager_test extends \advanced_testcase {
      * A question with no hint stores no hint row rather than an empty one - an empty hint would
      * be a blank thing to show the student, which is worse than showing nothing.
      */
-    public function test_question_without_a_hint_stores_no_hint() {
+    public function test_question_without_a_hint_stores_no_hint(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -293,7 +292,7 @@ class questionmanager_test extends \advanced_testcase {
      * question matching and the add loop skipped: without a resync the stored hint would be
      * whatever the challenge said the first time it was imported.
      */
-    public function test_edited_hint_is_resynced_on_reimport() {
+    public function test_edited_hint_is_resynced_on_reimport(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -314,7 +313,7 @@ class questionmanager_test extends \advanced_testcase {
      * A hint removed in TopoMojo is removed here too. The questions mirror the challenge, so a
      * hint the author has taken away should not go on being shown.
      */
-    public function test_removed_hint_is_deleted_on_reimport() {
+    public function test_removed_hint_is_deleted_on_reimport(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -333,7 +332,7 @@ class questionmanager_test extends \advanced_testcase {
     /**
      * Sanity check: an empty questionorder resolves to zero questions without touching the record.
      */
-    public function test_empty_questionorder_resolves_empty() {
+    public function test_empty_questionorder_resolves_empty(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();

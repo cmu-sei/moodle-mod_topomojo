@@ -54,12 +54,11 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo_question::class)]
-class topomojo_question_test extends \advanced_testcase {
-
+final class topomojo_question_test extends \advanced_testcase {
     /**
      * Test question construction.
      */
-    public function test_question_construction() {
+    public function test_question_construction(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -78,7 +77,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test getId method.
      */
-    public function test_getid() {
+    public function test_getid(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -92,7 +91,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test getPoints method.
      */
-    public function test_getpoints() {
+    public function test_getpoints(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -106,7 +105,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test getPoints with integer value.
      */
-    public function test_getpoints_integer() {
+    public function test_getpoints_integer(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -120,7 +119,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test getQuestion method.
      */
-    public function test_getquestion() {
+    public function test_getquestion(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -143,7 +142,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test set_slot method.
      */
-    public function test_set_slot() {
+    public function test_set_slot(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -159,7 +158,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test get_slot method.
      */
-    public function test_get_slot() {
+    public function test_get_slot(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -177,7 +176,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test get_slot before setting.
      */
-    public function test_get_slot_not_set() {
+    public function test_get_slot_not_set(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -193,7 +192,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test multiple questions with different properties.
      */
-    public function test_multiple_questions() {
+    public function test_multiple_questions(): void {
         $this->resetAfterTest();
 
         $questionobj1 = new \stdClass();
@@ -219,7 +218,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test question with zero points.
      */
-    public function test_question_zero_points() {
+    public function test_question_zero_points(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -233,7 +232,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test question with negative points (edge case).
      */
-    public function test_question_negative_points() {
+    public function test_question_negative_points(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -247,7 +246,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test question object properties are preserved.
      */
-    public function test_question_object_properties_preserved() {
+    public function test_question_object_properties_preserved(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();

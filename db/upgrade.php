@@ -63,13 +63,11 @@ defined('MOODLE_INTERNAL') || die;
  * @copyright  2024 Carnegie Mellon University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-function xmldb_topomojo_upgrade($oldversion)
-{
+function xmldb_topomojo_upgrade($oldversion) {
     global $CFG, $DB;
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2022070602) {
-
         // Rename field eventtemplateid on table topomojo to gamespaceid.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('eventtemplateid', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'intro');
@@ -82,7 +80,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022070603) {
-
         // Rename field gamespaceid on table topomojo to workspaceid.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('gamespaceid', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'intro');
@@ -95,7 +92,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022070700) {
-
         // Rename field scenarioid on table topomojo_attempts to workspaceid.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('scenarioid', XMLDB_TYPE_TEXT, null, null, null, null, null, 'intro');
@@ -108,7 +104,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022070701) {
-
         // Define field launchpointurl to be added to topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('launchpointurl', XMLDB_TYPE_TEXT, '255', null, null, null, null, null);
@@ -123,7 +118,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022070702) {
-
         // Define field duration to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, null, null, null, null);
@@ -138,7 +132,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022071401) {
-
         // Define field reviewattempt to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('reviewattempt', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'timemodified');
@@ -261,7 +254,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022071403) {
-
         // Rename field vmapp on table topomojo to embed.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('vmapp', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '1', 'workspaceid');
@@ -274,7 +266,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022071805) {
-
         // Define field layout to be added to topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('layout', XMLDB_TYPE_TEXT, '255', null, null, null, null, 'launchpointurl');
@@ -289,7 +280,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022071901) {
-
         // Define table topomojo_tasks to be dropped.
         $table = new xmldb_table('topomojo_tasks');
 
@@ -332,7 +322,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2022072000) {
-
         // Define table topomojo_questions to be created.
         $table = new xmldb_table('topomojo_questions');
 
@@ -356,7 +345,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072000, 'topomojo');
     }
     if ($oldversion < 2022072001) {
-
         // Define field duration to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'preferredbehaviour');
@@ -370,7 +358,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072001, 'topomojo');
     }
     if ($oldversion < 2022072002) {
-
         // Rename field quesntionusageid on table topomojo_attempts to questionusageid.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('quesntionusageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'layout');
@@ -382,7 +369,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072002, 'topomojo');
     }
     if ($oldversion < 2022072003) {
-
         // Define field duration to be added to topomojo_grades.
         $table = new xmldb_table('topomojo_grades');
         $field = new xmldb_field('duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'topomojoid');
@@ -396,7 +382,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072003, 'topomojo');
     }
     if ($oldversion < 2022072004) {
-
         // Define field duration to be dropped from topomojo_grades.
         $table = new xmldb_table('topomojo_grades');
         $field = new xmldb_field('duration');
@@ -410,7 +395,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072004, 'topomojo');
     }
     if ($oldversion < 2022072100) {
-
         // Define field tasks to be dropped from topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $field = new xmldb_field('tasks');
@@ -433,7 +417,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2022072100, 'topomojo');
     }
     if ($oldversion < 2022072101) {
-
         // Define field variant to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('variant', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'importchallenge');
@@ -476,7 +459,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2024070304, 'topomojo');
     }
     if ($oldversion < 2024100304) {
-
         // Define table topomojo_questions to be updated.
         $table = new xmldb_table('topomojo_questions');
 
@@ -495,7 +477,6 @@ function xmldb_topomojo_upgrade($oldversion)
         upgrade_mod_savepoint(true, 2024100304, 'topomojo');
     }
     if ($oldversion < 2024102301) {
-
         // Define field endlab to be added to topomojo.
         $table = new xmldb_table('topomojo');
         $field = new xmldb_field('attempts', XMLDB_TYPE_INTEGER, '6', null, XMLDB_NOTNULL, null, '0', 'variant');
@@ -516,7 +497,6 @@ function xmldb_topomojo_upgrade($oldversion)
     }
 
     if ($oldversion < 2024102302) {
-
         // Define key questionusageid (foreign-unique) to be dropped form topomojo_attempts.
         $table = new xmldb_table('topomojo_attempts');
         $key = new xmldb_key('questionusageid', XMLDB_KEY_FOREIGN_UNIQUE, ['questionusageid'], 'question_usages', ['id']);
@@ -615,8 +595,16 @@ function xmldb_topomojo_upgrade($oldversion)
 
     if ($oldversion < 2026051504) {
         $table = new xmldb_table('topomojo_bulkdeploy_job');
-        $field = new xmldb_field('scheduledfor', XMLDB_TYPE_INTEGER, '10',
-            null, null, null, null, 'timecancelled');
+        $field = new xmldb_field(
+            'scheduledfor',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            null,
+            null,
+            null,
+            'timecancelled'
+        );
 
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -659,21 +647,23 @@ function xmldb_topomojo_upgrade($oldversion)
         // failure re-runs harmlessly.
 
         // 1. Orphan topomojo_questions links: the referenced question no longer exists. These
-        //    accumulate on every re-import and leave stale ids in questionorder (step 2). This
-        //    deletion is what creates most of the stale questionorder entries step 2 then cleans,
-        //    so it must run first.
-        $orphanlinks = $DB->count_records_select('topomojo_questions',
-            "NOT EXISTS (SELECT 1 FROM {question} q WHERE q.id = {topomojo_questions}.questionid)");
+        // accumulate on every re-import and leave stale ids in questionorder (step 2). This
+        // deletion is what creates most of the stale questionorder entries step 2 then cleans,
+        // so it must run first.
+        $orphanlinks = $DB->count_records_select(
+            'topomojo_questions',
+            "NOT EXISTS (SELECT 1 FROM {question} q WHERE q.id = {topomojo_questions}.questionid)"
+        );
         $DB->execute("DELETE FROM {topomojo_questions}
                        WHERE NOT EXISTS (SELECT 1 FROM {question} q WHERE q.id = {topomojo_questions}.questionid)");
         mtrace("mod_topomojo: deleted $orphanlinks orphan topomojo_questions link(s)");
 
         // 2. Stale questionorder ids: entries pointing at topomojo_questions rows that no longer
-        //    exist (including any just deleted in step 1). refresh_questions() already prunes these
-        //    lazily on load; do it in bulk so activities render correctly before first view.
-        //    Activities left with no valid ids get questionorder = NULL, which view.php treats as
-        //    "no questions" (auto-import path / the new zero-question notice) - a visible state
-        //    change, so their ids are logged.
+        // exist (including any just deleted in step 1). refresh_questions() already prunes these
+        // lazily on load; do it in bulk so activities render correctly before first view.
+        // Activities left with no valid ids get questionorder = NULL, which view.php treats as
+        // "no questions" (auto-import path / the new zero-question notice) - a visible state
+        // change, so their ids are logged.
         $ownedbyactivity = [];
         $idrs = $DB->get_recordset('topomojo_questions', null, '', 'id, topomojoid');
         foreach ($idrs as $q) {
@@ -683,8 +673,13 @@ function xmldb_topomojo_upgrade($oldversion)
 
         $staleremoved = 0;
         $nulledids = [];
-        $rs = $DB->get_recordset_select('topomojo', "questionorder IS NOT NULL AND questionorder <> ''",
-            null, '', 'id, questionorder');
+        $rs = $DB->get_recordset_select(
+            'topomojo',
+            "questionorder IS NOT NULL AND questionorder <> ''",
+            null,
+            '',
+            'id, questionorder'
+        );
         foreach ($rs as $rec) {
             $owned = $ownedbyactivity[$rec->id] ?? [];
             $valid = [];
@@ -715,11 +710,14 @@ function xmldb_topomojo_upgrade($oldversion)
         }
 
         // 3. NULL question_references.version for this plugin's slot references. NOT residue
-        //    removal: a NULL version means "always use the latest version", so this PINS the
-        //    reference to the current (latest) version, matching how the import path pins new
-        //    references (#60). Inert unless a new version of one of these questions is created.
-        $nullversionrefs = $DB->count_records_select('question_references',
-            "component = ? AND questionarea = ? AND version IS NULL", ['mod_topomojo', 'slot']);
+        // removal: a NULL version means "always use the latest version", so this PINS the
+        // reference to the current (latest) version, matching how the import path pins new
+        // references (#60). Inert unless a new version of one of these questions is created.
+        $nullversionrefs = $DB->count_records_select(
+            'question_references',
+            "component = ? AND questionarea = ? AND version IS NULL",
+            ['mod_topomojo', 'slot']
+        );
         $DB->execute("UPDATE {question_references}
                          SET version = (SELECT MAX(qv.version) FROM {question_versions} qv
                                          WHERE qv.questionbankentryid = {question_references}.questionbankentryid)
@@ -727,13 +725,15 @@ function xmldb_topomojo_upgrade($oldversion)
         mtrace("mod_topomojo: pinned $nullversionrefs NULL-version slot reference(s) to latest");
 
         // 4. Orphan topomojo_grades: a grade row with no surviving attempt for that (activity, user).
-        //    topomojo_get_user_grades INNER JOINs grades to attempts, so today the join hides these -
-        //    but a new attempt would rejoin the stale row and grade the student on a deleted score.
-        //    This is plugin-owned data; deleting it changes no gradebook grade.
-        $orphangrades = $DB->count_records_select('topomojo_grades',
+        // topomojo_get_user_grades INNER JOINs grades to attempts, so today the join hides these -
+        // but a new attempt would rejoin the stale row and grade the student on a deleted score.
+        // This is plugin-owned data; deleting it changes no gradebook grade.
+        $orphangrades = $DB->count_records_select(
+            'topomojo_grades',
             "NOT EXISTS (SELECT 1 FROM {topomojo_attempts} ta
                           WHERE ta.topomojoid = {topomojo_grades}.topomojoid
-                            AND ta.userid = {topomojo_grades}.userid)");
+                            AND ta.userid = {topomojo_grades}.userid)"
+        );
         $DB->execute("DELETE FROM {topomojo_grades}
                        WHERE NOT EXISTS (SELECT 1 FROM {topomojo_attempts} ta
                                           WHERE ta.topomojoid = {topomojo_grades}.topomojoid

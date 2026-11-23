@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -43,8 +43,6 @@ namespace mod_topomojo\traits;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait renderer_base {
-
-
     /** @var array $pagevars Includes other page information needed for rendering functions */
     protected $pagevars;
 
@@ -76,7 +74,7 @@ trait renderer_base {
      */
     public function base_header($tab = 'view') {
         echo $this->output->header();
-        //echo topomojo_view_tabs($this->topomojo, $tab);
+        // echo topomojo_view_tabs($this->topomojo, $tab);
         $this->showMessage(); // shows a message if there is one
     }
 
@@ -94,11 +92,11 @@ trait renderer_base {
      */
     public function showMessage() {
 
-        if ( empty($this->pagemessage) ) {
+        if (empty($this->pagemessage)) {
             return; // return if there is no message
         }
 
-        if ( !is_array($this->pagemessage) ) {
+        if (!is_array($this->pagemessage)) {
             return; // return if it's not an array
         }
 
@@ -146,5 +144,4 @@ trait renderer_base {
         $this->pageurl = $pageurl;
         $this->topomojo = $topomojo;
     }
-
 }

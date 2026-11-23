@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,8 +44,8 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-//require('../../config.php');
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+// require('../../config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 
@@ -75,11 +75,11 @@ require_capability('mod/topomojo:view', $context);
 // TODO log event attempt views
 // if ($_SERVER['REQUEST_METHOD'] == "GET") {
 // Completion and trigger events.
-//topomojo_view($topomojo, $course, $cm, $context);
+// topomojo_view($topomojo, $course, $cm, $context);
 // }
 
 // Print the page header.
-$url = new moodle_url ( '/mod/topomojo/viewattempt.php', ['a' => $a]);
+$url = new moodle_url('/mod/topomojo/viewattempt.php', ['a' => $a]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -97,10 +97,8 @@ if (!$attempt) {
     $object->renderer->render_quiz($attempt, $pageurl, $cmid);
     $object->renderer->base_footer();
 } else {
-
     switch ($action) {
         case 'savecomment':
-
             $success = $attempt->process_comment($object->topomojo, $slot);
             if ($success) {
                 // If successful recalculate the grade for the attempt's userid as the grader can update grades on the questions
@@ -119,19 +117,18 @@ if (!$attempt) {
 
             break;
         default:
-
             // TODO create attempt viewed event
-            $params = array(
+            $params = [
                 'relateduserid' => $USER->id,
                 'objectid'      => $pagevars['a'],
                 'context'       => $context,
                 'other'         => [
                     'topomojoid'   => $object->topomojo->id,
                 ],
-            );
-            //$event = \mod_topomojo\event\attempt_viewed::create($params);
-            //$event->add_record_snapshot('topomojo_attempts', $attempt->get_attempt());
-            //$event->trigger();
+            ];
+            // $event = \mod_topomojo\event\attempt_viewed::create($params);
+            // $event->add_record_snapshot('topomojo_attempts', $attempt->get_attempt());
+            // $event->trigger();
 
             $object->renderer->base_header();
 
@@ -147,4 +144,3 @@ if (!$attempt) {
             break;
     }
 }
-

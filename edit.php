@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,7 +43,7 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
@@ -80,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 }
 */
 
-$url = new moodle_url ( '/mod/topomojo/edit.php', ['cmid' => $cm->id]);
+$url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -95,7 +94,7 @@ $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
-list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
+[$pageurl, $contexts, $id, $cm, $topomojo, $pagevars] =
         question_edit_setup('editq', '/mod/topomojo/edit.php');
 
 
@@ -109,7 +108,7 @@ $renderer = $object->renderer;
 if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
     \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
 }
-//$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
+// $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 
 if ($addquestionlist) {
@@ -127,7 +126,6 @@ if ($object->topomojo->importchallenge) {
 
     // Only import if no questions have been imported yet
     if (empty($questions)) {
-
         $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
         if (!$challenge) {
             throw new moodle_exception("this lab has no challenge");
@@ -180,7 +178,7 @@ switch ($action) {
                         $type = 'error';
                         $message = get_string('wrongvariantadd', 'topomojo', [
                             'question_variant' => $question_variant,
-                            'activity_variant' => $object->topomojo->variant
+                            'activity_variant' => $object->topomojo->variant,
                         ]);
                         $renderer->setMessage($type, $message);
                         continue; // Skip this question, continue with others
@@ -227,7 +225,6 @@ switch ($action) {
         if ($topomojohasattempts) {
             debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
         } else {
-
             $questionid = required_param('questionid', PARAM_INT);
             if ($questionmanager->delete_question($questionid)) {
                 $type = 'success';
@@ -263,7 +260,6 @@ switch ($action) {
             } else {
                 $jsonlib->send_error('unable to re-sort questions');
             }
-
         }
         break;
     case 'editquestion':

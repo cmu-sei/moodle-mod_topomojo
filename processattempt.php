@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -56,9 +56,9 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 $timenow = time();
 
 // Get submitted parameters.
-$attemptid     = required_param('attempt',  PARAM_INT);
+$attemptid     = required_param('attempt', PARAM_INT);
 $finishattempt = optional_param('finishattempt', false, PARAM_BOOL);
-$timeup        = optional_param('timeup',        0,      PARAM_BOOL); // True if form was submitted by timer.
+$timeup        = optional_param('timeup', 0, PARAM_BOOL); // True if form was submitted by timer.
 $cmid          = optional_param('cmid', null, PARAM_INT);
 
 $attemptobj = topopmojo_create_attempt_handling_errors($attemptid, $cmid);
@@ -86,8 +86,12 @@ if (!$attemptobj->is_preview_user()) {
 
 // If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    throw new moodle_topopmojo_exception($attemptobj->get_topopmojoobj(),
-            'attemptalreadyclosed', null, $attemptobj->review_url());
+    throw new moodle_topopmojo_exception(
+        $attemptobj->get_topopmojoobj(),
+        'attemptalreadyclosed',
+        null,
+        $attemptobj->review_url()
+    );
 }
 
 // Process the attempt, getting the new status for the attempt.

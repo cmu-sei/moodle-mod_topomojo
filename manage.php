@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
@@ -43,7 +58,7 @@ foreach ($users as $u) {
 }
 
 // Sort users
-usort($users, function($a, $b) use ($sort, $dir) {
+usort($users, function ($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
     if ($sort === 'scheduledfor' || $sort === 'attemptendtime') {
@@ -83,13 +98,19 @@ if ($has_active_deploys) {
 $adhocurl = new moodle_url('/admin/tool/task/adhoctasks.php', [
     'classname' => '\\mod_topomojo\\task\\bulkdeploy_run',
 ]);
-$linkhtml = html_writer::link($adhocurl, get_string('manage_deploy_running_link', 'topomojo'),
-    ['target' => '_blank']);
+$linkhtml = html_writer::link(
+    $adhocurl,
+    get_string('manage_deploy_running_link', 'topomojo'),
+    ['target' => '_blank']
+);
 $progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
     . '/'
     . html_writer::span((string) $summary_total, 'deploy-summary-total');
-$summaryhtml = get_string('manage_deploy_running_summary', 'topomojo',
-    (object) ['progress' => $progresshtml, 'link' => $linkhtml]);
+$summaryhtml = get_string(
+    'manage_deploy_running_summary',
+    'topomojo',
+    (object) ['progress' => $progresshtml, 'link' => $linkhtml]
+);
 
 $notifstyle = $has_active_deploys ? '' : 'display:none;';
 echo html_writer::start_div('alert alert-info', [
@@ -122,14 +143,14 @@ echo html_writer::tag('button', get_string('select_all', 'topomojo'), [
     'id' => 'select-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('select_all_help', 'topomojo')
+    'title' => get_string('select_all_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deselect_all', 'topomojo'), [
     'id' => 'deselect-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('deselect_all_help', 'topomojo')
+    'title' => get_string('deselect_all_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deploy_selected_now', 'topomojo'), [
@@ -137,7 +158,7 @@ echo html_writer::tag('button', get_string('deploy_selected_now', 'topomojo'), [
     'class' => 'btn btn-success',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('deploy_selected_help', 'topomojo')
+    'title' => get_string('deploy_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('schedule_selected', 'topomojo'), [
@@ -145,7 +166,7 @@ echo html_writer::tag('button', get_string('schedule_selected', 'topomojo'), [
     'class' => 'btn btn-primary',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('schedule_selected_help', 'topomojo')
+    'title' => get_string('schedule_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('cancel_selected', 'topomojo'), [
@@ -153,7 +174,7 @@ echo html_writer::tag('button', get_string('cancel_selected', 'topomojo'), [
     'class' => 'btn btn-warning',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('cancel_selected_help', 'topomojo')
+    'title' => get_string('cancel_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('end_selected', 'topomojo'), [
@@ -161,7 +182,7 @@ echo html_writer::tag('button', get_string('end_selected', 'topomojo'), [
     'class' => 'btn btn-danger',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('end_selected_help', 'topomojo')
+    'title' => get_string('end_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
@@ -169,13 +190,13 @@ echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
     'class' => 'btn btn-info',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('extend_selected_help', 'topomojo')
+    'title' => get_string('extend_selected_help', 'topomojo'),
 ]);
 echo html_writer::end_div();
 
 // Build sort links for column headers
 $sorticon = $dir === 'ASC' ? '▲' : '▼';
-$sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
+$sortlink = function ($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
     $newdir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
     $url = new moodle_url($PAGE->url, ['sort' => $col, 'dir' => $newdir, 'rolefilter' => $rolefilter]);
     $icon = ($sort === $col) ? ' ' . $sorticon : '';
@@ -197,7 +218,7 @@ echo '<th>' . $sortlink('attemptendtime', get_string('end_time', 'topomojo')) . 
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
-$attemptids = array_filter(array_map(function($u) {
+$attemptids = array_filter(array_map(function ($u) {
     return $u->attemptid ?? null;
 }, $users));
 $attemptswithq = [];
@@ -277,7 +298,7 @@ echo html_writer::empty_tag('input', [
     'max' => $maxbatchsize,
     'class' => 'form-control',
     'style' => 'width: 80px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('bulkdeploy_batchsize_desc', 'topomojo', $maxbatchsize), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
@@ -293,7 +314,7 @@ echo html_writer::empty_tag('input', [
     'value' => $defaultschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', '', [
     'class' => 'form-text text-muted mb-3',
@@ -309,7 +330,7 @@ echo html_writer::empty_tag('input', [
     'max' => $maxbatchsize,
     'class' => 'form-control',
     'style' => 'width: 80px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('bulkdeploy_batchsize_desc', 'topomojo', $maxbatchsize), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
@@ -325,7 +346,7 @@ echo html_writer::empty_tag('input', [
     'max' => topomojo_get_max_extend_interval(),
     'class' => 'form-control',
     'style' => 'width: 100px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('extendintervalmax', 'topomojo', topomojo_get_max_extend_interval()), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();

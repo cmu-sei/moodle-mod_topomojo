@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -78,8 +78,8 @@ class question_name_text_column extends \qbank_viewquestionname\viewquestionname
         $labelfor = $this->label_for($question);
         if ($labelfor) {
             echo \html_writer::start_tag('label', ['for' => $labelfor]);
-	}
-	echo shorten_text(format_string($question->name), 100);
+        }
+        echo shorten_text(format_string($question->name), 100);
         if ($labelfor) {
             echo \html_writer::end_tag('label');
         }

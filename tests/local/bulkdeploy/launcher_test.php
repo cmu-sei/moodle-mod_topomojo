@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
@@ -258,7 +273,7 @@ final class launcher_test extends \advanced_testcase {
         $fake->queue('GET', 'https://api/gamespace/gs-b', $this->gamespace_response('gs-b', true, true));
 
         // Subclass to inject a cancellation between poll cycles via sleep_seconds().
-        $launcher = new class($repo, $fake, 'https://api', [], 60, 1, 600, $rowid_a) extends launcher {
+        $launcher = new class ($repo, $fake, 'https://api', [], 60, 1, 600, $rowid_a) extends launcher {
             public function __construct(
                 job_repository $repo,
                 curl_multi_client $client,
@@ -270,8 +285,13 @@ final class launcher_test extends \advanced_testcase {
                 private int $cancelrowid
             ) {
                 parent::__construct(
-                    $repo, $client, $apibaseurl, $authheaders,
-                    $requesttimeout, $pollintervalsec, $waitceilingsec
+                    $repo,
+                    $client,
+                    $apibaseurl,
+                    $authheaders,
+                    $requesttimeout,
+                    $pollintervalsec,
+                    $waitceilingsec
                 );
             }
             protected function sleep_seconds(int $seconds): void {
@@ -289,8 +309,11 @@ final class launcher_test extends \advanced_testcase {
         ], $this->topomojo());
 
         $after = $repo->get_user_rows($jobid);
-        $this->assertSame(user_status::CANCELLED, $after[$rowid_a]->status,
-            'externally cancelled row must keep CANCELLED status');
+        $this->assertSame(
+            user_status::CANCELLED,
+            $after[$rowid_a]->status,
+            'externally cancelled row must keep CANCELLED status'
+        );
         $this->assertSame(user_status::READY, $after[$rowid_b]->status);
 
         // gs-a should have been polled exactly once (first cycle only).

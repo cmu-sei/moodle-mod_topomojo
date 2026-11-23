@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
@@ -80,7 +95,9 @@ final class job_repository_test extends \advanced_testcase {
 
         $after = $repo->get_user_rows($jobid);
         $byid = [];
-        foreach ($after as $r) { $byid[$r->id] = $r->status; }
+        foreach ($after as $r) {
+            $byid[$r->id] = $r->status;
+        }
         $this->assertSame(user_status::READY, $byid[$rows[0]->id]);
         $this->assertSame(user_status::LAUNCHED, $byid[$rows[1]->id]);
         $this->assertSame(user_status::CANCELLED, $byid[$rows[2]->id]);

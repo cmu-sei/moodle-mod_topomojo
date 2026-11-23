@@ -52,7 +52,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_topomojo_generator extends testing_module_generator {
-
     /**
      * Creates a new instance of mod_topomojo.
      *

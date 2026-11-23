@@ -52,7 +52,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class topomojo_attempt {
-
     /** Constants for the status of the attempt */
 
     /** @var string NOTSTARTED Indicates that the attempt has not started */
@@ -103,8 +102,10 @@ class topomojo_attempt {
 
             if ($this->questionmanager) {
                 // Create a new quba since we're creating a new attempt
-                $this->quba = \question_engine::make_questions_usage_by_activity('mod_topomojo',
-                        $this->questionmanager->gettopomojo()->getContext());
+                $this->quba = \question_engine::make_questions_usage_by_activity(
+                    'mod_topomojo',
+                    $this->questionmanager->gettopomojo()->getContext()
+                );
                 $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
                 // Pass variant to add_questions_to_quba so it only loads matching questions
@@ -130,8 +131,7 @@ class topomojo_attempt {
                 $this->quba = \question_engine::load_questions_usage_by_activity($this->attempt->questionusageid);
             }
         }
-//$this->save();
-
+        // $this->save();
     }
 
     /**
@@ -181,9 +181,9 @@ class topomojo_attempt {
                 break;
             case 'inprogress':
                 $this->attempt->state = self::INPROGRESS;
-                //if ($this->questionmanager) {
-                //    $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
-                //}
+                // if ($this->questionmanager) {
+                // $this->questionmanager->update_answers($this->quba, $this->attempt->eventid);
+                // }
                 break;
             case 'abandoned':
                 $this->attempt->state = self::ABANDONED;
@@ -360,7 +360,6 @@ class topomojo_attempt {
         $displayoptions->context = $this->context;
         $displayoptions->context = $this->questionmanager->gettopomojo()->getContext();
         return $behaviour->render($displayoptions, $questionnum, $qoutput, $qtoutput);
-
     }
     /**
      * Adds 1 to the current qnum, effectively going to the next question
@@ -382,7 +381,6 @@ class topomojo_attempt {
 
         // if we're reviewing set up display options for review
         if ($review) {
-
             // default display options for review
             $options->readonly = true;
             $options->marks = \question_display_options::HIDDEN;
@@ -401,14 +399,18 @@ class topomojo_attempt {
             } else if ($reviewoptions instanceof \stdClass) {
                 foreach ($reviewoptions as $field => $data) {
                     if ($when == 'closed') {
-                        if (($field == 'reviewmarks') &&
-                            ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+                        if (
+                            ($field == 'reviewmarks') &&
+                            ($data == \mod_topomojo_display_options::AFTER_CLOSE)
+                        ) {
                             $options->marks = \question_display_options::MARK_AND_MAX;
                         } else {
                             $options->$field = \question_display_options::VISIBLE;
                         }
-                        if (($field == 'reviewrightanswer') &&
-                                ($data == \mod_topomojo_display_options::AFTER_CLOSE)) {
+                        if (
+                            ($field == 'reviewrightanswer') &&
+                                ($data == \mod_topomojo_display_options::AFTER_CLOSE)
+                        ) {
                             $options->rightanswer = \question_display_options::VISIBLE;
                         }
                     }
@@ -428,7 +430,6 @@ class topomojo_attempt {
                         }
                     }
                 }
-
             }
         } else {
             // Options for during the attempt, built from the activity's "During the
@@ -441,7 +442,9 @@ class topomojo_attempt {
             $settings = $this->questionmanager ? $this->questionmanager->gettopomojo()->topomojo : null;
             if ($settings) {
                 $options = \mod_topomojo_display_options::make_from_topomojo(
-                        $settings, \mod_topomojo_display_options::DURING);
+                    $settings,
+                    \mod_topomojo_display_options::DURING
+                );
                 // The plugin does not offer question flags, so they stay hidden
                 // rather than taking mod_quiz's quiz_get_flag_option() value.
                 $options->flags = \question_display_options::HIDDEN;
@@ -534,7 +537,8 @@ class topomojo_attempt {
 
         // Process any data that was submitted.
         if (data_submitted() && confirm_sesskey()) {
-            if (optional_param('submit', false, PARAM_BOOL) &&
+            if (
+                optional_param('submit', false, PARAM_BOOL) &&
                 \question_engine::is_manual_grade_in_range($this->attempt->questionusageid, $slot)
             ) {
                 $transaction = $DB->start_delegated_transaction();
@@ -543,19 +547,19 @@ class topomojo_attempt {
                 $transaction->allow_commit();
 
                 // Trigger event for question manually graded
-                $params = array(
+                $params = [
                     'objectid' => $this->quba->get_question($slot)->id,
-                    //'courseid' => $topomojo->getCourse()->id,
+                    // 'courseid' => $topomojo->getCourse()->id,
                     'context'  => $this->context,
                     'other'    => [
                         'topomojoid'     => $topomojo->id,
                         'attemptid' => $this->attempt->id,
                         'slot'      => $slot,
                     ],
-                );
+                ];
                 // TODO create event
-                //$event = \mod_topomojo\event\question_manually_graded::create($params);
-                //$event->trigger();
+                // $event = \mod_topomojo\event\question_manually_graded::create($params);
+                // $event->trigger();
 
                 return true;
             } else {
@@ -566,5 +570,4 @@ class topomojo_attempt {
 
         return false;
     }
-
 }

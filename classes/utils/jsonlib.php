@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -46,7 +46,6 @@ defined('MOODLE_INTERNAL') || die();
   * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
 class jsonlib {
-
     /** @var stdClass $response class to hold resonse information */
     protected $response;
 
@@ -113,7 +112,6 @@ class jsonlib {
 
         $this->response = new \stdClass();
         $this->response->status = "OK";
-
     }
 
     /**
@@ -140,7 +138,6 @@ class jsonlib {
 
         $response = json_encode($this->response);
         if ($response === false) { // Check for error
-
             $message = $this->get_json_error();
             $this->send_headers(500);
             die($message);
@@ -160,7 +157,6 @@ class jsonlib {
 
         $response = json_encode($this->response);
         if ($response === false) { // Check for error
-
             $response = $this->get_json_error(); // Return error as bare text since json_encode isn't working
             $this->send_headers(500);
         }
@@ -222,7 +218,5 @@ class jsonlib {
             header('pragma: no-cache');
             header('Content-Type: application/json; charset=utf-8');
         }
-
     }
-
 }

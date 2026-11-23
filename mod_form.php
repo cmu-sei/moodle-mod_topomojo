@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -116,18 +115,17 @@ class mod_topomojo_mod_form extends moodleform_mod
      * @param stdClass $cm The course module object related to the class.
      * @param stdClass $course The course object or details related to the class.
      */
-    public function __construct($current, $section, $cm, $course)
-    {
-        self::$reviewfields = array(
-            'attempt'          => ['theattempt', 'topomojo'],            // Field for attempt details
-            'correctness'      => ['whethercorrect', 'question'],        // Field for correctness of the answer
-            'marks'            => ['marks', 'topomojo'],                 // Field for marks obtained
-            'specificfeedback' => ['specificfeedback', 'question'],      // Specific feedback related to the question
-            'generalfeedback'  => ['generalfeedback', 'question'],       // General feedback for the question
-            'rightanswer'      => ['rightanswer', 'question'],           // The correct answer
+    public function __construct($current, $section, $cm, $course) {
+        self::$reviewfields = [
+            'attempt'          => ['theattempt', 'topomojo'], // Field for attempt details
+            'correctness'      => ['whethercorrect', 'question'], // Field for correctness of the answer
+            'marks'            => ['marks', 'topomojo'], // Field for marks obtained
+            'specificfeedback' => ['specificfeedback', 'question'], // Specific feedback related to the question
+            'generalfeedback'  => ['generalfeedback', 'question'], // General feedback for the question
+            'rightanswer'      => ['rightanswer', 'question'], // The correct answer
             'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'], // Overall feedback for the review
-            'manualcomment'    => ['manualcomment', 'topomojo']          // Manual comments by the reviewer
-        );
+            'manualcomment'    => ['manualcomment', 'topomojo'], // Manual comments by the reviewer
+        ];
         parent::__construct($current, $section, $cm, $course);
     }
 
@@ -140,8 +138,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function definition()
-    {
+    public function definition() {
         global $COURSE, $CFG, $DB, $PAGE, $OUTPUT;
         $mform = $this->_form;
 
@@ -168,7 +165,6 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addRule('name', null, 'required', null, 'client');
 
         if ($topomojoconfig->autocomplete < 2) {
-
             // Pull list from topomojo.
             $this->workspaces = get_workspaces($this->auth);
             $labnames = [];
@@ -211,7 +207,8 @@ class mod_topomojo_mod_form extends moodleform_mod
                             if (!is_array($tagsarray)) {
                                 $tagsarray = explode(', ', $tagsarray);
                             } else {
-                                $tagsarray = $workspace->tags;;
+                                $tagsarray = $workspace->tags;
+                                ;
                             }
                         }
 
@@ -276,7 +273,7 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         // Build variant options: 0=Random, 1-N=specific variants
         $variantoptions = [
-            0 => get_string('variant_random', 'topomojo')
+            0 => get_string('variant_random', 'topomojo'),
         ];
 
         // Dynamically determine max variants from TopoMojo workspace
@@ -318,8 +315,8 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
 
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'topomojo'));
-        //$mform->setType('showcontentlicense', PARAM_BOOL);
-        //$mform->setDefault('showcontentlicense', 0);
+        // $mform->setType('showcontentlicense', PARAM_BOOL);
+        // $mform->setDefault('showcontentlicense', 0);
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'topomojo');
 
         $mform->addElement('advcheckbox', 'isfeatured', get_string('featuredlab', 'mod_topomojo'));
@@ -393,14 +390,14 @@ class mod_topomojo_mod_form extends moodleform_mod
         // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes, hours, days.
         $allowed_units = [
-            MINSECS,    // Minutes (60 seconds)
-            HOURSECS,   // Hours (3600 seconds)
-            DAYSECS,    // Days (86400 seconds)
+            MINSECS, // Minutes (60 seconds)
+            HOURSECS, // Hours (3600 seconds)
+            DAYSECS, // Days (86400 seconds)
             // SECONDS is implied and usually always available implicitly or explicitly if needed.
         ];
         $options = [
             'units' => $allowed_units, // Pass the array of allowed units
-            'defaultunit' => HOURSECS   // Optional: set days as the default selection
+            'defaultunit' => HOURSECS, // Optional: set days as the default selection
         ];
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), $options);
         $mform->setType('duration', PARAM_INT);
@@ -539,7 +536,7 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         $group = [];
         foreach (self::$reviewfields as $field => $string) {
-            list($identifier, $component) = $string;
+            [$identifier, $component] = $string;
 
             $label = get_string($identifier, $component);
             if ($withhelp) {
@@ -585,8 +582,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    protected function preprocessing_review_settings(&$toform, $whenname, $when)
-    {
+    protected function preprocessing_review_settings(&$toform, $whenname, $when) {
         foreach (self::$reviewfields as $field => $notused) {
             $fieldname = 'review' . $field;
             if (array_key_exists($fieldname, $toform)) {
@@ -606,8 +602,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function data_preprocessing(&$toform)
-    {
+    public function data_preprocessing(&$toform) {
         global $DB;
 
         if (isset($toform['grade'])) {
@@ -638,10 +633,10 @@ class mod_topomojo_mod_form extends moodleform_mod
             foreach ($this->_feedbacks as $feedback) {
                 $draftid = file_get_submitted_draft_itemid('feedbacktext[' . $key . ']');
                 $toform['feedbacktext[' . $key . ']']['text'] = file_prepare_draft_area(
-                    $draftid,               // Draftid.
-                    $this->context->id,     // Context.
-                    'mod_topomojo',             // Component.
-                    'feedback',             // Filarea.
+                    $draftid, // Draftid.
+                    $this->context->id, // Context.
+                    'mod_topomojo', // Component.
+                    'feedback', // Filarea.
                     !empty($feedback->id) ? (int) $feedback->id : null, // Itemid.
                     null,
                     $feedback->feedbacktext // Text.
@@ -706,8 +701,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return array An array of validation errors, if any. An empty array if validation passes.
      */
-    public function validation($data, $files)
-    {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
         // Check open and close times are consistent.
@@ -753,8 +747,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function data_postprocessing($data)
-    {
+    public function data_postprocessing($data) {
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
@@ -849,8 +842,7 @@ class mod_topomojo_mod_form extends moodleform_mod
     /**
      * Adds all the standard elements to a form to edit the settings for an activity module.
      */
-    protected function standard_coursemodule_elements()
-    {
+    protected function standard_coursemodule_elements() {
         global $COURSE, $CFG, $DB, $OUTPUT;
         $mform = &$this->_form;
 
@@ -924,7 +916,7 @@ class mod_topomojo_mod_form extends moodleform_mod
             $options = [
                 NOGROUPS => get_string('groupsnone'),
                 SEPARATEGROUPS => get_string('groupsseparate'),
-                VISIBLEGROUPS  => get_string('groupsvisible')
+                VISIBLEGROUPS  => get_string('groupsvisible'),
             ];
             $mform->addElement('select', 'groupmode', get_string('groupmode', 'group'), $options, NOGROUPS);
             $mform->addHelpButton('groupmode', 'groupmode', 'group');

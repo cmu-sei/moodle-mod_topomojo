@@ -54,8 +54,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo::class)]
-class topomojo_test extends \advanced_testcase {
-
+final class topomojo_test extends \advanced_testcase {
     /**
      * Setup function for creating common test data.
      */
@@ -81,8 +80,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test topomojo class construction.
      */
-    public function test_topomojo_construction() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_topomojo_construction(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         // Create a topomojo instance without question manager (null pageurl).
         $topomojo = new topomojo($cm, $course, $topomojorecord);
@@ -96,8 +95,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test has_capability method.
      */
-    public function test_has_capability() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_has_capability(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);
 
@@ -109,8 +108,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test is_instructor method.
      */
-    public function test_is_instructor() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_is_instructor(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);
 
@@ -131,8 +130,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test get_openclose_state method.
      */
-    public function test_get_openclose_state() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_get_openclose_state(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         // Test open state (no time restrictions).
         $topomojorecord->timeopen = 0;
@@ -156,8 +155,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test get_review_options method.
      */
-    public function test_get_review_options() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_get_review_options(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         // Set review options.
         $topomojorecord->reviewattempt = 31; // All times.
@@ -181,8 +180,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test canreviewmarks method.
      */
-    public function test_canreviewmarks() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_canreviewmarks(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $options = new \stdClass();
         $options->reviewmarks = \mod_topomojo_display_options::LATER_WHILE_OPEN |
@@ -205,8 +204,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test canreviewattempt method.
      */
-    public function test_canreviewattempt() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_canreviewattempt(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $options = new \stdClass();
         $options->reviewattempt = \mod_topomojo_display_options::LATER_WHILE_OPEN |
@@ -229,9 +228,9 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test save method.
      */
-    public function test_save() {
+    public function test_save(): void {
         global $DB;
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);
 
@@ -250,8 +249,8 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test getall_attempts with no attempts.
      */
-    public function test_getall_attempts_empty() {
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+    public function test_getall_attempts_empty(): void {
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         $topomojo = new topomojo($cm, $course, $topomojorecord);
         $attempts = $topomojo->getall_attempts();
@@ -264,9 +263,9 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test getall_attempts with existing attempts.
      */
-    public function test_getall_attempts_with_data() {
+    public function test_getall_attempts_with_data(): void {
         global $DB, $USER;
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         // Create an attempt record.
         $attempt = new \stdClass();
@@ -292,9 +291,9 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test get_attempts_by_user.
      */
-    public function test_get_attempts_by_user() {
+    public function test_get_attempts_by_user(): void {
         global $DB;
-        list($course, $topomojorecord, $cm) = $this->setup_test_data();
+        [$course, $topomojorecord, $cm] = $this->setup_test_data();
 
         // Create a user.
         $user = $this->getDataGenerator()->create_user();
@@ -324,7 +323,7 @@ class topomojo_test extends \advanced_testcase {
     /**
      * Test review fields static property.
      */
-    public function test_review_fields() {
+    public function test_review_fields(): void {
         $fields = topomojo::$reviewfields;
 
         $this->assertIsArray($fields);

@@ -44,7 +44,7 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-//require('../../config.php');
+// require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
@@ -138,7 +138,7 @@ if ($object->is_instructor()) {
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-preview-attempts-btn',
             get_string('deletepreviewattempts', 'mod_topomojo'),
-            get_string('deletepreviewattempts_confirm', 'mod_topomojo')
+            get_string('deletepreviewattempts_confirm', 'mod_topomojo'),
         ]);
 
         $deletebutton = $OUTPUT->single_button(
@@ -155,7 +155,7 @@ if ($object->is_instructor()) {
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-all-attempts-btn',
             get_string('deleteall', 'mod_topomojo'),
-            get_string('deleteallattempts_confirm', 'mod_topomojo')
+            get_string('deleteallattempts_confirm', 'mod_topomojo'),
         ]);
 
         $deletebutton = $OUTPUT->single_button(

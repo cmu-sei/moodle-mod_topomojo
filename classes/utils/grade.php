@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -47,7 +47,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade {
-
     /** @var \mod_topomojo\topomojo */
     public $topomojo;
 
@@ -83,8 +82,12 @@ class grade {
     public static function get_user_grade($topomojo, $userid = 0) {
 
         global $DB;
-        $recs = $DB->get_records_select('topomojo_grades', 'userid = ? AND topomojoid = ?',
-                [$userid, $topomojo->id], 'grade');
+        $recs = $DB->get_records_select(
+            'topomojo_grades',
+            'userid = ? AND topomojoid = ?',
+            [$userid, $topomojo->id],
+            'grade'
+        );
         $grades = [];
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
@@ -165,7 +168,6 @@ class grade {
 
         // If everything passes to here return true
         return true;
-
     }
 
     /**
@@ -218,7 +220,6 @@ class grade {
 
         $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
-
         $attempt->score = $scaledpoints;
         $attempt->save();
 
@@ -233,8 +234,11 @@ class grade {
     public function get_grade_item_passing_grade() {
         global $DB;
 
-        $gradetopass = $DB->get_field('grade_items', 'gradepass',
-                            ['iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo']);
+        $gradetopass = $DB->get_field(
+            'grade_items',
+            'gradepass',
+            ['iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo']
+        );
 
         return $gradetopass;
     }
@@ -303,9 +307,12 @@ class grade {
         global $DB;
 
         foreach ($grades as $userid => $grade) {
-
-            if ($usergrade = $DB->get_record('topomojo_grades',
-                                  ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id])) {
+            if (
+                $usergrade = $DB->get_record(
+                    'topomojo_grades',
+                    ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id]
+                )
+            ) {
                 // We're updating
                 $usergrade->grade = $grade;
                 $usergrade->timemodified = time();
@@ -325,12 +332,10 @@ class grade {
                 if (!$DB->insert_record('topomojo_grades', $usergrade)) {
                     $transaction->rollback(new \Exception('Can\'t insert user grades'));
                 }
-
             }
         }
 
         return true;
-
     }
 
 
@@ -356,5 +361,4 @@ class grade {
         }
         return true;
     }
-
 }

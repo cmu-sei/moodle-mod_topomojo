@@ -56,8 +56,7 @@ defined('MOODLE_INTERNAL') || die();
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\course_module_viewed::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_started::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_ended::class)]
-class events_test extends \advanced_testcase {
-
+final class events_test extends \advanced_testcase {
     /**
      * Setup function for creating common test data.
      */
@@ -79,8 +78,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_viewed event.
      */
-    public function test_course_module_viewed_event() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_course_module_viewed_event(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
@@ -114,7 +113,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_viewed event get_objectid_mapping.
      */
-    public function test_course_module_viewed_get_objectid_mapping() {
+    public function test_course_module_viewed_get_objectid_mapping(): void {
         $mapping = \mod_topomojo\event\course_module_viewed::get_objectid_mapping();
 
         $this->assertIsArray($mapping);
@@ -127,9 +126,9 @@ class events_test extends \advanced_testcase {
     /**
      * Test attempt_started event.
      */
-    public function test_attempt_started_event() {
+    public function test_attempt_started_event(): void {
         global $USER;
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Create an attempt.
         $attempt = new \stdClass();
@@ -168,9 +167,9 @@ class events_test extends \advanced_testcase {
     /**
      * Test attempt_ended event.
      */
-    public function test_attempt_ended_event() {
+    public function test_attempt_ended_event(): void {
         global $USER;
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Create an attempt.
         $attempt = new \stdClass();
@@ -209,8 +208,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_instance_list_viewed event.
      */
-    public function test_course_module_instance_list_viewed_event() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_course_module_instance_list_viewed_event(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         $coursecontext = \context_course::instance($course->id);
 
@@ -238,8 +237,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test that event data is properly set.
      */
-    public function test_event_snapshot_data() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_event_snapshot_data(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         $sink = $this->redirectEvents();
 

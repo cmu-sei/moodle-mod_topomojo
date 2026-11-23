@@ -63,7 +63,6 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\utils\grade::class)]
 final class grade_test extends \advanced_testcase {
-
     /**
      * Builds an activity plus an attempt that has no question usage, which is what both bulk deploy
      * and a variant with no importable questions leave behind.

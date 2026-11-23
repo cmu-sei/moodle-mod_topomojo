@@ -26,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -36,9 +36,9 @@ DM24-1175
 
 namespace mod_topomojo\task;
 
-use \mod_topomojo\topomojo;
-use \mod_topomojo\topomojo_attempt;
-use \mod_topomojo\questionmanager;
+use mod_topomojo\topomojo;
+use mod_topomojo\topomojo_attempt;
+use mod_topomojo\questionmanager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -50,7 +50,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class close_attempts extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task.
      *
@@ -177,30 +176,27 @@ class close_attempts extends \core\task\scheduled_task {
         // Create array of class attempts from the db entry
         foreach ($dbattempts as $dbattempt) {
             $id = $dbattempt->topomojoid;
-    
+
             // Check if the corresponding topomojo record exists
             if (!$DB->record_exists('topomojo', ['id' => $id])) {
                 debugging("topomojo record with id $id not found. Closing attempt $dbattempt->id directly.", DEBUG_DEVELOPER);
-    
+
                 // Directly close the attempt since the associated topomojo record is missing
                 $attempt = new topomojo_attempt(null, $dbattempt);
                 $attempt->close_attempt();
                 continue; // Skip to the next attempt
             }
-    
+
             // Proceed as normal if the topomojo record exists
             $topomojo = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
             $course = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
             $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);
-    
+
             $object = new topomojo($cm, $course, $topomojo);
             $questionmanager = new questionmanager($object, $object->renderer);
             $attempts[] = new topomojo_attempt($questionmanager, $dbattempt);
         }
-    
- 
+
         return $attempts;
-
     }
-
 }

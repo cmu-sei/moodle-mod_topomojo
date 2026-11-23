@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,7 +26,7 @@ FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY
 FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -50,17 +49,18 @@ DM24-1175
  * Structure step to restore one topomojo activity
  */
 class restore_topomojo_activity_structure_step extends restore_questions_activity_structure_step {
-
     // TODO will have to implode this to insert it into the db
-    private $questionorder = array();
+    private $questionorder = [];
 
     protected function define_structure() {
 
-        $paths = array();
+        $paths = [];
         $paths[] = new restore_path_element('topomojo', '/activity/topomojo');
 
-        $quizquestioninstance = new restore_path_element('topomojo_question_instance',
-            '/activity/topomojo/question_instances/question_instance');
+        $quizquestioninstance = new restore_path_element(
+            'topomojo_question_instance',
+            '/activity/topomojo/question_instances/question_instance'
+        );
         $paths[] = $quizquestioninstance;
 
         if ($this->task->get_old_moduleversion() < 2025022800) {
@@ -113,10 +113,12 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
         // Validate required fields
         if (empty($data->workspaceid)) {
-            throw new restore_step_exception('topomojo_missing_workspaceid',
+            throw new restore_step_exception(
+                'topomojo_missing_workspaceid',
                 'This backup is missing the workspace ID. ' .
                 'The activity cannot be restored without selecting a TopoMojo workspace. ' .
-                'Please contact your administrator.');
+                'Please contact your administrator.'
+            );
         }
 
         // Validate that workspace exists in TopoMojo (warning only, doesn't block restore)
@@ -172,7 +174,6 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $this->log('questionorder rebuilt as ' . $module->questionorder, backup::LOG_DEBUG);
 
         $DB->update_record('topomojo', $module);
-
     }
 
     /**
@@ -193,14 +194,13 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
         // Add mapping, restore of slot tags (for random questions) need it.
         $this->set_mapping('topomojo_question_instance', $oldid, $newitemid);
-        //questionorder gets tracked now and updated with is after_execute
+        // questionorder gets tracked now and updated with is after_execute
         $this->questionorder[] = $newitemid;
 
         if ($this->task->get_old_moduleversion() < 2025022800) {
             $data->id = $newitemid;
             $this->process_topomojo_question_legacy_instance($data);
         }
-
     }
 
     /**
@@ -231,7 +231,10 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             // Set reference data.
             $questionsetreference = new stdClass();
             $questionsetreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
-                "topomojo", $module->id, $module->course)->id)->id;
+                "topomojo",
+                $module->id,
+                $module->course
+            )->id)->id;
             $questionsetreference->component = 'mod_topomojo';
             $questionsetreference->questionarea = 'slot';
             $questionsetreference->itemid = $data->id;
@@ -251,7 +254,10 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             // Reference data.
             $questionreference = new \stdClass();
             $questionreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
-                "topomojo", $module->id, $module->course)->id)->id;
+                "topomojo",
+                $module->id,
+                $module->course
+            )->id)->id;
             $questionreference->component = 'mod_topomojo';
             $questionreference->questionarea = 'slot';
             $questionreference->itemid = $data->id;
@@ -263,7 +269,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
     /**
      * Process question references which replaces the direct connection to quiz slots to question.
-     *  
+     *
      * @param array $data the data from the XML file.
      */
     public function process_question_reference($data) {
@@ -273,8 +279,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $data->itemid = $this->get_new_parentid('topomojo_question_instance');
         if ($entry = $this->get_mappingid('question_bank_entry', $data->questionbankentryid)) {
             $data->questionbankentryid = $entry;
-        }   
+        }
         $DB->insert_record('question_references', $data);
     }
-
 }
