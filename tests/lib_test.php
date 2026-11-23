@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -62,8 +62,7 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_update_instance')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_delete_instance')]
 #[\PHPUnit\Framework\Attributes\CoversFunction('topomojo_delete_finished_preview_attempts')]
-class lib_test extends \advanced_testcase {
-
+final class lib_test extends \advanced_testcase {
     /**
      * Finished instructor previews can be removed without affecting other attempts.
      */
@@ -134,7 +133,7 @@ class lib_test extends \advanced_testcase {
      * Test topomojo_supports function.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('supports_provider')]
-    public function test_topomojo_supports($feature, $expected) {
+    public function test_topomojo_supports($feature, $expected): void {
         $this->resetAfterTest();
         $result = topomojo_supports($feature);
         $this->assertEquals($expected, $result);
@@ -145,7 +144,7 @@ class lib_test extends \advanced_testcase {
      *
      * @return array
      */
-    public static function supports_provider() {
+    public static function supports_provider(): array {
         return [
             'MOD_ARCHETYPE' => [FEATURE_MOD_ARCHETYPE, MOD_ARCHETYPE_OTHER],
             'GROUPS' => [FEATURE_GROUPS, false],
@@ -163,7 +162,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_get_extra_capabilities function.
      */
-    public function test_topomojo_get_extra_capabilities() {
+    public function test_topomojo_get_extra_capabilities(): void {
         $this->resetAfterTest();
         $caps = topomojo_get_extra_capabilities();
         $this->assertIsArray($caps);
@@ -173,7 +172,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_reset_userdata function.
      */
-    public function test_topomojo_reset_userdata() {
+    public function test_topomojo_reset_userdata(): void {
         $this->resetAfterTest();
         $data = new \stdClass();
         $result = topomojo_reset_userdata($data);
@@ -184,7 +183,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_get_post_actions function.
      */
-    public function test_topomojo_get_post_actions() {
+    public function test_topomojo_get_post_actions(): void {
         $this->resetAfterTest();
         $actions = topomojo_get_post_actions();
         $this->assertIsArray($actions);
@@ -195,7 +194,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_add_instance function.
      */
-    public function test_topomojo_add_instance() {
+    public function test_topomojo_add_instance(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -262,7 +261,7 @@ class lib_test extends \advanced_testcase {
         $this->assertNotEmpty($record);
         $this->assertEquals('Test TopoMojo Activity', $record->name);
         $this->assertEquals('test-workspace-123', $record->workspaceid);
-        $this->assertEquals(100, $record->grade); // Default grade
+        $this->assertEquals(100, $record->grade); // Default grade.
     }
 
     /**
@@ -386,7 +385,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_update_instance function.
      */
-    public function test_topomojo_update_instance() {
+    public function test_topomojo_update_instance(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -472,7 +471,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_delete_instance function.
      */
-    public function test_topomojo_delete_instance() {
+    public function test_topomojo_delete_instance(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -499,7 +498,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_review_option_form_to_db function.
      */
-    public function test_topomojo_review_option_form_to_db() {
+    public function test_topomojo_review_option_form_to_db(): void {
         $this->resetAfterTest();
 
         $fromform = new \stdClass();
@@ -522,7 +521,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_view function.
      */
-    public function test_topomojo_view() {
+    public function test_topomojo_view(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -549,7 +548,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_get_user_grades function.
      */
-    public function test_topomojo_get_user_grades() {
+    public function test_topomojo_get_user_grades(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -590,7 +589,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_update_grades function.
      */
-    public function test_topomojo_update_grades() {
+    public function test_topomojo_update_grades(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -608,7 +607,7 @@ class lib_test extends \advanced_testcase {
     /**
      * Test topomojo_get_coursemodule_info function.
      */
-    public function test_topomojo_get_coursemodule_info() {
+    public function test_topomojo_get_coursemodule_info(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 

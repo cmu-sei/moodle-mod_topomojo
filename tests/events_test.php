@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -56,8 +56,7 @@ defined('MOODLE_INTERNAL') || die();
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\course_module_viewed::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_started::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\event\attempt_ended::class)]
-class events_test extends \advanced_testcase {
-
+final class events_test extends \advanced_testcase {
     /**
      * Setup function for creating common test data.
      */
@@ -79,8 +78,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_viewed event.
      */
-    public function test_course_module_viewed_event() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_course_module_viewed_event(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
@@ -114,7 +113,7 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_viewed event get_objectid_mapping.
      */
-    public function test_course_module_viewed_get_objectid_mapping() {
+    public function test_course_module_viewed_get_objectid_mapping(): void {
         $mapping = \mod_topomojo\event\course_module_viewed::get_objectid_mapping();
 
         $this->assertIsArray($mapping);
@@ -127,9 +126,9 @@ class events_test extends \advanced_testcase {
     /**
      * Test attempt_started event.
      */
-    public function test_attempt_started_event() {
+    public function test_attempt_started_event(): void {
         global $USER;
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Create an attempt.
         $attempt = new \stdClass();
@@ -168,9 +167,9 @@ class events_test extends \advanced_testcase {
     /**
      * Test attempt_ended event.
      */
-    public function test_attempt_ended_event() {
+    public function test_attempt_ended_event(): void {
         global $USER;
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         // Create an attempt.
         $attempt = new \stdClass();
@@ -209,8 +208,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test course_module_instance_list_viewed event.
      */
-    public function test_course_module_instance_list_viewed_event() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_course_module_instance_list_viewed_event(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         $coursecontext = \context_course::instance($course->id);
 
@@ -238,8 +237,8 @@ class events_test extends \advanced_testcase {
     /**
      * Test that event data is properly set.
      */
-    public function test_event_snapshot_data() {
-        list($course, $topomojo, $cm, $context) = $this->setup_test_data();
+    public function test_event_snapshot_data(): void {
+        [$course, $topomojo, $cm, $context] = $this->setup_test_data();
 
         $sink = $this->redirectEvents();
 

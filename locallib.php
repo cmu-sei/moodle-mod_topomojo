@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -236,10 +236,9 @@ function topomojo_configure_api_client($client, $bearsapikey = false) {
  *
  * @return curl The configured cURL client instance.
  */
-function setup()
-{
+function setup() {
     if (get_config('topomojo', 'enableapikey')) {
-        // Use external API key
+        // Use external API key.
         $xapikey = get_config('topomojo', 'apikey');
 
         if (empty($xapikey)) {
@@ -250,13 +249,13 @@ function setup()
         $client = new curl();
         $headers = [
             'x-api-key: ' . $xapikey,
-            'Content-Type: application/json'
+            'Content-Type: application/json',
         ];
         $client->setHeader($headers);
 
         return topomojo_configure_api_client($client, true);
     } else {
-        // Use OAuth2 system client
+        // Use OAuth2 system client.
         if (get_config('topomojo', 'enableoauth')) {
             $issuerid = get_config('topomojo', 'issuerid');
         }
@@ -301,15 +300,14 @@ function setup()
  *
  * @throws moodle_exception If the cURL client is null.
  */
-function list_events($client, $workspaceid)
-{
-    //debugging("listing events", DEBUG_DEVELOPER);
+function list_events($client, $workspaceid) {
+    // debugging("listing events", DEBUG_DEVELOPER);
     if ($client == null) {
         throw new moodle_exception('error with userauth');
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false&Term=" . $workspaceid . "&WantsActive=true";
 
     $response = $client->get($url);
@@ -355,16 +353,15 @@ function list_events($client, $workspaceid)
  *
  * @throws moodle_exception If the cURL client is null or not provided.
  */
-function list_all_active_events($client)
-{
+function list_all_active_events($client) {
     if ($client == null) {
         throw new moodle_exception('error with userauth');
         return;
     }
 
-    // Use a generic search term or empty if API allows it
+    // Use a generic search term or empty if API allows it.
     $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false"
-        . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
+        . "&Term=" . rawurlencode('')   // May return all events depending on API behavior.
         . "&WantsActive=true";
 
     $response = $client->get($url);
@@ -387,7 +384,6 @@ function list_all_active_events($client)
         }
     }
 
-
     usort($matches, 'whenCreated');
     return $matches;
 }
@@ -403,8 +399,7 @@ function list_all_active_events($client)
  * @return array An array of events where the 'managerName is set in the plugin settings.
  * If no events match or if the input is not an array, an empty array is returned.
  */
-function moodle_events($client, $events)
-{
+function moodle_events($client, $events) {
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
         return;
@@ -423,13 +418,13 @@ function moodle_events($client, $events)
             }
         } else {
             $userinfo = $client->get_userinfo();
-            $managerId = $userinfo['idnumber'];
-            if ($event['managerId'] == $managerId) {
+            $managerid = $userinfo['idnumber'];
+            if ($event['managerId'] == $managerid) {
                 array_push($eventsmoodle, $event);
             }
         }
     }
-    //debugging("found " . count($eventsmoodle) . " events started by moodle", DEBUG_DEVELOPER);
+    // debugging("found " . count($eventsmoodle) . " events started by moodle", DEBUG_DEVELOPER);
     return $eventsmoodle;
 }
 
@@ -449,10 +444,9 @@ function moodle_events($client, $events)
  * @throws moodle_exception If there is an error with user authentication, an error communicating with TopoMojo,
  * or an issue decoding the JSON response.
  */
-function user_events($client, $events)
-{
+function user_events($client, $events) {
     global $USER;
-    //debugging("filtering events for user", DEBUG_DEVELOPER);
+    // debugging("filtering events for user", DEBUG_DEVELOPER);
     if ($client == null) {
         throw new moodle_exception('error with userauth');
         return;
@@ -465,15 +459,15 @@ function user_events($client, $events)
     }
 
     foreach ($events as $event) {
-        // Web request
+        // Web request.
         $url = get_topomojo_api_url() . "/gamespace/" . $event['id'];
-        //echo "<br>GET $url<br>";
+        // echo "<br>GET $url<br>";
 
         $count = 1;
         $response = null;
         do {
             $response = $client->get($url);
-            //print_r($response);
+            // print_r($response);
 
             if (!$response) {
                 debugging("no response received by $url in attempt $count", DEBUG_DEVELOPER);
@@ -493,26 +487,26 @@ function user_events($client, $events)
             return;
         }
 
-        //debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
+        // debugging("returned array with " . count($r) . " elements", DEBUG_DEVELOPER);
         $players = $r['players'];
-        //print_r($players);
+        // print_r($players);
 
         $subjectid = explode("@", $USER->email)[0];
-        //echo "<br>subjectid $subjectid<br>";
+        // echo "<br>subjectid $subjectid<br>";
 
         if (!is_array($players)) {
             debugging("no players for this event " . $event->id, DEBUG_DEVELOPER);
             return;
         }
         foreach ($players as $player) {
-            //print_r($player);
+            // print_r($player);
             if ($player['subjectId'] == $subjectid) {
-                //echo "found user";
+                // echo "found user";
                 array_push($userevents, $r);
             }
         }
     }
-    //debugging("found " . count($userevents) . " events for this user", DEBUG_DEVELOPER);
+    // debugging("found " . count($userevents) . " events for this user", DEBUG_DEVELOPER);
     return $userevents;
 }
 
@@ -531,32 +525,31 @@ function user_events($client, $events)
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_workspace($client, $id)
-{
+function get_workspace($client, $id) {
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/workspace/" . $id;
-    //echo "GET $url<br>";
+    // echo "GET $url<br>";
 
     $response = $client->get($url);
 
-    // TODO handle network error
+    // TODO handle network error.
 
     if ($client->info['http_code'] !== 200) {
-        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        //print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
+        // debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        // print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed.
         throw new moodle_exception($client->info['http_code'] . " for $url");
     }
 
     if (!$response) {
         debugging('no response received by get_workspace', DEBUG_DEVELOPER);
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
 
     if (!$r) {
@@ -581,23 +574,22 @@ function get_workspace($client, $id)
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_workspaces($client)
-{
+function get_workspaces($client) {
 
     if ($client == null) {
         debugging('error with client in get_workspaces', DEBUG_DEVELOPER);
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/workspaces";
-    //echo "GET $url<br>";
+    // echo "GET $url<br>";
 
     $response = $client->get($url);
     if (!$response) {
         debugging("no response received by get_workspaces for $url", DEBUG_DEVELOPER);
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     if ($client->info['http_code'] !== 200) {
         debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         return;
@@ -626,32 +618,31 @@ function get_workspaces($client)
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_gamespace_challenge($client, $id)
-{
+function get_gamespace_challenge($client, $id) {
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/challenge";
-    //echo "GET $url<br>";
+    // echo "GET $url<br>";
 
     $response = $client->get($url);
 
-    // TODO handle network error
+    // TODO handle network error.
 
     if ($client->info['http_code'] !== 200) {
-        //debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
-        //print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
+        // debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
+        // print_r($client->response);
+        // TODO we dont have an httpp_code if the connection failed.
         throw new moodle_exception($client->info['http_code'] . " for $url");
     }
 
     if (!$response) {
         debugging('no response received by get_workspace', DEBUG_DEVELOPER);
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
 
     if (!$r) {
@@ -677,8 +668,7 @@ function get_gamespace_challenge($client, $id)
  *
  * @throws moodle_exception If the HTTP request fails or if the response code is not 200.
  */
-function get_markdown($client, $id, $topomojoid = null)
-{
+function get_markdown($client, $id, $topomojoid = null) {
     global $DB;
 
     if ($client == null) {
@@ -701,14 +691,14 @@ function get_markdown($client, $id, $topomojoid = null)
 
     $markdown = '';
 
-    // Case 1: server returns JSON (either a bare JSON string, or an object with a field)
+    // Case 1: server returns JSON (either a bare JSON string, or an object with a field).
     if (stripos($ctype, 'application/json') !== false) {
         $decoded = json_decode($response, true);
         if (is_string($decoded)) {
             $markdown = $decoded;
         }
     } else {
-        // Case 2: plain text response
+        // Case 2: plain text response.
         $markdown = $response;
     }
 
@@ -725,8 +715,16 @@ function get_markdown($client, $id, $topomojoid = null)
     return $markdown;
 }
 
-function get_gamespace_limit($client)
-{
+/**
+ * Gets the gamespace limit of the TopoMojo user the requests are made as.
+ *
+ * With an API key and a manager name configured, the user is looked up by that name; otherwise the
+ * user is the one the client is authenticated as.
+ *
+ * @param curl|null $client The authenticated client used for the request.
+ * @return int|null The gamespace limit, or null if the client is missing or the response has none.
+ */
+function get_gamespace_limit($client) {
 
     if ($client == null) {
         debugging('Error with client in get_users_by_term', DEBUG_DEVELOPER);
@@ -735,41 +733,41 @@ function get_gamespace_limit($client)
 
     topomojo_require_valid_auth_configuration();
 
-    $base_url = get_topomojo_api_url();
+    $baseurl = get_topomojo_api_url();
 
     if (get_config('topomojo', 'enableapikey') && get_config('topomojo', 'enablemanagername')) {
         $xapikey = get_config('topomojo', 'apikey');
         $managername = get_config('topomojo', 'managername');
 
-        $url = $base_url . "/users?Term=" . urlencode($managername);
+        $url = $baseurl . "/users?Term=" . urlencode($managername);
 
-        // Set the Authorization header for the request
+        // Set the Authorization header for the request.
         $headers = [
             'accept: text/plain',
-            'Authorization: Bearer ' . get_config('topomojo', 'apikey')
+            'Authorization: Bearer ' . get_config('topomojo', 'apikey'),
         ];
     } else {
         $userinfo = $client->get_userinfo();
-        $managerId = $userinfo['idnumber'];
+        $managerid = $userinfo['idnumber'];
 
-        // Base URL from configuration and construct endpoint with the term parameter
-        $url = $base_url . "/user/" . $managerId;
+        // Base URL from configuration and construct endpoint with the term parameter.
+        $url = $baseurl . "/user/" . $managerid;
     }
 
-    // Perform the GET request
+    // Perform the GET request.
     $response = $client->get($url);
 
-    // Decode the JSON response
-    $response_data = json_decode($response, true);
+    // Decode the JSON response.
+    $responsedata = json_decode($response, true);
 
-    // Check if decoding was successful
-    if (!$response_data) {
+    // Check if decoding was successful.
+    if (!$responsedata) {
         debugging('Could not decode JSON response', DEBUG_DEVELOPER);
         return;
     }
 
-    if (isset($response_data[0]['gamespaceLimit'])) {
-        return $response_data[0]['gamespaceLimit'];
+    if (isset($responsedata[0]['gamespaceLimit'])) {
+        return $responsedata[0]['gamespaceLimit'];
     } else {
         debugging('gamespaceLimit not found in response', DEBUG_DEVELOPER);
         return null;
@@ -797,33 +795,32 @@ function get_gamespace_limit($client)
  *
  * @throws moodle_exception If there is an issue with the HTTP request or if the response code is not 200.
  */
-function start_event($client, $id, $topomojo)
-{
+function start_event($client, $id, $topomojo) {
     global $USER;
 
     if ($client == null) {
-        debugging('error with client in start_event', DEBUG_DEVELOPER);;
+        debugging('error with client in start_event', DEBUG_DEVELOPER);
         return;
     }
 
-    // Set curl timeout to match deployment timeout setting
+    // Set curl timeout to match deployment timeout setting.
     $deploytimeout = get_config('topomojo', 'deploytimeout') ?: 120;
     $client->setopt(['CURLOPT_TIMEOUT' => $deploytimeout]);
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace";
-    //echo "POST $url<br>";
+    // echo "POST $url<br>";
 
-    // Generate post data
+    // Generate post data.
     $payload = \mod_topomojo\local\bulkdeploy\payload_builder::build($id, $topomojo, $USER);
     $json = json_encode($payload);
-    //print_r($json);
+    // print_r($json);
 
     $client->setopt(['CURLOPT_POSTFIELDS' => $json]);
 
     $headers = [
         'Content-Type: application/json',
-        'Content-Length: ' . strlen($json)
+        'Content-Length: ' . strlen($json),
     ];
 
     $client->setHeader($headers);
@@ -834,21 +831,21 @@ function start_event($client, $id, $topomojo)
         debugging('no response received by start_event response code ' . $client->info['http_code'] . " errno " . $client->errno . " for $url", DEBUG_DEVELOPER);
         return;
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        //echo "could not decode json<br>";
+        // echo "could not decode json<br>";
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r;
     }
 
-    //echo "response code ". $client->info['http_code'] . "<br>";
+    // echo "response code ". $client->info['http_code'] . "<br>";
     debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
-    //print_r($r);
+    // print_r($r);
 
     return;
 }
@@ -867,17 +864,16 @@ function start_event($client, $id, $topomojo)
  *
  * @throws \Exception If no response is received from the API.
  */
-function stop_event($client, $id)
-{
+function stop_event($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in stop_event', DEBUG_DEVELOPER);;
+        debugging('error with client in stop_event', DEBUG_DEVELOPER);
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/complete";
-    //echo "POST $url<br>";
+    // echo "POST $url<br>";
 
     $response = $client->post($url);
 
@@ -889,7 +885,7 @@ function stop_event($client, $id)
         throw new \Exception($response);
         return;
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     return;
 }
 
@@ -907,7 +903,7 @@ function stop_event($client, $id)
 function check_conflicting_gamespace($topomojoid, $workspaceid) {
     global $DB, $USER;
 
-    // Find active attempts from OTHER activities using the same workspace
+    // Find active attempts from OTHER activities using the same workspace.
     $sql = "SELECT ta.*, t.name as activityname, t.course, cm.id as cmid
             FROM {topomojo_attempts} ta
             JOIN {topomojo} t ON t.id = ta.topomojoid
@@ -924,7 +920,7 @@ function check_conflicting_gamespace($topomojoid, $workspaceid) {
         'userid' => $USER->id,
         'state' => \mod_topomojo\topomojo_attempt::INPROGRESS,
         'topomojoid' => $topomojoid,
-        'workspaceid' => $workspaceid
+        'workspaceid' => $workspaceid,
     ]);
 
     return $conflict ?: null;
@@ -943,33 +939,32 @@ function check_conflicting_gamespace($topomojoid, $workspaceid) {
  * @return string|null The ticket if the request is successful and the response code is 200, or `null` if
  *                     the request fails or the response cannot be decoded.
  */
-function get_ticket($client)
-{
+function get_ticket($client) {
 
     if ($client == null) {
-        debugging('error with client in get_ticket', DEBUG_DEVELOPER);;
+        debugging('error with client in get_ticket', DEBUG_DEVELOPER);
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/user/ticket";
-    //echo "POST $url<br>";
+    // echo "POST $url<br>";
 
     $response = $client->get($url);
 
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        //echo "could not decode json<br>";
+        // echo "could not decode json<br>";
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r->ticket;
     }
     if ($client->info['http_code'] === 500) {
-        //echo "response code ". $client->info['http_code'] . "<br>";
+        // echo "response code ". $client->info['http_code'] . "<br>";
         debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
@@ -989,33 +984,32 @@ function get_ticket($client)
  * @return mixed The invitation details if the request is successful and the response code is 200, or `null`
  *               if the request fails or the response cannot be decoded.
  */
-function get_invite($client, $id)
-{
+function get_invite($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_invite', DEBUG_DEVELOPER);;
+        debugging('error with client in get_invite', DEBUG_DEVELOPER);
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/invite";
-    //echo "POST $url<br>";
+    // echo "POST $url<br>";
 
     $response = $client->post($url);
 
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        //echo "could not decode json<br>";
+        // echo "could not decode json<br>";
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r;
     }
     if ($client->info['http_code'] === 500) {
-        //echo "response code ". $client->info['http_code'] . "<br>";
+        // echo "response code ". $client->info['http_code'] . "<br>";
         debugging('response code ' . $client->info['http_code'], DEBUG_DEVELOPER);
     }
     return;
@@ -1034,14 +1028,13 @@ function get_invite($client, $id)
  *
  * @return bool Returns `true` if the request is successful and the response code is 200, or `false` otherwise.
  */
-function extend_event($client, $data)
-{
+function extend_event($client, $data) {
 
     if ($client == null) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace";
     $client->setHeader('Content-Type: application/json-patch+json');
 
@@ -1070,32 +1063,31 @@ function extend_event($client, $data)
  *
  * @throws moodle_exception Throws an exception if the response cannot be decoded or if the response code is not 200.
  */
-function get_event($client, $id)
-{
+function get_event($client, $id) {
 
     if ($client == null) {
-        debugging('error with client in get_event', DEBUG_DEVELOPER);;
+        debugging('error with client in get_event', DEBUG_DEVELOPER);
         return;
     }
 
     if ($id == null) {
-        debugging('error with id in get_event', DEBUG_DEVELOPER);;
+        debugging('error with id in get_event', DEBUG_DEVELOPER);
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id;
-    //echo "GET $url<br>";
+    // echo "GET $url<br>";
 
     $response = $client->get($url);
     if (!$response) {
         debugging("no response received by get_event for $url", DEBUG_DEVELOPER);
         return;
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
     if (!$r) {
-        //debugging("could not decode json for $url", DEBUG_DEVELOPER);
+        // debugging("could not decode json for $url", DEBUG_DEVELOPER);
         throw new moodle_exception($response);
         return;
     }
@@ -1192,8 +1184,7 @@ function topomojo_find_live_event_attempt(
  * @return int Returns an integer less than, equal to, or greater than zero depending on whether the 'whenCreated'
  *             value of $a is less than, equal to, or greater than the 'whenCreated' value of $b.
  */
-function whencreated($a, $b)
-{
+function whencreated($a, $b) {
     return strnatcmp($a['whenCreated'], $b['whenCreated']);
 }
 
@@ -1208,8 +1199,7 @@ function whencreated($a, $b)
  *
  * @return object|null Returns the first active event as an object, or null if no active event is found or if the input is null.
  */
-function get_active_event($history)
-{
+function get_active_event($history) {
     if ($history == null) {
         return null;
     }
@@ -1231,8 +1221,7 @@ function get_active_event($history)
  *
  * @return array An associative array where the keys are grading option constants and the values are language strings.
  */
-function topomojo_get_grading_options()
-{
+function topomojo_get_grading_options() {
     return [
         TOPOMOJO_GRADEHIGHEST => get_string('gradehighest', 'topomojo'),
         TOPOMOJO_GRADEAVERAGE => get_string('gradeaverage', 'topomojo'),
@@ -1250,8 +1239,7 @@ function topomojo_get_grading_options()
  *                    TOPOMOJO_ATTEMPTFIRST, TOPOMOJO_ATTEMPTLAST).
  * @return string The language string for the specified grading option.
  */
-function topomojo_get_grading_option_name($option)
-{
+function topomojo_get_grading_option_name($option) {
     $strings = topomojo_get_grading_options();
     return $strings[$option];
 }
@@ -1266,8 +1254,7 @@ function topomojo_get_grading_option_name($option)
  * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
-function topomojo_end($cm, $context, $topomojo)
-{
+function topomojo_end($cm, $context, $topomojo) {
     global $USER;
     $params = [
         'objectid'      => $cm->id,
@@ -1289,8 +1276,7 @@ function topomojo_end($cm, $context, $topomojo)
  * @param stdClass $topomojo The TopoMojo instance object.
  * @return void
  */
-function topomojo_start($cm, $context, $topomojo)
-{
+function topomojo_start($cm, $context, $topomojo) {
     global $USER;
     $params = [
         'objectid'      => $cm->id,
@@ -1315,16 +1301,15 @@ function topomojo_start($cm, $context, $topomojo)
  * @throws moodle_exception If the client could not be set up, or the API returns an unexpected
  *                          non-200 status (e.g. an authentication failure).
  */
-function get_challenge($client, $id)
-{
+function get_challenge($client, $id) {
     global $USER;
     if ($client == null) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/challenge/" . $id;
-    //echo "GET $url<br>";
+    // echo "GET $url<br>";
 
     $response = $client->get($url);
 
@@ -1333,9 +1318,9 @@ function get_challenge($client, $id)
 
     if ($httpcode !== 200) {
         // Treat "no usable challenge" cases as a null return rather than an exception:
-        //   400/404 - workspace or challenge not found / invalid.
-        //   5xx     - TopoMojo server error (the null-server bug returns HTTP 500).
-        //   0       - connection failed, so we never got an http_code.
+        // 400/404 - workspace or challenge not found / invalid.
+        // 5xx     - TopoMojo server error (the null-server bug returns HTTP 500).
+        // 0       - connection failed, so we never got an http_code.
         // Callers all handle null (view.php shows the friendly "workspace not found"
         // message instead of an error page that leaks the API URL).
         if ($httpcode === 404 || $httpcode === 400 || $httpcode >= 500 || $httpcode === 0) {
@@ -1350,7 +1335,7 @@ function get_challenge($client, $id)
         debugging('no response received by get_challenge', DEBUG_DEVELOPER);
         return null;
     }
-    //echo "response:<br><pre>$response</pre>";
+    // echo "response:<br><pre>$response</pre>";
     $r = json_decode($response);
 
     if (!$r) {
@@ -1370,8 +1355,7 @@ function get_challenge($client, $id)
  * @param int $course The ID of the course for which attempts are to be retrieved.
  * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing the attempts for the specified course.
  */
-function getall_course_attempts($course)
-{
+function getall_course_attempts($course) {
     global $DB, $USER;
 
     $sqlparams = [];
@@ -1387,7 +1371,7 @@ function getall_course_attempts($course)
     $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
     $attempts = [];
-    // Create array of class attempts from the db entry
+    // Create array of class attempts from the db entry.
     foreach ($dbattempts as $dbattempt) {
         $attempts[] = new \mod_topomojo\topomojo_attempt($dbattempt);
     }
@@ -1403,15 +1387,14 @@ function getall_course_attempts($course)
  *
  * @return array An array of `\mod_topomojo\topomojo_attempt` objects representing all TopoMojo attempts.
  */
-function getall_topomojo_attempts($course)
-{
+function getall_topomojo_attempts($course) {
     global $DB, $USER;
 
     $sql = "SELECT * FROM {topomojo_attempts}";
     $dbattempts = $DB->get_records_sql($sql);
 
     $attempts = [];
-    // Create array of class attempts from the db entry
+    // Create array of class attempts from the db entry.
     foreach ($dbattempts as $dbattempt) {
         $attempts[] = new \mod_topomojo\topomojo_attempt($dbattempt);
     }
@@ -1497,8 +1480,7 @@ function topomojo_question_tostring(
  * @param int|null $variant (optional) The specific question variant to preview. Defaults to null.
  * @return moodle_url The URL to preview the question with the given options.
  */
-function topomojo_question_preview_url($topomojo, $question, $variant = null)
-{
+function topomojo_question_preview_url($topomojo, $question, $variant = null) {
     // Get the appropriate display options. The class is mod_topomojo_display_options;
     // the unprefixed name used here before does not exist, so any call to this
     // function died with a class-not-found error.
@@ -1528,8 +1510,7 @@ function topomojo_question_preview_url($topomojo, $question, $variant = null)
  * @param int $topomojoid The ID of the topomojo to check.
  * @return bool True if there are attempts, false otherwise.
  */
-function topomojo_has_attempts($topomojoid)
-{
+function topomojo_has_attempts($topomojoid) {
     global $DB;
     return $DB->record_exists('topomojo_attempts', ['topomojoid' => $topomojoid]);
 }
@@ -1544,8 +1525,7 @@ function topomojo_has_attempts($topomojoid)
  * @param bool $forcerecheck Unused parameter, kept for backward compatibility.
  * @return array An associative array with 'healthy' (bool) and 'version' (string|null).
  */
-function topomojo_check_health($client = null, $forcerecheck = false)
-{
+function topomojo_check_health($client = null, $forcerecheck = false) {
     $result = [
         'healthy' => false,
         'version' => null,
@@ -1649,10 +1629,9 @@ class mod_topomojo_display_options extends question_display_options
      * {@link LATER_WHILE_OPEN} or {@link AFTER_CLOSE} constants.
      * @return mod_topomojo_display_options set up appropriately.
      */
-    public static function make_from_topomojo($topomojo, $when)
-    {
+    public static function make_from_topomojo($topomojo, $when) {
         $options = new self();
-        // TODO remove if not used
+        // TODO remove if not used.
         $options->attempt = self::extract($topomojo->reviewattempt, $when, true, false);
         $options->correctness = self::extract($topomojo->reviewcorrectness, $when);
         $options->marks = self::extract(
@@ -1667,7 +1646,7 @@ class mod_topomojo_display_options extends question_display_options
         // TODO remove if not used$options->overallfeedback = self::extract($topomojo->reviewoverallfeedback, $when);
         $options->numpartscorrect = $options->feedback;
         $options->manualcomment = $options->feedback;
-        //$options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
+        // $options->manualcomment = self::extract($topomojo->reviewmanualcomment, $when);
 
         // mod_quiz has questiondecimalpoints/decimalpoints settings; this plugin has
         // neither column, so only honour them if a caller supplies them and
@@ -1729,7 +1708,7 @@ function topomojo_validate_workspace($workspaceid) {
         $client = setup();
         if (!$client) {
             debugging('Could not initialize TopoMojo API client for workspace validation', DEBUG_DEVELOPER);
-            return false; // Can't validate, assume it exists to avoid blocking restore
+            return false; // Can't validate, assume it exists to avoid blocking restore.
         }
 
         $apiurl = get_topomojo_api_url();
@@ -1746,12 +1725,11 @@ function topomojo_validate_workspace($workspaceid) {
         }
 
         if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
-            return false; // Workspace doesn't exist (404) or invalid ID format (400)
+            return false; // Workspace doesn't exist (404) or invalid ID format (400).
         }
 
         debugging('Unexpected response validating workspace: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);
         return false;
-
     } catch (Exception $e) {
         debugging('Exception validating workspace: ' . $e->getMessage(), DEBUG_DEVELOPER);
         return false;

@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -54,12 +54,11 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo_question::class)]
-class topomojo_question_test extends \advanced_testcase {
-
+final class topomojo_question_test extends \advanced_testcase {
     /**
      * Test question construction.
      */
-    public function test_question_construction() {
+    public function test_question_construction(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -70,15 +69,15 @@ class topomojo_question_test extends \advanced_testcase {
         $question = new topomojo_question(1, 10.0, $questionobj);
 
         $this->assertInstanceOf(topomojo_question::class, $question);
-        $this->assertEquals(1, $question->getId());
-        $this->assertEquals(10.0, $question->getPoints());
-        $this->assertEquals($questionobj, $question->getQuestion());
+        $this->assertEquals(1, $question->getid());
+        $this->assertEquals(10.0, $question->getpoints());
+        $this->assertEquals($questionobj, $question->getquestion());
     }
 
     /**
-     * Test getId method.
+     * Test getid method.
      */
-    public function test_getid() {
+    public function test_getid(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -86,13 +85,13 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(42, 5.0, $questionobj);
 
-        $this->assertEquals(42, $question->getId());
+        $this->assertEquals(42, $question->getid());
     }
 
     /**
-     * Test getPoints method.
+     * Test getpoints method.
      */
-    public function test_getpoints() {
+    public function test_getpoints(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -100,13 +99,13 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 15.5, $questionobj);
 
-        $this->assertEquals(15.5, $question->getPoints());
+        $this->assertEquals(15.5, $question->getpoints());
     }
 
     /**
-     * Test getPoints with integer value.
+     * Test getpoints with integer value.
      */
-    public function test_getpoints_integer() {
+    public function test_getpoints_integer(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -114,13 +113,13 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 10, $questionobj);
 
-        $this->assertEquals(10, $question->getPoints());
+        $this->assertEquals(10, $question->getpoints());
     }
 
     /**
-     * Test getQuestion method.
+     * Test getquestion method.
      */
-    public function test_getquestion() {
+    public function test_getquestion(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -131,7 +130,7 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 5.0, $questionobj);
 
-        $result = $question->getQuestion();
+        $result = $question->getquestion();
 
         $this->assertInstanceOf(\stdClass::class, $result);
         $this->assertEquals(75, $result->id);
@@ -143,7 +142,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test set_slot method.
      */
-    public function test_set_slot() {
+    public function test_set_slot(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -159,7 +158,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test get_slot method.
      */
-    public function test_get_slot() {
+    public function test_get_slot(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -177,7 +176,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test get_slot before setting.
      */
-    public function test_get_slot_not_set() {
+    public function test_get_slot_not_set(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -193,7 +192,7 @@ class topomojo_question_test extends \advanced_testcase {
     /**
      * Test multiple questions with different properties.
      */
-    public function test_multiple_questions() {
+    public function test_multiple_questions(): void {
         $this->resetAfterTest();
 
         $questionobj1 = new \stdClass();
@@ -207,19 +206,19 @@ class topomojo_question_test extends \advanced_testcase {
         $question1 = new topomojo_question(1, 10.0, $questionobj1);
         $question2 = new topomojo_question(2, 20.0, $questionobj2);
 
-        $this->assertEquals(1, $question1->getId());
-        $this->assertEquals(10.0, $question1->getPoints());
-        $this->assertEquals('Question 1', $question1->getQuestion()->name);
+        $this->assertEquals(1, $question1->getid());
+        $this->assertEquals(10.0, $question1->getpoints());
+        $this->assertEquals('Question 1', $question1->getquestion()->name);
 
-        $this->assertEquals(2, $question2->getId());
-        $this->assertEquals(20.0, $question2->getPoints());
-        $this->assertEquals('Question 2', $question2->getQuestion()->name);
+        $this->assertEquals(2, $question2->getid());
+        $this->assertEquals(20.0, $question2->getpoints());
+        $this->assertEquals('Question 2', $question2->getquestion()->name);
     }
 
     /**
      * Test question with zero points.
      */
-    public function test_question_zero_points() {
+    public function test_question_zero_points(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -227,13 +226,13 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 0, $questionobj);
 
-        $this->assertEquals(0, $question->getPoints());
+        $this->assertEquals(0, $question->getpoints());
     }
 
     /**
      * Test question with negative points (edge case).
      */
-    public function test_question_negative_points() {
+    public function test_question_negative_points(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -241,13 +240,13 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, -5.0, $questionobj);
 
-        $this->assertEquals(-5.0, $question->getPoints());
+        $this->assertEquals(-5.0, $question->getpoints());
     }
 
     /**
      * Test question object properties are preserved.
      */
-    public function test_question_object_properties_preserved() {
+    public function test_question_object_properties_preserved(): void {
         $this->resetAfterTest();
 
         $questionobj = new \stdClass();
@@ -261,7 +260,7 @@ class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(5, 10.0, $questionobj);
 
-        $retrieved = $question->getQuestion();
+        $retrieved = $question->getquestion();
 
         $this->assertEquals(123, $retrieved->id);
         $this->assertEquals('Complex Question', $retrieved->name);

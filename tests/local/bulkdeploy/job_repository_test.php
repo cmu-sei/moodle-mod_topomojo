@@ -1,8 +1,34 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Tests for the job_repository class.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Tests for the job repository.
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\job_repository::class)]
 final class job_repository_test extends \advanced_testcase {
     public function test_create_job_with_users_persists_rows(): void {
@@ -57,7 +83,7 @@ final class job_repository_test extends \advanced_testcase {
         $repo->set_user_status($rows[0]->id, user_status::READY);
         $repo->set_user_status($rows[1]->id, user_status::FAILED, 'boom');
         $repo->set_user_status($rows[2]->id, user_status::LAUNCHED);
-        // rows[3] stays pending
+        // rows[3] stays pending.
 
         $active = array_values($repo->get_active_user_rows($jobid));
 
@@ -74,13 +100,15 @@ final class job_repository_test extends \advanced_testcase {
         $rows = array_values($repo->get_user_rows($jobid));
         $repo->set_user_status($rows[0]->id, user_status::READY);
         $repo->set_user_status($rows[1]->id, user_status::LAUNCHED);
-        // rows[2] still pending
+        // rows[2] still pending.
 
         $repo->mark_pending_cancelled($jobid);
 
         $after = $repo->get_user_rows($jobid);
         $byid = [];
-        foreach ($after as $r) { $byid[$r->id] = $r->status; }
+        foreach ($after as $r) {
+            $byid[$r->id] = $r->status;
+        }
         $this->assertSame(user_status::READY, $byid[$rows[0]->id]);
         $this->assertSame(user_status::LAUNCHED, $byid[$rows[1]->id]);
         $this->assertSame(user_status::CANCELLED, $byid[$rows[2]->id]);

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -20,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -36,6 +35,8 @@ DM24-1175
 */
 
 /**
+ * Restore steps for the TopoMojo activity.
+ *
  * @package   mod_topomojo
  * @category  backup
  * @copyright 2024 Carnegie Mellon University
@@ -50,31 +51,44 @@ DM24-1175
  * Structure step to restore one topomojo activity
  */
 class restore_topomojo_activity_structure_step extends restore_questions_activity_structure_step {
+    /**
+     * @var array The question order. TODO will have to implode this to insert it into the db.
+     */
+    private $questionorder = [];
 
-    // TODO will have to implode this to insert it into the db
-    private $questionorder = array();
-
+    /**
+     * Defines the paths to restore.
+     *
+     * @return array The structure, prepared for the restore.
+     */
     protected function define_structure() {
 
-        $paths = array();
+        $paths = [];
         $paths[] = new restore_path_element('topomojo', '/activity/topomojo');
 
-        $quizquestioninstance = new restore_path_element('topomojo_question_instance',
-            '/activity/topomojo/question_instances/question_instance');
+        $quizquestioninstance = new restore_path_element(
+            'topomojo_question_instance',
+            '/activity/topomojo/question_instances/question_instance'
+        );
         $paths[] = $quizquestioninstance;
 
-        if ($this->task->get_old_moduleversion() < 2025022800) {
-            // no references to restore
-        } else {
+        // Backups made before 2025022800 have no question references to restore.
+        if ($this->task->get_old_moduleversion() >= 2025022800) {
             $this->log('adding question reference paths', backup::LOG_DEBUG);
             $this->add_question_references($quizquestioninstance, $paths);
             $this->add_question_set_references($quizquestioninstance, $paths);
         }
 
-        // Return the paths wrapped into standard activity structure
+        // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
 
+    /**
+     * Restores the activity record.
+     *
+     * @param array $data The backed up activity data.
+     * @return void
+     */
     protected function process_topomojo($data) {
         global $DB;
 
@@ -85,7 +99,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
         // See MDL-9367.
 
-        // time setting
+        // Time setting.
         $data->timeopen = $this->apply_date_offset($data->timeopen);
         $data->timeclose = $this->apply_date_offset($data->timeclose);
 
@@ -96,7 +110,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         }
          */
 
-        // TODO set/test default behaviour
+        // TODO set/test default behaviour.
         if (!isset($data->preferredbehaviour)) {
             if (empty($data->optionflags)) {
                 $data->preferredbehaviour = 'deferredfeedback';
@@ -109,32 +123,34 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             unset($data->penaltyscheme);
         }
 
-        // TODO test review settings
+        // TODO test review settings.
 
-        // Validate required fields
+        // Validate required fields.
         if (empty($data->workspaceid)) {
-            throw new restore_step_exception('topomojo_missing_workspaceid',
+            throw new restore_step_exception(
+                'topomojo_missing_workspaceid',
                 'This backup is missing the workspace ID. ' .
                 'The activity cannot be restored without selecting a TopoMojo workspace. ' .
-                'Please contact your administrator.');
+                'Please contact your administrator.'
+            );
         }
 
-        // Validate that workspace exists in TopoMojo (warning only, doesn't block restore)
+        // Validate that workspace exists in TopoMojo (warning only, doesn't block restore).
         global $CFG;
         require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
         $topomojoapiurl = get_config('topomojo', 'topomojoapiurl');
         if (empty($topomojoapiurl)) {
-            // TopoMojo not configured - warn but allow restore
+            // TopoMojo not configured - warn but allow restore.
             $this->log(
                 'TopoMojo API not configured. Cannot verify workspace ' . $data->workspaceid . ' exists.',
                 backup::LOG_WARNING
             );
         } else {
-            // TopoMojo configured - check if workspace exists
+            // TopoMojo configured - check if workspace exists.
             $workspaceexists = topomojo_validate_workspace($data->workspaceid);
             if (!$workspaceexists) {
-                // Workspace not found - warn but allow restore
+                // Workspace not found - warn but allow restore.
                 $this->log(
                     'Workspace ' . $data->workspaceid . ' not found in TopoMojo. ' .
                     'The activity was restored but may not work until the workspace is imported.',
@@ -143,9 +159,9 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             }
         }
 
-        // insert the topomojo record
+        // Insert the topomojo record.
         $newitemid = $DB->insert_record('topomojo', $data);
-        // immediately after inserting "activity" record, call this
+        // Immediately after inserting "activity" record, call this.
         $this->apply_activity_instance($newitemid);
     }
 
@@ -160,11 +176,16 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
     protected function inform_new_usage_id($newusageid) {
     }
 
+    /**
+     * Restores the activity's files once the structure has been restored.
+     *
+     * @return void
+     */
     protected function after_execute() {
         global $DB;
 
         parent::after_execute();
-        // Add topomojo related files, no need to match by itemname (just internally handled context)
+        // Add topomojo related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_topomojo', 'intro', null);
 
         $module = $DB->get_record('topomojo', ['id' => $this->get_new_parentid('topomojo')]);
@@ -172,7 +193,6 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $this->log('questionorder rebuilt as ' . $module->questionorder, backup::LOG_DEBUG);
 
         $DB->update_record('topomojo', $module);
-
     }
 
     /**
@@ -193,14 +213,13 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
         // Add mapping, restore of slot tags (for random questions) need it.
         $this->set_mapping('topomojo_question_instance', $oldid, $newitemid);
-        //questionorder gets tracked now and updated with is after_execute
+        // Questionorder gets tracked now and updated with is after_execute.
         $this->questionorder[] = $newitemid;
 
         if ($this->task->get_old_moduleversion() < 2025022800) {
             $data->id = $newitemid;
             $this->process_topomojo_question_legacy_instance($data);
         }
-
     }
 
     /**
@@ -231,7 +250,10 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             // Set reference data.
             $questionsetreference = new stdClass();
             $questionsetreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
-                "topomojo", $module->id, $module->course)->id)->id;
+                "topomojo",
+                $module->id,
+                $module->course
+            )->id)->id;
             $questionsetreference->component = 'mod_topomojo';
             $questionsetreference->questionarea = 'slot';
             $questionsetreference->itemid = $data->id;
@@ -251,7 +273,10 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             // Reference data.
             $questionreference = new \stdClass();
             $questionreference->usingcontextid = context_module::instance(get_coursemodule_from_instance(
-                "topomojo", $module->id, $module->course)->id)->id;
+                "topomojo",
+                $module->id,
+                $module->course
+            )->id)->id;
             $questionreference->component = 'mod_topomojo';
             $questionreference->questionarea = 'slot';
             $questionreference->itemid = $data->id;
@@ -263,7 +288,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
     /**
      * Process question references which replaces the direct connection to quiz slots to question.
-     *  
+     *
      * @param array $data the data from the XML file.
      */
     public function process_question_reference($data) {
@@ -273,8 +298,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         $data->itemid = $this->get_new_parentid('topomojo_question_instance');
         if ($entry = $this->get_mappingid('question_bank_entry', $data->questionbankentryid)) {
             $data->questionbankentryid = $entry;
-        }   
+        }
         $DB->insert_record('question_references', $data);
     }
-
 }

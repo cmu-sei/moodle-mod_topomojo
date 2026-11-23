@@ -1,10 +1,39 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Handles the actions submitted from the manage deployments page.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
 use mod_topomojo\local\bulkdeploy\job_repository;
 use mod_topomojo\task\bulkdeploy_run;
 
+/**
+ * Parses the schedule time submitted from the manage page.
+ *
+ * @param string $value A date and time as sent by a datetime-local input, with or without seconds.
+ * @return int|null Unix time in the user's timezone, or null if the value cannot be parsed.
+ */
 function mod_topomojo_parse_bulkdeploy_schedule(string $value): ?int {
     $timezone = \core_date::get_user_timezone_object();
     foreach (['!Y-m-d\TH:i', '!Y-m-d\TH:i:s'] as $format) {
@@ -20,10 +49,6 @@ $action = required_param('action', PARAM_ALPHANUMEXT);
 $cmid = required_param('id', PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 require_sesskey();
-
-// Debug logging
-error_log("manage_action.php: action=" . var_export($action, true));
-error_log("manage_action.php: all POST: " . var_export($_POST, true));
 
 [$course, $cm] = get_course_and_cm_from_cmid($cmid, 'topomojo');
 require_login($course, false, $cm);
@@ -45,7 +70,7 @@ switch ($action) {
             redirect($returnurl);
         }
 
-        // Validate batchsize against plugin max
+        // Validate batchsize against plugin max.
         $maxbatchsize = get_config('topomojo', 'bulkdeploy_batchsize') ?: 5;
         if ($batchsize < 1 || $batchsize > $maxbatchsize) {
             $batchsize = $maxbatchsize;
@@ -65,7 +90,7 @@ switch ($action) {
         $task = new bulkdeploy_run();
         $task->set_custom_data((object) ['jobid' => $jobid]);
         $task->set_component('mod_topomojo');
-        $task->set_next_run_time(time()); // Run immediately
+        $task->set_next_run_time(time()); // Run immediately.
         \core\task\manager::queue_adhoc_task($task);
 
         \core\notification::success(get_string('deployment_queued', 'topomojo', count($userids)));
@@ -93,7 +118,7 @@ switch ($action) {
             redirect($returnurl);
         }
 
-        // Validate batchsize against plugin max
+        // Validate batchsize against plugin max.
         $maxbatchsize = get_config('topomojo', 'bulkdeploy_batchsize') ?: 5;
         if ($batchsize < 1 || $batchsize > $maxbatchsize) {
             $batchsize = $maxbatchsize;
@@ -131,8 +156,8 @@ switch ($action) {
 
         $auth = setup();
         $cancelled = 0;
-        $jobsToCancel = [];
-        $jobsToRefresh = [];
+        $jobstocancel = [];
+        $jobstorefresh = [];
         $repo = new job_repository();
 
         foreach ($userids as $uid) {
@@ -155,21 +180,21 @@ switch ($action) {
 
                 $repo->set_user_status($deployrow->id, 'cancelled', 'Manually cancelled', '');
                 $cancelled++;
-                $jobsToRefresh[$deployrow->jobid] = true;
+                $jobstorefresh[$deployrow->jobid] = true;
 
-                // Track jobs that need adhoc task cancellation
+                // Track jobs that need adhoc task cancellation.
                 if (!empty($deployrow->scheduledfor)) {
-                    $jobsToCancel[$deployrow->jobid] = true;
+                    $jobstocancel[$deployrow->jobid] = true;
                 }
             }
         }
 
-        // Cancel adhoc tasks for scheduled jobs
-        foreach (array_keys($jobsToCancel) as $jobid) {
-            // Find matching tasks
+        // Cancel adhoc tasks for scheduled jobs.
+        foreach (array_keys($jobstocancel) as $jobid) {
+            // Find matching tasks.
             $tasks = $DB->get_records('task_adhoc', [
                 'component' => 'mod_topomojo',
-                'classname' => '\\mod_topomojo\\task\\bulkdeploy_run'
+                'classname' => '\\mod_topomojo\\task\\bulkdeploy_run',
             ]);
             foreach ($tasks as $task) {
                 $data = json_decode($task->customdata);
@@ -179,7 +204,7 @@ switch ($action) {
             }
         }
 
-        foreach (array_keys($jobsToRefresh) as $jobid) {
+        foreach (array_keys($jobstorefresh) as $jobid) {
             if (!$repo->get_active_user_rows($jobid)) {
                 $repo->set_job_status($jobid, \mod_topomojo\local\bulkdeploy\job_status::CANCELLED);
                 $repo->set_job_cancelled_by($jobid, (int) $USER->id);
@@ -291,8 +316,11 @@ switch ($action) {
             }
         }
 
-        \core\notification::success(get_string('attempts_extended', 'topomojo',
-            (object) ['count' => $extended, 'minutes' => $extendinterval]));
+        \core\notification::success(get_string(
+            'attempts_extended',
+            'topomojo',
+            (object) ['count' => $extended, 'minutes' => $extendinterval]
+        ));
         if ($failed > 0) {
             \core\notification::warning(get_string('attempts_extend_failed', 'topomojo', $failed));
         }

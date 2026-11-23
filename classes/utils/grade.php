@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -47,7 +47,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade {
-
     /** @var \mod_topomojo\topomojo */
     public $topomojo;
 
@@ -83,13 +82,17 @@ class grade {
     public static function get_user_grade($topomojo, $userid = 0) {
 
         global $DB;
-        $recs = $DB->get_records_select('topomojo_grades', 'userid = ? AND topomojoid = ?',
-                [$userid, $topomojo->id], 'grade');
+        $recs = $DB->get_records_select(
+            'topomojo_grades',
+            'userid = ? AND topomojoid = ?',
+            [$userid, $topomojo->id],
+            'grade'
+        );
         $grades = [];
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
-        // User should only have one grade entry in the topomojo grades table for each activity
+        // User should only have one grade entry in the topomojo grades table for each activity.
         return $grades;
     }
 
@@ -111,12 +114,12 @@ class grade {
     public function process_attempt($attempt) {
         global $DB;
 
-        // Get this attempt grade
+        // Get this attempt grade.
         $this->calculate_attempt_grade($attempt);
 
         $userid = $attempt->userid;
 
-        // Get all attempt grades
+        // Get all attempt grades.
         $grades = [];
         $attemptsgrades = [];
 
@@ -150,7 +153,7 @@ class grade {
         $transaction = $DB->start_delegated_transaction();
 
         // Now that we have the final grades persist the grades to topomojo grades table.
-        // TODO we could possibly remove this table and just look at the grade_grades table
+        // TODO we could possibly remove this table and just look at the grade_grades table.
         $this->persist_grades($grades, $transaction);
 
         // Update grades to gradebookapi.
@@ -160,12 +163,11 @@ class grade {
             $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
         }
 
-        // Allow commit if we get here
+        // Allow commit if we get here.
         $transaction->allow_commit();
 
-        // If everything passes to here return true
+        // If everything passes to here return true.
         return true;
-
     }
 
     /**
@@ -190,7 +192,7 @@ class grade {
         }
 
         $quba = $attempt->get_quba();
-        $slots = $attempt->getSlots();
+        $slots = $attempt->getslots();
 
         // An attempt can legitimately carry no questions: the variant had none to import, or the
         // attempt was created outside the interactive path (bulk deploy). topomojo_attempt leaves
@@ -218,7 +220,6 @@ class grade {
 
         $scaledpoints = ($totalslotpoints / $totalpoints) * $this->topomojo->topomojo->grade;
 
-
         $attempt->score = $scaledpoints;
         $attempt->save();
 
@@ -233,8 +234,11 @@ class grade {
     public function get_grade_item_passing_grade() {
         global $DB;
 
-        $gradetopass = $DB->get_field('grade_items', 'gradepass',
-                            ['iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo']);
+        $gradetopass = $DB->get_field(
+            'grade_items',
+            'gradepass',
+            ['iteminstance' => $this->topomojo->topomojo->id, 'itemmodule' => 'topomojo']
+        );
 
         return $gradetopass;
     }
@@ -265,7 +269,7 @@ class grade {
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_ATTEMPTAVERAGE:
-                // Average the grades
+                // Average the grades.
                 $gradecount = count($grades);
                 $gradetotal = 0;
                 foreach ($grades as $grade) {
@@ -275,7 +279,7 @@ class grade {
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_HIGHESTATTEMPTGRADE:
-                // Find the highest grade
+                // Find the highest grade.
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
                     if ($grade > $highestgrade) {
@@ -303,10 +307,13 @@ class grade {
         global $DB;
 
         foreach ($grades as $userid => $grade) {
-
-            if ($usergrade = $DB->get_record('topomojo_grades',
-                                  ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id])) {
-                // We're updating
+            if (
+                $usergrade = $DB->get_record(
+                    'topomojo_grades',
+                    ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id]
+                )
+            ) {
+                // We're updating.
                 $usergrade->grade = $grade;
                 $usergrade->timemodified = time();
 
@@ -314,7 +321,7 @@ class grade {
                     $transaction->rollback(new \Exception('Can\'t update user grades'));
                 }
             } else {
-                // We're adding
+                // We're adding.
 
                 $usergrade = new \stdClass();
                 $usergrade->topomojoid = $this->topomojo->topomojo->id;
@@ -325,12 +332,10 @@ class grade {
                 if (!$DB->insert_record('topomojo_grades', $usergrade)) {
                     $transaction->rollback(new \Exception('Can\'t insert user grades'));
                 }
-
             }
         }
 
         return true;
-
     }
 
 
@@ -356,5 +361,4 @@ class grade {
         }
         return true;
     }
-
 }

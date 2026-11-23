@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Manage deployments page for a TopoMojo activity.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
@@ -28,7 +51,7 @@ $PAGE->requires->js_call_amd('mod_topomojo/manage', 'init', [$cmid, sesskey()]);
 $manrepo = new management_repository();
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id, $rolefilter);
 
-// Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task
+// Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task.
 
 $coursecontext = context_course::instance($course->id);
 $userroles = [];
@@ -42,8 +65,8 @@ foreach ($users as $u) {
     $u->roletext = $userroles[$u->userid];
 }
 
-// Sort users
-usort($users, function($a, $b) use ($sort, $dir) {
+// Sort users.
+usort($users, function ($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
     if ($sort === 'scheduledfor' || $sort === 'attemptendtime') {
@@ -60,38 +83,44 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('manage_pageheading', 'topomojo'));
 
 // Check for active deployments and compute progress summary.
-$has_active_deploys = false;
+$hasactivedeploys = false;
 foreach ($users as $u) {
     $isscheduled = !empty($u->scheduledfor) && (int) $u->scheduledfor > time();
     if (in_array($u->deploystatus, ['pending', 'launched']) && !$isscheduled) {
-        $has_active_deploys = true;
+        $hasactivedeploys = true;
         break;
     }
 }
 
-$summary_ready = 0;
-$summary_total = 0;
-if ($has_active_deploys) {
+$summaryready = 0;
+$summarytotal = 0;
+if ($hasactivedeploys) {
     $activejobs = $manrepo->get_active_jobs($topomojo->id);
     foreach ($activejobs as $job) {
         $progress = $manrepo->get_job_progress($job->id);
-        $summary_ready += (int) $progress->ready;
-        $summary_total += (int) $job->totalusers;
+        $summaryready += (int) $progress->ready;
+        $summarytotal += (int) $job->totalusers;
     }
 }
 
 $adhocurl = new moodle_url('/admin/tool/task/adhoctasks.php', [
     'classname' => '\\mod_topomojo\\task\\bulkdeploy_run',
 ]);
-$linkhtml = html_writer::link($adhocurl, get_string('manage_deploy_running_link', 'topomojo'),
-    ['target' => '_blank']);
-$progresshtml = html_writer::span((string) $summary_ready, 'deploy-summary-ready')
+$linkhtml = html_writer::link(
+    $adhocurl,
+    get_string('manage_deploy_running_link', 'topomojo'),
+    ['target' => '_blank']
+);
+$progresshtml = html_writer::span((string) $summaryready, 'deploy-summary-ready')
     . '/'
-    . html_writer::span((string) $summary_total, 'deploy-summary-total');
-$summaryhtml = get_string('manage_deploy_running_summary', 'topomojo',
-    (object) ['progress' => $progresshtml, 'link' => $linkhtml]);
+    . html_writer::span((string) $summarytotal, 'deploy-summary-total');
+$summaryhtml = get_string(
+    'manage_deploy_running_summary',
+    'topomojo',
+    (object) ['progress' => $progresshtml, 'link' => $linkhtml]
+);
 
-$notifstyle = $has_active_deploys ? '' : 'display:none;';
+$notifstyle = $hasactivedeploys ? '' : 'display:none;';
 echo html_writer::start_div('alert alert-info', [
     'id' => 'deploy-notification',
     'role' => 'alert',
@@ -122,14 +151,14 @@ echo html_writer::tag('button', get_string('select_all', 'topomojo'), [
     'id' => 'select-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('select_all_help', 'topomojo')
+    'title' => get_string('select_all_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deselect_all', 'topomojo'), [
     'id' => 'deselect-all-btn',
     'class' => 'btn btn-sm btn-secondary',
     'type' => 'button',
-    'title' => get_string('deselect_all_help', 'topomojo')
+    'title' => get_string('deselect_all_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('deploy_selected_now', 'topomojo'), [
@@ -137,7 +166,7 @@ echo html_writer::tag('button', get_string('deploy_selected_now', 'topomojo'), [
     'class' => 'btn btn-success',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('deploy_selected_help', 'topomojo')
+    'title' => get_string('deploy_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('schedule_selected', 'topomojo'), [
@@ -145,7 +174,7 @@ echo html_writer::tag('button', get_string('schedule_selected', 'topomojo'), [
     'class' => 'btn btn-primary',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('schedule_selected_help', 'topomojo')
+    'title' => get_string('schedule_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('cancel_selected', 'topomojo'), [
@@ -153,7 +182,7 @@ echo html_writer::tag('button', get_string('cancel_selected', 'topomojo'), [
     'class' => 'btn btn-warning',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('cancel_selected_help', 'topomojo')
+    'title' => get_string('cancel_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('end_selected', 'topomojo'), [
@@ -161,7 +190,7 @@ echo html_writer::tag('button', get_string('end_selected', 'topomojo'), [
     'class' => 'btn btn-danger',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('end_selected_help', 'topomojo')
+    'title' => get_string('end_selected_help', 'topomojo'),
 ]);
 echo ' ';
 echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
@@ -169,13 +198,13 @@ echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
     'class' => 'btn btn-info',
     'type' => 'button',
     'disabled' => 'disabled',
-    'title' => get_string('extend_selected_help', 'topomojo')
+    'title' => get_string('extend_selected_help', 'topomojo'),
 ]);
 echo html_writer::end_div();
 
-// Build sort links for column headers
+// Build sort links for column headers.
 $sorticon = $dir === 'ASC' ? '▲' : '▼';
-$sortlink = function($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
+$sortlink = function ($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
     $newdir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
     $url = new moodle_url($PAGE->url, ['sort' => $col, 'dir' => $newdir, 'rolefilter' => $rolefilter]);
     $icon = ($sort === $col) ? ' ' . $sorticon : '';
@@ -197,7 +226,7 @@ echo '<th>' . $sortlink('attemptendtime', get_string('end_time', 'topomojo')) . 
 echo '<th>Actions</th>';
 echo '</tr></thead><tbody>';
 
-$attemptids = array_filter(array_map(function($u) {
+$attemptids = array_filter(array_map(function ($u) {
     return $u->attemptid ?? null;
 }, $users));
 $attemptswithq = [];
@@ -238,7 +267,7 @@ foreach ($users as $u) {
 
 echo '</tbody></table>';
 
-// Hidden forms for modals
+// Hidden forms for modals.
 echo html_writer::start_tag('form', ['id' => 'deploy-form', 'method' => 'post', 'action' => new moodle_url('/mod/topomojo/manage_action.php'), 'style' => 'display:none;']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'deploy_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
@@ -265,7 +294,7 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'extendinter
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::end_tag('form');
 
-// Modal content templates
+// Modal content templates.
 echo html_writer::start_div('', ['id' => 'deploy-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('p', get_string('deploy_confirm_message', 'topomojo'));
 echo html_writer::tag('label', get_string('bulkdeploy_batchsize', 'topomojo') . ':', ['for' => 'deploy-batchsize-input', 'class' => 'd-block mb-2']);
@@ -277,7 +306,7 @@ echo html_writer::empty_tag('input', [
     'max' => $maxbatchsize,
     'class' => 'form-control',
     'style' => 'width: 80px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('bulkdeploy_batchsize_desc', 'topomojo', $maxbatchsize), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
@@ -293,7 +322,7 @@ echo html_writer::empty_tag('input', [
     'value' => $defaultschedule,
     'class' => 'form-control',
     'style' => 'width: 220px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', '', [
     'class' => 'form-text text-muted mb-3',
@@ -309,7 +338,7 @@ echo html_writer::empty_tag('input', [
     'max' => $maxbatchsize,
     'class' => 'form-control',
     'style' => 'width: 80px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('bulkdeploy_batchsize_desc', 'topomojo', $maxbatchsize), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();
@@ -325,7 +354,7 @@ echo html_writer::empty_tag('input', [
     'max' => topomojo_get_max_extend_interval(),
     'class' => 'form-control',
     'style' => 'width: 100px;',
-    'required' => 'required'
+    'required' => 'required',
 ]);
 echo html_writer::tag('small', get_string('extendintervalmax', 'topomojo', topomojo_get_max_extend_interval()), ['class' => 'form-text text-muted']);
 echo html_writer::end_div();

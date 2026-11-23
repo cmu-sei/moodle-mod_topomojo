@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -46,7 +46,6 @@ defined('MOODLE_INTERNAL') || die();
   * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
 class custom_view extends \core_question\local\bank\view {
-
     /** @var bool whether the topomojo this is used by has been attemptd. */
     protected $topomojohasattempts = false;
 
@@ -83,7 +82,7 @@ class custom_view extends \core_question\local\bank\view {
             'question_status_column',
             'version_number_column',
             'creator_name_column',
-            'modifier_name_column'
+            'modifier_name_column',
         ];
 
         if (question_get_display_preference('qbshowtext', 0, PARAM_BOOL, new \moodle_url(''))) {
@@ -177,7 +176,6 @@ class custom_view extends \core_question\local\bank\view {
         $params['sesskey'] = sesskey();
 
         return new \moodle_url('/mod/topomojo/edit.php', $params);
-
     }
 
     /**
@@ -195,8 +193,11 @@ class custom_view extends \core_question\local\bank\view {
         global $CFG;
         echo \html_writer::start_tag('div', ['class' => 'createnewquestion']);
         if ($canadd) {
-            $this->create_new_question_button($category->id, $this->editquestionurl->params(),
-                get_string('createnewquestion', 'question'));
+            $this->create_new_question_button(
+                $category->id,
+                $this->editquestionurl->params(),
+                get_string('createnewquestion', 'question')
+            );
         } else {
             print_string('nopermissionadd', 'question');
         }
@@ -285,5 +286,4 @@ class custom_view extends \core_question\local\bank\view {
     public function preview_question_url() {
         return topomojo_question_preview_url($this->topomojo, $question);
     }
-
 }

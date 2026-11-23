@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -20,11 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -115,18 +115,17 @@ class mod_topomojo_mod_form extends moodleform_mod
      * @param stdClass $cm The course module object related to the class.
      * @param stdClass $course The course object or details related to the class.
      */
-    public function __construct($current, $section, $cm, $course)
-    {
-        self::$reviewfields = array(
-            'attempt'          => ['theattempt', 'topomojo'],            // Field for attempt details
-            'correctness'      => ['whethercorrect', 'question'],        // Field for correctness of the answer
-            'marks'            => ['marks', 'topomojo'],                 // Field for marks obtained
-            'specificfeedback' => ['specificfeedback', 'question'],      // Specific feedback related to the question
-            'generalfeedback'  => ['generalfeedback', 'question'],       // General feedback for the question
-            'rightanswer'      => ['rightanswer', 'question'],           // The correct answer
-            'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'], // Overall feedback for the review
-            'manualcomment'    => ['manualcomment', 'topomojo']          // Manual comments by the reviewer
-        );
+    public function __construct($current, $section, $cm, $course) {
+        self::$reviewfields = [
+            'attempt'          => ['theattempt', 'topomojo'], // Field for attempt details.
+            'correctness'      => ['whethercorrect', 'question'], // Field for correctness of the answer.
+            'marks'            => ['marks', 'topomojo'], // Field for marks obtained.
+            'specificfeedback' => ['specificfeedback', 'question'], // Specific feedback related to the question.
+            'generalfeedback'  => ['generalfeedback', 'question'], // General feedback for the question.
+            'rightanswer'      => ['rightanswer', 'question'], // The correct answer.
+            'overallfeedback'  => ['reviewoverallfeedback', 'topomojo'], // Overall feedback for the review.
+            'manualcomment'    => ['manualcomment', 'topomojo'], // Manual comments by the reviewer.
+        ];
         parent::__construct($current, $section, $cm, $course);
     }
 
@@ -139,8 +138,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function definition()
-    {
+    public function definition() {
         global $COURSE, $CFG, $DB, $PAGE, $OUTPUT;
         $mform = $this->_form;
 
@@ -167,7 +165,6 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addRule('name', null, 'required', null, 'client');
 
         if ($topomojoconfig->autocomplete < 2) {
-
             // Pull list from topomojo.
             $this->workspaces = get_workspaces($this->auth);
             $labnames = [];
@@ -190,7 +187,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                 }
                 sort($audiences);
 
-                // Build labs array with audience tracking
+                // Build labs array with audience tracking.
                 foreach ($this->workspaces as $workspace) {
                     array_push($labnames, $workspace->name);
                     $labs[$workspace->id] = s($workspace->name);
@@ -201,7 +198,7 @@ class mod_topomojo_mod_form extends moodleform_mod
 
                         $tagsarray = $workspace->tags;
 
-                        // Check if $workspace->tags is a string
+                        // Check if $workspace->tags is a string.
                         if (str_contains($tagsarray, '-')) {
                             $tagsarray = explode(' ', $workspace->tags);
                             $tagsarray = str_replace('-', ' ', $tagsarray);
@@ -210,7 +207,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                             if (!is_array($tagsarray)) {
                                 $tagsarray = explode(', ', $tagsarray);
                             } else {
-                                $tagsarray = $workspace->tags;;
+                                $tagsarray = $workspace->tags;
                             }
                         }
 
@@ -224,31 +221,31 @@ class mod_topomojo_mod_form extends moodleform_mod
                         }
 
                         if (!empty($flattenedtagsarray) && $tagcreate) {
-                            // Split the string into an array by spaces
+                            // Split the string into an array by spaces.
                             $collectionid = get_config('topomojo', 'tagcollection');
-                            // Add tag to moodle if missing
+                            // Add tag to moodle if missing.
                             \core_tag_tag::create_if_missing($collectionid, $flattenedtagsarray, true);
                         }
                     }
                 }
             }
 
-            // Keep labs as a flat list
+            // Keep labs as a flat list.
             array_unshift($labs, "");
             asort($labs);
 
-            // Add audience filter dropdown
+            // Add audience filter dropdown.
             if (!empty($audiences)) {
                 $audienceoptions = ['' => get_string('all')];
                 foreach ($audiences as $aud) {
                     $audienceoptions[$aud] = $aud;
                 }
 
-                // Add audience filter select with data attribute
+                // Add audience filter select with data attribute.
                 $attributes = ['data-workspace-audiences' => json_encode($workspaceaudiences)];
                 $mform->addElement('select', 'audiencefilter', get_string('filterbyaudience', 'topomojo'), $audienceoptions, $attributes);
 
-                // Load AMD module for client-side filtering (without passing large data)
+                // Load AMD module for client-side filtering (without passing large data).
                 $PAGE->requires->js_call_amd('mod_topomojo/audience_filter', 'init');
             }
 
@@ -273,15 +270,15 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->setDefault('workspaceid', null);
         $mform->addHelpButton('workspaceid', 'workspace', 'topomojo');
 
-        // Build variant options: 0=Random, 1-N=specific variants
+        // Build variant options: 0=Random, 1-N=specific variants.
         $variantoptions = [
-            0 => get_string('variant_random', 'topomojo')
+            0 => get_string('variant_random', 'topomojo'),
         ];
 
-        // Dynamically determine max variants from TopoMojo workspace
-        $maxvariants = 10; // Default fallback
+        // Dynamically determine max variants from TopoMojo workspace.
+        $maxvariants = 10; // Default fallback.
         if (!empty($this->current->workspaceid)) {
-            // Existing activity - fetch actual variant count from TopoMojo
+            // Existing activity - fetch actual variant count from TopoMojo.
             try {
                 require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
                 $auth = setup();
@@ -294,7 +291,7 @@ class mod_topomojo_mod_form extends moodleform_mod
             }
         }
 
-        // Add numbered variants up to actual count
+        // Add numbered variants up to actual count.
         for ($i = 1; $i <= $maxvariants; $i++) {
             $variantoptions[$i] = get_string('variant_number', 'topomojo', $i);
         }
@@ -317,8 +314,8 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addHelpButton('contentlicense', 'contentlicense', 'topomojo');
 
         $mform->addElement('checkbox', 'showcontentlicense', get_string('showcontentlicense', 'topomojo'));
-        //$mform->setType('showcontentlicense', PARAM_BOOL);
-        //$mform->setDefault('showcontentlicense', 0);
+        // $mform->setType('showcontentlicense', PARAM_BOOL);
+        // $mform->setDefault('showcontentlicense', 0);
         $mform->addHelpButton('showcontentlicense', 'showcontentlicense', 'topomojo');
 
         $mform->addElement('advcheckbox', 'isfeatured', get_string('featuredlab', 'mod_topomojo'));
@@ -335,7 +332,7 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         $options = ['Hidden', 'Countdown', 'Timer'];
         $mform->addElement('select', 'clock', get_string('clock', 'topomojo'), $options);
-        $mform->setDefault('clock', 1); // Set default to the index of 'Countdown' in $options array
+        $mform->setDefault('clock', 1); // Set default to the index of 'Countdown' in $options array.
         $mform->addHelpButton('clock', 'clock', 'topomojo');
 
         // Grade settings.
@@ -389,17 +386,17 @@ class mod_topomojo_mod_form extends moodleform_mod
         );
         $mform->addHelpButton('timeclose', 'eventclose', 'topomojo');
 
-        // if the duration is set to 0 here it will be pulled from topomojo workspace during form processing
+        // If the duration is set to 0 here it will be pulled from topomojo workspace during form processing
         // type duration gets stored in the db in seconds. renderer and locallib convert to minutes, hours, days.
-        $allowed_units = [
-            MINSECS,    // Minutes (60 seconds)
-            HOURSECS,   // Hours (3600 seconds)
-            DAYSECS,    // Days (86400 seconds)
+        $allowedunits = [
+            MINSECS, // Minutes (60 seconds).
+            HOURSECS, // Hours (3600 seconds).
+            DAYSECS, // Days (86400 seconds)
             // SECONDS is implied and usually always available implicitly or explicitly if needed.
         ];
         $options = [
-            'units' => $allowed_units, // Pass the array of allowed units
-            'defaultunit' => HOURSECS   // Optional: set days as the default selection
+            'units' => $allowedunits, // Pass the array of allowed units.
+            'defaultunit' => HOURSECS, // Optional: set days as the default selection.
         ];
         $mform->addElement('duration', 'duration', get_string('duration', 'topomojo'), $options);
         $mform->setType('duration', PARAM_INT);
@@ -422,13 +419,13 @@ class mod_topomojo_mod_form extends moodleform_mod
         $mform->addHelpButton('importchallenge', 'importchallenge', 'topomojo');
         $mform->setDefault('importchallenge', '1');
 
-        // TODO this affects the submissions option
+        // TODO this affects the submissions option.
         $mform->addElement('checkbox', 'endlab', get_string('endlab', 'topomojo'));
         $mform->addHelpButton('endlab', 'endlab', 'topomojo');
 
         // Number of challenge submissions.
         // TODO this is affected by the endlab option
-        // if endlab is true, set submissions to 1 and disable
+        // if endlab is true, set submissions to 1 and disable.
         $submissionoptions = ['0' => get_string('unlimited')];
         for ($i = 1; $i <= $maxattempts; $i++) {
             $submissionoptions[$i] = $i;
@@ -538,11 +535,11 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         $group = [];
         foreach (self::$reviewfields as $field => $string) {
-            list($identifier, $component) = $string;
+            [$identifier, $component] = $string;
 
             $label = get_string($identifier, $component);
             if ($withhelp) {
-                // TODO this displays a placeholder not an acutal help message
+                // TODO this displays a placeholder not an acutal help message.
                 $label .= ' ' . $OUTPUT->help_icon($identifier, $component);
             }
 
@@ -584,8 +581,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    protected function preprocessing_review_settings(&$toform, $whenname, $when)
-    {
+    protected function preprocessing_review_settings(&$toform, $whenname, $when) {
         foreach (self::$reviewfields as $field => $notused) {
             $fieldname = 'review' . $field;
             if (array_key_exists($fieldname, $toform)) {
@@ -605,8 +601,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function data_preprocessing(&$toform)
-    {
+    public function data_preprocessing(&$toform) {
         global $DB;
 
         if (isset($toform['grade'])) {
@@ -637,10 +632,10 @@ class mod_topomojo_mod_form extends moodleform_mod
             foreach ($this->_feedbacks as $feedback) {
                 $draftid = file_get_submitted_draft_itemid('feedbacktext[' . $key . ']');
                 $toform['feedbacktext[' . $key . ']']['text'] = file_prepare_draft_area(
-                    $draftid,               // Draftid.
-                    $this->context->id,     // Context.
-                    'mod_topomojo',             // Component.
-                    'feedback',             // Filarea.
+                    $draftid, // Draftid.
+                    $this->context->id, // Context.
+                    'mod_topomojo', // Component.
+                    'feedback', // Filarea.
                     !empty($feedback->id) ? (int) $feedback->id : null, // Itemid.
                     null,
                     $feedback->feedbacktext // Text.
@@ -705,8 +700,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return array An array of validation errors, if any. An empty array if validation passes.
      */
-    public function validation($data, $files)
-    {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
         // Check open and close times are consistent.
@@ -752,8 +746,7 @@ class mod_topomojo_mod_form extends moodleform_mod
      *
      * @return void
      */
-    public function data_postprocessing($data)
-    {
+    public function data_postprocessing($data) {
         parent::data_postprocessing($data);
         if (!empty($data->completionunlocked)) {
             $autocompletion = !empty($data->completion) && $data->completion == COMPLETION_TRACKING_AUTOMATIC;
@@ -789,7 +782,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                     $data->introformat = FORMAT_MARKDOWN;
                 }
             }
-            // pull durationMinutes from topomojo workspace if set to 0 by the teacher
+            // Pull durationMinutes from topomojo workspace if set to 0 by the teacher.
             if ($data->duration == 0) {
                 $data->duration = $this->workspaces[$selectedworkspace]->durationMinutes;
             }
@@ -797,7 +790,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                 throw new moodle_exception('The "Extend Lab" option requires the "Timer" setting to be set to "Countdown".');
             }
 
-            // Check that variant is valid
+            // Check that variant is valid.
             $challenge = get_challenge($this->auth, $this->workspaces[$selectedworkspace]->id);
             if ($challenge) {
                 $variants = count($challenge->variants);
@@ -806,22 +799,21 @@ class mod_topomojo_mod_form extends moodleform_mod
             }
 
             if ($data->variant == 0) {
-                // Random variant mode - validate we have multiple variants
+                // Random variant mode - validate we have multiple variants.
                 if ($variants < 2) {
-                    // Auto-switch to variant 1 if workspace doesn't support random mode
+                    // Auto-switch to variant 1 if workspace doesn't support random mode.
                     debugging("Random mode requires 2+ variants - switching to variant 1", DEBUG_DEVELOPER);
                     $data->variant = 1;
                 }
             } else if ($data->variant < 0) {
                 throw new moodle_exception("variant cannot be negative");
             } else if (($variants == 0) && ($data->variant != 1)) {
-                // Auto-switch to variant 1 if workspace has no variants
+                // Auto-switch to variant 1 if workspace has no variants.
                 debugging("Workspace has no variants - switching to variant 1", DEBUG_DEVELOPER);
                 $data->variant = 1;
-            } else if ((($variants == 0) && ($data->variant == 1))) {
-                // No variants configured in the workspace challenge: variant 1 stands.
-            } else if ($data->variant > $variants) {
-                // Auto-switch to highest available variant
+            } else if ($variants > 0 && $data->variant > $variants) {
+                // Auto-switch to highest available variant. With no variants configured in the workspace
+                // challenge, variant 1 stands and nothing is switched.
                 debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);
                 $data->variant = $variants;
             }
@@ -830,14 +822,14 @@ class mod_topomojo_mod_form extends moodleform_mod
             $data->name = "Unknown Lab";
         }
 
-        // Handle tags
+        // Handle tags.
         $tagimport = get_config('topomojo', 'tagimport');
         $tagmap = get_config('topomojo', 'tagmap');
 
         if ($tagimport) {
             $newtags = $this->workspaces[$selectedworkspace]->tags;
             if ($newtags && $tagmap) {
-                // Process tags
+                // Process tags.
                 $words = explode(' ', $newtags);
                 $newtags = str_replace('-', ' ', $words);
                 $data->tags = array_merge($data->tags ?? [], $newtags);
@@ -848,8 +840,7 @@ class mod_topomojo_mod_form extends moodleform_mod
     /**
      * Adds all the standard elements to a form to edit the settings for an activity module.
      */
-    protected function standard_coursemodule_elements()
-    {
+    protected function standard_coursemodule_elements() {
         global $COURSE, $CFG, $DB, $OUTPUT;
         $mform = &$this->_form;
 
@@ -923,7 +914,7 @@ class mod_topomojo_mod_form extends moodleform_mod
             $options = [
                 NOGROUPS => get_string('groupsnone'),
                 SEPARATEGROUPS => get_string('groupsseparate'),
-                VISIBLEGROUPS  => get_string('groupsvisible')
+                VISIBLEGROUPS  => get_string('groupsvisible'),
             ];
             $mform->addElement('select', 'groupmode', get_string('groupmode', 'group'), $options, NOGROUPS);
             $mform->addHelpButton('groupmode', 'groupmode', 'group');
@@ -1001,7 +992,7 @@ class mod_topomojo_mod_form extends moodleform_mod
             \core_availability\frontend::include_all_javascript($COURSE, $cm);
         }
 
-        // Conditional activities: completion tracking section
+        // Conditional activities: completion tracking section.
         if (!isset($completion)) {
             $completion = new completion_info($COURSE);
         }
@@ -1037,13 +1028,13 @@ class mod_topomojo_mod_form extends moodleform_mod
 
         $mform = $this->_form;
 
-        // Only check if this is an existing activity (not new)
+        // Only check if this is an existing activity (not new).
         if (!empty($this->current->instance)) {
-            // Check if there are any attempts
+            // Check if there are any attempts.
             $hasattempts = topomojo_has_attempts($this->current->instance);
 
             if ($hasattempts) {
-                // Lock workspace and add explanation
+                // Lock workspace and add explanation.
                 $workspaceelement = $mform->getElement('workspaceid');
                 $mform->hardFreeze('workspaceid');
                 $workspaceelement->setLabel($workspaceelement->getLabel() .
@@ -1051,7 +1042,7 @@ class mod_topomojo_mod_form extends moodleform_mod
                     get_string('workspacelockedhasattempts', 'topomojo') .
                     '</small></div>');
 
-                // Lock variant and add explanation
+                // Lock variant and add explanation.
                 $variantelement = $mform->getElement('variant');
                 $mform->hardFreeze('variant');
                 $variantelement->setLabel($variantelement->getLabel() .

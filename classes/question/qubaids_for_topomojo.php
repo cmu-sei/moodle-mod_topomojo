@@ -31,7 +31,6 @@ require_once($CFG->dirroot . '/question/engine/datalib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qubaids_for_topomojo extends \qubaid_join {
-
     /**
      * Constructor.
      *

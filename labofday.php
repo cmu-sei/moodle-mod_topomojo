@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Shows the featured lab of the day.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_login();
 
@@ -12,7 +35,7 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('featuredlab', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
-// Breadcrumbs
+// Breadcrumbs.
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->navbar->add(get_string('featuredlab', 'mod_topomojo'), $PAGE->url);
 
@@ -26,12 +49,12 @@ $where  = "m.name = :modname
            AND cm.visibleoncoursepage = 1";
 $params = ['modname' => 'topomojo'];
 
-// Get the current lab of the day from config
+// Get the current lab of the day from config.
 $currentlabid = get_config('mod_topomojo', 'current_labofday_id');
 $record = null;
 
 if ($currentlabid) {
-    // Fetch the specific lab that's currently featured
+    // Fetch the specific lab that's currently featured.
     $sqlfeatured = "
       SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
              t.id AS instanceid, t.name AS activityname
@@ -45,7 +68,7 @@ if ($currentlabid) {
     $record = $DB->get_record_sql($sqlfeatured, $params);
 }
 
-// If no current lab is set or it's no longer available, find the first eligible activity from pool
+// If no current lab is set or it's no longer available, find the first eligible activity from pool.
 if (!$record) {
     $sqlfirst = "
       SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
@@ -56,10 +79,10 @@ if (!$record) {
       JOIN {topomojo} t  ON t.id = cm.instance
       WHERE {$where} AND t.isfeatured = 1
       ORDER BY c.fullname, t.name, cm.id";
-    $params = ['modname' => 'topomojo']; // Reset params
+    $params = ['modname' => 'topomojo']; // Reset params.
     $record = $DB->get_record_sql($sqlfirst, $params);
 
-    // Update config if we found a lab
+    // Update config if we found a lab.
     if ($record) {
         set_config('current_labofday_id', $record->instanceid, 'mod_topomojo');
     }
@@ -75,7 +98,10 @@ if ($record) {
             $tagnames[] = format_string($tag->get_display_name());
         }
         $tagnames = array_values(array_unique($tagnames));
-    } catch (Throwable $e) {}
+    } catch (Throwable $e) {
+        // The tags are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
+    }
 
     // Competencies.
     $compitems = [];
@@ -85,18 +111,27 @@ if ($record) {
             $comp = null;
             if (is_array($mc) && !empty($mc['competency']) && $mc['competency'] instanceof \core_competency\competency) {
                 $comp = $mc['competency'];
-            } elseif (is_array($mc) && !empty($mc['coursemodulecompetency']) &&
-                      $mc['coursemodulecompetency'] instanceof \core_competency\course_module_competency) {
+            } else if (
+                is_array($mc) && !empty($mc['coursemodulecompetency']) &&
+                      $mc['coursemodulecompetency'] instanceof \core_competency\course_module_competency
+            ) {
                 $compid = (int)$mc['coursemodulecompetency']->get('competencyid');
-                if ($compid) { $comp = \core_competency\competency::get_record(['id' => $compid]); }
+                if ($compid) {
+                    $comp = \core_competency\competency::get_record(['id' => $compid]);
+                }
             }
             if ($comp) {
                 $label = (string)$comp->get('shortname') ?: (string)$comp->get('idnumber');
-                if ($label === '') { $label = shorten_text(strip_tags((string)$comp->get('description')), 40); }
+                if ($label === '') {
+                    $label = shorten_text(strip_tags((string)$comp->get('description')), 40);
+                }
                 $compitems[] = (object)['name' => format_string($label)];
             }
         }
-    } catch (Throwable $e) {}
+    } catch (Throwable $e) {
+        // The competencies are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
+    }
 
     $card = [
         'name'            => format_string($record->activityname),

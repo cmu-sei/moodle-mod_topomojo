@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -54,8 +54,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\topomojo_attempt::class)]
-class topomojo_attempt_test extends \advanced_testcase {
-
+final class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Discard any fault-path debugging() output left by a test.
      *
@@ -71,7 +70,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt class constants.
      */
-    public function test_attempt_constants() {
+    public function test_attempt_constants(): void {
         $this->assertEquals('notstarted', topomojo_attempt::NOTSTARTED);
         $this->assertEquals('inprogress', topomojo_attempt::INPROGRESS);
         $this->assertEquals('abandoned', topomojo_attempt::ABANDONED);
@@ -81,7 +80,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt construction with no data (new attempt).
      */
-    public function test_attempt_construction_new() {
+    public function test_attempt_construction_new(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -94,7 +93,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test attempt construction with existing data.
      */
-    public function test_attempt_construction_existing() {
+    public function test_attempt_construction_existing(): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -114,10 +113,10 @@ class topomojo_attempt_test extends \advanced_testcase {
     }
 
     /**
-     * Test getState method.
+     * Test getstate method.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('state_provider')]
-    public function test_getstate($statevalue, $expected) {
+    public function test_getstate($statevalue, $expected): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -126,7 +125,7 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $attempt = new topomojo_attempt(null, $dbattempt);
 
-        $this->assertEquals($expected, $attempt->getState());
+        $this->assertEquals($expected, $attempt->getstate());
     }
 
     /**
@@ -134,7 +133,7 @@ class topomojo_attempt_test extends \advanced_testcase {
      *
      * @return array
      */
-    public static function state_provider() {
+    public static function state_provider(): array {
         return [
             'notstarted' => [topomojo_attempt::NOTSTARTED, 'notstarted'],
             'inprogress' => [topomojo_attempt::INPROGRESS, 'inprogress'],
@@ -144,9 +143,9 @@ class topomojo_attempt_test extends \advanced_testcase {
     }
 
     /**
-     * Test getState with invalid state throws exception.
+     * Test getstate with invalid state throws exception.
      */
-    public function test_getstate_invalid() {
+    public function test_getstate_invalid(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -157,13 +156,13 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('undefined status for attempt');
-        $attempt->getState();
+        $attempt->getstate();
     }
 
     /**
-     * Test setState method.
+     * Test setstate method.
      */
-    public function test_setstate() {
+    public function test_setstate(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -185,7 +184,7 @@ class topomojo_attempt_test extends \advanced_testcase {
         $attempt = new topomojo_attempt(null, $dbattempt);
 
         // Change state to inprogress.
-        $result = $attempt->setState('inprogress');
+        $result = $attempt->setstate('inprogress');
         $this->assertTrue($result);
         $this->assertEquals(topomojo_attempt::INPROGRESS, $attempt->state);
 
@@ -195,9 +194,9 @@ class topomojo_attempt_test extends \advanced_testcase {
     }
 
     /**
-     * Test setState with invalid state.
+     * Test setstate with invalid state.
      */
-    public function test_setstate_invalid() {
+    public function test_setstate_invalid(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -206,14 +205,14 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $attempt = new topomojo_attempt(null, $dbattempt);
 
-        $result = $attempt->setState('invalid_state');
+        $result = $attempt->setstate('invalid_state');
         $this->assertFalse($result);
     }
 
     /**
      * Test save method for new attempt.
      */
-    public function test_save_new_attempt() {
+    public function test_save_new_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -244,7 +243,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test save method for existing attempt.
      */
-    public function test_save_existing_attempt() {
+    public function test_save_existing_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -278,7 +277,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test close_attempt method.
      */
-    public function test_close_attempt() {
+    public function test_close_attempt(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -314,7 +313,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __get method.
      */
-    public function test_magic_get() {
+    public function test_magic_get(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -332,7 +331,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __get with undefined property.
      */
-    public function test_magic_get_undefined() {
+    public function test_magic_get_undefined(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -348,7 +347,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test magic __set method.
      */
-    public function test_magic_set() {
+    public function test_magic_set(): void {
         $this->resetAfterTest();
 
         $attempt = new topomojo_attempt(null);
@@ -361,9 +360,9 @@ class topomojo_attempt_test extends \advanced_testcase {
     }
 
     /**
-     * Test getSlots method.
+     * Test getslots method.
      */
-    public function test_getslots() {
+    public function test_getslots(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -372,16 +371,16 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $attempt = new topomojo_attempt(null, $dbattempt);
 
-        $slots = $attempt->getSlots();
+        $slots = $attempt->getslots();
 
         $this->assertIsArray($slots);
         $this->assertEquals(['1', '2', '3', '4'], $slots);
     }
 
     /**
-     * Test getSlots with empty layout.
+     * Test getslots with empty layout.
      */
-    public function test_getslots_empty() {
+    public function test_getslots_empty(): void {
         $this->resetAfterTest();
 
         $dbattempt = new \stdClass();
@@ -389,7 +388,7 @@ class topomojo_attempt_test extends \advanced_testcase {
 
         $attempt = new topomojo_attempt(null, $dbattempt);
 
-        $slots = $attempt->getSlots();
+        $slots = $attempt->getslots();
 
         // Not [''] - a layout-less attempt has no slots, and one empty-string slot would be handed
         // to the question engine as if it were a real question.
@@ -400,7 +399,7 @@ class topomojo_attempt_test extends \advanced_testcase {
     /**
      * Test get_question_number method.
      */
-    public function test_get_question_number() {
+    public function test_get_question_number(): void {
         $this->resetAfterTest();
 
         $attempt = new topomojo_attempt(null);

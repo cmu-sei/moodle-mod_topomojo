@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -63,7 +63,6 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\utils\grade::class)]
 final class grade_test extends \advanced_testcase {
-
     /**
      * Builds an activity plus an attempt that has no question usage, which is what both bulk deploy
      * and a variant with no importable questions leave behind.
@@ -290,14 +289,14 @@ final class grade_test extends \advanced_testcase {
     /**
      * An attempt with no question usage has to grade as zero rather than fatal.
      *
-     * Before the guard, getSlots() returned [''] for a null layout and grading dereferenced the
+     * Before the guard, getslots() returned [''] for a null layout and grading dereferenced the
      * null question usage: "Call to a member function get_question_max_mark() on null".
      */
     public function test_grading_an_attempt_with_no_question_usage_returns_zero(): void {
         [$object, $attempt] = $this->activity_with_questionless_attempt();
 
         $this->assertNull($attempt->get_quba(), 'A layout-less attempt should have no question usage.');
-        $this->assertSame([], $attempt->getSlots(), 'A layout-less attempt should report no slots.');
+        $this->assertSame([], $attempt->getslots(), 'A layout-less attempt should report no slots.');
 
         $grader = new grade($object);
         $this->assertSame(0, $grader->calculate_attempt_grade($attempt));

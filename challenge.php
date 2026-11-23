@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -20,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -52,7 +51,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 global $USER;
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
 
@@ -76,7 +75,7 @@ require_capability('mod/topomojo:view', $context);
 
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.a
-    // TODO make a topomojo challenge view
+    // TODO make a topomojo challenge view.
     topomojo_view($topomojo, $course, $cm, $context);
 }
 
@@ -93,7 +92,7 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
-// New topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
@@ -121,10 +120,9 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 }
 
 if ($activeattempt == true) {
-
-    // If active attempt found but event not fetched yet, fetch it
-    if (empty($object->event) && isset($object->openAttempt)) {
-        $attemptdata = $object->openAttempt->get_attempt();
+    // If active attempt found but event not fetched yet, fetch it.
+    if (empty($object->event) && isset($object->openattempt)) {
+        $attemptdata = $object->openattempt->get_attempt();
         if (!empty($attemptdata->eventid)) {
             try {
                 $object->event = get_event($object->userauth, $attemptdata->eventid);
@@ -135,7 +133,6 @@ if ($activeattempt == true) {
         }
     }
 } else if ($activeattempt == false) {
-
     // A finished question attempt can leave its lab running when End Lab is
     // disabled. The Challenge tab has no active QUBA to render in that state.
     // Send the user back to the activity page instead of showing content preview.
@@ -159,24 +156,23 @@ if ($activeattempt == true) {
         );
     }
 
-    // Allow instructors to see preview, redirect students
+    // Allow instructors to see preview, redirect students.
     if (!$isinstructor) {
         redirect($returnurl);
     }
 }
 
-// Handle start/stop form action
+// Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
-
-    // Check not started already
+    // Check not started already.
     if (!$object->event) {
-        // Check for conflicting gamespace from another activity sharing this workspace
+        // Check for conflicting gamespace from another activity sharing this workspace.
         $conflict = check_conflicting_gamespace($topomojo->id, $topomojo->workspaceid);
         if ($conflict) {
             $conflicturl = new moodle_url('/mod/topomojo/view.php', ['id' => $conflict->cmid]);
             $conflictdata = (object)[
                 'activityname' => $conflict->activityname,
-                'activityurl' => $conflicturl->out()
+                'activityurl' => $conflicturl->out(),
             ];
             echo $OUTPUT->header();
             echo $OUTPUT->notification(
@@ -188,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             exit;
         }
 
-        // TODO check for open attempt and check for status of its event
+        // TODO check for open attempt and check for status of its event.
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             $activeattempt = $object->init_attempt($ispreview);
@@ -201,8 +197,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             throw new moodle_exception("start_event failed");
         }
-        // Contact topomojo and pull the correct answers for this attempt
-        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
+        // Contact topomojo and pull the correct answers for this attempt.
+        $object->get_question_manager()->update_answers($object->openattempt->get_quba(), $object->openattempt->eventid);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
     if ($object->event) {
@@ -212,10 +208,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
                 throw new moodle_exception('no attempt to close');
             }
 
-            $object->openAttempt->save_question();
-            $object->openAttempt->close_attempt();
+            $object->openattempt->save_question();
+            $object->openattempt->close_attempt();
             $grader = new \mod_topomojo\utils\grade($object);
-            $grader->process_attempt($object->openAttempt);
+            $grader->process_attempt($object->openattempt);
 
             if ($object->topomojo->endlab) {
                 stop_event($object->userauth, $object->event->id);
@@ -224,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 
             $viewattempturl = new moodle_url(
                 '/mod/topomojo/viewattempt.php',
-                ['a' => $object->openAttempt->id, 'action' => 'view']
+                ['a' => $object->openattempt->id, 'action' => 'view']
             );
             redirect($viewattempturl);
         }
@@ -241,19 +237,19 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
     // graded and has its penalty applied, and the rest are just saved. Redirect
     // afterwards so a reload does not replay the submission and burn a try.
     if ($activeattempt && $object->event && $object->event->isActive) {
-        $object->openAttempt->save_question();
+        $object->openattempt->save_question();
         redirect($url);
     }
 }
 
 if ((!$object->event) && ($activeattempt)) {
-    //throw new moodle_exception(('attemptalreadyexists', 'topomojo');
+    // throw new moodle_exception(('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
-    $grader->process_attempt($object->openAttempt);
-    $object->openAttempt->close_attempt();
+    $grader->process_attempt($object->openattempt);
+    $object->openattempt->close_attempt();
 }
 
-// Show grade only if a grade is set
+// Show grade only if a grade is set.
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
@@ -283,165 +279,166 @@ switch ($action) {
                     throw new moodle_exception('no active attempt');
                 }
 
-                // Save answers without closing attempt
-                $object->openAttempt->save_question();
+                // Save answers without closing attempt.
+                $object->openattempt->save_question();
 
-                // Reload the page
+                // Reload the page.
                 redirect($url);
             }
         }
         break;
     default:
-        if ($object->openAttempt && $object->openAttempt->get_quba()) {
+        if ($object->openattempt && $object->openattempt->get_quba()) {
             if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
                     $userid = $USER->id;
-                    $max_attempts = $topomojo->attempts;
-                    $current_attempt_count = $DB->count_records('topomojo_attempts', [
+                    $maxattempts = $topomojo->attempts;
+                    $currentattemptcount = $DB->count_records('topomojo_attempts', [
                         'topomojoid' => $topomojo->id,
                         'userid' => $userid,
-                        'preview' => 0
+                        'preview' => 0,
                     ]);
 
                     $endlab = $object->topomojo->endlab;
 
-                    // Get the full challenge structure to access variant text
-                    $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
-                    $deployed_variant = $object->event->variant ?? null;
+                    // Get the full challenge structure to access variant text.
+                    $fullchallenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+                    $deployedvariant = $object->event->variant ?? null;
 
-                    $combined_text = $challenge->text ?? '';
+                    $combinedtext = $challenge->text ?? '';
 
-                    // Append variant-specific text if available
-                    if ($full_challenge && $deployed_variant !== null && isset($full_challenge->variants[$deployed_variant]->text)) {
-                        $variant_text = $full_challenge->variants[$deployed_variant]->text;
-                        if (!empty($variant_text)) {
-                            $combined_text .= "\n\n" . $variant_text;
-                        }
+                    // Append variant-specific text if available.
+                if ($fullchallenge && $deployedvariant !== null && isset($fullchallenge->variants[$deployedvariant]->text)) {
+                    $varianttext = $fullchallenge->variants[$deployedvariant]->text;
+                    if (!empty($varianttext)) {
+                        $combinedtext .= "\n\n" . $varianttext;
                     }
+                }
 
-                    if ($combined_text) {
-                        if ($current_attempt_count != $max_attempts && $max_attempts != 0 && $endlab == 0) {
-                            // Normal instruction when attempts are not maxed out, no end lab
-                            $renderer->render_challenge_instructions($combined_text);
-                        } elseif ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            // Conditions when attempts are maxed out
-                            if ($endlab == 1) {
-                                // Show end lab warning if the lab is ending
-                                $renderer->render_challenge_instructions_warning_endlab($combined_text);
-                            } else {
-                                // Show warning if max attempts are reached, lab not ending
-                                $renderer->render_challenge_instructions_warning($combined_text);
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_challenge_instructions_endlab($combined_text);
+                if ($combinedtext) {
+                    if ($currentattemptcount != $maxattempts && $maxattempts != 0 && $endlab == 0) {
+                        // Normal instruction when attempts are not maxed out, no end lab.
+                        $renderer->render_challenge_instructions($combinedtext);
+                    } else if ($currentattemptcount == $maxattempts && $maxattempts != 0) {
+                        // Conditions when attempts are maxed out.
+                        if ($endlab == 1) {
+                            // Show end lab warning if the lab is ending.
+                            $renderer->render_challenge_instructions_warning_endlab($combinedtext);
                         } else {
-                            // Default: show instructions without special formatting (unlimited attempts, no endlab)
-                            $renderer->render_challenge_instructions($combined_text);
+                            // Show warning if max attempts are reached, lab not ending.
+                            $renderer->render_challenge_instructions_warning($combinedtext);
                         }
+                    } else if ($currentattemptcount < $maxattempts && $maxattempts != 0 && $endlab == 1) {
+                        $renderer->render_challenge_instructions_endlab($combinedtext);
+                    } else if ($maxattempts == 0 && $endlab == 1) {
+                        $renderer->render_challenge_instructions_endlab($combinedtext);
                     } else {
-                        // No challenge text; handle general warnings based on attempts and endlab
-                        if ($current_attempt_count == $max_attempts && $max_attempts != 0) {
-                            if ($endlab == 1) {
-                                $renderer->render_warning_endlab();
-                            } else {
-                                $renderer->render_warning();
-                            }
-                        } elseif ($current_attempt_count < $max_attempts && $max_attempts != 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        } elseif ($max_attempts == 0 && $endlab == 1) {
-                            $renderer->render_endlab();
-                        }
+                        // Default: show instructions without special formatting (unlimited attempts, no endlab).
+                        $renderer->render_challenge_instructions($combinedtext);
                     }
+                } else {
+                    // No challenge text; handle general warnings based on attempts and endlab.
+                    if ($currentattemptcount == $maxattempts && $maxattempts != 0) {
+                        if ($endlab == 1) {
+                            $renderer->render_warning_endlab();
+                        } else {
+                            $renderer->render_warning();
+                        }
+                    } else if ($currentattemptcount < $maxattempts && $maxattempts != 0 && $endlab == 1) {
+                        $renderer->render_endlab();
+                    } else if ($maxattempts == 0 && $endlab == 1) {
+                        $renderer->render_endlab();
+                    }
+                }
             }
 
-            // Render quiz if questions exist
+            // Render quiz if questions exist.
             if (!empty($object->topomojo->questionorder)) {
-                $renderer->render_quiz($object->openAttempt, $pageurl, $id);
-            } elseif (isset($challenge) && empty($challenge->text)) {
-                // No challenge text and no questions - show informational message
+                $renderer->render_quiz($object->openattempt, $pageurl, $id);
+            } else if (isset($challenge) && empty($challenge->text)) {
+                // No challenge text and no questions - show informational message.
                 echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), \core\output\notification::NOTIFY_WARNING);
             }
         } else {
-            // No active attempt - only show preview for instructors
+            // No active attempt - only show preview for instructors.
             if (has_capability('mod/topomojo:manage', $context)) {
-                // Instructor preview mode
+                // Instructor preview mode.
                 echo $OUTPUT->notification(
                     'Challenge Preview - Students will see this content after launching the lab',
                     \core\output\notification::NOTIFY_INFO
                 );
 
                 try {
-                    $preview_text = '';
-                    $has_content = false;
+                    $previewtext = '';
+                    $hascontent = false;
 
-                    // Get challenge structure
-                    $full_challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
+                    // Get challenge structure.
+                    $fullchallenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
-                    if ($full_challenge) {
-                        // Show challenge markdown (shared across all variants)
-                        if (!empty($full_challenge->text)) {
+                    if ($fullchallenge) {
+                        // Show challenge markdown (shared across all variants).
+                        if (!empty($fullchallenge->text)) {
                             echo '<div class="card mb-3">';
                             echo '<div class="card-header bg-primary text-white"><strong>Challenge Markdown</strong></div>';
                             echo '<div class="card-body">';
-                            $renderer->render_challenge_instructions($full_challenge->text, false);
+                            $renderer->render_challenge_instructions($fullchallenge->text, false);
                             echo '</div></div>';
-                            $has_content = true;
+                            $hascontent = true;
                         }
 
-                        // Show variant-specific texts
-                        if (isset($full_challenge->variants)) {
+                        // Show variant-specific texts.
+                        if (isset($fullchallenge->variants)) {
+                            if (count($fullchallenge->variants) > 0) {
+                                $israndom = ($object->topomojo->variant == 0);
+                                $varianthastext = false;
 
-                            if (count($full_challenge->variants) > 0) {
-                                $is_random = ($object->topomojo->variant == 0);
-                                $variant_has_text = false;
-
-                                // Check if any variant has text before showing the card
-                                if ($is_random) {
-                                    foreach ($full_challenge->variants as $variant) {
+                                // Check if any variant has text before showing the card.
+                                if ($israndom) {
+                                    foreach ($fullchallenge->variants as $variant) {
                                         if (!empty($variant->text)) {
-                                            $variant_has_text = true;
+                                            $varianthastext = true;
                                             break;
                                         }
                                     }
                                 } else {
-                                    $variant_index = $object->topomojo->variant - 1;
-                                    if (isset($full_challenge->variants[$variant_index]) && !empty($full_challenge->variants[$variant_index]->text)) {
-                                        $variant_has_text = true;
+                                    $variantindex = $object->topomojo->variant - 1;
+                                    if (isset($fullchallenge->variants[$variantindex]) && !empty($fullchallenge->variants[$variantindex]->text)) {
+                                        $varianthastext = true;
                                     }
                                 }
 
-                                // Only show card if there's variant text to display
-                                if ($variant_has_text) {
+                                // Only show card if there's variant text to display.
+                                if ($varianthastext) {
                                     echo '<div class="card mb-3">';
-                                    if ($is_random) {
-                                        echo '<div class="card-header topomojo-variant-card__header"><strong>Variant-Specific Text</strong> (students see one variant based on random assignment)</div>';
+                                    if ($israndom) {
+                                        echo '<div class="card-header topomojo-variant-card__header">'
+                                            . '<strong>Variant-Specific Text</strong>'
+                                            . ' (students see one variant based on random assignment)</div>';
                                     } else {
                                         echo '<div class="card-header topomojo-variant-card__header"><strong>Variant-Specific Text</strong></div>';
                                     }
                                     echo '<div class="card-body">';
 
-                                    if ($is_random) {
-                                        // Show all variants for random mode
-                                        foreach ($full_challenge->variants as $idx => $variant) {
+                                    if ($israndom) {
+                                        // Show all variants for random mode.
+                                        foreach ($fullchallenge->variants as $idx => $variant) {
                                             if (!empty($variant->text)) {
-                                                $variant_num = $idx + 1;
+                                                $variantnum = $idx + 1;
                                                 echo '<div class="border-bottom pb-3 mb-3">';
-                                                echo '<h5 class="text-primary">Variant ' . $variant_num . '</h5>';
+                                                echo '<h5 class="text-primary">Variant ' . $variantnum . '</h5>';
                                                 $renderer->render_challenge_instructions($variant->text, false);
                                                 echo '</div>';
-                                                $has_content = true;
+                                                $hascontent = true;
                                             }
                                         }
                                     } else {
-                                        // Show only the configured variant
-                                        $variant_index = $object->topomojo->variant - 1; // Convert to 0-based
-                                        $configured_variant = $object->topomojo->variant;
-                                        if (isset($full_challenge->variants[$variant_index]) && !empty($full_challenge->variants[$variant_index]->text)) {
-                                            echo '<h5 class="text-primary">Variant ' . $configured_variant . '</h5>';
-                                            $renderer->render_challenge_instructions($full_challenge->variants[$variant_index]->text, false);
-                                            $has_content = true;
+                                        // Show only the configured variant.
+                                        $variantindex = $object->topomojo->variant - 1; // Convert to 0-based.
+                                        $configuredvariant = $object->topomojo->variant;
+                                        if (isset($fullchallenge->variants[$variantindex]) && !empty($fullchallenge->variants[$variantindex]->text)) {
+                                            echo '<h5 class="text-primary">Variant ' . $configuredvariant . '</h5>';
+                                            $renderer->render_challenge_instructions($fullchallenge->variants[$variantindex]->text, false);
+                                            $hascontent = true;
                                         }
                                     }
 
@@ -451,14 +448,14 @@ switch ($action) {
                         }
                     }
 
-                    if (!$has_content) {
+                    if (!$hascontent) {
                         echo $OUTPUT->notification(
                             'No challenge or variant markdown configured in TopoMojo.',
                             \core\output\notification::NOTIFY_INFO
                         );
                     }
 
-                    // Add note about managing questions
+                    // Add note about managing questions.
                     echo $OUTPUT->notification(
                         'To manage graded questions for this activity, visit the Questions page.',
                         \core\output\notification::NOTIFY_INFO
@@ -472,6 +469,6 @@ switch ($action) {
             }
         }
 }
-// Attempts may differ from events pulled from history on server
+// Attempts may differ from events pulled from history on server.
 
 echo $renderer->footer();

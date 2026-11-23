@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
 namespace mod_topomojo\task;
 
 defined('MOODLE_INTERNAL') || die();
@@ -13,7 +28,6 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cleanup_gamespaces extends \core\task\scheduled_task {
-
     /**
      * Get task name
      */
@@ -35,8 +49,8 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
 
         $cleaned = 0;
 
-        // Find finished/abandoned attempts with active gamespaces
-        list($insql, $inparams) = $DB->get_in_or_equal(
+        // Find finished/abandoned attempts with active gamespaces.
+        [$insql, $inparams] = $DB->get_in_or_equal(
             [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED],
             SQL_PARAMS_NAMED,
             'state'
@@ -49,7 +63,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                 AND state $insql
                 AND timefinish > 0
                 AND timefinish < :cutoff",
-            array_merge($inparams, ['cutoff' => time() - 300]) // Finished > 5 minutes ago
+            array_merge($inparams, ['cutoff' => time() - 300]) // Finished > 5 minutes ago.
         );
 
         foreach ($attempts as $attempt) {
@@ -65,7 +79,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
             }
         }
 
-        // Find deployments marked as expired but not cleaned up
+        // Find deployments marked as expired but not cleaned up.
         $deployments = $DB->get_records_select(
             'topomojo_bulkdeploy_user',
             "status = 'expired' AND gamespaceid IS NOT NULL",
@@ -83,7 +97,9 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                     $cleaned++;
                 }
             } catch (\Exception $e) {
-                // Already cleaned up or doesn't exist - ignore
+                // A gamespace TopoMojo no longer knows about fails the lookup or stop, and a failure from a gamespace that
+                // is still running is retried on the next run because the row stays expired.
+                mtrace("Failed to clean up expired deployment gamespace {$deploy->gamespaceid}: " . $e->getMessage());
             }
         }
 

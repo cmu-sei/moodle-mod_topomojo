@@ -1,13 +1,36 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Data access for the manage deployments page.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * Data access for manage deployments page.
+ * @package mod_topomojo
  */
 class management_repository {
-
     /**
      * Get all enrolled users with their current deployment/attempt state.
      *
@@ -27,8 +50,8 @@ class management_repository {
         $enrolled = get_enrolled_users($coursecontext, '', 0, 'u.*', null, 0, 0, true);
 
         if ($rolefilter && !in_array(0, $rolefilter)) {
-            // Filter by role assignments (skip if "All roles" is selected)
-            $enrolled = array_filter($enrolled, function($u) use ($rolefilter, $coursecontext) {
+            // Filter by role assignments (skip if "All roles" is selected).
+            $enrolled = array_filter($enrolled, function ($u) use ($rolefilter, $coursecontext) {
                 $userroles = get_user_roles($coursecontext, $u->id);
                 foreach ($userroles as $role) {
                     if (in_array($role->roleid, $rolefilter)) {
@@ -39,7 +62,7 @@ class management_repository {
             });
         }
 
-        // Add users with attempts who aren't enrolled (e.g., instructor previews)
+        // Add users with attempts who aren't enrolled (e.g., instructor previews).
         $attempts = $DB->get_records('topomojo_attempts', ['topomojoid' => $topomojoid], 'id DESC', 'id, userid, state, eventid');
         foreach ($attempts as $att) {
             if (!isset($enrolled[$att->userid])) {
@@ -239,17 +262,25 @@ class management_repository {
                 . 'data-bs-html="false" tabindex="0" data-bs-trigger="focus" aria-label="Help">'
                 . '<i class="icon fa fa-circle-question text-info fa-fw" title="Error details" role="img" '
                 . 'aria-label="Error details"></i></a>';
-        } else if (in_array($statuslabel, ['In Progress', 'Finished'], true)
-            && (!empty($row->attempttimestart) || !empty($row->attemptendtime))) {
+        } else if (
+            in_array($statuslabel, ['In Progress', 'Finished'], true)
+            && (!empty($row->attempttimestart) || !empty($row->attemptendtime))
+        ) {
             $datefmt = get_string('strftimedatetime', 'langconfig');
             $parts = [];
             if (!empty($row->attempttimestart)) {
-                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_started_at', 'topomojo',
-                    userdate($row->attempttimestart, $datefmt))) . '</div>';
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string(
+                    'status_started_at',
+                    'topomojo',
+                    userdate($row->attempttimestart, $datefmt)
+                )) . '</div>';
             }
             if (!empty($row->attemptendtime)) {
-                $parts[] = '<div style="white-space: nowrap">' . s(get_string('status_ended_at', 'topomojo',
-                    userdate($row->attemptendtime, $datefmt))) . '</div>';
+                $parts[] = '<div style="white-space: nowrap">' . s(get_string(
+                    'status_ended_at',
+                    'topomojo',
+                    userdate($row->attemptendtime, $datefmt)
+                )) . '</div>';
             }
             $content = implode('', $parts);
             $tooltiphtml = s($statuslabel) . ' '
@@ -273,11 +304,14 @@ class management_repository {
 
         $actionhtml = '─';
         if (!empty($attemptid) && $hasquestions) {
-            // All attempt states link to viewattempt.php for instructor review
+            // All attempt states link to viewattempt.php for instructor review.
             if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::INPROGRESS, \mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
                 $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
-                $actionhtml = \html_writer::link($url, get_string('viewattempt', 'mod_topomojo'),
-                    ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']);
+                $actionhtml = \html_writer::link(
+                    $url,
+                    get_string('viewattempt', 'mod_topomojo'),
+                    ['class' => 'btn btn-sm btn-outline-primary', 'target' => '_blank']
+                );
             }
         }
 

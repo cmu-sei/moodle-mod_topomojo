@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Launches a batch of bulk deployment gamespaces and waits for them to become ready.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
@@ -8,9 +31,9 @@ defined('MOODLE_INTERNAL') || die();
  * then poll until all are ready (or the wait ceiling fires).
  *
  * Stateless; one instance can be reused for multiple batches.
+ * @package mod_topomojo
  */
 class launcher {
-
     /**
      * Question managers built for attempt creation, keyed by topomojo id. Building one constructs a
      * whole \mod_topomojo\topomojo (which touches $PAGE and loads every question), so it is done
@@ -31,17 +54,38 @@ class launcher {
      */
     private array $ensuredvariants = [];
 
+    /**
+     * Constructor.
+     *
+     * @param job_repository $repo Job data access.
+     * @param curl_multi_client $client HTTP client.
+     * @param string $apibaseurl TopoMojo API base URL.
+     * @param array $authheaders Headers that authenticate each request.
+     * @param int $requesttimeout Per-request cURL timeout, in seconds.
+     * @param int $pollintervalsec Sleep between poll cycles, in seconds.
+     * @param int $waitceilingsec Longest wait per batch, in seconds.
+     */
     public function __construct(
+        /** @var job_repository Job data access. */
         private job_repository $repo,
+        /** @var curl_multi_client HTTP client. */
         private curl_multi_client $client,
+        /** @var string TopoMojo API base URL. */
         private string $apibaseurl,
+        /** @var array Headers that authenticate each request. */
         private array $authheaders,
-        private int $requesttimeout,   // per-request cURL timeout (seconds)
-        private int $pollintervalsec,   // sleep between poll cycles
-        private int $waitceilingsec     // max wait time per batch, in seconds
-    ) {}
+        /** @var int Per-request cURL timeout, in seconds. */
+        private int $requesttimeout,
+        /** @var int Sleep between poll cycles, in seconds. */
+        private int $pollintervalsec,
+        /** @var int Longest wait per batch, in seconds. */
+        private int $waitceilingsec
+    ) {
+    }
 
     /**
+     * Launches a batch of users' gamespaces and waits for them to become ready.
+     *
      * @param int $jobid
      * @param array $batch each entry: ['rowid' => int, 'user' => stdClass]
      * @param \stdClass $topomojo activity record
@@ -103,6 +147,16 @@ class launcher {
         return $launched;
     }
 
+    /**
+     * Polls the launched gamespaces until each is ready, or the wait ceiling passes.
+     *
+     * Rows are marked ready, or failed on timeout, and an attempt is created for each ready user.
+     *
+     * @param array $launched Each entry: ['rowid' => int, 'gamespaceid' => string].
+     * @param \stdClass $topomojo The activity record.
+     * @param array $batch Each entry: ['rowid' => int, 'user' => stdClass].
+     * @return void
+     */
     private function wait_phase(array $launched, \stdClass $topomojo, array $batch): void {
         global $DB;
         if (!$launched) {
@@ -160,13 +214,14 @@ class launcher {
                 $laststatus[$entry['gamespaceid']] = $this->extract_state($resp->body);
                 if ($resp->httpcode === 200) {
                     $decoded = json_decode($resp->body);
-                    if (is_object($decoded)
+                    if (
+                        is_object($decoded)
                         && !empty($decoded->isActive)
                         && !empty($decoded->vms)
                         && is_array($decoded->vms)
                     ) {
                         $this->repo->set_user_status($entry['rowid'], user_status::READY);
-                        // Create attempt record for the user
+                        // Create attempt record for the user.
                         $userid = $useridmap[$entry['rowid']] ?? null;
                         if ($userid) {
                             $this->create_attempt_for_user(
@@ -226,19 +281,42 @@ class launcher {
         return $kept;
     }
 
+    /**
+     * Gets the current time. Tests override this.
+     *
+     * @return int Unix timestamp.
+     */
     protected function now(): int {
         return time();
     }
 
+    /**
+     * Sleeps. Tests override this.
+     *
+     * @param int $seconds How long to sleep.
+     * @return void
+     */
     protected function sleep_seconds(int $seconds): void {
         sleep($seconds);
     }
 
+    /**
+     * Shortens a response body to fit an error message.
+     *
+     * @param string $body The response body.
+     * @return string The body, cut to 200 bytes with an ellipsis if longer.
+     */
     private function trim_for_message(string $body): string {
         $body = trim($body);
         return strlen($body) > 200 ? substr($body, 0, 197) . '...' : $body;
     }
 
+    /**
+     * Summarises a gamespace response as "active|inactive,vms-ready|no-vms", or "no-json".
+     *
+     * @param string $body The response body.
+     * @return string The summary.
+     */
     private function extract_state(string $body): string {
         $decoded = json_decode($body);
         if (!is_object($decoded)) {
@@ -264,15 +342,15 @@ class launcher {
     ): void {
         global $DB;
 
-        // Check if user already has an open attempt for this activity
+        // Check if user already has an open attempt for this activity.
         $existing = $DB->get_record('topomojo_attempts', [
             'topomojoid' => $topomojo->id,
             'userid' => $userid,
-            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS
+            'state' => \mod_topomojo\topomojo_attempt::INPROGRESS,
         ]);
 
         if ($existing) {
-            // User already has an open attempt, don't create duplicate
+            // User already has an open attempt, don't create duplicate.
             return;
         }
 
@@ -363,7 +441,7 @@ class launcher {
             return new \mod_topomojo\topomojo_attempt(
                 $questionmanager,
                 null,
-                $object->getContext(),
+                $object->getcontext(),
                 $variant
             );
         } catch (\Throwable $e) {

@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -72,7 +72,6 @@ require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
 #[\PHPUnit\Framework\Attributes\CoversClass(\backup_topomojo_activity_structure_step::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\restore_topomojo_activity_structure_step::class)]
 final class backup_restore_test extends \restore_date_testcase {
-
     /**
      * Columns of the topomojo table that are deliberately not carried through backup.
      *
@@ -179,10 +178,19 @@ final class backup_restore_test extends \restore_date_testcase {
         // data step rather than proving the setting was off.
         set_config('backup_general_users', 1, 'backup');
 
-        $bc = new \backup_controller(\backup::TYPE_1COURSE, $course->id, \backup::FORMAT_MOODLE,
-            \backup::INTERACTIVE_NO, \backup::MODE_GENERAL, $USER->id);
-        $this->assertEquals(1, $bc->get_plan()->get_setting('users')->get_value(),
-            'Precondition: the backup was asked to include user data.');
+        $bc = new \backup_controller(
+            \backup::TYPE_1COURSE,
+            $course->id,
+            \backup::FORMAT_MOODLE,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            $USER->id
+        );
+        $this->assertEquals(
+            1,
+            $bc->get_plan()->get_setting('users')->get_value(),
+            'Precondition: the backup was asked to include user data.'
+        );
         $bc->execute_plan();
         $file = $bc->get_results()['backup_destination'];
         $path = $CFG->dataroot . '/temp/backup/' . $backupid;
@@ -203,9 +211,18 @@ final class backup_restore_test extends \restore_date_testcase {
         global $USER;
 
         $newcourseid = \restore_dbops::create_new_course(
-            $course->fullname, $course->shortname . '_restored', $course->category);
-        $rc = new \restore_controller($backupid, $newcourseid, \backup::INTERACTIVE_NO,
-            \backup::MODE_GENERAL, $USER->id, \backup::TARGET_NEW_COURSE);
+            $course->fullname,
+            $course->shortname . '_restored',
+            $course->category
+        );
+        $rc = new \restore_controller(
+            $backupid,
+            $newcourseid,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            $USER->id,
+            \backup::TARGET_NEW_COURSE
+        );
         $rc->get_plan()->get_setting('course_startdate')->set_value($this->restorestartdate);
         $this->assertTrue($rc->execute_precheck());
         $rc->execute_plan();
@@ -284,10 +301,13 @@ final class backup_restore_test extends \restore_date_testcase {
         $expected = array_values(array_diff($this->install_xml_columns(), self::NOT_BACKED_UP));
         $missing = array_diff($expected, $this->activity_child_names($path));
 
-        $this->assertSame([], array_values($missing),
+        $this->assertSame(
+            [],
+            array_values($missing),
             'Columns in db/install.xml are absent from the backup structure in '
             . 'backup/moodle2/backup_topomojo_stepslib.php. Either add them to the backup element '
-            . 'or add them to backup_restore_test::NOT_BACKED_UP with a reason.');
+            . 'or add them to backup_restore_test::NOT_BACKED_UP with a reason.'
+        );
     }
 
     /**
@@ -302,11 +322,11 @@ final class backup_restore_test extends \restore_date_testcase {
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 
-        // timeopen and timeclose are the only settings process_topomojo() rewrites, shifting them by
+        // Timeopen and timeclose are the only settings process_topomojo() rewrites, shifting them by
         // the difference between the old and new course start dates.
         $this->assertFieldsRolledForward($original, $restored, ['timeopen', 'timeclose']);
 
-        // questionorder is rebuilt from the restored question links, so it is covered by
+        // Questionorder is rebuilt from the restored question links, so it is covered by
         // test_question_links_survive_round_trip() rather than compared here.
         $carried = array_diff(
             array_keys($this->distinctive_settings()),
@@ -358,13 +378,17 @@ final class backup_restore_test extends \restore_date_testcase {
         $qbank = $generator->get_plugin_generator('mod_qbank')->create_instance(['course' => $course->id]);
         $questiongenerator = $generator->get_plugin_generator('core_question');
         $category = $questiongenerator->create_question_category(
-            ['contextid' => \context_module::instance($qbank->cmid)->id]);
+            ['contextid' => \context_module::instance($qbank->cmid)->id]
+        );
 
         $names = ['First question', 'Second question', 'Third question'];
         $questionmanager = $this->make_questionmanager($topomojo, $cm);
         foreach ($names as $name) {
-            $question = $questiongenerator->create_question('shortanswer', null,
-                ['category' => $category->id, 'name' => $name]);
+            $question = $questiongenerator->create_question(
+                'shortanswer',
+                null,
+                ['category' => $category->id, 'name' => $name]
+            );
             $this->assertTrue($questionmanager->add_question($question->id));
         }
         // add_question() no longer traces inserts; this only clears fault-path debugging(), which is
@@ -381,10 +405,13 @@ final class backup_restore_test extends \restore_date_testcase {
         // The links are recreated against the restored copies of the questions, in the same order.
         $this->assertSame($names, $this->question_names_in_order($restored->id));
 
-        // questionorder is rebuilt from the new topomojo_questions ids, so it must not still be
+        // Questionorder is rebuilt from the new topomojo_questions ids, so it must not still be
         // pointing at the source course's ids.
-        $restoredlinkids = array_keys($DB->get_records('topomojo_questions',
-            ['topomojoid' => $restored->id], 'id'));
+        $restoredlinkids = array_keys($DB->get_records(
+            'topomojo_questions',
+            ['topomojoid' => $restored->id],
+            'id'
+        ));
         $this->assertSame($restoredlinkids, array_map('intval', explode(',', $restored->questionorder)));
 
         // Each link has a question_reference in the restored activity's own context.
@@ -430,8 +457,14 @@ final class backup_restore_test extends \restore_date_testcase {
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
         $restoredcm = get_coursemodule_from_instance('topomojo', $restored->id, $newcourseid, false, MUST_EXIST);
 
-        $file = $fs->get_file(\context_module::instance($restoredcm->id)->id, 'mod_topomojo',
-            'intro', 0, '/', 'diagram.txt');
+        $file = $fs->get_file(
+            \context_module::instance($restoredcm->id)->id,
+            'mod_topomojo',
+            'intro',
+            0,
+            '/',
+            'diagram.txt'
+        );
         $this->assertNotFalse($file, 'The intro file was not restored.');
         $this->assertSame('network diagram', $file->get_content());
     }
@@ -494,10 +527,15 @@ final class backup_restore_test extends \restore_date_testcase {
         // Nothing beyond the settings and the question links: no per-user collection at all. Note
         // that <attempts> and <grade> are settings, which is why this checks element names rather
         // than searching the XML for those words.
-        $allowed = array_merge(array_keys($this->distinctive_settings()),
-            ['questionorder', 'question_instances']);
-        $this->assertSame([], array_values(array_diff($this->activity_child_names($path), $allowed)),
-            'The activity XML carries an element that is neither a setting nor a question link.');
+        $allowed = array_merge(
+            array_keys($this->distinctive_settings()),
+            ['questionorder', 'question_instances']
+        );
+        $this->assertSame(
+            [],
+            array_values(array_diff($this->activity_child_names($path), $allowed)),
+            'The activity XML carries an element that is neither a setting nor a question link.'
+        );
 
         // And the values themselves are absent, wherever they might have been nested.
         $activityxml = file_get_contents(glob($path . '/activities/topomojo_*/topomojo.xml')[0]);

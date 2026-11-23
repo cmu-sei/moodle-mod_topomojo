@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -48,7 +48,6 @@ defined('MOODLE_INTERNAL') || die();
  */
 class topomojo
 {
-
     /**
      * Asks getall_attempts() for every user's attempts rather than one user's.
      *
@@ -70,7 +69,7 @@ class topomojo
     /**
      * @var topomojo_attempt The currently open attempt
      */
-    public $openAttempt;
+    public $openattempt;
 
     /**
      * @var \context_module The context for the course module
@@ -137,8 +136,7 @@ class topomojo
      * @param string $renderersubtype Renderer sub-type to load if requested
      *
      */
-    public function __construct($cm, $course, $topomojo, $pageurl = null, $pagevars = [], $renderersubtype = null)
-    {
+    public function __construct($cm, $course, $topomojo, $pageurl = null, $pagevars = [], $renderersubtype = null) {
         global $CFG, $PAGE;
 
         $this->cm = $cm;
@@ -151,15 +149,16 @@ class topomojo
         $this->renderer = $PAGE->get_renderer('mod_topomojo', $renderersubtype);
 
         if ($pageurl) {
-            // skip this initialization during cron task
+            // Skip this initialization during cron task.
             $this->renderer->init($this, $pageurl, $pagevars);
             if (str_contains($pageurl->get_path(), "edit.php")) {
                 $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
-            } else if ((str_contains($pageurl->get_path(), "/view.php")) ||
+            } else if (
+                (str_contains($pageurl->get_path(), "/view.php")) ||
                 (str_contains($pageurl->get_path(), "challenge.php")) ||
                 (str_contains($pageurl->get_path(), "viewattempt.php"))
             ) {
-                // if there are questions added to the challenge, load questionmanager on the other pages
+                // If there are questions added to the challenge, load questionmanager on the other pages.
                 if (isset($this->topomojo->questionorder)) {
                     $this->questionmanager = new \mod_topomojo\questionmanager($this, $this->renderer, $this->pagevars);
                 }
@@ -177,13 +176,12 @@ class topomojo
      *
      * @return bool Whether or not the current user has the capability
      */
-    public function has_capability($capability, $userid = 0)
-    {
+    public function has_capability($capability, $userid = 0) {
         if ($userid !== 0) {
-            // Pass in userid if there is one
+            // Pass in userid if there is one.
             return has_capability($capability, $this->context, $userid);
         } else {
-            // Just do standard check with current user
+            // Just do standard check with current user.
             return has_capability($capability, $this->context);
         }
     }
@@ -193,8 +191,7 @@ class topomojo
      *
      * @return bool
      */
-    public function is_instructor()
-    {
+    public function is_instructor() {
 
         if (is_null($this->isinstructor)) {
             $this->isinstructor = $this->has_capability('mod/topomojo:manage');
@@ -210,8 +207,7 @@ class topomojo
      * @param int $attemptid The ID of the attempt record to retrieve.
      * @return \mod_topomojo\topomojo_attempt A `topomojo_attempt` object representing the attempt.
      */
-    public function get_attempt($attemptid)
-    {
+    public function get_attempt($attemptid) {
         global $DB;
 
         $dbattempt = $DB->get_record('topomojo_attempts', ["id" => $attemptid]);
@@ -224,8 +220,7 @@ class topomojo
      *
      * @return object
      */
-    public function getCM()
-    {
+    public function getcm() {
         return $this->cm;
     }
 
@@ -234,8 +229,7 @@ class topomojo
      *
      * @return \context_module
      */
-    public function getContext()
-    {
+    public function getcontext() {
         return $this->context;
     }
 
@@ -248,8 +242,7 @@ class topomojo
      *
      * @return bool Returns `true` if an open attempt is found and set; otherwise, returns `false`.
      */
-    public function get_open_attempt($preview = 0)
-    {
+    public function get_open_attempt($preview = 0) {
         $attempts = $this->getall_attempts('open', false, $preview);
         if (count($attempts) > 1) {
             debugging("we have more than 1 open attempt", DEBUG_DEVELOPER);
@@ -258,8 +251,8 @@ class topomojo
             return false;
         }
 
-        // Get the first (and only) value in the array
-        $this->openAttempt = reset($attempts);
+        // Get the first (and only) value in the array.
+        $this->openattempt = reset($attempts);
 
         return true;
     }
@@ -277,8 +270,7 @@ class topomojo
      *      or null to keep the $review behaviour of returning the logged in user's own.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts matching the criteria.
      */
-    public function getall_attempts($state = 'all', $review = false, $preview = 0, $userid = null)
-    {
+    public function getall_attempts($state = 'all', $review = false, $preview = 0, $userid = null) {
         global $DB, $USER;
 
         $sqlparams = [];
@@ -287,7 +279,7 @@ class topomojo
         $where[] = 'topomojoid = ?';
         $sqlparams[] = $this->topomojo->id;
 
-        // Filter by preview status unless -1 (all attempts)
+        // Filter by preview status unless -1 (all attempts).
         if ($preview !== -1) {
             $where[] = 'preview = ?';
             $sqlparams[] = $preview;
@@ -303,7 +295,7 @@ class topomojo
                 $sqlparams[] = topomojo_attempt::FINISHED;
                 break;
             default:
-                // Add no condition for state when 'all' or something other than open/closed
+                // Add no condition for state when 'all' or something other than open/closed.
         }
 
         if (!is_null($userid)) {
@@ -326,7 +318,7 @@ class topomojo
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
         $attempts = [];
-        // Create array of class attempts from the db entry
+        // Create array of class attempts from the db entry.
         foreach ($dbattempts as $dbattempt) {
             $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
         }
@@ -347,8 +339,7 @@ class topomojo
      * @param int $preview Filter by preview status: 0 = non-preview only, 1 = preview only, -1 = all attempts. Default is 0.
      * @return topomojo_attempt[] An array of `topomojo_attempt` objects representing the attempts for the specified user.
      */
-    public function get_attempts_by_user($userid, $state = 'all', $review = false, $preview = 0)
-    {
+    public function get_attempts_by_user($userid, $state = 'all', $review = false, $preview = 0) {
         global $DB;
 
         $sqlparams = [];
@@ -357,7 +348,7 @@ class topomojo
         $where[] = 'topomojoid = ?';
         $sqlparams[] = $this->topomojo->id;
 
-        // Filter by preview status unless -1 (all attempts)
+        // Filter by preview status unless -1 (all attempts).
         if ($preview !== -1) {
             $where[] = 'preview = ?';
             $sqlparams[] = $preview;
@@ -373,7 +364,7 @@ class topomojo
                 $sqlparams[] = topomojo_attempt::FINISHED;
                 break;
             default:
-                // Add no condition for state when 'all' or something other than open/closed
+                // Add no condition for state when 'all' or something other than open/closed.
         }
 
         if ((!$review) || (!$this->is_instructor())) {
@@ -388,7 +379,7 @@ class topomojo
         $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
         $attempts = [];
-        // Create array of class attempts from the db entry
+        // Create array of class attempts from the db entry.
         foreach ($dbattempts as $dbattempt) {
             $attempts[] = new topomojo_attempt($this->questionmanager, $dbattempt);
         }
@@ -419,7 +410,7 @@ class topomojo
     public function ensure_variant_questions_exist($variant) {
         global $DB, $CFG;
 
-        // Check if any questions exist for this variant
+        // Check if any questions exist for this variant.
         $exists = $DB->record_exists_sql(
             "SELECT 1
                FROM {qtype_mojomatch_options} o
@@ -433,7 +424,7 @@ class topomojo
             return;
         }
 
-        // Questions missing - import them now
+        // Questions missing - import them now.
 
         require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
         $auth = setup();
@@ -443,38 +434,41 @@ class topomojo
             return;
         }
 
-        // Get question manager (access directly to avoid return type error when null)
+        // Get question manager (access directly to avoid return type error when null).
         if (!$this->questionmanager) {
-            // Create a temporary questionmanager for import
+            // Create a temporary questionmanager for import.
             require_once($CFG->dirroot . '/mod/topomojo/classes/questionmanager.php');
             $this->questionmanager = new questionmanager($this, $this->renderer, $this->pagevars);
         }
         $questionmanager = $this->questionmanager;
 
-        $context = $this->getContext();
-        $variant_index = $variant - 1; // Convert to 0-based for array access
-        $questionmanager->process_variant_questions($context, $this, $variant_index, $challenge, true);
-
+        $context = $this->getcontext();
+        $variantindex = $variant - 1; // Convert to 0-based for array access.
+        $questionmanager->process_variant_questions($context, $this, $variantindex, $challenge, true);
     }
 
-    public function init_attempt($preview = 0)
-    {
+    /**
+     * Creates an attempt for the running gamespace, unless an open attempt exists.
+     *
+     * @param int $preview 1 if this is an instructor preview.
+     * @return bool True if an attempt is open, false if a new one could not be saved.
+     */
+    public function init_attempt($preview = 0) {
         global $DB, $USER;
-
 
         $attempt = $this->get_open_attempt($preview);
         if ($attempt === true) {
             return true;
         }
 
-        // Determine which variant TopoMojo deployed (converts from 0-based to 1-based)
-        $deployed_variant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
+        // Determine which variant TopoMojo deployed (converts from 0-based to 1-based).
+        $deployedvariant = isset($this->event->variant) ? ($this->event->variant + 1) : $this->topomojo->variant;
 
-        // Check if questions exist for this variant, import if missing
-        $this->ensure_variant_questions_exist($deployed_variant);
+        // Check if questions exist for this variant, import if missing.
+        $this->ensure_variant_questions_exist($deployedvariant);
 
-        // Create a new attempt with variant
-        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager, variant: $deployed_variant);
+        // Create a new attempt with variant.
+        $attempt = new topomojo_attempt(questionmanager: $this->questionmanager, variant: $deployedvariant);
         $attempt->launchpointurl = $this->event->launchpointUrl;
         $attempt->workspaceid = $this->topomojo->workspaceid;
         $attempt->userid = $USER->id;
@@ -487,16 +481,16 @@ class topomojo
         $attempt->endtime = strtotime($this->event->expirationTime);
         $attempt->eventid = $this->event->id;
         $attempt->preview = $preview;
-        $attempt->variant = $deployed_variant;
+        $attempt->variant = $deployedvariant;
 
         if ($attempt->save()) {
-            $this->openAttempt = $attempt;
+            $this->openattempt = $attempt;
         } else {
             debugging("could not save new attempt", DEBUG_DEVELOPER);
             return false;
         }
 
-        // TODO call start attempt event class from here
+        // TODO call start attempt event class from here.
         return true;
     }
     /**
@@ -504,8 +498,7 @@ class topomojo
      *
      * @return \mod_topomojo\questionmanager
      */
-    public function get_question_manager(): questionmanager
-    {
+    public function get_question_manager(): questionmanager {
         return $this->questionmanager;
     }
 
@@ -514,8 +507,7 @@ class topomojo
      *
      * @return bool
      */
-    public function save()
-    {
+    public function save() {
         global $DB;
 
         return $DB->update_record('topomojo', $this->topomojo);
@@ -532,8 +524,7 @@ class topomojo
      *
      * @return string Returns the state of the activity. Possible values are `'unopen'`, `'open'`, or `'closed'`.
      */
-    public function get_openclose_state()
-    {
+    public function get_openclose_state() {
         $state = 'open';
         $timenow = time();
         if ($this->topomojo->timeopen && ($timenow < $this->topomojo->timeopen)) {
@@ -552,8 +543,7 @@ class topomojo
      *
      * @return \stdClass A class of the options
      */
-    public function get_review_options()
-    {
+    public function get_review_options() {
 
         $reviewoptions = new \stdClass();
         $reviewoptions->reviewattempt = $this->topomojo->reviewattempt;
@@ -580,8 +570,7 @@ class topomojo
      * @param string $state The current state of the activity, which can be 'open' or 'closed'.
      * @return bool Returns `true` if the user can review marks based on the state and review options, otherwise `false`.
      */
-    public function canreviewmarks($reviewoptions, $state)
-    {
+    public function canreviewmarks($reviewoptions, $state) {
         $canreviewmarks = false;
         if ($state == 'open') {
             if ($reviewoptions->reviewmarks & \mod_topomojo_display_options::LATER_WHILE_OPEN) {
@@ -607,8 +596,7 @@ class topomojo
      * @param string $state The current state of the activity, which can be 'open' or 'closed'.
      * @return bool Returns `true` if the user can review the attempt based on the state and review options, otherwise `false`.
      */
-    public function canreviewattempt($reviewoptions, $state)
-    {
+    public function canreviewattempt($reviewoptions, $state) {
         $canreviewattempt = false;
         if ($state == 'open') {
             if ($reviewoptions->reviewattempt & \mod_topomojo_display_options::LATER_WHILE_OPEN) {

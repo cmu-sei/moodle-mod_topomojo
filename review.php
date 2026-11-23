@@ -19,12 +19,12 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS.
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO,
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL.
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM
+USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM
+PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full terms.
 
 [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
@@ -44,13 +44,13 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-//require('../../config.php');
+// require('../../config.php');
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $preview = optional_param('preview', 0, PARAM_BOOL);
 global $USER;
@@ -86,7 +86,7 @@ $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 
-// new topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
@@ -138,7 +138,7 @@ if ($object->is_instructor()) {
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-preview-attempts-btn',
             get_string('deletepreviewattempts', 'mod_topomojo'),
-            get_string('deletepreviewattempts_confirm', 'mod_topomojo')
+            get_string('deletepreviewattempts_confirm', 'mod_topomojo'),
         ]);
 
         $deletebutton = $OUTPUT->single_button(
@@ -151,11 +151,11 @@ if ($object->is_instructor()) {
     } else if (!$preview && !empty($attempts)) {
         $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
 
-        // Initialize the confirmation modal
+        // Initialize the confirmation modal.
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-all-attempts-btn',
             get_string('deleteall', 'mod_topomojo'),
-            get_string('deleteallattempts_confirm', 'mod_topomojo')
+            get_string('deleteallattempts_confirm', 'mod_topomojo'),
         ]);
 
         $deletebutton = $OUTPUT->single_button(

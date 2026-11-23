@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Form for managing deployments with scheduling.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_topomojo\form;
 
 defined('MOODLE_INTERNAL') || die();
@@ -7,9 +30,14 @@ require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Form for managing deployments with scheduling.
+ * @package mod_topomojo
  */
 class manage_form extends \moodleform {
-
+    /**
+     * Defines the form.
+     *
+     * @return void
+     */
     protected function definition() {
         $mf = $this->_form;
         $roles = $this->_customdata['roles'];
@@ -17,7 +45,13 @@ class manage_form extends \moodleform {
         $mf->addElement('header', 'deployoptions', get_string('deploy_options', 'topomojo'));
 
         $rolecount = count($roles);
-        $mf->addElement('select', 'rolefilter', get_string('bulkdeploy_rolefilter', 'topomojo'), $roles, ['multiple' => 'multiple', 'size' => $rolecount, 'style' => 'width: 140px;']);
+        $mf->addElement(
+            'select',
+            'rolefilter',
+            get_string('bulkdeploy_rolefilter', 'topomojo'),
+            $roles,
+            ['multiple' => 'multiple', 'size' => $rolecount, 'style' => 'width: 140px;']
+        );
         $mf->addHelpButton('rolefilter', 'bulkdeploy_rolefilter', 'topomojo');
 
         $mf->addElement('text', 'batchsize', get_string('bulkdeploy_batchsize', 'topomojo'), ['size' => 5]);
@@ -38,6 +72,13 @@ class manage_form extends \moodleform {
         $this->add_action_buttons(true, get_string('bulkdeploy_submit', 'topomojo'));
     }
 
+    /**
+     * Checks the batch size is between 1 and 50, and that a scheduled time is in the future.
+     *
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Errors by element name.
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 

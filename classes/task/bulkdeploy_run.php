@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Ad-hoc task that runs a bulk deployment job.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_topomojo\task;
 
 use mod_topomojo\local\bulkdeploy\curl_multi_client;
@@ -11,21 +34,44 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Ad-hoc task that drives a bulk-deploy job to completion in concurrent batches.
+ * @package mod_topomojo
  */
 class bulkdeploy_run extends \core\task\adhoc_task {
-
+    /** @var curl_multi_client|null Client substituted by tests. */
     private ?curl_multi_client $testclient = null;
+    /** @var string API base URL used with the test client. */
     private string $testapibaseurl = '';
+    /** @var array Auth headers used with the test client. */
     private array $testauthheaders = [];
+    /** @var int Request timeout in seconds used with the test client. */
     private int $testrequesttimeout = 60;
+    /** @var int Poll interval in seconds used with the test client. */
     private int $testpollintervalsec = 5;
+    /** @var int Longest wait per batch, in seconds, used with the test client. */
     private int $testwaitceilingsec = 600;
+    /** @var \Closure|null Called after each batch, set by tests. */
     private ?\Closure $afterbatchhook = null;
 
+    /**
+     * Gets the component the task belongs to.
+     *
+     * @return string The component name.
+     */
     public function get_component(): string {
         return 'mod_topomojo';
     }
 
+    /**
+     * Substitutes the HTTP client and the launch settings, for tests.
+     *
+     * @param curl_multi_client $client The client to use.
+     * @param string $apibaseurl The TopoMojo API base URL.
+     * @param array $authheaders The headers that authenticate the requests.
+     * @param int $requesttimeout The timeout of one request, in seconds.
+     * @param int $pollintervalsec The pause between polls, in seconds.
+     * @param int $waitceilingsec The longest wait per batch, in seconds.
+     * @return void
+     */
     public function set_test_client(
         curl_multi_client $client,
         string $apibaseurl,
@@ -42,10 +88,23 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         $this->testwaitceilingsec = $waitceilingsec;
     }
 
+    /**
+     * Sets a function to call after each batch, for tests.
+     *
+     * @param \Closure $hook The function to call.
+     * @return void
+     */
     public function set_after_batch_hook(\Closure $hook): void {
         $this->afterbatchhook = $hook;
     }
 
+    /**
+     * Runs the job named in the task's custom data, one batch of users at a time.
+     *
+     * A failure marks the job as failed rather than throwing, so the task is not retried.
+     *
+     * @return void
+     */
     public function execute() {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
@@ -122,6 +181,17 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         }
     }
 
+    /**
+     * Runs one batch, unless the job has been cancelled.
+     *
+     * @param job_repository $repo The job repository.
+     * @param launcher $launcher The launcher that runs the batch.
+     * @param int $jobid The job ID.
+     * @param int $batchno The number of the batch, counting from 1.
+     * @param array $batch Each entry: ['rowid' => int, 'user' => stdClass].
+     * @param \stdClass $topomojo The activity record.
+     * @return bool False if the job was cancelled and no further batch should run.
+     */
     private function run_one_batch(
         job_repository $repo,
         launcher $launcher,
@@ -148,6 +218,13 @@ class bulkdeploy_run extends \core\task\adhoc_task {
         return true;
     }
 
+    /**
+     * Builds the launcher from the plugin settings, or from the test settings if a test client was set.
+     *
+     * @param job_repository $repo The job repository.
+     * @param \stdClass $topomojo The activity record.
+     * @return launcher The launcher.
+     */
     private function build_launcher(job_repository $repo, \stdClass $topomojo): launcher {
         if ($this->testclient !== null) {
             return new launcher(

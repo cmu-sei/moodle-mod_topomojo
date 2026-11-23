@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -20,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,15 +43,15 @@ DM24-1175
 
 use mod_topomojo\topomojo;
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 
-$id = optional_param('cmid', 0, PARAM_INT); // Course_module ID, or
-$c = optional_param('c', 0, PARAM_INT);  // instance ID - it should be named as the first character of the module.
+$id = optional_param('cmid', 0, PARAM_INT); // Course_module ID, or.
+$c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 
 try {
     if ($id) {
@@ -73,14 +72,14 @@ $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:manage', $context);
 
 /*
-// TODO log an event when edit page is viewed
+// TODO log an event when edit page is viewed.
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.
     topomojo_edit($topomojo, $course, $cm, $context);
 }
 */
 
-$url = new moodle_url ( '/mod/topomojo/edit.php', ['cmid' => $cm->id]);
+$url = new moodle_url('/mod/topomojo/edit.php', ['cmid' => $cm->id]);
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -89,13 +88,13 @@ $PAGE->set_title(format_string($topomojo->name));
 $action = optional_param('action', '', PARAM_ALPHA);
 $addquestionlist = optional_param('addquestionlist', '', PARAM_ALPHA);
 
-// New topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars, 'edit');
 
-list($pageurl, $contexts, $id, $cm, $topomojo, $pagevars) =
+[$pageurl, $contexts, $id, $cm, $topomojo, $pagevars] =
         question_edit_setup('editq', '/mod/topomojo/edit.php');
 
 
@@ -105,11 +104,11 @@ $questionmanager = $object->get_question_manager();
 
 $renderer = $object->renderer;
 
-// Show notification if in random variant mode
+// Show notification if in random variant mode.
 if ($topomojo->variant == 0 && has_capability('mod/topomojo:manage', $context)) {
     \core\notification::info(get_string('randomvariantinfo', 'topomojo'));
 }
-//$questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
+// $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars, $topomojo);
 $questionbankview = new \mod_topomojo\question\bank\custom_view($contexts, $pageurl, $course, $cm, $pagevars);
 
 if ($addquestionlist) {
@@ -117,7 +116,7 @@ if ($addquestionlist) {
 }
 
 if ($object->topomojo->importchallenge) {
-    // Clean up mismatched questions (only if no attempts exist)
+    // Clean up mismatched questions (only if no attempts exist).
     require_once("$CFG->dirroot/mod/topomojo/lib.php");
     if (!$topomojohasattempts) {
         topomojo_cleanup_questions($object->topomojo, $object->topomojo->variant);
@@ -125,81 +124,81 @@ if ($object->topomojo->importchallenge) {
 
     $questions = $questionmanager->get_questions();
 
-    // Only import if no questions have been imported yet
+    // Only import if no questions have been imported yet.
     if (empty($questions)) {
-
         $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
         if (!$challenge) {
             throw new moodle_exception("this lab has no challenge");
         }
 
-        // Check if random variant mode (variant=0)
+        // Check if random variant mode (variant=0).
         if ($object->topomojo->variant == 0) {
-            // Random mode - import ALL variants but don't link
+            // Random mode - import ALL variants but don't link.
             $addtoquiz = false;
-            $variant_count = count($challenge->variants);
-            for ($i = 0; $i < $variant_count; $i++) {
+            $variantcount = count($challenge->variants);
+            for ($i = 0; $i < $variantcount; $i++) {
                 // $i is already 0-based for array access
                 $questionmanager->process_variant_questions($context, $object, $i, $challenge, $addtoquiz);
             }
         } else {
-            // Specific mode - import single variant and link
+            // Specific mode - import single variant and link.
             $addtoquiz = true;
-            // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[]
-            $variant_index = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
-            $questionmanager->process_variant_questions($context, $object, $variant_index, $challenge, $addtoquiz);
+            // Convert 1-based variant (from DB/UI) to 0-based array index for $challenge->variants[].
+            $variantindex = $object->topomojo->variant - 1; // Moodle stores as 1,2,3... TopoMojo uses 0,1,2...
+            $questionmanager->process_variant_questions($context, $object, $variantindex, $challenge, $addtoquiz);
         }
     }
 }
 
-// Handle actions
+// Handle actions.
 switch ($action) {
     case 'addquestionlist':
         $rawdata = (array) data_submitted();
-        foreach ($rawdata as $key => $value) { // Parse input for question ids.
+        foreach ($rawdata as $key => $value) {
+            // Parse input for question ids.
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $questionid = $key;
 
-                // Check question type
+                // Check question type.
                 $question = $DB->get_record('question', ['id' => $questionid], 'qtype');
 
-                // Block adding variant-specific questions in random mode
+                // Block adding variant-specific questions in random mode.
                 if ($object->topomojo->variant == 0 && $question && $question->qtype === 'mojomatch') {
                     $type = 'error';
                     $message = get_string('cannotaddvariantquestionrandom', 'topomojo');
-                    $renderer->setMessage($type, $message);
-                    continue; // Skip this question, continue with others
+                    $renderer->setmessage($type, $message);
+                    continue; // Skip this question, continue with others.
                 }
 
-                // Validate variant before adding (only in specific mode)
+                // Validate variant before adding (only in specific mode).
                 if ($object->topomojo->variant != 0 && $question && $question->qtype === 'mojomatch') {
-                    $question_variant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
+                    $questionvariant = $DB->get_field('qtype_mojomatch_options', 'variant', ['questionid' => $questionid]);
 
-                    if ($question_variant && $question_variant != $object->topomojo->variant) {
+                    if ($questionvariant && $questionvariant != $object->topomojo->variant) {
                         $type = 'error';
                         $message = get_string('wrongvariantadd', 'topomojo', [
-                            'question_variant' => $question_variant,
-                            'activity_variant' => $object->topomojo->variant
+                            'question_variant' => $questionvariant,
+                            'activity_variant' => $object->topomojo->variant,
                         ]);
-                        $renderer->setMessage($type, $message);
-                        continue; // Skip this question, continue with others
+                        $renderer->setmessage($type, $message);
+                        continue; // Skip this question, continue with others.
                     }
                 }
 
                 if (!$questionmanager->add_question($questionid)) {
                     $type = 'error';
                     $message = get_string('qadderror', 'topomojo');
-                    $renderer->setMessage($type, $message);
+                    $renderer->setmessage($type, $message);
                     break;
                 } else {
                     $type = 'success';
                     $message = get_string('qaddsuccess', 'topomojo');
-                    $renderer->setMessage($type, $message);
+                    $renderer->setmessage($type, $message);
                 }
             }
         }
-        $renderer->setMessage($type, $message);
+        $renderer->setmessage($type, $message);
         $renderer->print_header();
         $questions = $questionmanager->get_questions();
         $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
@@ -217,7 +216,7 @@ switch ($action) {
                 $type = 'error';
                 $message = get_string('qadderror', 'topomojo');
             }
-            $renderer->setMessage($type, $message);
+            $renderer->setmessage($type, $message);
             $renderer->print_header();
             $questions = $questionmanager->get_questions();
             $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
@@ -227,7 +226,6 @@ switch ($action) {
         if ($topomojohasattempts) {
             debugging(get_string('cannoteditafterattempts', 'topomojo'), DEBUG_DEVELOPER);
         } else {
-
             $questionid = required_param('questionid', PARAM_INT);
             if ($questionmanager->delete_question($questionid)) {
                 $type = 'success';
@@ -237,7 +235,7 @@ switch ($action) {
                 $message = get_string('qdeleteerror', 'topomojo');
             }
 
-            $renderer->setMessage($type, $message);
+            $renderer->setmessage($type, $message);
             $renderer->print_header();
             $questions = $questionmanager->get_questions();
             $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
@@ -263,7 +261,6 @@ switch ($action) {
             } else {
                 $jsonlib->send_error('unable to re-sort questions');
             }
-
         }
         break;
     case 'editquestion':

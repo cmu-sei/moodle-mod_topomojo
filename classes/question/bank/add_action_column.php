@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,7 +44,6 @@ namespace mod_topomojo\question\bank;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class add_action_column extends \core_question\local\bank\question_action_base {
-
     /** @var string caches a lang string used repeatedly. */
     protected $stradd;
 
@@ -92,13 +91,13 @@ class add_action_column extends \core_question\local\bank\question_action_base {
             return;
         }
 
-        // Get the activity variant
+        // Get the activity variant.
         $cm = $this->qbank->get_most_specific_context()->get_course_module_record();
         $topomojo = $DB->get_record('topomojo', ['id' => $cm->instance], 'variant', MUST_EXIST);
-        $activity_variant = $topomojo->variant;
+        $activityvariant = $topomojo->variant;
 
-        // Get the question's variant from qtype_mojomatch_options
-        $question_variant = $DB->get_field_sql(
+        // Get the question's variant from qtype_mojomatch_options.
+        $questionvariant = $DB->get_field_sql(
             "SELECT qmo.variant
              FROM {qtype_mojomatch_options} qmo
              JOIN {question_versions} qv ON qv.questionid = qmo.questionid
@@ -107,13 +106,13 @@ class add_action_column extends \core_question\local\bank\question_action_base {
         );
 
         // If variant=0 (random mode), allow all questions
-        // Otherwise, only show add icon for matching variant
-        if ($activity_variant != 0 && $question_variant != $activity_variant) {
-            // Show disabled icon with tooltip explaining why
+        // Otherwise, only show add icon for matching variant.
+        if ($activityvariant != 0 && $questionvariant != $activityvariant) {
+            // Show disabled icon with tooltip explaining why.
             echo \html_writer::span(
                 get_string('wrongvariant', 'topomojo', [
-                    'question_variant' => $question_variant,
-                    'activity_variant' => $activity_variant
+                    'question_variant' => $questionvariant,
+                    'activity_variant' => $activityvariant,
                 ]),
                 'text-muted small'
             );

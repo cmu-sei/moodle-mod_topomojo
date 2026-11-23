@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Lists the TopoMojo labs available on the site.
+ *
+ * @package    mod_topomojo
+ * @copyright  2024 Carnegie Mellon University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../config.php');
 require_login();
 
@@ -10,7 +33,7 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('labslist', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
-// Breadcrumbs
+// Breadcrumbs.
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->navbar->add(get_string('labslist', 'mod_topomojo'), $PAGE->url);
 
@@ -64,15 +87,19 @@ foreach ($recs as $r) {
 
             if (is_array($mc) && !empty($mc['competency']) && $mc['competency'] instanceof \core_competency\competency) {
                 $comp = $mc['competency'];
-            } elseif (is_array($mc) && !empty($mc['coursemodulecompetency']) &&
-                      $mc['coursemodulecompetency'] instanceof \core_competency\course_module_competency) {
+            } else if (
+                is_array($mc) && !empty($mc['coursemodulecompetency']) &&
+                      $mc['coursemodulecompetency'] instanceof \core_competency\course_module_competency
+            ) {
                 $compid = (int)$mc['coursemodulecompetency']->get('competencyid');
                 if ($compid) {
                     $comp = \core_competency\competency::get_record(['id' => $compid]);
                 }
             }
 
-            if (!$comp) { continue; }
+            if (!$comp) {
+                continue;
+            }
 
             $shortname = (string)$comp->get('shortname');
             $idnumber  = (string)$comp->get('idnumber');
@@ -86,7 +113,8 @@ foreach ($recs as $r) {
             $compitems[] = $o;
         }
     } catch (Throwable $e) {
-        // ignore
+        // The competencies are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
     }
 
     $cards[] = [

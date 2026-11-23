@@ -19,14 +19,14 @@ TopoMojo Plugin for Moodle
 
 Copyright 2024 Carnegie Mellon University.
 
-NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. 
-CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, 
-WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. 
-CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
-Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007-style license, please see license.txt or contact permission@sei.cmu.edu for full 
-terms.
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS"
+BASIS.  CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER
+INCLUDING, BUT NOT LIMITED TO,  WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED
+FROM USE OF THE MATERIAL.  CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM
+FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT. Licensed under a GNU GENERAL PUBLIC LICENSE - Version 3, 29 June
+2007-style license, please see license.txt or contact permission@sei.cmu.edu for full  terms.
 
-[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.
 Please see Copyright notice for non-US Government use and distribution.
 
 This Software includes and/or makes use of Third-Party Software each subject to its own license.
@@ -44,7 +44,7 @@ DM24-1175
 
 require('../../config.php');
 
-$id = required_param('id', PARAM_INT); // course id
+$id = required_param('id', PARAM_INT); // Course id.
 
 $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 
@@ -65,7 +65,7 @@ $strintro        = get_string('moduleintro');
 $strlastmodified = get_string('lastmodified');
 
 $PAGE->set_url('/mod/topomojo/index.php', ['id' => $course->id]);
-$PAGE->set_title($course->shortname.': '.$strtopomojos);
+$PAGE->set_title($course->shortname . ': ' . $strtopomojos);
 $PAGE->navbar->add($strtopomojos);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strtopomojos);
@@ -81,7 +81,7 @@ $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
 if ($usesections) {
-    $strsectionname = get_string('sectionname', 'format_'.$course->format);
+    $strsectionname = get_string('sectionname', 'format_' . $course->format);
     $table->head  = [$strsectionname, $strname, $strintro];
     $table->align = ['center', 'left', 'left'];
 } else {
@@ -105,20 +105,20 @@ foreach ($topomojos as $topomojo) {
             $currentsection = $topomojo->section;
         }
     } else {
-        $printsection = '<span class="smallinfo">'.userdate($topomojo->timemodified)."</span>";
+        $printsection = '<span class="smallinfo">' . userdate($topomojo->timemodified) . "</span>";
     }
 
     $extra = empty($cm->onclick) ? '' : 'onclick="' . s($cm->onclick) . '"';
     $icon = '';
     if (!empty($cm->icon)) {
-        // Each topomojo has an icon in 2.0
+        // Each topomojo has an icon in 2.0.
         $icon = $OUTPUT->pix_icon($cm->icon, get_string('modulename', $cm->modname)) . ' ';
     }
 
-    $class = $topomojo->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed
+    $class = $topomojo->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed.
     $table->data[] = [
         $printsection,
-        "<a $class $extra href=\"view.php?id=$cm->id\">".$icon.format_string($topomojo->name)."</a>",
+        "<a $class $extra href=\"view.php?id=$cm->id\">" . $icon . format_string($topomojo->name) . "</a>",
         format_module_intro('topomojo', $topomojo, $cm->id)];
 }
 
