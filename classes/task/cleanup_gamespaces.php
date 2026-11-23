@@ -97,7 +97,8 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                     $cleaned++;
                 }
             } catch (\Exception $e) {
-                // Already cleaned up or doesn't exist - ignore.
+                // TopoMojo refuses a lookup or stop for a gamespace that is already gone, so there is nothing left to clean.
+                debugging($e->getMessage(), DEBUG_DEVELOPER);
             }
         }
 

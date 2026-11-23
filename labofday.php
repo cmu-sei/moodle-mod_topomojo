@@ -99,6 +99,8 @@ if ($record) {
         }
         $tagnames = array_values(array_unique($tagnames));
     } catch (Throwable $e) {
+        // The tags are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
     }
 
     // Competencies.
@@ -127,6 +129,8 @@ if ($record) {
             }
         }
     } catch (Throwable $e) {
+        // The competencies are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
     }
 
     $card = [

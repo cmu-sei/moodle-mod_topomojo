@@ -113,7 +113,8 @@ foreach ($recs as $r) {
             $compitems[] = $o;
         }
     } catch (Throwable $e) {
-        // ignore.
+        // The competencies are decoration on the card, so show the card without them if the lookup fails.
+        debugging($e->getMessage(), DEBUG_DEVELOPER);
     }
 
     $cards[] = [
