@@ -317,7 +317,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the challenge instructions with the attempt warning and the end lab button.
+     * Renders the challenge instructions with the attempt warning and the notice that submitting ends the lab.
      *
      * @param string $markdown The markdown content to display.
      * @return void
@@ -347,7 +347,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the challenge instructions with the end lab button.
+     * Renders the challenge instructions with the notice that submitting ends the lab.
      *
      * @param string $markdown The markdown content to display.
      * @return void
@@ -361,7 +361,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the attempt warning with the end lab button and no challenge text.
+     * Renders the attempt warning and the notice that submitting ends the lab, with no challenge text.
      *
      * @return void
      */
@@ -387,7 +387,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the end lab button with no challenge text.
+     * Renders the notice that submitting ends the lab, with no challenge text.
      *
      * @return void
      */
