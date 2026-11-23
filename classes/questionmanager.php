@@ -204,7 +204,8 @@ class questionmanager {
                 'topomojo' => $topomojoquestion->topomojoid,
                 'questionname' => $qrecord->name,
                 'defaultmark' => $topomojoquestion->points,
-            'edit' => true]
+                'edit' => true,
+            ]
         );
 
         // Form handling.
