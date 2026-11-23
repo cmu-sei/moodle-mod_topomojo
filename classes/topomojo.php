@@ -69,7 +69,7 @@ class topomojo
     /**
      * @var topomojo_attempt The currently open attempt
      */
-    public $openAttempt;
+    public $openattempt;
 
     /**
      * @var \context_module The context for the course module
@@ -252,7 +252,7 @@ class topomojo
         }
 
         // Get the first (and only) value in the array.
-        $this->openAttempt = reset($attempts);
+        $this->openattempt = reset($attempts);
 
         return true;
     }
@@ -484,7 +484,7 @@ class topomojo
         $attempt->variant = $deployedvariant;
 
         if ($attempt->save()) {
-            $this->openAttempt = $attempt;
+            $this->openattempt = $attempt;
         } else {
             debugging("could not save new attempt", DEBUG_DEVELOPER);
             return false;

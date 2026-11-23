@@ -121,8 +121,8 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 
 if ($activeattempt == true) {
     // If active attempt found but event not fetched yet, fetch it.
-    if (empty($object->event) && isset($object->openAttempt)) {
-        $attemptdata = $object->openAttempt->get_attempt();
+    if (empty($object->event) && isset($object->openattempt)) {
+        $attemptdata = $object->openattempt->get_attempt();
         if (!empty($attemptdata->eventid)) {
             try {
                 $object->event = get_event($object->userauth, $attemptdata->eventid);
@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             throw new moodle_exception("start_event failed");
         }
         // Contact topomojo and pull the correct answers for this attempt.
-        $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
+        $object->get_question_manager()->update_answers($object->openattempt->get_quba(), $object->openattempt->eventid);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
     if ($object->event) {
@@ -208,10 +208,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
                 throw new moodle_exception('no attempt to close');
             }
 
-            $object->openAttempt->save_question();
-            $object->openAttempt->close_attempt();
+            $object->openattempt->save_question();
+            $object->openattempt->close_attempt();
             $grader = new \mod_topomojo\utils\grade($object);
-            $grader->process_attempt($object->openAttempt);
+            $grader->process_attempt($object->openattempt);
 
             if ($object->topomojo->endlab) {
                 stop_event($object->userauth, $object->event->id);
@@ -220,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 
             $viewattempturl = new moodle_url(
                 '/mod/topomojo/viewattempt.php',
-                ['a' => $object->openAttempt->id, 'action' => 'view']
+                ['a' => $object->openattempt->id, 'action' => 'view']
             );
             redirect($viewattempturl);
         }
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
     // graded and has its penalty applied, and the rest are just saved. Redirect
     // afterwards so a reload does not replay the submission and burn a try.
     if ($activeattempt && $object->event && $object->event->isActive) {
-        $object->openAttempt->save_question();
+        $object->openattempt->save_question();
         redirect($url);
     }
 }
@@ -245,8 +245,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
 if ((!$object->event) && ($activeattempt)) {
     // throw new moodle_exception(('attemptalreadyexists', 'topomojo');
     $grader = new \mod_topomojo\utils\grade($object);
-    $grader->process_attempt($object->openAttempt);
-    $object->openAttempt->close_attempt();
+    $grader->process_attempt($object->openattempt);
+    $object->openattempt->close_attempt();
 }
 
 // Show grade only if a grade is set.
@@ -280,7 +280,7 @@ switch ($action) {
                 }
 
                 // Save answers without closing attempt.
-                $object->openAttempt->save_question();
+                $object->openattempt->save_question();
 
                 // Reload the page.
                 redirect($url);
@@ -288,7 +288,7 @@ switch ($action) {
         }
         break;
     default:
-        if ($object->openAttempt && $object->openAttempt->get_quba()) {
+        if ($object->openattempt && $object->openattempt->get_quba()) {
             if ($object->event->id) {
                     $challenge = get_gamespace_challenge($object->userauth, $object->event->id);
                     $userid = $USER->id;
@@ -354,7 +354,7 @@ switch ($action) {
 
             // Render quiz if questions exist.
             if (!empty($object->topomojo->questionorder)) {
-                $renderer->render_quiz($object->openAttempt, $pageurl, $id);
+                $renderer->render_quiz($object->openattempt, $pageurl, $id);
             } else if (isset($challenge) && empty($challenge->text)) {
                 // No challenge text and no questions - show informational message.
                 echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), \core\output\notification::NOTIFY_WARNING);

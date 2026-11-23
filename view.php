@@ -168,9 +168,9 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 $eventattempt = null;
 
 // If active attempt found but event not fetched yet, fetch it.
-if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
+if ($activeattempt && empty($object->event) && isset($object->openattempt)) {
     // Access eventid from the attempt object's internal data.
-    $attemptdata = $object->openAttempt->get_attempt();
+    $attemptdata = $object->openattempt->get_attempt();
     $eventattempt = $attemptdata;
     if (!empty($attemptdata->eventid)) {
         try {
@@ -248,8 +248,8 @@ if (!$activeattempt) {
         if ($existingattempt) {
             // Gamespace deployed AND attempt already started - resume it.
             $activeattempt = $existingattempt;
-            $object->openAttempt = new topomojo_attempt();
-            $object->openAttempt->load_from_record($activeattempt);
+            $object->openattempt = new topomojo_attempt();
+            $object->openattempt->load_from_record($activeattempt);
             try {
                 $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
             } catch (\Exception $e) {
@@ -457,16 +457,16 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
     if ($object->event) {
         if ($object->event->isActive) {
             if ($activeattempt) {
-                if ($object->openAttempt->questionusageid) {
-                    $object->openAttempt->save_question();
+                if ($object->openattempt->questionusageid) {
+                    $object->openattempt->save_question();
                 }
-                $object->openAttempt->close_attempt();
+                $object->openattempt->close_attempt();
                 // close_attempt() only finishes the question usage, it does not
                 // total the marks. Without this the attempt is left at score 0 and
                 // the gradebook is never told, even though the question usage holds
                 // real grades. challenge.php does the same after its stop branch.
                 $grader = new \mod_topomojo\utils\grade($object);
-                $grader->process_attempt($object->openAttempt);
+                $grader->process_attempt($object->openattempt);
             }
             stop_event($object->userauth, $object->event->id);
             topomojo_end($cm, $context, $topomojo);
@@ -503,12 +503,12 @@ if ($object->event) {
     // Check age and get new link, checking for 30 minute timeout of the url.
     if (
         $activeattempt &&
-        ($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
-        ((time() - $object->openAttempt->timemodified) > 3600)
+        ($object->openattempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
+        ((time() - $object->openattempt->timemodified) > 3600)
     ) {
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
-        $object->openAttempt->launchpointurl = $object->event->launchpointUrl;
-        $object->openAttempt->save();
+        $object->openattempt->launchpointurl = $object->event->launchpointUrl;
+        $object->openattempt->save();
     }
     $eventid = $object->event->id;
     $starttime = strtotime($object->event->startTime);
@@ -595,16 +595,16 @@ if ($object->event) {
 
         // Event is old and still no VMs - this is an error.
         debugging("no vms after timeout", DEBUG_DEVELOPER);
-        if ($activeattempt && $object->openAttempt) {
-            if ($object->openAttempt->questionusageid) {
-                $object->openAttempt->save_question();
+        if ($activeattempt && $object->openattempt) {
+            if ($object->openattempt->questionusageid) {
+                $object->openattempt->save_question();
             }
-            $object->openAttempt->close_attempt();
+            $object->openattempt->close_attempt();
             // Grade what the student did manage to answer before the deployment was
             // written off, rather than discarding it. close_attempt() on its own
             // leaves the attempt at score 0 with no gradebook entry.
             $grader = new \mod_topomojo\utils\grade($object);
-            $grader->process_attempt($object->openAttempt);
+            $grader->process_attempt($object->openattempt);
         }
         try {
             stop_event($object->userauth, $object->event->id);
@@ -744,7 +744,7 @@ if ($object->event) {
             $launchpointurl = !empty($object->event->launchpointUrl)
                 ? $object->event->launchpointUrl
                 : ($activeattempt
-                    ? $object->openAttempt->launchpointurl
+                    ? $object->openattempt->launchpointurl
                     : ($eventattempt->launchpointurl ?? ''));
             $renderer->display_link_page($launchpointurl);
             echo html_writer::end_div();
