@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Test double that records whether it was ever unserialized.
+ * Test double that records whether it was ever instantiated from serialized data (its __wakeup() ran).
  *
  * @package    mod_topomojo
  * @copyright  2024 Carnegie Mellon University
@@ -23,8 +23,6 @@
  */
 
 namespace mod_topomojo;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Sets a flag when PHP rebuilds an instance from serialized data.
