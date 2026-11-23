@@ -812,10 +812,9 @@ class mod_topomojo_mod_form extends moodleform_mod
                 // Auto-switch to variant 1 if workspace has no variants.
                 debugging("Workspace has no variants - switching to variant 1", DEBUG_DEVELOPER);
                 $data->variant = 1;
-            } else if ((($variants == 0) && ($data->variant == 1))) {
-                // No variants configured in the workspace challenge: variant 1 stands.
-            } else if ($data->variant > $variants) {
-                // Auto-switch to highest available variant.
+            } else if ($variants > 0 && $data->variant > $variants) {
+                // Auto-switch to highest available variant. With no variants configured in the workspace
+                // challenge, variant 1 stands and nothing is switched.
                 debugging("Variant {$data->variant} doesn't exist - switching to variant $variants", DEBUG_DEVELOPER);
                 $data->variant = $variants;
             }
