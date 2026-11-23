@@ -99,12 +99,15 @@ final class observer_test extends \advanced_testcase {
     }
 
     /**
-     * A class other than stdClass in the stored config is not instantiated.
+     * A class other than stdClass in the stored config is read as plain data and never instantiated.
      */
     public function test_other_classes_in_block_config_are_not_instantiated(): void {
         $this->resetAfterTest();
-        $this->add_frontpage_block(base64_encode(serialize(new \ArrayObject(['text' => 'x']))));
+        require_once(__DIR__ . '/fixtures/observer_wakeup_probe.php');
+        observer_wakeup_probe::$woken = false;
+        $this->add_frontpage_block(base64_encode(serialize(new observer_wakeup_probe())));
 
-        $this->assertFalse($this->current_cmid_equals(42));
+        $this->assertTrue($this->current_cmid_equals(42));
+        $this->assertFalse(observer_wakeup_probe::$woken);
     }
 }
