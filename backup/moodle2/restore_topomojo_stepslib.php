@@ -72,9 +72,8 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         );
         $paths[] = $quizquestioninstance;
 
-        if ($this->task->get_old_moduleversion() < 2025022800) {
-            // no references to restore
-        } else {
+        // Backups made before 2025022800 have no question references to restore.
+        if ($this->task->get_old_moduleversion() >= 2025022800) {
             $this->log('adding question reference paths', backup::LOG_DEBUG);
             $this->add_question_references($quizquestioninstance, $paths);
             $this->add_question_set_references($quizquestioninstance, $paths);

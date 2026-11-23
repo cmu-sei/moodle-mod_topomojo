@@ -831,7 +831,8 @@ class questionmanager {
             $this->qbankorderedquestions = [];
 
             return;
-        } else { // Otherwise explode it and continue on
+        } else {
+            // Otherwise explode it and continue on
             $questionorder = explode(',', $questionorder);
         }
 

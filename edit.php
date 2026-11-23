@@ -154,7 +154,8 @@ if ($object->topomojo->importchallenge) {
 switch ($action) {
     case 'addquestionlist':
         $rawdata = (array) data_submitted();
-        foreach ($rawdata as $key => $value) { // Parse input for question ids.
+        foreach ($rawdata as $key => $value) {
+            // Parse input for question ids.
             if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
                 $key = $matches[1];
                 $questionid = $key;

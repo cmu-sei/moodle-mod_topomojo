@@ -144,7 +144,7 @@ final class lib_test extends \advanced_testcase {
      *
      * @return array
      */
-    public static function supports_provider() {
+    public static function supports_provider(): array {
         return [
             'MOD_ARCHETYPE' => [FEATURE_MOD_ARCHETYPE, MOD_ARCHETYPE_OTHER],
             'GROUPS' => [FEATURE_GROUPS, false],

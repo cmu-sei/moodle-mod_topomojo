@@ -133,7 +133,7 @@ final class topomojo_attempt_test extends \advanced_testcase {
      *
      * @return array
      */
-    public static function state_provider() {
+    public static function state_provider(): array {
         return [
             'notstarted' => [topomojo_attempt::NOTSTARTED, 'notstarted'],
             'inprogress' => [topomojo_attempt::INPROGRESS, 'inprogress'],

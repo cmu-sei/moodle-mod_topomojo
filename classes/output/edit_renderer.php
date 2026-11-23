@@ -167,7 +167,8 @@ class edit_renderer extends \plugin_renderer_base {
 
         $spacericon = new \pix_icon('spacer', 'space', null, ['class' => 'smallicon space']);
         $controlhtml .= \html_writer::start_tag('noscript');
-        if ($qnum > 1) { // If we're on a later question than the first one add the move up control
+        if ($qnum > 1) {
+            // If we're on a later question than the first one add the move up control
             $moveupurl = clone($this->pageurl);
             $moveupurl->param('action', 'moveup');
             $moveupurl->param('questionid', $question->getId()); // Add the topomojoqid so that the question manager handles the translation
@@ -179,7 +180,8 @@ class edit_renderer extends \plugin_renderer_base {
         } else {
             $controlhtml .= $this->output->render($spacericon);
         }
-        if ($qnum < $qcount) { // If we're not on the last question add the move down control
+        if ($qnum < $qcount) {
+            // If we're not on the last question add the move down control
             $movedownurl = clone($this->pageurl);
             $movedownurl->param('action', 'movedown');
             $movedownurl->param('questionid', $question->getId());

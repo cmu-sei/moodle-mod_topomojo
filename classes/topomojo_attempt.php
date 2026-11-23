@@ -122,7 +122,8 @@ class topomojo_attempt {
                     $this->quba = null;
                 }
             }
-        } else { // else load it up in this class instance
+        } else {
+            // else load it up in this class instance
             $this->attempt = $dbattempt;
             // An attempt record can arrive without the column set at all: bulk deploy inserts a
             // partial record, and callers pass hand-built objects. Reading it directly raises an
@@ -215,7 +216,8 @@ class topomojo_attempt {
             $this->attempt->questionusageid = $this->quba->get_id();
         }
         $this->attempt->timemodified = time();
-        if (isset($this->attempt->id)) { // update the existing record
+        if (isset($this->attempt->id)) {
+            // update the existing record
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
             } catch (\Exception $e) {

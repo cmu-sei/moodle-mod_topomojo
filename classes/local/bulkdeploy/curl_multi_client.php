@@ -27,32 +27,6 @@ namespace mod_topomojo\local\bulkdeploy;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Result of one HTTP request executed by curl_multi_client.
- * @package mod_topomojo
- */
-class curl_response {
-    /** @var int HTTP status code, 0 if no response was received. */
-    public int $httpcode;
-    /** @var int cURL error number, 0 if none. */
-    public int $errno;
-    /** @var string Response body. */
-    public string $body;
-
-    /**
-     * Constructor.
-     *
-     * @param int $httpcode HTTP status code.
-     * @param int $errno cURL error number.
-     * @param string $body Response body.
-     */
-    public function __construct(int $httpcode, int $errno, string $body) {
-        $this->httpcode = $httpcode;
-        $this->errno = $errno;
-        $this->body = $body;
-    }
-}
-
-/**
  * Concurrent HTTP client wrapping the curl_multi_* PHP extension.
  *
  * Test seam — production code uses this concrete class; tests substitute

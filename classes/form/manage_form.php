@@ -45,7 +45,13 @@ class manage_form extends \moodleform {
         $mf->addElement('header', 'deployoptions', get_string('deploy_options', 'topomojo'));
 
         $rolecount = count($roles);
-        $mf->addElement('select', 'rolefilter', get_string('bulkdeploy_rolefilter', 'topomojo'), $roles, ['multiple' => 'multiple', 'size' => $rolecount, 'style' => 'width: 140px;']);
+        $mf->addElement(
+            'select',
+            'rolefilter',
+            get_string('bulkdeploy_rolefilter', 'topomojo'),
+            $roles,
+            ['multiple' => 'multiple', 'size' => $rolecount, 'style' => 'width: 140px;']
+        );
         $mf->addHelpButton('rolefilter', 'bulkdeploy_rolefilter', 'topomojo');
 
         $mf->addElement('text', 'batchsize', get_string('bulkdeploy_batchsize', 'topomojo'), ['size' => 5]);

@@ -663,7 +663,8 @@ function topomojo_grade_item_update($topomojo, $grades = null) {
     global $CFG, $DB, $OUTPUT;
     require_once($CFG->libdir . '/gradelib.php');
 
-    if (property_exists($topomojo, 'cmidnumber')) { // May not be always present.
+    if (property_exists($topomojo, 'cmidnumber')) {
+        // May not be always present.
         $params = ['itemname' => $topomojo->name, 'idnumber' => $topomojo->cmidnumber];
     } else {
         $params = ['itemname' => $topomojo->name];
