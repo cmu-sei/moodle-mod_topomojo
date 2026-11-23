@@ -946,6 +946,16 @@ class questionmanager {
         }
     }
 
+    /**
+     * Finds activity questions that no longer match the challenge.
+     *
+     * A question is mismatched when its text is not in the challenge variant, or its answer differs.
+     *
+     * @param \mod_topomojo\topomojo $object The activity.
+     * @param int $variant The variant index in the challenge.
+     * @param \stdClass $challenge The challenge as returned by TopoMojo.
+     * @return array Each entry: ['id' => topomojo question ID, 'questiontext' => string, 'name' => string].
+     */
     public function detect_mismatched_questions($object, $variant, $challenge) {
         global $DB;
 
@@ -1340,6 +1350,13 @@ class questionmanager {
         }
     }
 
+    /**
+     * Sends a notification to everyone who can manage the activity that its questions no longer match.
+     *
+     * @param \stdClass $cm The course module.
+     * @param string $activityname The activity name.
+     * @return void
+     */
     public function notify_instructors_of_mismatch($cm, $activityname) {
         // Get users with the 'mod/topomojo:manage' capability (typically teachers/admins)
         $context = \context_module::instance($cm->id); // Context of the TopoMojo activity

@@ -35,6 +35,8 @@ DM24-1175
 */
 
 /**
+ * Restore steps for the TopoMojo activity.
+ *
  * @package   mod_topomojo
  * @category  backup
  * @copyright 2024 Carnegie Mellon University
@@ -49,9 +51,16 @@ DM24-1175
  * Structure step to restore one topomojo activity
  */
 class restore_topomojo_activity_structure_step extends restore_questions_activity_structure_step {
-    // TODO will have to implode this to insert it into the db
+    /**
+     * @var array The question order. TODO will have to implode this to insert it into the db.
+     */
     private $questionorder = [];
 
+    /**
+     * Defines the paths to restore.
+     *
+     * @return array The structure, prepared for the restore.
+     */
     protected function define_structure() {
 
         $paths = [];
@@ -75,6 +84,12 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         return $this->prepare_activity_structure($paths);
     }
 
+    /**
+     * Restores the activity record.
+     *
+     * @param array $data The backed up activity data.
+     * @return void
+     */
     protected function process_topomojo($data) {
         global $DB;
 
@@ -162,6 +177,11 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
     protected function inform_new_usage_id($newusageid) {
     }
 
+    /**
+     * Restores the activity's files once the structure has been restored.
+     *
+     * @return void
+     */
     protected function after_execute() {
         global $DB;
 

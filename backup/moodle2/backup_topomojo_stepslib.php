@@ -48,6 +48,11 @@ defined('MOODLE_INTERNAL') || die;
   * Define the complete topomojo structure for backup, with file and id annotations
   */
 class backup_topomojo_activity_structure_step extends backup_questions_activity_structure_step {
+    /**
+     * Defines the structure to back up.
+     *
+     * @return backup_nested_element The root element of the structure.
+     */
     protected function define_structure() {
 
         // Define each element separated

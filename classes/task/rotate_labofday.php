@@ -26,12 +26,25 @@ namespace mod_topomojo\task;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Scheduled task that picks the lab of the day from the featured activities.
+ */
 class rotate_labofday extends \core\task\scheduled_task {
+    /**
+     * Gets the name of the task.
+     *
+     * @return string The task name.
+     */
     public function get_name(): string {
 
         return get_string('task_rotate_labofday', 'mod_topomojo');
     }
 
+    /**
+     * Moves the lab of the day to the next visible, featured activity, or clears it if there is none.
+     *
+     * @return void
+     */
     public function execute() {
         global $DB;
 

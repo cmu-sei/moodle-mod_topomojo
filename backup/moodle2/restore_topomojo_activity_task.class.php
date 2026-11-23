@@ -35,6 +35,8 @@ DM24-1175
 */
 
 /**
+ * Restore task for the TopoMojo activity.
+ *
  * @package   mod_topomojo
  * @category  backup
  * @copyright 2024 Carnegie Mellon University

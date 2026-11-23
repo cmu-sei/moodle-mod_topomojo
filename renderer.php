@@ -86,6 +86,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/detail', $data);
     }
 
+    /**
+     * Renders the activity details when the lab has no virtual machines.
+     *
+     * @param \stdClass $topomojo The activity record.
+     * @param int $duration The lab duration in seconds.
+     * @param string|bool $code Optional support code.
+     * @param bool $showwarning Whether to show the warning.
+     * @return void
+     */
     public function display_detail_no_vms($topomojo, $duration, $code = false, $showwarning = true) {
         $data = new stdClass();
         $data->name = $topomojo->name;
@@ -126,6 +135,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/launching', $data);
     }
 
+    /**
+     * Renders the details shown when the attempt limit has been reached.
+     *
+     * @param \stdClass $topomojo The activity record.
+     * @param int $maxattempts The number of attempts allowed.
+     * @param int $currentattemptcount The number of attempts already completed.
+     * @param string $markdown The markdown content to display.
+     * @return void
+     */
     public function display_detail_max_attempts($topomojo, $maxattempts, $currentattemptcount, $markdown) {
         $data = new stdClass();
         $data->max_attempts = $maxattempts;
@@ -137,6 +155,16 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     }
 
 
+    /**
+     * Renders the details shown when the limit of deployed labs has been reached.
+     *
+     * @param \stdClass $topomojo The activity record.
+     * @param int $maxdeployedlabs The number of labs allowed to be deployed at once.
+     * @param int $currentdeployedcount The number of labs currently deployed.
+     * @param string $markdown The markdown content to display.
+     * @param array $labnames The names of the labs currently deployed.
+     * @return void
+     */
     public function display_detail_max_deployed_labs($topomojo, $maxdeployedlabs, $currentdeployedcount, $markdown, $labnames) {
         $data = new stdClass();
         $data->max_deployed_labs = $maxdeployedlabs;
@@ -148,6 +176,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/max_deployed_labs', $data);
     }
 
+    /**
+     * Renders the details shown when the limit of deployed gamespaces has been reached.
+     *
+     * @param \stdClass $topomojo The activity record.
+     * @param string $markdown The markdown content to display.
+     * @return void
+     */
     public function display_detail_max_gamespaces($topomojo, $markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
@@ -155,6 +190,14 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/max_deployed_gamespaces', $data);
     }
 
+    /**
+     * Renders the page shown when the lab timed out.
+     *
+     * @param \stdClass $topomojo The activity record.
+     * @param string $markdown The markdown content to display.
+     * @param string|bool $code Support code.
+     * @return void
+     */
     public function display_timeout($topomojo, $markdown, $code) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
@@ -273,6 +316,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the challenge instructions with the attempt warning and the end lab button.
+     *
+     * @param string $markdown The markdown content to display.
+     * @return void
+     */
     public function render_challenge_instructions_warning_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
@@ -282,6 +331,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the challenge instructions with the attempt warning.
+     *
+     * @param string $markdown The markdown content to display.
+     * @return void
+     */
     public function render_challenge_instructions_warning($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
@@ -291,6 +346,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the challenge instructions with the end lab button.
+     *
+     * @param string $markdown The markdown content to display.
+     * @return void
+     */
     public function render_challenge_instructions_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
@@ -299,6 +360,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the attempt warning with the end lab button and no challenge text.
+     *
+     * @return void
+     */
     public function render_warning_endlab() {
         $data = new stdClass();
         $data->showWarning = true;  // General warning for maxed attempts
@@ -307,6 +373,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the attempt warning with no challenge text.
+     *
+     * @return void
+     */
     public function render_warning() {
         $data = new stdClass();
         $data->showWarning = true;  // General warning for maxed attempts
@@ -315,6 +386,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
 
+    /**
+     * Renders the end lab button with no challenge text.
+     *
+     * @return void
+     */
     public function render_endlab() {
         $data = new stdClass();
         $data->endlab = true;       // End-lab scenario
@@ -789,6 +865,11 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $output;
     }
 
+    /**
+     * Renders the message shown when the activity has no challenge, with a button back to the activity.
+     *
+     * @return void
+     */
     public function render_no_challenge() {
         $output = '';
         $output .= html_writer::tag('p', get_string('nochallenge', 'topomojo'), ['id' => 'review_notavailable']);
@@ -800,6 +881,15 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         echo $output;
     }
 
+    /**
+     * Prepares markdown for display.
+     *
+     * Makes relative image URLs absolute against the TopoMojo base URL and renders the markdown inside
+     * p, summary and details tags.
+     *
+     * @param string $markdown The markdown to prepare.
+     * @return string The prepared markdown.
+     */
     private function clean_markdown($markdown) {
         $cleanlines = [];
         $url = get_topomojo_base_url();

@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
+/**
+ * Tests for the bulk deployment task.
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\task\bulkdeploy_run::class)]
 final class bulkdeploy_run_test extends \advanced_testcase {
     private function make_topomojo_record(): \stdClass {

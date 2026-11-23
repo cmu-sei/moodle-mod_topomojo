@@ -44,6 +44,9 @@ namespace mod_topomojo\question\bank;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Column that shows the question name followed by the start of the question text.
+ */
 class question_name_text_column extends \qbank_viewquestionname\viewquestionname_column_helper {
     /**
      * Retrieves the name of the question bank column.

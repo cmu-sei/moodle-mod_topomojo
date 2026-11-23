@@ -447,6 +447,12 @@ class topomojo
         $questionmanager->process_variant_questions($context, $this, $variantindex, $challenge, true);
     }
 
+    /**
+     * Creates an attempt for the running gamespace, unless an open attempt exists.
+     *
+     * @param int $preview 1 if this is an instructor preview.
+     * @return bool True if an attempt is open, false if a new one could not be saved.
+     */
     public function init_attempt($preview = 0) {
         global $DB, $USER;
 

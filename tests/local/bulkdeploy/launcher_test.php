@@ -20,6 +20,11 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
+/**
+ * Tests for the bulk deployment launcher.
+ *
+ * @package mod_topomojo
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\launcher::class)]
 final class launcher_test extends \advanced_testcase {
     private function topomojo(): \stdClass {
@@ -282,6 +287,7 @@ final class launcher_test extends \advanced_testcase {
                 int $requesttimeout,
                 int $pollintervalsec,
                 int $waitceilingsec,
+                /** @var int The row to mark cancelled while the batch is polling. */
                 private int $cancelrowid
             ) {
                 parent::__construct(

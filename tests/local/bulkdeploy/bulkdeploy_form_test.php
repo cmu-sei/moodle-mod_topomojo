@@ -29,6 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/topomojo/classes/form/bulkdeploy_form.php');
 
+/**
+ * Tests for the bulk deployment form.
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\form\bulkdeploy_form::class)]
 final class bulkdeploy_form_test extends \advanced_testcase {
     public function test_validate_rejects_batchsize_zero(): void {

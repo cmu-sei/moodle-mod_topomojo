@@ -26,7 +26,16 @@ namespace mod_topomojo;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Observers that keep the lab of the day link in step with activity changes.
+ */
 class observer {
+    /**
+     * Queues a lab of the day rotation when the deleted activity is the one the front page links to.
+     *
+     * @param \core\event\course_module_deleted $event The event.
+     * @return void
+     */
     public static function cm_deleted(\core\event\course_module_deleted $event): void {
         if (($event->other['modulename'] ?? '') !== 'topomojo') {
             return;
@@ -44,6 +53,12 @@ class observer {
         }
     }
 
+    /**
+     * Queues a lab of the day rotation when the activity the front page links to is hidden.
+     *
+     * @param \core\event\course_module_visibility_updated $event The event.
+     * @return void
+     */
     public static function cm_visibility_updated(\core\event\course_module_visibility_updated $event): void {
         global $DB;
 
@@ -64,6 +79,12 @@ class observer {
         }
     }
 
+    /**
+     * Queues a lab of the day rotation when the activity the front page links to is updated and is hidden.
+     *
+     * @param \core\event\course_module_updated $event The event.
+     * @return void
+     */
     public static function cm_updated(\core\event\course_module_updated $event): void {
         global $DB;
 

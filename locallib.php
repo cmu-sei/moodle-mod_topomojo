@@ -715,6 +715,15 @@ function get_markdown($client, $id, $topomojoid = null) {
     return $markdown;
 }
 
+/**
+ * Gets the gamespace limit of the TopoMojo user the requests are made as.
+ *
+ * With an API key and a manager name configured, the user is looked up by that name; otherwise the
+ * user is the one the client is authenticated as.
+ *
+ * @param curl|null $client The authenticated client used for the request.
+ * @return int|null The gamespace limit, or null if the client is missing or the response has none.
+ */
 function get_gamespace_limit($client) {
 
     if ($client == null) {

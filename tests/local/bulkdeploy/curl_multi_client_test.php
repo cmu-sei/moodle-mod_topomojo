@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../fixtures/fake_curl_multi_client.php');
 
+/**
+ * Tests for the curl_multi_client class.
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\fake_curl_multi_client::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\curl_multi_client::class)]
 final class curl_multi_client_test extends \advanced_testcase {

@@ -41,11 +41,25 @@ class fake_curl_multi_client extends curl_multi_client {
     /** @var array<int, array> log of all requests executed, in order */
     public array $log = [];
 
+    /**
+     * Queues the response to return for a request.
+     *
+     * @param string $method The HTTP method.
+     * @param string $url The URL.
+     * @param curl_response $response The response to return.
+     * @return void
+     */
     public function queue(string $method, string $url, curl_response $response): void {
         $key = $method . ' ' . $url;
         $this->queues[$key][] = $response;
     }
 
+    /**
+     * Records the requests and returns the queued responses for them.
+     *
+     * @param array $requests The requests, as for curl_multi_client::execute().
+     * @return curl_response[] The responses, with the same keys as the requests.
+     */
     public function execute(array $requests): array {
         $results = [];
         foreach ($requests as $i => $req) {

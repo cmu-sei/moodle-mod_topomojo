@@ -28,6 +28,12 @@ require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 use mod_topomojo\local\bulkdeploy\job_repository;
 use mod_topomojo\task\bulkdeploy_run;
 
+/**
+ * Parses the schedule time submitted from the manage page.
+ *
+ * @param string $value A date and time as sent by a datetime-local input, with or without seconds.
+ * @return int|null Unix time in the user's timezone, or null if the value cannot be parsed.
+ */
 function mod_topomojo_parse_bulkdeploy_schedule(string $value): ?int {
     $timezone = \core_date::get_user_timezone_object();
     foreach (['!Y-m-d\TH:i', '!Y-m-d\TH:i:s'] as $format) {

@@ -26,10 +26,23 @@ namespace mod_topomojo\task;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Ad-hoc task that runs the lab of the day rotation immediately.
+ */
 class rotate_labofday_adhoc extends \core\task\adhoc_task {
+    /**
+     * Gets the component the task belongs to.
+     *
+     * @return string The component name.
+     */
     public function get_component() {
         return 'mod_topomojo';
     }
+    /**
+     * Runs the lab of the day rotation.
+     *
+     * @return void
+     */
     public function execute() {
         (new \mod_topomojo\task\rotate_labofday())->execute();
     }

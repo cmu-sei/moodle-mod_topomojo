@@ -26,6 +26,9 @@ namespace mod_topomojo\local\bulkdeploy;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Tests for the job repository.
+ */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_topomojo\local\bulkdeploy\job_repository::class)]
 final class job_repository_test extends \advanced_testcase {
     public function test_create_job_with_users_persists_rows(): void {

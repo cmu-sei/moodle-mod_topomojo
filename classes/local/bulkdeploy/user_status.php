@@ -31,15 +31,28 @@ defined('MOODLE_INTERNAL') || die();
  * @package mod_topomojo
  */
 class user_status {
+    /** @var string Waiting for its turn. */
     const PENDING = 'pending';
+    /** @var string Gamespace requested, waiting for it to become ready. */
     const LAUNCHED = 'launched';
+    /** @var string Gamespace is ready. */
     const READY = 'ready';
+    /** @var string Not launched, for example because the user has no email address. */
     const SKIPPED = 'skipped';
+    /** @var string Launch failed or timed out. */
     const FAILED = 'failed';
+    /** @var string Cancelled before it was launched. */
     const CANCELLED = 'cancelled';
 
+    /** @var string[] Statuses a row never leaves. */
     const TERMINAL = [self::READY, self::SKIPPED, self::FAILED, self::CANCELLED];
 
+    /**
+     * Checks whether a status is final.
+     *
+     * @param string $status A user row status.
+     * @return bool True if the row will not change status again.
+     */
     public static function is_terminal(string $status): bool {
         return in_array($status, self::TERMINAL, true);
     }

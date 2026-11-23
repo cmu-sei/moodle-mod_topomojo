@@ -31,15 +31,28 @@ defined('MOODLE_INTERNAL') || die();
  * @package mod_topomojo
  */
 class job_status {
+    /** @var string Waiting to start. */
     const QUEUED = 'queued';
+    /** @var string Being processed. */
     const RUNNING = 'running';
+    /** @var string Cancellation requested; the running batch is finishing. */
     const CANCELLING = 'cancelling';
+    /** @var string Cancelled before it finished. */
     const CANCELLED = 'cancelled';
+    /** @var string Finished. */
     const COMPLETED = 'completed';
+    /** @var string Stopped by an error. */
     const FAILED = 'failed';
 
+    /** @var string[] Statuses a job never leaves. */
     const TERMINAL = [self::CANCELLED, self::COMPLETED, self::FAILED];
 
+    /**
+     * Checks whether a status is final.
+     *
+     * @param string $status A job status.
+     * @return bool True if the job will not change status again.
+     */
     public static function is_terminal(string $status): bool {
         return in_array($status, self::TERMINAL, true);
     }

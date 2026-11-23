@@ -29,7 +29,15 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
+/**
+ * Form for starting a bulk deployment for the users with chosen roles.
+ */
 class bulkdeploy_form extends \moodleform {
+    /**
+     * Defines the form.
+     *
+     * @return void
+     */
     protected function definition(): void {
         $mform = $this->_form;
         $customdata = $this->_customdata ?? [];
@@ -58,6 +66,13 @@ class bulkdeploy_form extends \moodleform {
         $this->add_action_buttons(true, get_string('bulkdeploy_submit', 'topomojo'));
     }
 
+    /**
+     * Checks that the batch size is between 1 and 50.
+     *
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Errors by element name.
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         $bs = (int) ($data['batchsize'] ?? 0);
@@ -67,7 +82,13 @@ class bulkdeploy_form extends \moodleform {
         return $errors;
     }
 
-    /** Test-only entry point; normal form callers go through Moodle's validation pipeline. */
+    /**
+     * Test-only entry point; normal form callers go through Moodle's validation pipeline.
+     *
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Errors by element name.
+     */
     public function validation_for_test(array $data, array $files): array {
         return $this->validation($data, $files);
     }

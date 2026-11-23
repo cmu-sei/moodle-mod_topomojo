@@ -35,6 +35,14 @@ defined('MOODLE_INTERNAL') || die();
  * @package mod_topomojo
  */
 class payload_builder {
+    /**
+     * Builds the gamespace request for one user.
+     *
+     * @param string $workspaceid The TopoMojo workspace ID.
+     * @param \stdClass $topomojo The activity record.
+     * @param \stdClass $user The user to start the gamespace for.
+     * @return \stdClass The request body.
+     */
     public static function build(string $workspaceid, \stdClass $topomojo, \stdClass $user): \stdClass {
         $payload = new \stdClass();
         $payload->resourceId = $workspaceid;

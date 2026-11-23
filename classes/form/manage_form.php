@@ -33,6 +33,11 @@ require_once($CFG->libdir . '/formslib.php');
  * @package mod_topomojo
  */
 class manage_form extends \moodleform {
+    /**
+     * Defines the form.
+     *
+     * @return void
+     */
     protected function definition() {
         $mf = $this->_form;
         $roles = $this->_customdata['roles'];
@@ -61,6 +66,13 @@ class manage_form extends \moodleform {
         $this->add_action_buttons(true, get_string('bulkdeploy_submit', 'topomojo'));
     }
 
+    /**
+     * Checks the batch size is between 1 and 50, and that a scheduled time is in the future.
+     *
+     * @param array $data The submitted data.
+     * @param array $files The submitted files.
+     * @return array Errors by element name.
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
