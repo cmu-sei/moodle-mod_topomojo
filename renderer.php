@@ -354,7 +354,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_challenge_instructions_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-        $data->endlab = true;      // Not an end-lab scenario.
+        $data->endlab = true;      // End-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
