@@ -548,16 +548,15 @@ class questionmanager {
                     }
                 }
 
-                if ($questionid) {
-                        // $table = 'question_attempts';
-                        // $questionusageid = $quba->get_id();
-                        // $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
+                // When a question was found ($questionid), its right answer was meant to be written to the question attempt:
+                // $table = 'question_attempts';
+                // $questionusageid = $quba->get_id();
+                // $dataobject = $DB->get_record($table, array('questionusageid' => $questionusageid, 'questionid' => $questionid));
 
-                        // TODO check the variant and the number
-                        // $dataobject->rightanswer = $question->answer;
-                        // update quba with the correct answer
-                        // $DB->update_record($table, $dataobject);
-                }
+                // TODO check the variant and the number
+                // $dataobject->rightanswer = $question->answer;
+                // update quba with the correct answer
+                // $DB->update_record($table, $dataobject);
             }
         }
     }
