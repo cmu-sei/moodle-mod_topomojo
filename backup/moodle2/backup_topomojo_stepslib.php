@@ -55,7 +55,7 @@ class backup_topomojo_activity_structure_step extends backup_questions_activity_
      */
     protected function define_structure() {
 
-        // Define each element separated
+        // Define each element separated.
         $topomojo = new backup_nested_element('topomojo', ['id'], [
             'name', 'intro', 'introformat', 'workspaceid', 'embed',
             'clock', 'extendevent', 'extendinterval', 'timeopen', 'timeclose', 'grade',
@@ -74,26 +74,26 @@ class backup_topomojo_activity_structure_step extends backup_questions_activity_
             ['id'],
             ['topomojoid', 'questionid', 'points']
         );
-        // element, component, questionarea
+        // Element, component, questionarea.
         $this->add_question_references($qinstance, 'mod_topomojo', 'slot');
         $this->add_question_set_references($qinstance, 'mod_topomojo', 'questionid');
         $this->get_logger()->process("topomojo questions added", backup::LOG_DEBUG);
 
-        // Build the tree
+        // Build the tree.
         $topomojo->add_child($qinstances);
         $qinstances->add_child($qinstance);
 
-        // Define sources
+        // Define sources.
         $topomojo->set_source_table('topomojo', ['id' => backup::VAR_ACTIVITYID]);
         $qinstance->set_source_table('topomojo_questions', ['topomojoid' => backup::VAR_ACTIVITYID]);
 
         // Define id annotations
-        // module has no id annotations
+        // module has no id annotations.
 
-        // Define file annotations
-        $topomojo->annotate_files('mod_topomojo', 'intro', null); // This file area hasn't itemid
+        // Define file annotations.
+        $topomojo->annotate_files('mod_topomojo', 'intro', null); // This file area hasn't itemid.
 
-        // Return the root element (topomojo), wrapped into standard activity structure
+        // Return the root element (topomojo), wrapped into standard activity structure.
         return $this->prepare_activity_structure($topomojo);
     }
 }

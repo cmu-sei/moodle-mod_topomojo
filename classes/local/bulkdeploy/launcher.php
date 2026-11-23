@@ -221,7 +221,7 @@ class launcher {
                         && is_array($decoded->vms)
                     ) {
                         $this->repo->set_user_status($entry['rowid'], user_status::READY);
-                        // Create attempt record for the user
+                        // Create attempt record for the user.
                         $userid = $useridmap[$entry['rowid']] ?? null;
                         if ($userid) {
                             $this->create_attempt_for_user(
@@ -342,7 +342,7 @@ class launcher {
     ): void {
         global $DB;
 
-        // Check if user already has an open attempt for this activity
+        // Check if user already has an open attempt for this activity.
         $existing = $DB->get_record('topomojo_attempts', [
             'topomojoid' => $topomojo->id,
             'userid' => $userid,
@@ -350,7 +350,7 @@ class launcher {
         ]);
 
         if ($existing) {
-            // User already has an open attempt, don't create duplicate
+            // User already has an open attempt, don't create duplicate.
             return;
         }
 

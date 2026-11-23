@@ -44,10 +44,10 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:bulkdeploy', $context);
 
-// Get the row to verify it belongs to this job
+// Get the row to verify it belongs to this job.
 $row = $DB->get_record('topomojo_bulkdeploy_user', ['id' => $rowid, 'jobid' => $jobid], '*', MUST_EXIST);
 
-// Initialize TopoMojo auth client
+// Initialize TopoMojo auth client.
 $auth = setup();
 
 if (!$auth) {
@@ -55,11 +55,11 @@ if (!$auth) {
     redirect(new moodle_url('/mod/topomojo/status.php', ['jobid' => $jobid]));
 }
 
-// Stop the gamespace
+// Stop the gamespace.
 try {
     stop_event($auth, $gamespaceid);
 
-    // Update the row to clear gamespace ID and mark as ended
+    // Update the row to clear gamespace ID and mark as ended.
     $DB->set_field('topomojo_bulkdeploy_user', 'gamespaceid', '', ['id' => $rowid]);
     $DB->set_field('topomojo_bulkdeploy_user', 'errormessage', 'Manually ended', ['id' => $rowid]);
 
@@ -68,5 +68,5 @@ try {
     \core\notification::error('Failed to end gamespace: ' . $e->getMessage());
 }
 
-// Redirect back to status page
+// Redirect back to status page.
 redirect(new moodle_url('/mod/topomojo/status.php', ['jobid' => $jobid]));

@@ -44,17 +44,17 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/topomojo:bulkdeploy', $context);
 
-// Get the row to verify it belongs to this job
+// Get the row to verify it belongs to this job.
 $row = $DB->get_record('topomojo_bulkdeploy_user', ['id' => $rowid, 'jobid' => $jobid], '*', MUST_EXIST);
 
-// Initialize TopoMojo auth client
+// Initialize TopoMojo auth client.
 $auth = setup();
 
 if (!$auth) {
     throw new moodle_exception('TopoMojo authentication not configured');
 }
 
-// Get the gamespace details to get launch URL
+// Get the gamespace details to get launch URL.
 $url = get_topomojo_api_url() . "/gamespace/" . $gamespaceid;
 $auth->get($url);
 $response = $auth->getResponse();
@@ -68,5 +68,5 @@ if (!$gamespace || empty($gamespace->launchpointUrl)) {
     throw new moodle_exception('Gamespace has no launch URL');
 }
 
-// Redirect to the gamespace launch URL
+// Redirect to the gamespace launch URL.
 redirect($gamespace->launchpointUrl);

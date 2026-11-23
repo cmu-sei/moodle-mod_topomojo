@@ -49,12 +49,12 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 
-$a = required_param('a', PARAM_INT);  // Attempt ID
+$a = required_param('a', PARAM_INT);  // Attempt ID.
 $action = optional_param('action', 'view', PARAM_TEXT);
 $slot = optional_param('slot', '', PARAM_INT);
 
 if (!$a) {
-    $a = required_param('attemptid', PARAM_INT);  // Attempt ID
+    $a = required_param('attemptid', PARAM_INT);  // Attempt ID.
 }
 $attemptid = $a;
 
@@ -69,14 +69,14 @@ try {
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
-// TODO create review attempt capability
+// TODO create review attempt capability.
 require_capability('mod/topomojo:view', $context);
 
 // TODO log event attempt views
 // if ($_SERVER['REQUEST_METHOD'] == "GET") {
 // Completion and trigger events.
 // topomojo_view($topomojo, $course, $cm, $context);
-// }
+// }.
 
 // Print the page header.
 $url = new moodle_url('/mod/topomojo/viewattempt.php', ['a' => $a]);
@@ -85,7 +85,7 @@ $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 
-// New topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = ['a' => $a, 'pageurl' => $pageurl];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
@@ -101,7 +101,7 @@ if (!$attempt) {
         case 'savecomment':
             $success = $attempt->process_comment($object->topomojo, $slot);
             if ($success) {
-                // If successful recalculate the grade for the attempt's userid as the grader can update grades on the questions
+                // If successful recalculate the grade for the attempt's userid as the grader can update grades on the questions.
                 $object->renderer->base_header();
 
                 $grader = new \mod_topomojo\utils\grade($object);
@@ -117,7 +117,7 @@ if (!$attempt) {
 
             break;
         default:
-            // TODO create attempt viewed event
+            // TODO create attempt viewed event.
             $params = [
                 'relateduserid' => $USER->id,
                 'objectid'      => $pagevars['a'],
@@ -132,7 +132,7 @@ if (!$attempt) {
 
             $object->renderer->base_header();
 
-            // Show preview mode notification if this is a preview attempt
+            // Show preview mode notification if this is a preview attempt.
             if ($attempt->preview == 1) {
                 $previewmsg = get_string('previewmode', 'mod_topomojo') . ': ' . get_string('previewmodewarning', 'mod_topomojo');
                 echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);

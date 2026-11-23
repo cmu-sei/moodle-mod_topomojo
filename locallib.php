@@ -238,7 +238,7 @@ function topomojo_configure_api_client($client, $bearsapikey = false) {
  */
 function setup() {
     if (get_config('topomojo', 'enableapikey')) {
-        // Use external API key
+        // Use external API key.
         $xapikey = get_config('topomojo', 'apikey');
 
         if (empty($xapikey)) {
@@ -255,7 +255,7 @@ function setup() {
 
         return topomojo_configure_api_client($client, true);
     } else {
-        // Use OAuth2 system client
+        // Use OAuth2 system client.
         if (get_config('topomojo', 'enableoauth')) {
             $issuerid = get_config('topomojo', 'issuerid');
         }
@@ -307,7 +307,7 @@ function list_events($client, $workspaceid) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false&Term=" . $workspaceid . "&WantsActive=true";
 
     $response = $client->get($url);
@@ -359,9 +359,9 @@ function list_all_active_events($client) {
         return;
     }
 
-    // Use a generic search term or empty if API allows it
+    // Use a generic search term or empty if API allows it.
     $url = get_topomojo_api_url() . "/gamespaces?WantsAll=false"
-        . "&Term=" . rawurlencode('')   // May return all events depending on API behavior
+        . "&Term=" . rawurlencode('')   // May return all events depending on API behavior.
         . "&WantsActive=true";
 
     $response = $client->get($url);
@@ -459,7 +459,7 @@ function user_events($client, $events) {
     }
 
     foreach ($events as $event) {
-        // Web request
+        // Web request.
         $url = get_topomojo_api_url() . "/gamespace/" . $event['id'];
         // echo "<br>GET $url<br>";
 
@@ -531,18 +531,18 @@ function get_workspace($client, $id) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/workspace/" . $id;
     // echo "GET $url<br>";
 
     $response = $client->get($url);
 
-    // TODO handle network error
+    // TODO handle network error.
 
     if ($client->info['http_code'] !== 200) {
         // debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         // print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
+        // TODO we dont have an httpp_code if the connection failed.
         throw new moodle_exception($client->info['http_code'] . " for $url");
     }
 
@@ -581,7 +581,7 @@ function get_workspaces($client) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/workspaces";
     // echo "GET $url<br>";
 
@@ -624,18 +624,18 @@ function get_gamespace_challenge($client, $id) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/challenge";
     // echo "GET $url<br>";
 
     $response = $client->get($url);
 
-    // TODO handle network error
+    // TODO handle network error.
 
     if ($client->info['http_code'] !== 200) {
         // debugging('response code ' . $client->info['http_code'] . " for $url", DEBUG_DEVELOPER);
         // print_r($client->response);
-        // TODO we dont have an httpp_code if the connection failed
+        // TODO we dont have an httpp_code if the connection failed.
         throw new moodle_exception($client->info['http_code'] . " for $url");
     }
 
@@ -691,14 +691,14 @@ function get_markdown($client, $id, $topomojoid = null) {
 
     $markdown = '';
 
-    // Case 1: server returns JSON (either a bare JSON string, or an object with a field)
+    // Case 1: server returns JSON (either a bare JSON string, or an object with a field).
     if (stripos($ctype, 'application/json') !== false) {
         $decoded = json_decode($response, true);
         if (is_string($decoded)) {
             $markdown = $decoded;
         }
     } else {
-        // Case 2: plain text response
+        // Case 2: plain text response.
         $markdown = $response;
     }
 
@@ -741,7 +741,7 @@ function get_gamespace_limit($client) {
 
         $url = $baseurl . "/users?Term=" . urlencode($managername);
 
-        // Set the Authorization header for the request
+        // Set the Authorization header for the request.
         $headers = [
             'accept: text/plain',
             'Authorization: Bearer ' . get_config('topomojo', 'apikey'),
@@ -750,17 +750,17 @@ function get_gamespace_limit($client) {
         $userinfo = $client->get_userinfo();
         $managerid = $userinfo['idnumber'];
 
-        // Base URL from configuration and construct endpoint with the term parameter
+        // Base URL from configuration and construct endpoint with the term parameter.
         $url = $baseurl . "/user/" . $managerid;
     }
 
-    // Perform the GET request
+    // Perform the GET request.
     $response = $client->get($url);
 
-    // Decode the JSON response
+    // Decode the JSON response.
     $responsedata = json_decode($response, true);
 
-    // Check if decoding was successful
+    // Check if decoding was successful.
     if (!$responsedata) {
         debugging('Could not decode JSON response', DEBUG_DEVELOPER);
         return;
@@ -804,15 +804,15 @@ function start_event($client, $id, $topomojo) {
         return;
     }
 
-    // Set curl timeout to match deployment timeout setting
+    // Set curl timeout to match deployment timeout setting.
     $deploytimeout = get_config('topomojo', 'deploytimeout') ?: 120;
     $client->setopt(['CURLOPT_TIMEOUT' => $deploytimeout]);
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace";
     // echo "POST $url<br>";
 
-    // Generate post data
+    // Generate post data.
     $payload = \mod_topomojo\local\bulkdeploy\payload_builder::build($id, $topomojo, $USER);
     $json = json_encode($payload);
     // print_r($json);
@@ -839,7 +839,7 @@ function start_event($client, $id, $topomojo) {
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r;
     }
@@ -873,7 +873,7 @@ function stop_event($client, $id) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/complete";
     // echo "POST $url<br>";
 
@@ -905,7 +905,7 @@ function stop_event($client, $id) {
 function check_conflicting_gamespace($topomojoid, $workspaceid) {
     global $DB, $USER;
 
-    // Find active attempts from OTHER activities using the same workspace
+    // Find active attempts from OTHER activities using the same workspace.
     $sql = "SELECT ta.*, t.name as activityname, t.course, cm.id as cmid
             FROM {topomojo_attempts} ta
             JOIN {topomojo} t ON t.id = ta.topomojoid
@@ -949,7 +949,7 @@ function get_ticket($client) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/user/ticket";
     // echo "POST $url<br>";
 
@@ -962,7 +962,7 @@ function get_ticket($client) {
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r->ticket;
     }
@@ -995,7 +995,7 @@ function get_invite($client, $id) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id . "/invite";
     // echo "POST $url<br>";
 
@@ -1008,7 +1008,7 @@ function get_invite($client, $id) {
         return;
     }
 
-    // Success
+    // Success.
     if ($client->info['http_code'] === 200) {
         return $r;
     }
@@ -1038,7 +1038,7 @@ function extend_event($client, $data) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace";
     $client->setHeader('Content-Type: application/json-patch+json');
 
@@ -1081,7 +1081,7 @@ function get_event($client, $id) {
         return;
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/gamespace/" . $id;
     // echo "GET $url<br>";
 
@@ -1313,7 +1313,7 @@ function get_challenge($client, $id) {
         throw new moodle_exception('could not setup session');
     }
 
-    // Web request
+    // Web request.
     $url = get_topomojo_api_url() . "/challenge/" . $id;
     // echo "GET $url<br>";
 
@@ -1377,7 +1377,7 @@ function getall_course_attempts($course) {
     $dbattempts = $DB->get_records_sql($sql, $sqlparams);
 
     $attempts = [];
-    // Create array of class attempts from the db entry
+    // Create array of class attempts from the db entry.
     foreach ($dbattempts as $dbattempt) {
         $attempts[] = new \mod_topomojo\topomojo_attempt($dbattempt);
     }
@@ -1400,7 +1400,7 @@ function getall_topomojo_attempts($course) {
     $dbattempts = $DB->get_records_sql($sql);
 
     $attempts = [];
-    // Create array of class attempts from the db entry
+    // Create array of class attempts from the db entry.
     foreach ($dbattempts as $dbattempt) {
         $attempts[] = new \mod_topomojo\topomojo_attempt($dbattempt);
     }
@@ -1637,7 +1637,7 @@ class mod_topomojo_display_options extends question_display_options
      */
     public static function make_from_topomojo($topomojo, $when) {
         $options = new self();
-        // TODO remove if not used
+        // TODO remove if not used.
         $options->attempt = self::extract($topomojo->reviewattempt, $when, true, false);
         $options->correctness = self::extract($topomojo->reviewcorrectness, $when);
         $options->marks = self::extract(
@@ -1714,7 +1714,7 @@ function topomojo_validate_workspace($workspaceid) {
         $client = setup();
         if (!$client) {
             debugging('Could not initialize TopoMojo API client for workspace validation', DEBUG_DEVELOPER);
-            return false; // Can't validate, assume it exists to avoid blocking restore
+            return false; // Can't validate, assume it exists to avoid blocking restore.
         }
 
         $apiurl = get_topomojo_api_url();
@@ -1731,7 +1731,7 @@ function topomojo_validate_workspace($workspaceid) {
         }
 
         if ($client->info['http_code'] === 404 || $client->info['http_code'] === 400) {
-            return false; // Workspace doesn't exist (404) or invalid ID format (400)
+            return false; // Workspace doesn't exist (404) or invalid ID format (400).
         }
 
         debugging('Unexpected response validating workspace: HTTP ' . $client->info['http_code'], DEBUG_DEVELOPER);

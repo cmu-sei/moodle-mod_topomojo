@@ -51,7 +51,7 @@ $plugin->version = 2026102700;
 // This is the version of Moodle this plugin requires.
 $plugin->requires = 2025041400;
 
-// This is the component name of the plugin - it always starts with 'component_'
+// This is the component name of the plugin - it always starts with 'component_'.
 $plugin->component = 'mod_topomojo';
 
 // This is a list of plugins, this plugin depends on (and their versions).
@@ -64,7 +64,7 @@ $plugin->dependencies = [
 ];
 
 // This is a stable release.
-// $plugin->maturity = MATURITY_STABLE;
+// $plugin->maturity = MATURITY_STABLE;.
 $plugin->maturity = MATURITY_BETA;
 
 // This is the named version.

@@ -322,11 +322,11 @@ final class backup_restore_test extends \restore_date_testcase {
 
         $restored = $DB->get_record('topomojo', ['course' => $newcourseid], '*', MUST_EXIST);
 
-        // timeopen and timeclose are the only settings process_topomojo() rewrites, shifting them by
+        // Timeopen and timeclose are the only settings process_topomojo() rewrites, shifting them by
         // the difference between the old and new course start dates.
         $this->assertFieldsRolledForward($original, $restored, ['timeopen', 'timeclose']);
 
-        // questionorder is rebuilt from the restored question links, so it is covered by
+        // Questionorder is rebuilt from the restored question links, so it is covered by
         // test_question_links_survive_round_trip() rather than compared here.
         $carried = array_diff(
             array_keys($this->distinctive_settings()),
@@ -405,7 +405,7 @@ final class backup_restore_test extends \restore_date_testcase {
         // The links are recreated against the restored copies of the questions, in the same order.
         $this->assertSame($names, $this->question_names_in_order($restored->id));
 
-        // questionorder is rebuilt from the new topomojo_questions ids, so it must not still be
+        // Questionorder is rebuilt from the new topomojo_questions ids, so it must not still be
         // pointing at the source course's ids.
         $restoredlinkids = array_keys($DB->get_records(
             'topomojo_questions',

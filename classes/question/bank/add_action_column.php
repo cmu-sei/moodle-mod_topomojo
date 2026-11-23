@@ -91,12 +91,12 @@ class add_action_column extends \core_question\local\bank\question_action_base {
             return;
         }
 
-        // Get the activity variant
+        // Get the activity variant.
         $cm = $this->qbank->get_most_specific_context()->get_course_module_record();
         $topomojo = $DB->get_record('topomojo', ['id' => $cm->instance], 'variant', MUST_EXIST);
         $activityvariant = $topomojo->variant;
 
-        // Get the question's variant from qtype_mojomatch_options
+        // Get the question's variant from qtype_mojomatch_options.
         $questionvariant = $DB->get_field_sql(
             "SELECT qmo.variant
              FROM {qtype_mojomatch_options} qmo
@@ -106,9 +106,9 @@ class add_action_column extends \core_question\local\bank\question_action_base {
         );
 
         // If variant=0 (random mode), allow all questions
-        // Otherwise, only show add icon for matching variant
+        // Otherwise, only show add icon for matching variant.
         if ($activityvariant != 0 && $questionvariant != $activityvariant) {
-            // Show disabled icon with tooltip explaining why
+            // Show disabled icon with tooltip explaining why.
             echo \html_writer::span(
                 get_string('wrongvariant', 'topomojo', [
                     'question_variant' => $questionvariant,

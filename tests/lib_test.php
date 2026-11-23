@@ -261,7 +261,7 @@ final class lib_test extends \advanced_testcase {
         $this->assertNotEmpty($record);
         $this->assertEquals('Test TopoMojo Activity', $record->name);
         $this->assertEquals('test-workspace-123', $record->workspaceid);
-        $this->assertEquals(100, $record->grade); // Default grade
+        $this->assertEquals(100, $record->grade); // Default grade.
     }
 
     /**

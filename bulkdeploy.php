@@ -33,7 +33,7 @@ redirect(
     \core\output\notification::NOTIFY_INFO
 );
 
-// Legacy code below - kept for reference but unreachable
+// Legacy code below - kept for reference but unreachable.
 use mod_topomojo\form\bulkdeploy_form;
 use mod_topomojo\local\bulkdeploy\job_repository;
 use mod_topomojo\task\bulkdeploy_run;

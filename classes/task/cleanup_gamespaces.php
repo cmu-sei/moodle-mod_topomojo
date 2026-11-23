@@ -49,7 +49,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
 
         $cleaned = 0;
 
-        // Find finished/abandoned attempts with active gamespaces
+        // Find finished/abandoned attempts with active gamespaces.
         [$insql, $inparams] = $DB->get_in_or_equal(
             [\mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED],
             SQL_PARAMS_NAMED,
@@ -63,7 +63,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                 AND state $insql
                 AND timefinish > 0
                 AND timefinish < :cutoff",
-            array_merge($inparams, ['cutoff' => time() - 300]) // Finished > 5 minutes ago
+            array_merge($inparams, ['cutoff' => time() - 300]) // Finished > 5 minutes ago.
         );
 
         foreach ($attempts as $attempt) {
@@ -79,7 +79,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
             }
         }
 
-        // Find deployments marked as expired but not cleaned up
+        // Find deployments marked as expired but not cleaned up.
         $deployments = $DB->get_records_select(
             'topomojo_bulkdeploy_user',
             "status = 'expired' AND gamespaceid IS NOT NULL",
@@ -97,7 +97,7 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                     $cleaned++;
                 }
             } catch (\Exception $e) {
-                // Already cleaned up or doesn't exist - ignore
+                // Already cleaned up or doesn't exist - ignore.
             }
         }
 

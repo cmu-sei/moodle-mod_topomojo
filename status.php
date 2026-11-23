@@ -88,13 +88,13 @@ foreach ($rows as $r) {
     echo '<tr data-rowid="' . (int)$r->id . '">'
        . '<td data-role="row-actions">';
 
-    // Show appropriate button based on status and whether attempt exists
+    // Show appropriate button based on status and whether attempt exists.
     if ($r->status === 'ready' && !empty($r->gamespaceid)) {
-        // Check if user has an active attempt
+        // Check if user has an active attempt.
         $hasattempt = topomojo_user_has_gamespace_attempt($job->topomojoid, $r->userid, $r->gamespaceid);
 
         if ($hasattempt) {
-            // Has attempt - show End button
+            // Has attempt - show End button.
             $endurl = new moodle_url('/mod/topomojo/bulkdeploy_end_gamespace.php', [
                 'jobid' => $jobid,
                 'rowid' => $r->id,
@@ -103,7 +103,7 @@ foreach ($rows as $r) {
             ]);
             echo html_writer::link($endurl, 'End', ['class' => 'btn btn-sm btn-secondary']);
         } else {
-            // No attempt - show Launch button
+            // No attempt - show Launch button.
             $launchurl = new moodle_url('/mod/topomojo/bulkdeploy_launch.php', [
                 'jobid' => $jobid,
                 'rowid' => $r->id,
@@ -113,7 +113,7 @@ foreach ($rows as $r) {
             echo html_writer::link($launchurl, 'Launch', ['class' => 'btn btn-sm btn-primary', 'target' => '_blank']);
         }
     } else if (($r->status === 'pending' || $r->status === 'launched') && !empty($r->gamespaceid)) {
-        // Still deploying - show Cancel button
+        // Still deploying - show Cancel button.
         $endurl = new moodle_url('/mod/topomojo/bulkdeploy_end_gamespace.php', [
             'jobid' => $jobid,
             'rowid' => $r->id,

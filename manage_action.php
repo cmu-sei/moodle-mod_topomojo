@@ -50,7 +50,7 @@ $cmid = required_param('id', PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 require_sesskey();
 
-// Debug logging
+// Debug logging.
 error_log("manage_action.php: action=" . var_export($action, true));
 error_log("manage_action.php: all POST: " . var_export($_POST, true));
 
@@ -74,7 +74,7 @@ switch ($action) {
             redirect($returnurl);
         }
 
-        // Validate batchsize against plugin max
+        // Validate batchsize against plugin max.
         $maxbatchsize = get_config('topomojo', 'bulkdeploy_batchsize') ?: 5;
         if ($batchsize < 1 || $batchsize > $maxbatchsize) {
             $batchsize = $maxbatchsize;
@@ -94,7 +94,7 @@ switch ($action) {
         $task = new bulkdeploy_run();
         $task->set_custom_data((object) ['jobid' => $jobid]);
         $task->set_component('mod_topomojo');
-        $task->set_next_run_time(time()); // Run immediately
+        $task->set_next_run_time(time()); // Run immediately.
         \core\task\manager::queue_adhoc_task($task);
 
         \core\notification::success(get_string('deployment_queued', 'topomojo', count($userids)));
@@ -122,7 +122,7 @@ switch ($action) {
             redirect($returnurl);
         }
 
-        // Validate batchsize against plugin max
+        // Validate batchsize against plugin max.
         $maxbatchsize = get_config('topomojo', 'bulkdeploy_batchsize') ?: 5;
         if ($batchsize < 1 || $batchsize > $maxbatchsize) {
             $batchsize = $maxbatchsize;
@@ -186,16 +186,16 @@ switch ($action) {
                 $cancelled++;
                 $jobstorefresh[$deployrow->jobid] = true;
 
-                // Track jobs that need adhoc task cancellation
+                // Track jobs that need adhoc task cancellation.
                 if (!empty($deployrow->scheduledfor)) {
                     $jobstocancel[$deployrow->jobid] = true;
                 }
             }
         }
 
-        // Cancel adhoc tasks for scheduled jobs
+        // Cancel adhoc tasks for scheduled jobs.
         foreach (array_keys($jobstocancel) as $jobid) {
-            // Find matching tasks
+            // Find matching tasks.
             $tasks = $DB->get_records('task_adhoc', [
                 'component' => 'mod_topomojo',
                 'classname' => '\\mod_topomojo\\task\\bulkdeploy_run',

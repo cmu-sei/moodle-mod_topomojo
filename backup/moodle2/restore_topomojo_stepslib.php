@@ -79,7 +79,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             $this->add_question_set_references($quizquestioninstance, $paths);
         }
 
-        // Return the paths wrapped into standard activity structure
+        // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
 
@@ -99,7 +99,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
         // See MDL-9367.
 
-        // time setting
+        // Time setting.
         $data->timeopen = $this->apply_date_offset($data->timeopen);
         $data->timeclose = $this->apply_date_offset($data->timeclose);
 
@@ -110,7 +110,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         }
          */
 
-        // TODO set/test default behaviour
+        // TODO set/test default behaviour.
         if (!isset($data->preferredbehaviour)) {
             if (empty($data->optionflags)) {
                 $data->preferredbehaviour = 'deferredfeedback';
@@ -123,9 +123,9 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             unset($data->penaltyscheme);
         }
 
-        // TODO test review settings
+        // TODO test review settings.
 
-        // Validate required fields
+        // Validate required fields.
         if (empty($data->workspaceid)) {
             throw new restore_step_exception(
                 'topomojo_missing_workspaceid',
@@ -135,22 +135,22 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             );
         }
 
-        // Validate that workspace exists in TopoMojo (warning only, doesn't block restore)
+        // Validate that workspace exists in TopoMojo (warning only, doesn't block restore).
         global $CFG;
         require_once($CFG->dirroot . '/mod/topomojo/locallib.php');
 
         $topomojoapiurl = get_config('topomojo', 'topomojoapiurl');
         if (empty($topomojoapiurl)) {
-            // TopoMojo not configured - warn but allow restore
+            // TopoMojo not configured - warn but allow restore.
             $this->log(
                 'TopoMojo API not configured. Cannot verify workspace ' . $data->workspaceid . ' exists.',
                 backup::LOG_WARNING
             );
         } else {
-            // TopoMojo configured - check if workspace exists
+            // TopoMojo configured - check if workspace exists.
             $workspaceexists = topomojo_validate_workspace($data->workspaceid);
             if (!$workspaceexists) {
-                // Workspace not found - warn but allow restore
+                // Workspace not found - warn but allow restore.
                 $this->log(
                     'Workspace ' . $data->workspaceid . ' not found in TopoMojo. ' .
                     'The activity was restored but may not work until the workspace is imported.',
@@ -159,9 +159,9 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
             }
         }
 
-        // insert the topomojo record
+        // Insert the topomojo record.
         $newitemid = $DB->insert_record('topomojo', $data);
-        // immediately after inserting "activity" record, call this
+        // Immediately after inserting "activity" record, call this.
         $this->apply_activity_instance($newitemid);
     }
 
@@ -185,7 +185,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
         global $DB;
 
         parent::after_execute();
-        // Add topomojo related files, no need to match by itemname (just internally handled context)
+        // Add topomojo related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_topomojo', 'intro', null);
 
         $module = $DB->get_record('topomojo', ['id' => $this->get_new_parentid('topomojo')]);
@@ -213,7 +213,7 @@ class restore_topomojo_activity_structure_step extends restore_questions_activit
 
         // Add mapping, restore of slot tags (for random questions) need it.
         $this->set_mapping('topomojo_question_instance', $oldid, $newitemid);
-        // questionorder gets tracked now and updated with is after_execute
+        // Questionorder gets tracked now and updated with is after_execute.
         $this->questionorder[] = $newitemid;
 
         if ($this->task->get_old_moduleversion() < 2025022800) {

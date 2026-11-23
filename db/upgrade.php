@@ -616,7 +616,7 @@ function xmldb_topomojo_upgrade($oldversion) {
     if ($oldversion < 2026060200) {
         // Migrate state column from numeric values to string values to match core quiz pattern.
         // Old: 0='notstarted', 10='inprogress', 20='abandoned', 30='finished'
-        // New: 'notstarted', 'inprogress', 'abandoned', 'finished'
+        // New: 'notstarted', 'inprogress', 'abandoned', 'finished'.
         $DB->execute("UPDATE {topomojo_attempts} SET state = 'notstarted' WHERE state = '0'");
         $DB->execute("UPDATE {topomojo_attempts} SET state = 'inprogress' WHERE state = '10'");
         $DB->execute("UPDATE {topomojo_attempts} SET state = 'abandoned' WHERE state = '20'");

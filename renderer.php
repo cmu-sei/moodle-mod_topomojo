@@ -114,7 +114,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             'minutes' => $minutes,
             'seconds' => $seconds,
         ];
-        // Add the flag to the data object
+        // Add the flag to the data object.
         $data->showWarning = $showwarning;
 
         echo $this->render_from_template('mod_topomojo/display_no_vms', $data);
@@ -309,9 +309,9 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_challenge_instructions($markdown, $hasquiz = true) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-        $data->showWarning = false; // No warning in normal instructions
-        $data->endlab = false;      // Not an end-lab scenario
-        $data->hasQuiz = $hasquiz;  // Whether there are quiz questions (controls beforeunload warning)
+        $data->showWarning = false; // No warning in normal instructions.
+        $data->endlab = false;      // Not an end-lab scenario.
+        $data->hasQuiz = $hasquiz;  // Whether there are quiz questions (controls beforeunload warning).
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -325,8 +325,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_challenge_instructions_warning_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-        $data->showWarning = true;  // Show warning for maxed attempts
-        $data->endlab = true;       // End-lab scenario
+        $data->showWarning = true;  // Show warning for maxed attempts.
+        $data->endlab = true;       // End-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -340,8 +340,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_challenge_instructions_warning($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-        $data->showWarning = true;  // Show warning for maxed attempts
-        $data->endlab = false;      // Not an end-lab scenario
+        $data->showWarning = true;  // Show warning for maxed attempts.
+        $data->endlab = false;      // Not an end-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -355,7 +355,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_challenge_instructions_endlab($markdown) {
         $data = new stdClass();
         $data->markdown = $this->clean_markdown($markdown);
-        $data->endlab = true;      // Not an end-lab scenario
+        $data->endlab = true;      // Not an end-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -367,8 +367,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_warning_endlab() {
         $data = new stdClass();
-        $data->showWarning = true;  // General warning for maxed attempts
-        $data->endlab = true;       // End-lab scenario with no challenge text
+        $data->showWarning = true;  // General warning for maxed attempts.
+        $data->endlab = true;       // End-lab scenario with no challenge text.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -380,8 +380,8 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_warning() {
         $data = new stdClass();
-        $data->showWarning = true;  // General warning for maxed attempts
-        $data->endlab = false;      // Not an end-lab scenario
+        $data->showWarning = true;  // General warning for maxed attempts.
+        $data->endlab = false;      // Not an end-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -393,7 +393,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_endlab() {
         $data = new stdClass();
-        $data->endlab = true;       // End-lab scenario
+        $data->endlab = true;       // End-lab scenario.
 
         echo $this->render_from_template('mod_topomojo/challenge', $data);
     }
@@ -440,7 +440,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $user = $USER->id;
         }
         $usergrades = \mod_topomojo\utils\grade::get_user_grade($topomojo, $user);
-        // Should only be 1 grade, but we'll always get end just in case
+        // Should only be 1 grade, but we'll always get end just in case.
         $usergrade = end($usergrades);
         $data = new stdClass();
         $data->overallgrade = get_string('overallgrade', 'topomojo');
@@ -502,7 +502,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $data->tableheaders->timestart = get_string('timestart', 'mod_topomojo');
         $data->tableheaders->timefinish = get_string('timefinish', 'mod_topomojo');
 
-        // Only add score if any attempt will display a score
+        // Only add score if any attempt will display a score.
         $showanyscore = $showgrade && !empty(array_filter(
             $attempts,
             function ($attempt) {
@@ -530,12 +530,12 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
                 $rowdata->timestart = userdate($attempt->timestart);
                 $rowdata->timefinish = ($attempt->state == \mod_topomojo\topomojo_attempt::FINISHED) ? userdate($attempt->timefinish) : null;
 
-                // Conditionally set score based on questionusageid
+                // Conditionally set score based on questionusageid.
                 if ($showgrade && $attempt->questionusageid !== null && $attempt->questionusageid != 0) {
                     $rowdata->score = $attempt->score ?? "-";
                     $rowdata->attempturl = $attempt->score !== null ? new moodle_url('/mod/topomojo/viewattempt.php', ["a" => $attempt->id]) : null;
                 } else {
-                    $rowdata->score = "-"; // Hide the score for specific questionusageid
+                    $rowdata->score = "-"; // Hide the score for specific questionusageid.
                 }
                 $rowdata->showscore = $showanyscore;
 
@@ -727,7 +727,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $canreviewattempt = $this->topomojo->canreviewattempt($reviewoptions, $state);
         $canreviewmarks = $this->topomojo->canreviewmarks($reviewoptions, $state);
 
-        // Show overall grade
+        // Show overall grade.
         if ($canreviewmarks && (int)$this->topomojo->topomojo->grade > 0 && (!$this->topomojo->is_instructor())) {
             $this->display_grade($this->topomojo->topomojo);
         }
@@ -798,7 +798,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output .= 'Marked ' . $mark . ' / ' . $maxmark;
         $output .= html_writer::end_tag('p');
 
-        // only add save button if attempt is finished
+        // Only add save button if attempt is finished.
         if ($attempt->getState() === 'finished') {
             $output .= html_writer::div($savebtn, 'save_row');
         }
@@ -896,7 +896,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $lines = preg_split("/\r\n|\n|\r/", $markdown);
 
         // Match the pattern for markdown images
-        // Match markdown images and skip ones where the URL already starts with 'http' or 'https'
+        // Match markdown images and skip ones where the URL already starts with 'http' or 'https'.
         $pattern = '/(!\[.*\]\()(?!https?:\/\/)(.*\))/i';
         $replace = '${1}' . $url . '/${2}';
 
@@ -907,7 +907,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $markdown = implode("\n", $cleanlines);
 
-        // Process markdown inside html tags
+        // Process markdown inside html tags.
         $htmltagstoprocess = ['p', 'summary', 'details'];
         foreach ($htmltagstoprocess as $tag) {
             $markdown = preg_replace_callback("/<{$tag}>(.*?)<\/{$tag}>/is", function ($matches) use ($tag) {
@@ -929,7 +929,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
 
         $cleaned = format_text($markdown, FORMAT_MARKDOWN, $options);
 
-        // Add classes
+        // Add classes.
         $cleaned = str_replace("img src=", "img class=\"tm-img-fluid tm-rounded\" src=", $cleaned);
 
         return $cleaned;

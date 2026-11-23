@@ -53,7 +53,7 @@ require_once("$CFG->dirroot/lib/licenselib.php");
 
 
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 
 try {
@@ -89,7 +89,7 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->requires->css('/mod/topomojo/styles.css');
 
-// New topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
@@ -136,15 +136,15 @@ echo $renderer->header();
 
 $userid = $USER->id;
 
-// Auto-import questions if not already imported
+// Auto-import questions if not already imported.
 if (!empty($topomojo->importchallenge) && empty($topomojo->questionorder)) {
     require_once($CFG->dirroot . '/mod/topomojo/lib.php');
     topomojo_auto_import_questions($topomojo, $context, $cm->id);
 
-    // Reload topomojo to get updated questionorder
+    // Reload topomojo to get updated questionorder.
     $topomojo = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
 
-    // If still no questions after import, workspace has no challenge questions
+    // If still no questions after import, workspace has no challenge questions.
     if (empty($topomojo->questionorder) && !has_capability('mod/topomojo:manage', $context)) {
         echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), 'info');
     }
@@ -154,7 +154,7 @@ $isinstructor = has_capability('mod/topomojo:manage', $context) ||
                 has_capability('mod/topomojo:bulkdeploy', $context);
 $ispreview = $isinstructor ? optional_param('preview', 0, PARAM_BOOL) : 0;
 
-// Get active attempt for user: true/false (filtered by preview mode)
+// Get active attempt for user: true/false (filtered by preview mode).
 $activeattempt = $object->get_open_attempt($ispreview);
 
 // Instructors can have a live preview while no regular attempt is open.
@@ -167,16 +167,16 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 
 $eventattempt = null;
 
-// If active attempt found but event not fetched yet, fetch it
+// If active attempt found but event not fetched yet, fetch it.
 if ($activeattempt && empty($object->event) && isset($object->openAttempt)) {
-    // Access eventid from the attempt object's internal data
+    // Access eventid from the attempt object's internal data.
     $attemptdata = $object->openAttempt->get_attempt();
     $eventattempt = $attemptdata;
     if (!empty($attemptdata->eventid)) {
         try {
             $object->event = get_event($object->userauth, $attemptdata->eventid);
         } catch (\Exception $e) {
-            // Gamespace no longer exists in TopoMojo - clear event so page loads normally
+            // Gamespace no longer exists in TopoMojo - clear event so page loads normally.
             debugging("Gamespace {$attemptdata->eventid} not found, clearing event", DEBUG_DEVELOPER);
             $object->event = null;
         }
@@ -211,7 +211,7 @@ if ($haspreviewattempt) {
     echo $OUTPUT->notification($previewmsg, \core\output\notification::NOTIFY_INFO);
 }
 
-// Check for bulk-deployed attempt if no active attempt found
+// Check for bulk-deployed attempt if no active attempt found.
 $haspredeployed = false;
 if (!$activeattempt) {
     $bulkdeployrows = $DB->get_records_sql(
@@ -230,7 +230,7 @@ if (!$activeattempt) {
     $bulkdeployrow = reset($bulkdeployrows);
 
     if ($bulkdeployrow) {
-        // Check if there's an attempt for this specific gamespace
+        // Check if there's an attempt for this specific gamespace.
         $existingattempt = $DB->get_record_sql(
             "SELECT * FROM {topomojo_attempts}
              WHERE topomojoid = :topomojoid
@@ -246,19 +246,19 @@ if (!$activeattempt) {
         );
 
         if ($existingattempt) {
-            // Gamespace deployed AND attempt already started - resume it
+            // Gamespace deployed AND attempt already started - resume it.
             $activeattempt = $existingattempt;
             $object->openAttempt = new topomojo_attempt();
             $object->openAttempt->load_from_record($activeattempt);
             try {
                 $object->event = get_event($object->userauth, $bulkdeployrow->gamespaceid);
             } catch (\Exception $e) {
-                // Gamespace no longer exists - clear event so page loads normally
+                // Gamespace no longer exists - clear event so page loads normally.
                 debugging("Bulk-deployed gamespace {$bulkdeployrow->gamespaceid} not found, clearing event", DEBUG_DEVELOPER);
                 $object->event = null;
             }
         } else {
-            // Gamespace deployed but NO attempt yet - show "Start Attempt" UI
+            // Gamespace deployed but NO attempt yet - show "Start Attempt" UI.
             $haspredeployed = true;
         }
     }
@@ -268,17 +268,17 @@ $maxattempts = $topomojo->attempts;
 $variant = $object->topomojo->variant - 1;
 $challenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
-// Check if workspace exists in TopoMojo
+// Check if workspace exists in TopoMojo.
 if ($challenge === null) {
-    // Workspace doesn't exist - show error message
+    // Workspace doesn't exist - show error message.
     if (has_capability('mod/topomojo:manage', $context)) {
-        // Show instructor-specific message
+        // Show instructor-specific message.
         echo $OUTPUT->notification(
             get_string('workspacenotfound_instructor', 'mod_topomojo', $object->topomojo->workspaceid),
             \core\output\notification::NOTIFY_ERROR
         );
     } else {
-        // Show student message
+        // Show student message.
         echo $OUTPUT->notification(
             get_string('workspacenotfound', 'mod_topomojo', $object->topomojo->workspaceid),
             \core\output\notification::NOTIFY_ERROR
@@ -288,7 +288,7 @@ if ($challenge === null) {
     exit;
 }
 
-// Only check if challenge is valid
+// Only check if challenge is valid.
 if ($challenge && isset($challenge->variants[$variant])) {
     if (method_exists($object, 'get_question_manager')) {
         try {
@@ -330,7 +330,7 @@ if (
 }
 
 
-// Getting completed attempts by user (excluding preview attempts)
+// Getting completed attempts by user (excluding preview attempts).
 $currentattemptcount = $DB->count_records('topomojo_attempts', [
     'topomojoid' => $topomojo->id,
     'userid' => $userid,
@@ -338,7 +338,7 @@ $currentattemptcount = $DB->count_records('topomojo_attempts', [
     'preview' => 0,
 ]);
 
-// If the maximum attempts are reached, display the max attempts template and exit
+// If the maximum attempts are reached, display the max attempts template and exit.
 if (!$object->event && $currentattemptcount >= $maxattempts && $maxattempts != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
@@ -348,14 +348,14 @@ if (!$object->event && $currentattemptcount >= $maxattempts && $maxattempts != 0
     exit;
 }
 
-// Getting gamespace limit for that manager in topomojo
+// Getting gamespace limit for that manager in topomojo.
 $gamespacelimit = get_gamespace_limit($object->userauth);
 
-// Getting all active events without filters
+// Getting all active events without filters.
 $allactiveevents = list_all_active_events($object->userauth);
 $allactivecurrentdeployedcount = count((array)$allactiveevents);
 
-// Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab
+// Verify if gamespace limit is reached for that manager, if so disable deployment/start of lab.
 if (!$object->event && $allactivecurrentdeployedcount > $gamespacelimit && $gamespacelimit != 0) {
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
@@ -367,30 +367,30 @@ if (!$object->event && $allactivecurrentdeployedcount > $gamespacelimit && $game
 
 $activeuserevents = [];
 
-// Getting active user event for specific user
+// Getting active user event for specific user.
 $activeuserevents = user_events($object->userauth, $allactiveevents);
-// Count of those active user events
+// Count of those active user events.
 $usercurrentdeployedcount  = count((array)$activeuserevents);
 
-// Getting max deployed lab for each user in moodle
+// Getting max deployed lab for each user in moodle.
 $maxdeployedlabs = get_config('topomojo', 'maxdeployedlabs');
 
 $labnames = [];
 $labids = [];
 
-// Getting workspace names and ids
+// Getting workspace names and ids.
 foreach ($activeuserevents ?? [] as $event) {
     $labnames[] = $event['name'];
     $labids[] = $event['workspaceId'];
 }
 
-// If the maximum deployed labs are reached, display the deployed labs template and exit
+// If the maximum deployed labs are reached, display the deployed labs template and exit.
 if (
     !$object->event &&
     !in_array($topomojo->workspaceid, $labids) &&
     $usercurrentdeployedcount >= $maxdeployedlabs
 ) {
-    // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit
+    // If the current workspace is not deployed and max deployments are reached, display the deployed labs template and exit.
     $markdown = get_markdown($object->userauth, $topomojo->workspaceid, $topomojo->id);
     $markdowncutline = "<<!-- cut -->>";
     $parts = preg_split($markdowncutline, $markdown);
@@ -400,14 +400,14 @@ if (
 }
 
 
-// Handle start/stop form action
+// Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && $_POST['start_confirmed'] === "yes") {
-    // Get preview mode from POST
+    // Get preview mode from POST.
     $ispreview = $isinstructor ? optional_param('preview', 0, PARAM_BOOL) : 0;
 
-    // Check not started already
+    // Check not started already.
     if (!$object->event) {
-        // Check for conflicting gamespace from another activity sharing this workspace
+        // Check for conflicting gamespace from another activity sharing this workspace.
         $conflict = check_conflicting_gamespace($topomojo->id, $topomojo->workspaceid);
         if ($conflict) {
             $conflicturl = new moodle_url('/mod/topomojo/view.php', ['id' => $conflict->cmid]);
@@ -424,11 +424,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
             exit;
         }
 
-        // Attempt to start the event
+        // Attempt to start the event.
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
 
         if ($object->event) {
-            // If the event is created successfully, proceed
+            // If the event is created successfully, proceed.
             $eventid = $object->event->id;
             $activeattempt = $object->init_attempt($ispreview);
 
@@ -438,17 +438,17 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start_confirmed']) && 
                 throw new moodle_exception('init_attempt failed');
             }
 
-            // Log event start in Moodle
+            // Log event start in Moodle.
             topomojo_start($cm, $context, $topomojo);
         } else {
-            // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT)
+            // Check if timeout (errno 28 = CURLE_OPERATION_TIMEDOUT).
             if ($object->userauth->errno == 28) {
-                // Skip markdown fetch - curl client is in bad state after timeout
+                // Skip markdown fetch - curl client is in bad state after timeout.
                 $renderer->display_timeout($topomojo, '', null);
                 echo $renderer->footer();
                 exit;
             }
-            // Event creation failed, possibly due to an empty response
+            // Event creation failed, possibly due to an empty response.
             debugging("start_event failed, stopping any partial event", DEBUG_DEVELOPER);
             throw new moodle_exception("Failed to start event: no response from server. Please refresh to end the lab and launch again.");
         }
@@ -500,7 +500,7 @@ if ($object->event) {
             $activeattempt = $object->init_attempt($ispreview);
         }
     }
-    // Check age and get new link, checking for 30 minute timeout of the url
+    // Check age and get new link, checking for 30 minute timeout of the url.
     if (
         $activeattempt &&
         ($object->openAttempt->state == \mod_topomojo\topomojo_attempt::INPROGRESS) &&
@@ -519,11 +519,11 @@ if ($object->event) {
     $endtime = null;
 }
 
-// Pull values from the settings
+// Pull values from the settings.
 $embed = $topomojo->embed;
 $licenseinfo = null;
 
-// Show grade only if a grade is set
+// Show grade only if a grade is set.
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
@@ -573,7 +573,7 @@ if ($object->event) {
 
             $renderer->display_launching($parts[0], $code);
 
-            // Initialize tooltip for support code
+            // Initialize tooltip for support code.
             if ($code) {
                 $PAGE->requires->js_call_amd('core/tooltip', 'init');
             }
@@ -593,7 +593,7 @@ if ($object->event) {
             exit;
         }
 
-        // Event is old and still no VMs - this is an error
+        // Event is old and still no VMs - this is an error.
         debugging("no vms after timeout", DEBUG_DEVELOPER);
         if ($activeattempt && $object->openAttempt) {
             if ($object->openAttempt->questionusageid) {
@@ -632,18 +632,18 @@ if ($object->event) {
             $licenseinfo = license_manager::get_license_by_shortname($licenseid);
         }
 
-        // Initialize the launch lab confirmation modal with AJAX
+        // Initialize the launch lab confirmation modal with AJAX.
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#launch_button',
             get_string('startlab', 'mod_topomojo'),
             get_string('start_attempt_confirm', 'mod_topomojo'),
             '#start_confirmed',
-            true, // Use AJAX
+            true, // Use AJAX.
         ]);
 
         $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
-        // Display start form
+        // Display start form.
         $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $licenseinfo, $isinstructor, $bulkdeployurl, $haspredeployed);
     } else {
         $code = substr($object->event->id, 0, 8);
@@ -667,7 +667,7 @@ if ($object->event) {
             $extend = true;
         }
 
-        // Initialize the end lab confirmation modal
+        // Initialize the end lab confirmation modal.
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
             '#end_button',
             get_string('stoplab', 'mod_topomojo'),
@@ -681,7 +681,7 @@ if ($object->event) {
         $renderer->display_controls($starttime, $endtime, $extend, $url, $object->topomojo->workspaceid);
         echo html_writer::end_div();
         echo html_writer::end_div();
-        // No matter what, start our session timer
+        // No matter what, start our session timer.
         $PAGE->requires->js_call_amd(
             'mod_topomojo/clock',
             'init',
@@ -718,11 +718,11 @@ if ($object->event) {
                 $isolationid = is_array($vm) ? $vm['isolationId'] : $vm->isolationId;
 
                 if ($usecf) {
-                    // ConsoleForge-style
+                    // ConsoleForge-style.
                     $vmdata['url'] = $baseurl . '/c?name=' . rawurlencode($name)
                         . '&sessionId=' . rawurlencode($isolationid);
                 } else {
-                    // Legacy /mks style
+                    // Legacy /mks style.
                     $vmdata['url'] = $baseurl . '/mks/?f=1&s=' . rawurlencode($isolationid)
                         . '&v=' . rawurlencode($name);
                 }
@@ -752,7 +752,7 @@ if ($object->event) {
         }
     }
 } else {
-    // TODO check whether the user has any attempts left
+    // TODO check whether the user has any attempts left.
 
     $markdown = get_markdown($object->userauth, $object->topomojo->workspaceid);
     $parts = preg_split('/\s*<!-- cut -->\s*/', $markdown, 2);
@@ -772,7 +772,7 @@ if ($object->event) {
         $licenseinfo = license_manager::get_license_by_shortname($licenseid);
     }
 
-    // Initialize the launch lab confirmation modal
+    // Initialize the launch lab confirmation modal.
     $PAGE->requires->js_call_amd('mod_topomojo/confirm_action', 'init', [
         '#launch_button',
         get_string('startlab', 'mod_topomojo'),
@@ -780,10 +780,10 @@ if ($object->event) {
         '#start_confirmed',
     ]);
 
-    // Bulk deploy URL for instructors
+    // Bulk deploy URL for instructors.
     $bulkdeployurl = $isinstructor ? new moodle_url('/mod/topomojo/manage.php', ['id' => $cm->id]) : null;
 
-    // Display start form
+    // Display start form.
     $renderer->display_startform($url, $object->topomojo->workspaceid, $labcontent, $licenseinfo, $isinstructor, $bulkdeployurl);
 }
 

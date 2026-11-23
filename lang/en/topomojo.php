@@ -51,7 +51,7 @@ $string['modulename_link'] = 'mod/topomojo/view';
 $string['modulenameplural'] = 'TopoMojos';
 $string['pluginname'] = 'TopoMojo';
 
-// Plugin settings
+// Plugin settings.
 $string['topomojoapiurl'] = 'TopoMojo API Base URL';
 $string['topomojoapiurl_help'] = 'The base URL of your TopoMojo API endpoint, typically ending in /api. For example: https://topomojo.example.com/api. Trailing slashes will be removed automatically.';
 $string['topomojobaseurl'] = 'TopoMojo Base URL';
@@ -125,7 +125,7 @@ $string['configenableoauth'] = 'Enable Oauth2 System Account for integration wit
 $string['maxextendinterval'] = 'Maximum lab extension interval';
 $string['configmaxextendinterval'] = 'Maximum number of minutes an activity may add when extending a lab. Defaults to 60 minutes.';
 
-// Activity settings
+// Activity settings.
 $string['embed_help'] = 'This determines whether the lab is emebeded in an iframe or whether a link to TopoMojo is displayed';
 $string['workspace_help'] = 'This is the Workspace GUID in TopoMojo.';
 $string['workspace'] = 'TopoMojo Workspace';
@@ -190,21 +190,21 @@ $string['showcontentlicense'] = 'Display Content License to Students';
 $string['showcontentlicense_help'] = 'If checked, the content license text will be visible to students on the activity page.';
 
 
-// Time options
+// Time options.
 $string['timing'] = 'Timing';
 $string['eventopen'] = 'Open the activity';
 $string['eventclose'] = 'Close the activity';
 $string['eventopen_help'] = 'The actitity will not be available until this date.';
 $string['eventclose_help'] = 'The activity will not be available after this date';
 
-// History table
+// History table.
 $string['id'] = 'TopoMojo Gamespace GUID';
 $string['status'] = 'Status';
 $string['launchdate'] = 'Launch Date';
 $string['enddate'] = 'End Date';
 $string['historycaption'] = 'History';
 
-// Attempt table
+// Attempt table.
 $string['eventid'] = 'TopoMojo Gamespace GUID';
 $string['state'] = 'State';
 $string['timestart'] = 'Time Started';
@@ -213,11 +213,11 @@ $string['tasks'] = 'Tasks';
 $string['score'] = 'Score';
 $string['username'] = 'Username';
 
-// Events
+// Events.
 $string['eventattemptstarted'] = 'Attempt started';
 $string['eventattemptended'] = 'Attempt ended';
 
-// View
+// View.
 $string['eventwithoutattempt'] = 'Gamespace exists but attempt does not exist in moodle db.';
 $string['courseorinstanceid'] = 'Either a course id or an instance must be given.';
 $string['attemptalreadyexists'] = 'An open attempt already exists for this event';
@@ -242,13 +242,13 @@ $string['nomoreattempts'] = 'No more attempts can be made.';
 $string['nomorelabs'] = 'No more labs can be deployed at the moment.';
 $string['challengeinstructions'] = 'Challenge Instructions';
 
-// Review
+// Review.
 $string['returntext'] = 'Return to Lab';
 $string['savequestion'] = 'Save question';
 $string['noreview'] = 'You are not able to review the quiz attempt at this time.';
 $string['nochallenge'] = 'There are no challenge questions to review.';
 
-// Review options
+// Review options.
 $string['review'] = 'Review';
 $string['reviewafter'] = 'Allow review after lab is closed';
 $string['reviewalways'] = 'Allow review at any time';
@@ -283,20 +283,20 @@ $string['reviewresponsetoq'] = 'Review response (question {$a})';
 $string['reviewthisattempt'] = 'Review your responses to this attempt';
 
 
-// Roles
+// Roles.
 $string['topomojo:manage'] = 'Manage TopoMojo activities';
 $string['topomojo:view'] = 'View TopoMojo activity information';
 $string['topomojo:addinstance'] = 'Add a new TopoMojo activties';
 $string['topomojo:bulkdeploy'] = 'Bulk-deploy a TopoMojo lab for all enrolled users';
 
-// Questions
+// Questions.
 $string['noquestions'] = 'No questions have been added yet';
 $string['questions'] = 'Questions';
 
-// Task
+// Task.
 $string['taskcloseattempt'] = 'Close Expired TopoMojo Attempts';
 
-// Edit
+// Edit.
 $string['questionlist'] = 'Question List';
 $string['cannoteditafterattempts'] = 'You cannot add or remove questions because this lab has been attempted.';
 $string['addtotopomojo'] = 'Add to lab';
@@ -320,7 +320,7 @@ $string['questionmovedown'] = 'Move question {$a} down';
 $string['questionmoveup'] = 'Move question {$a} up';
 $string['invalid_points'] = 'Invalid point value';
 
-// Privacy
+// Privacy.
 $string['privacy:metadata:core_question'] = 'The TopoMojo activity stores question responses in the question engine.';
 $string['privacy:metadata:topomojo'] = 'To start a lab, the user is registered as the player of a gamespace on the external TopoMojo server.';
 $string['privacy:metadata:topomojo:subjectid'] = 'The part of the user\'s email address before the @, used as the player identifier.';
@@ -361,7 +361,7 @@ $string['privacy:path:deployment'] = 'Deployment';
 $string['privacy:path:grades'] = 'Grades';
 $string['responsesnotsaved'] = 'Notice: Your responses will not be saved if you navigate away from this page.';
 
-// Global Search
+// Global Search.
 $string['search:activity'] = 'TopoMojo - activity information';
 $string['interestslist'] = 'list test';
 $string['deleteallattempts'] = 'Delete all attempts, grades, and deployments';
@@ -378,20 +378,20 @@ $string['questionsynced'] = 'The question list has been successfully updated to 
 $string['questionaddfailed'] = 'Failed to update the question list.';
 $string['task_rotate_labofday'] = 'Rotate Lab of the Day link';
 
-// Labs Display
+// Labs Display.
 $string['labslist']     = 'All TopoMojo Labs';
 $string['col_course']   = 'Course';
 $string['col_activity'] = 'Activity';
 $string['nolabs']       = 'No TopoMojo activities found.';
 
-// TopoMojo Middle Page
+// TopoMojo Middle Page.
 $string['topomojo']     = 'TopoMojo';
 $string['topomojo_viewall'] = 'View all TopoMojo Labs';
 $string['topomojo_viewall_desc'] = 'Browse all TopoMojo labs across the site.';
 $string['topomojo_lod'] = 'Lab of the Day';
 $string['topomojo_lod_desc'] = 'See today\'s featured lab.';
 
-// Lab of Day
+// Lab of Day.
 $string['featuredlab'] = 'Eligible for Lab of the Day';
 $string['featuredlab_help'] = 'Include this activity in the “Lab of the Day” rotation pool. The scheduled task will cycle through all eligible labs.';
 $string['viewcourse'] = 'View course';
@@ -403,7 +403,7 @@ $string['configusingconsoleforge'] = 'Enable if you are using a new version of T
 $string['labcontent'] = 'Lab Content';
 $string['labcontent_help'] = 'The content/description of this lab. When you select a workspace, the markdown content from TopoMojo will be automatically fetched and displayed here. You can add additional notes or instructions, and the TopoMojo content will be appended. This content is used for AI competency classification.';
 
-// Overview page editing
+// Overview page editing.
 $string['overview_edit_header'] = 'Edit TopoMojo Overview Page';
 $string['overview_content'] = 'Overview Content';
 $string['overview_content_help'] = 'The content displayed on the TopoMojo overview page. You can use headings, lists, bold text, and other HTML formatting to organize the information.';

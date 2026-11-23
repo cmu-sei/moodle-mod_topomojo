@@ -47,7 +47,7 @@ class observer {
         }
 
         if (self::frontpage_current_cmid_equals((int)$deletedcmid)) {
-            // Run scheduled task logic immediately
+            // Run scheduled task logic immediately.
             $task = new \mod_topomojo\task\rotate_labofday_adhoc();
             \core\task\manager::queue_adhoc_task($task, true);
         }
@@ -100,7 +100,7 @@ class observer {
 
         if ((int)$cm->visible === 0 && self::frontpage_current_cmid_equals((int)$cm->id)) {
             $task = new \mod_topomojo\task\rotate_labofday_adhoc();
-            \core\task\manager::queue_adhoc_task($task, true); // true = dedupe bursts
+            \core\task\manager::queue_adhoc_task($task, true); // True = dedupe bursts.
         }
     }
 

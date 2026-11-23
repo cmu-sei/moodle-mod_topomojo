@@ -51,7 +51,7 @@ $PAGE->requires->js_call_amd('mod_topomojo/manage', 'init', [$cmid, sesskey()]);
 $manrepo = new management_repository();
 $users = $manrepo->get_enrolled_users_with_state($topomojo->id, $course->id, $rolefilter);
 
-// Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task
+// Note: Expired gamespaces are detected by the cleanup_gamespaces scheduled task.
 
 $coursecontext = context_course::instance($course->id);
 $userroles = [];
@@ -65,7 +65,7 @@ foreach ($users as $u) {
     $u->roletext = $userroles[$u->userid];
 }
 
-// Sort users
+// Sort users.
 usort($users, function ($a, $b) use ($sort, $dir) {
     $val1 = $a->$sort ?? '';
     $val2 = $b->$sort ?? '';
@@ -202,7 +202,7 @@ echo html_writer::tag('button', get_string('extend_selected', 'topomojo'), [
 ]);
 echo html_writer::end_div();
 
-// Build sort links for column headers
+// Build sort links for column headers.
 $sorticon = $dir === 'ASC' ? '▲' : '▼';
 $sortlink = function ($col, $label) use ($PAGE, $sort, $dir, $sorticon, $rolefilter) {
     $newdir = ($sort === $col && $dir === 'ASC') ? 'DESC' : 'ASC';
@@ -267,7 +267,7 @@ foreach ($users as $u) {
 
 echo '</tbody></table>';
 
-// Hidden forms for modals
+// Hidden forms for modals.
 echo html_writer::start_tag('form', ['id' => 'deploy-form', 'method' => 'post', 'action' => new moodle_url('/mod/topomojo/manage_action.php'), 'style' => 'display:none;']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'deploy_selected']);
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cmid]);
@@ -294,7 +294,7 @@ echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'extendinter
 echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
 echo html_writer::end_tag('form');
 
-// Modal content templates
+// Modal content templates.
 echo html_writer::start_div('', ['id' => 'deploy-modal-content', 'style' => 'display:none;']);
 echo html_writer::tag('p', get_string('deploy_confirm_message', 'topomojo'));
 echo html_writer::tag('label', get_string('bulkdeploy_batchsize', 'topomojo') . ':', ['for' => 'deploy-batchsize-input', 'class' => 'd-block mb-2']);

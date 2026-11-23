@@ -35,7 +35,7 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('featuredlab', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
-// Breadcrumbs
+// Breadcrumbs.
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->navbar->add(get_string('featuredlab', 'mod_topomojo'), $PAGE->url);
 
@@ -49,12 +49,12 @@ $where  = "m.name = :modname
            AND cm.visibleoncoursepage = 1";
 $params = ['modname' => 'topomojo'];
 
-// Get the current lab of the day from config
+// Get the current lab of the day from config.
 $currentlabid = get_config('mod_topomojo', 'current_labofday_id');
 $record = null;
 
 if ($currentlabid) {
-    // Fetch the specific lab that's currently featured
+    // Fetch the specific lab that's currently featured.
     $sqlfeatured = "
       SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
              t.id AS instanceid, t.name AS activityname
@@ -68,7 +68,7 @@ if ($currentlabid) {
     $record = $DB->get_record_sql($sqlfeatured, $params);
 }
 
-// If no current lab is set or it's no longer available, find the first eligible activity from pool
+// If no current lab is set or it's no longer available, find the first eligible activity from pool.
 if (!$record) {
     $sqlfirst = "
       SELECT cm.id AS cmid, c.id AS courseid, c.fullname AS coursename,
@@ -79,10 +79,10 @@ if (!$record) {
       JOIN {topomojo} t  ON t.id = cm.instance
       WHERE {$where} AND t.isfeatured = 1
       ORDER BY c.fullname, t.name, cm.id";
-    $params = ['modname' => 'topomojo']; // Reset params
+    $params = ['modname' => 'topomojo']; // Reset params.
     $record = $DB->get_record_sql($sqlfirst, $params);
 
-    // Update config if we found a lab
+    // Update config if we found a lab.
     if ($record) {
         set_config('current_labofday_id', $record->instanceid, 'mod_topomojo');
     }

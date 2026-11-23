@@ -50,7 +50,7 @@ class management_repository {
         $enrolled = get_enrolled_users($coursecontext, '', 0, 'u.*', null, 0, 0, true);
 
         if ($rolefilter && !in_array(0, $rolefilter)) {
-            // Filter by role assignments (skip if "All roles" is selected)
+            // Filter by role assignments (skip if "All roles" is selected).
             $enrolled = array_filter($enrolled, function ($u) use ($rolefilter, $coursecontext) {
                 $userroles = get_user_roles($coursecontext, $u->id);
                 foreach ($userroles as $role) {
@@ -62,7 +62,7 @@ class management_repository {
             });
         }
 
-        // Add users with attempts who aren't enrolled (e.g., instructor previews)
+        // Add users with attempts who aren't enrolled (e.g., instructor previews).
         $attempts = $DB->get_records('topomojo_attempts', ['topomojoid' => $topomojoid], 'id DESC', 'id, userid, state, eventid');
         foreach ($attempts as $att) {
             if (!isset($enrolled[$att->userid])) {
@@ -304,7 +304,7 @@ class management_repository {
 
         $actionhtml = '─';
         if (!empty($attemptid) && $hasquestions) {
-            // All attempt states link to viewattempt.php for instructor review
+            // All attempt states link to viewattempt.php for instructor review.
             if (in_array($attemptstate, [\mod_topomojo\topomojo_attempt::INPROGRESS, \mod_topomojo\topomojo_attempt::ABANDONED, \mod_topomojo\topomojo_attempt::FINISHED], true)) {
                 $url = new \moodle_url('/mod/topomojo/viewattempt.php', ['a' => $attemptid, 'action' => 'view']);
                 $actionhtml = \html_writer::link(

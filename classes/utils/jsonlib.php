@@ -138,7 +138,7 @@ class jsonlib {
 
         $response = json_encode($this->response);
         if ($response === false) {
-            // Check for error
+            // Check for error.
             $message = $this->get_json_error();
             $this->send_headers(500);
             die($message);
@@ -158,12 +158,12 @@ class jsonlib {
 
         $response = json_encode($this->response);
         if ($response === false) {
-            // Check for error
-            $response = $this->get_json_error(); // Return error as bare text since json_encode isn't working
+            // Check for error.
+            $response = $this->get_json_error(); // Return error as bare text since json_encode isn't working.
             $this->send_headers(500);
         }
 
-        // Set up headers for 200 response as well as tell the browser to not cache the content
+        // Set up headers for 200 response as well as tell the browser to not cache the content.
         $this->send_headers(200);
         echo $response;
 

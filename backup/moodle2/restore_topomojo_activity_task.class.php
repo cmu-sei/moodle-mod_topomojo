@@ -45,7 +45,7 @@ DM24-1175
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/topomojo/backup/moodle2/restore_topomojo_stepslib.php'); // Because it exists (must)
+require_once($CFG->dirroot . '/mod/topomojo/backup/moodle2/restore_topomojo_stepslib.php'); // Because it exists (must).
 
 /**
  * topomojo restore task that provides all the settings and steps to perform one
@@ -56,14 +56,14 @@ class restore_topomojo_activity_task extends restore_activity_task {
      * Define (add) particular settings this activity can have
      */
     protected function define_my_settings() {
-        // No particular settings for this activity
+        // No particular settings for this activity.
     }
 
     /**
      * Define (add) particular steps this activity can have
      */
     protected function define_my_steps() {
-        // label only has one structure step
+        // Label only has one structure step.
         $this->add_step(new restore_topomojo_activity_structure_step('topomojo_structure', 'topomojo.xml'));
     }
 
@@ -104,7 +104,7 @@ class restore_topomojo_activity_task extends restore_activity_task {
         $rules[] = new restore_log_rule('topomojo', 'add', 'view.php?id={course_module}', '{topomojo}');
         $rules[] = new restore_log_rule('topomojo', 'update', 'view.php?id={course_module}', '{topomojo}');
         $rules[] = new restore_log_rule('topomojo', 'view', 'view.php?id={course_module}', '{topomojo}');
-        // TODO add all other events such as event start, event end, review page viewed, etc
+        // TODO add all other events such as event start, event end, review page viewed, etc.
         return $rules;
     }
 

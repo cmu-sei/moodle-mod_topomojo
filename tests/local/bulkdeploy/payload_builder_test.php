@@ -54,7 +54,7 @@ final class payload_builder_test extends \advanced_testcase {
         $this->assertSame(100, $payload->points);
         $this->assertSame(2, $payload->variant);
         $this->assertCount(1, $payload->players);
-        $this->assertSame('alice', $payload->players[0]->subjectId);  // local part of email.
+        $this->assertSame('alice', $payload->players[0]->subjectId);  // Local part of email.
         $this->assertSame('alice', $payload->players[0]->subjectName);  // username.
     }
 

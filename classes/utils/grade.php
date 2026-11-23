@@ -92,7 +92,7 @@ class grade {
         foreach ($recs as $rec) {
             array_push($grades, $rec->grade);
         }
-        // User should only have one grade entry in the topomojo grades table for each activity
+        // User should only have one grade entry in the topomojo grades table for each activity.
         return $grades;
     }
 
@@ -114,12 +114,12 @@ class grade {
     public function process_attempt($attempt) {
         global $DB;
 
-        // Get this attempt grade
+        // Get this attempt grade.
         $this->calculate_attempt_grade($attempt);
 
         $userid = $attempt->userid;
 
-        // Get all attempt grades
+        // Get all attempt grades.
         $grades = [];
         $attemptsgrades = [];
 
@@ -153,7 +153,7 @@ class grade {
         $transaction = $DB->start_delegated_transaction();
 
         // Now that we have the final grades persist the grades to topomojo grades table.
-        // TODO we could possibly remove this table and just look at the grade_grades table
+        // TODO we could possibly remove this table and just look at the grade_grades table.
         $this->persist_grades($grades, $transaction);
 
         // Update grades to gradebookapi.
@@ -163,10 +163,10 @@ class grade {
             $transaction->rollback(new \Exception('Unable to save grades to gradebook'));
         }
 
-        // Allow commit if we get here
+        // Allow commit if we get here.
         $transaction->allow_commit();
 
-        // If everything passes to here return true
+        // If everything passes to here return true.
         return true;
     }
 
@@ -269,7 +269,7 @@ class grade {
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_ATTEMPTAVERAGE:
-                // Average the grades
+                // Average the grades.
                 $gradecount = count($grades);
                 $gradetotal = 0;
                 foreach ($grades as $grade) {
@@ -279,7 +279,7 @@ class grade {
 
                 break;
             case \mod_topomojo\utils\scaletypes::TOPOMOJO_HIGHESTATTEMPTGRADE:
-                // Find the highest grade
+                // Find the highest grade.
                 $highestgrade = 0;
                 foreach ($grades as $grade) {
                     if ($grade > $highestgrade) {
@@ -313,7 +313,7 @@ class grade {
                     ['userid' => $userid, 'topomojoid' => $this->topomojo->topomojo->id]
                 )
             ) {
-                // We're updating
+                // We're updating.
                 $usergrade->grade = $grade;
                 $usergrade->timemodified = time();
 
@@ -321,7 +321,7 @@ class grade {
                     $transaction->rollback(new \Exception('Can\'t update user grades'));
                 }
             } else {
-                // We're adding
+                // We're adding.
 
                 $usergrade = new \stdClass();
                 $usergrade->topomojoid = $this->topomojo->topomojo->id;

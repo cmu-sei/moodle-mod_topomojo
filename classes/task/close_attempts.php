@@ -160,7 +160,7 @@ class close_attempts extends \core\task\scheduled_task {
                 $sqlparams[] = \mod_topomojo\topomojo_attempt::FINISHED;
                 break;
             default:
-                // Add no condition for state when 'all' or something other than open/closed
+                // Add no condition for state when 'all' or something other than open/closed.
         }
 
         $where[] = 'endtime < ?';
@@ -173,21 +173,21 @@ class close_attempts extends \core\task\scheduled_task {
 
         $attempts = [];
 
-        // Create array of class attempts from the db entry
+        // Create array of class attempts from the db entry.
         foreach ($dbattempts as $dbattempt) {
             $id = $dbattempt->topomojoid;
 
-            // Check if the corresponding topomojo record exists
+            // Check if the corresponding topomojo record exists.
             if (!$DB->record_exists('topomojo', ['id' => $id])) {
                 debugging("topomojo record with id $id not found. Closing attempt $dbattempt->id directly.", DEBUG_DEVELOPER);
 
-                // Directly close the attempt since the associated topomojo record is missing
+                // Directly close the attempt since the associated topomojo record is missing.
                 $attempt = new topomojo_attempt(null, $dbattempt);
                 $attempt->close_attempt();
-                continue; // Skip to the next attempt
+                continue; // Skip to the next attempt.
             }
 
-            // Proceed as normal if the topomojo record exists
+            // Proceed as normal if the topomojo record exists.
             $topomojo = $DB->get_record('topomojo', ['id' => $id], '*', MUST_EXIST);
             $course = $DB->get_record('course', ['id' => $topomojo->course], '*', MUST_EXIST);
             $cm = get_coursemodule_from_instance('topomojo', $topomojo->id, $course->id, false, MUST_EXIST);

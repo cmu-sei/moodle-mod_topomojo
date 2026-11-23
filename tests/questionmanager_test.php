@@ -92,7 +92,7 @@ final class questionmanager_test extends \advanced_testcase {
         $topomojo = $this->getDataGenerator()->create_module('topomojo', ['course' => $course->id]);
         $cm = get_coursemodule_from_instance('topomojo', $topomojo->id);
 
-        // questionorder references a topomojo_questions id that does not exist.
+        // Questionorder references a topomojo_questions id that does not exist.
         $DB->set_field('topomojo', 'questionorder', '99999', ['id' => $topomojo->id]);
         $record = $DB->get_record('topomojo', ['id' => $topomojo->id], '*', MUST_EXIST);
 

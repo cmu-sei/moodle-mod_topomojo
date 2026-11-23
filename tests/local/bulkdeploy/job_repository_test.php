@@ -83,7 +83,7 @@ final class job_repository_test extends \advanced_testcase {
         $repo->set_user_status($rows[0]->id, user_status::READY);
         $repo->set_user_status($rows[1]->id, user_status::FAILED, 'boom');
         $repo->set_user_status($rows[2]->id, user_status::LAUNCHED);
-        // rows[3] stays pending
+        // rows[3] stays pending.
 
         $active = array_values($repo->get_active_user_rows($jobid));
 
@@ -100,7 +100,7 @@ final class job_repository_test extends \advanced_testcase {
         $rows = array_values($repo->get_user_rows($jobid));
         $repo->set_user_status($rows[0]->id, user_status::READY);
         $repo->set_user_status($rows[1]->id, user_status::LAUNCHED);
-        // rows[2] still pending
+        // rows[2] still pending.
 
         $repo->mark_pending_cancelled($jobid);
 

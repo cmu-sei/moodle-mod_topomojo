@@ -75,7 +75,7 @@ trait renderer_base {
     public function base_header($tab = 'view') {
         echo $this->output->header();
         // echo topomojo_view_tabs($this->topomojo, $tab);
-        $this->showMessage(); // shows a message if there is one
+        $this->showMessage(); // Shows a message if there is one.
     }
 
     /**
@@ -93,11 +93,11 @@ trait renderer_base {
     public function showMessage() {
 
         if (empty($this->pagemessage)) {
-            return; // return if there is no message
+            return; // Return if there is no message.
         }
 
         if (!is_array($this->pagemessage)) {
-            return; // return if it's not an array
+            return; // Return if it's not an array.
         }
 
         switch ($this->pagemessage[0]) {
@@ -114,7 +114,7 @@ trait renderer_base {
                 echo $this->output->notification($this->pagemessage[1], 'warning');
                 break;
             default:
-                // unrecognized notification type
+                // Unrecognized notification type.
                 break;
         }
     }

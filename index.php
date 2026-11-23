@@ -44,7 +44,7 @@ DM24-1175
 
 require('../../config.php');
 
-$id = required_param('id', PARAM_INT); // course id
+$id = required_param('id', PARAM_INT); // Course id.
 
 $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 
@@ -111,11 +111,11 @@ foreach ($topomojos as $topomojo) {
     $extra = empty($cm->onclick) ? '' : 'onclick="' . s($cm->onclick) . '"';
     $icon = '';
     if (!empty($cm->icon)) {
-        // Each topomojo has an icon in 2.0
+        // Each topomojo has an icon in 2.0.
         $icon = $OUTPUT->pix_icon($cm->icon, get_string('modulename', $cm->modname)) . ' ';
     }
 
-    $class = $topomojo->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed
+    $class = $topomojo->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed.
     $table->data[] = [
         $printsection,
         "<a $class $extra href=\"view.php?id=$cm->id\">" . $icon . format_string($topomojo->name) . "</a>",

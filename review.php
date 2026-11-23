@@ -50,7 +50,7 @@ require_once("$CFG->dirroot/mod/topomojo/lib.php");
 require_once("$CFG->dirroot/mod/topomojo/locallib.php");
 require_once($CFG->libdir . '/completionlib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $preview = optional_param('preview', 0, PARAM_BOOL);
 global $USER;
@@ -86,7 +86,7 @@ $PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 
-// new topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
@@ -151,7 +151,7 @@ if ($object->is_instructor()) {
     } else if (!$preview && !empty($attempts)) {
         $deleteurl = new moodle_url($PAGE->url, ['deleteall' => 1, 'sesskey' => sesskey()]);
 
-        // Initialize the confirmation modal
+        // Initialize the confirmation modal.
         $PAGE->requires->js_call_amd('mod_topomojo/confirm_delete', 'init', [
             '#delete-all-attempts-btn',
             get_string('deleteall', 'mod_topomojo'),

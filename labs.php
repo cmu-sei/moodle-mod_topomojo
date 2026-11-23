@@ -33,7 +33,7 @@ $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('labslist', 'mod_topomojo'));
 $PAGE->set_heading(format_string($SITE->fullname));
 
-// Breadcrumbs
+// Breadcrumbs.
 $PAGE->navbar->add(get_string('topomojo', 'mod_topomojo'), new moodle_url('/mod/topomojo/topomojo.php'));
 $PAGE->navbar->add(get_string('labslist', 'mod_topomojo'), $PAGE->url);
 
@@ -113,7 +113,7 @@ foreach ($recs as $r) {
             $compitems[] = $o;
         }
     } catch (Throwable $e) {
-        // ignore
+        // ignore.
     }
 
     $cards[] = [

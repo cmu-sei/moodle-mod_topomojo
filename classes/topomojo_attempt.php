@@ -96,34 +96,34 @@ class topomojo_attempt {
         $this->questionmanager = $questionmanager;
         $this->context = $context;
 
-        // If empty create new attempt
+        // If empty create new attempt.
         if (empty($dbattempt)) {
             $this->attempt = new \stdClass();
 
             if ($this->questionmanager) {
-                // Create a new quba since we're creating a new attempt
+                // Create a new quba since we're creating a new attempt.
                 $this->quba = \question_engine::make_questions_usage_by_activity(
                     'mod_topomojo',
                     $this->questionmanager->gettopomojo()->getContext()
                 );
                 $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
-                // Pass variant to add_questions_to_quba so it only loads matching questions
+                // Pass variant to add_questions_to_quba so it only loads matching questions.
                 $attemptlayout = $this->questionmanager->add_questions_to_quba($this->quba, $variant);
 
-                // Add the attempt layout to this instance (may be empty if variant has no questions)
+                // Add the attempt layout to this instance (may be empty if variant has no questions).
                 $this->attempt->layout = implode(',', $attemptlayout);
 
-                // Only save QUBA if questions were added
+                // Only save QUBA if questions were added.
                 if (!empty($attemptlayout)) {
                     \question_engine::save_questions_usage_by_activity($this->quba);
                 } else {
-                    // Don't save empty QUBA - it will cause errors when trying to render
+                    // Don't save empty QUBA - it will cause errors when trying to render.
                     $this->quba = null;
                 }
             }
         } else {
-            // else load it up in this class instance
+            // Else load it up in this class instance.
             $this->attempt = $dbattempt;
             // An attempt record can arrive without the column set at all: bulk deploy inserts a
             // partial record, and callers pass hand-built objects. Reading it directly raises an
@@ -197,7 +197,7 @@ class topomojo_attempt {
                 break;
         }
 
-        // save the attempt
+        // Save the attempt.
         return $this->save();
     }
 
@@ -208,33 +208,33 @@ class topomojo_attempt {
      */
     public function save() {
         global $DB;
-        // first save the question usage by activity object
+        // First save the question usage by activity object.
         if ($this->quba) {
             \question_engine::save_questions_usage_by_activity($this->quba);
 
-            // this is here because for new usages there is no id until we save it
+            // This is here because for new usages there is no id until we save it.
             $this->attempt->questionusageid = $this->quba->get_id();
         }
         $this->attempt->timemodified = time();
         if (isset($this->attempt->id)) {
-            // update the existing record
+            // Update the existing record.
             try {
                 $DB->update_record('topomojo_attempts', $this->attempt);
             } catch (\Exception $e) {
                 debugging($e->getMessage());
-                return false; // return false on failure
+                return false; // Return false on failure.
             }
         } else {
-            // insert new record
+            // Insert new record.
             try {
                 $newid = $DB->insert_record('topomojo_attempts', $this->attempt);
                 $this->attempt->id = $newid;
             } catch (\Exception $e) {
                 debugging($e->getMessage());
-                return false; // return false on failure
+                return false; // Return false on failure.
             }
         }
-        return true; // return true if we get here
+        return true; // Return true if we get here.
     }
 
     /**
@@ -270,7 +270,7 @@ class topomojo_attempt {
             return $this->attempt->$prop;
         }
 
-        // otherwise throw a new exception
+        // Otherwise throw a new exception.
         throw new \Exception('undefined property(' . $prop . ') on topomojo attempt');
     }
 
@@ -342,14 +342,14 @@ class topomojo_attempt {
      * @return string the HTML fragment for the question
      */
     public function render_question($slotid, $review = false, $reviewoptions = '', $when = null) {
-        // Return empty string if no QUBA (variant has no questions)
+        // Return empty string if no QUBA (variant has no questions).
         if (!$this->quba) {
             return '';
         }
 
         $displayoptions = $this->get_display_options($review, $reviewoptions, $when);
-        $questionnum = $this->get_question_number(); // set to 1 if it doesnt exist
-        $this->add_question_number(); // increment qnum
+        $questionnum = $this->get_question_number(); // Set to 1 if it doesnt exist.
+        $this->add_question_number(); // Increment qnum.
 
         $qa = $this->quba->get_question_attempt($slotid);
 
@@ -381,14 +381,14 @@ class topomojo_attempt {
         $options->flags = \question_display_options::HIDDEN;
         $options->context = $this->context;
 
-        // if we're reviewing set up display options for review
+        // If we're reviewing set up display options for review.
         if ($review) {
-            // default display options for review
+            // Default display options for review.
             $options->readonly = true;
             $options->marks = \question_display_options::HIDDEN;
             $options->hide_all_feedback();
 
-            // special case for "edit" reviewoptions value
+            // Special case for "edit" reviewoptions value.
             if ($reviewoptions === 'edit') {
                 $options->correctness = \question_display_options::VISIBLE;
                 $options->marks = \question_display_options::MARK_AND_MAX;
@@ -487,7 +487,7 @@ class topomojo_attempt {
 
         $transaction->allow_commit();
 
-        return true; // Return true if we get to here
+        return true; // Return true if we get to here.
     }
 
     /**
@@ -532,7 +532,7 @@ class topomojo_attempt {
     public function process_comment($topomojo, $slot = null) {
         global $DB;
 
-        // If there is no slot return false
+        // If there is no slot return false.
         if (empty($slot)) {
             return false;
         }
@@ -548,7 +548,7 @@ class topomojo_attempt {
                 $this->save();
                 $transaction->allow_commit();
 
-                // Trigger event for question manually graded
+                // Trigger event for question manually graded.
                 $params = [
                     'objectid' => $this->quba->get_question($slot)->id,
                     // 'courseid' => $topomojo->getCourse()->id,
@@ -565,7 +565,7 @@ class topomojo_attempt {
 
                 return true;
             } else {
-                // TODO maybe add button to go back
+                // TODO maybe add button to go back.
                 debugging("value entered is not in range", DEBUG_DEVELOPER);
             }
         }

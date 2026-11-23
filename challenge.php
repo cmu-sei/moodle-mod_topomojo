@@ -51,7 +51,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 global $USER;
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or.
 $c = optional_param('c', 0, PARAM_INT);  // Instance ID - it should be named as the first character of the module.
 $attemptid = optional_param('attemptid', 0, PARAM_INT);
 
@@ -75,7 +75,7 @@ require_capability('mod/topomojo:view', $context);
 
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
     // Completion and trigger events.a
-    // TODO make a topomojo challenge view
+    // TODO make a topomojo challenge view.
     topomojo_view($topomojo, $course, $cm, $context);
 }
 
@@ -92,7 +92,7 @@ $PAGE->set_context($context);
 $PAGE->set_title(format_string($topomojo->name));
 $PAGE->set_heading($course->fullname);
 
-// New topomojo class
+// New topomojo class.
 $pageurl = $url;
 $pagevars = [];
 $pagevars['pageurl'] = $pageurl;
@@ -120,7 +120,7 @@ if (!$activeattempt && $isinstructor && $ispreview == 0) {
 }
 
 if ($activeattempt == true) {
-    // If active attempt found but event not fetched yet, fetch it
+    // If active attempt found but event not fetched yet, fetch it.
     if (empty($object->event) && isset($object->openAttempt)) {
         $attemptdata = $object->openAttempt->get_attempt();
         if (!empty($attemptdata->eventid)) {
@@ -156,17 +156,17 @@ if ($activeattempt == true) {
         );
     }
 
-    // Allow instructors to see preview, redirect students
+    // Allow instructors to see preview, redirect students.
     if (!$isinstructor) {
         redirect($returnurl);
     }
 }
 
-// Handle start/stop form action
+// Handle start/stop form action.
 if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
-    // Check not started already
+    // Check not started already.
     if (!$object->event) {
-        // Check for conflicting gamespace from another activity sharing this workspace
+        // Check for conflicting gamespace from another activity sharing this workspace.
         $conflict = check_conflicting_gamespace($topomojo->id, $topomojo->workspaceid);
         if ($conflict) {
             $conflicturl = new moodle_url('/mod/topomojo/view.php', ['id' => $conflict->cmid]);
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             exit;
         }
 
-        // TODO check for open attempt and check for status of its event
+        // TODO check for open attempt and check for status of its event.
         $object->event = start_event($object->userauth, $object->topomojo->workspaceid, $object->topomojo);
         if ($object->event) {
             $activeattempt = $object->init_attempt($ispreview);
@@ -197,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['start'])) {
             debugging("start_event failed", DEBUG_DEVELOPER);
             throw new moodle_exception("start_event failed");
         }
-        // Contact topomojo and pull the correct answers for this attempt
+        // Contact topomojo and pull the correct answers for this attempt.
         $object->get_question_manager()->update_answers($object->openAttempt->get_quba(), $object->openAttempt->eventid);
     }
 } else if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['stop'])) {
@@ -249,7 +249,7 @@ if ((!$object->event) && ($activeattempt)) {
     $object->openAttempt->close_attempt();
 }
 
-// Show grade only if a grade is set
+// Show grade only if a grade is set.
 if ((int)$object->topomojo->grade > 0) {
     $showgrade = true;
 } else {
@@ -279,10 +279,10 @@ switch ($action) {
                     throw new moodle_exception('no active attempt');
                 }
 
-                // Save answers without closing attempt
+                // Save answers without closing attempt.
                 $object->openAttempt->save_question();
 
-                // Reload the page
+                // Reload the page.
                 redirect($url);
             }
         }
@@ -301,13 +301,13 @@ switch ($action) {
 
                     $endlab = $object->topomojo->endlab;
 
-                    // Get the full challenge structure to access variant text
+                    // Get the full challenge structure to access variant text.
                     $fullchallenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
                     $deployedvariant = $object->event->variant ?? null;
 
                     $combinedtext = $challenge->text ?? '';
 
-                    // Append variant-specific text if available
+                    // Append variant-specific text if available.
                 if ($fullchallenge && $deployedvariant !== null && isset($fullchallenge->variants[$deployedvariant]->text)) {
                     $varianttext = $fullchallenge->variants[$deployedvariant]->text;
                     if (!empty($varianttext)) {
@@ -317,15 +317,15 @@ switch ($action) {
 
                 if ($combinedtext) {
                     if ($currentattemptcount != $maxattempts && $maxattempts != 0 && $endlab == 0) {
-                        // Normal instruction when attempts are not maxed out, no end lab
+                        // Normal instruction when attempts are not maxed out, no end lab.
                         $renderer->render_challenge_instructions($combinedtext);
                     } else if ($currentattemptcount == $maxattempts && $maxattempts != 0) {
-                        // Conditions when attempts are maxed out
+                        // Conditions when attempts are maxed out.
                         if ($endlab == 1) {
-                            // Show end lab warning if the lab is ending
+                            // Show end lab warning if the lab is ending.
                             $renderer->render_challenge_instructions_warning_endlab($combinedtext);
                         } else {
-                            // Show warning if max attempts are reached, lab not ending
+                            // Show warning if max attempts are reached, lab not ending.
                             $renderer->render_challenge_instructions_warning($combinedtext);
                         }
                     } else if ($currentattemptcount < $maxattempts && $maxattempts != 0 && $endlab == 1) {
@@ -333,11 +333,11 @@ switch ($action) {
                     } else if ($maxattempts == 0 && $endlab == 1) {
                         $renderer->render_challenge_instructions_endlab($combinedtext);
                     } else {
-                        // Default: show instructions without special formatting (unlimited attempts, no endlab)
+                        // Default: show instructions without special formatting (unlimited attempts, no endlab).
                         $renderer->render_challenge_instructions($combinedtext);
                     }
                 } else {
-                    // No challenge text; handle general warnings based on attempts and endlab
+                    // No challenge text; handle general warnings based on attempts and endlab.
                     if ($currentattemptcount == $maxattempts && $maxattempts != 0) {
                         if ($endlab == 1) {
                             $renderer->render_warning_endlab();
@@ -352,17 +352,17 @@ switch ($action) {
                 }
             }
 
-            // Render quiz if questions exist
+            // Render quiz if questions exist.
             if (!empty($object->topomojo->questionorder)) {
                 $renderer->render_quiz($object->openAttempt, $pageurl, $id);
             } else if (isset($challenge) && empty($challenge->text)) {
-                // No challenge text and no questions - show informational message
+                // No challenge text and no questions - show informational message.
                 echo $OUTPUT->notification(get_string('nochallengequestions', 'topomojo'), \core\output\notification::NOTIFY_WARNING);
             }
         } else {
-            // No active attempt - only show preview for instructors
+            // No active attempt - only show preview for instructors.
             if (has_capability('mod/topomojo:manage', $context)) {
-                // Instructor preview mode
+                // Instructor preview mode.
                 echo $OUTPUT->notification(
                     'Challenge Preview - Students will see this content after launching the lab',
                     \core\output\notification::NOTIFY_INFO
@@ -372,11 +372,11 @@ switch ($action) {
                     $previewtext = '';
                     $hascontent = false;
 
-                    // Get challenge structure
+                    // Get challenge structure.
                     $fullchallenge = get_challenge($object->userauth, $object->topomojo->workspaceid);
 
                     if ($fullchallenge) {
-                        // Show challenge markdown (shared across all variants)
+                        // Show challenge markdown (shared across all variants).
                         if (!empty($fullchallenge->text)) {
                             echo '<div class="card mb-3">';
                             echo '<div class="card-header bg-primary text-white"><strong>Challenge Markdown</strong></div>';
@@ -386,13 +386,13 @@ switch ($action) {
                             $hascontent = true;
                         }
 
-                        // Show variant-specific texts
+                        // Show variant-specific texts.
                         if (isset($fullchallenge->variants)) {
                             if (count($fullchallenge->variants) > 0) {
                                 $israndom = ($object->topomojo->variant == 0);
                                 $varianthastext = false;
 
-                                // Check if any variant has text before showing the card
+                                // Check if any variant has text before showing the card.
                                 if ($israndom) {
                                     foreach ($fullchallenge->variants as $variant) {
                                         if (!empty($variant->text)) {
@@ -407,7 +407,7 @@ switch ($action) {
                                     }
                                 }
 
-                                // Only show card if there's variant text to display
+                                // Only show card if there's variant text to display.
                                 if ($varianthastext) {
                                     echo '<div class="card mb-3">';
                                     if ($israndom) {
@@ -420,7 +420,7 @@ switch ($action) {
                                     echo '<div class="card-body">';
 
                                     if ($israndom) {
-                                        // Show all variants for random mode
+                                        // Show all variants for random mode.
                                         foreach ($fullchallenge->variants as $idx => $variant) {
                                             if (!empty($variant->text)) {
                                                 $variantnum = $idx + 1;
@@ -432,8 +432,8 @@ switch ($action) {
                                             }
                                         }
                                     } else {
-                                        // Show only the configured variant
-                                        $variantindex = $object->topomojo->variant - 1; // Convert to 0-based
+                                        // Show only the configured variant.
+                                        $variantindex = $object->topomojo->variant - 1; // Convert to 0-based.
                                         $configuredvariant = $object->topomojo->variant;
                                         if (isset($fullchallenge->variants[$variantindex]) && !empty($fullchallenge->variants[$variantindex]->text)) {
                                             echo '<h5 class="text-primary">Variant ' . $configuredvariant . '</h5>';
@@ -455,7 +455,7 @@ switch ($action) {
                         );
                     }
 
-                    // Add note about managing questions
+                    // Add note about managing questions.
                     echo $OUTPUT->notification(
                         'To manage graded questions for this activity, visit the Questions page.',
                         \core\output\notification::NOTIFY_INFO
@@ -469,6 +469,6 @@ switch ($action) {
             }
         }
 }
-// Attempts may differ from events pulled from history on server
+// Attempts may differ from events pulled from history on server.
 
 echo $renderer->footer();
