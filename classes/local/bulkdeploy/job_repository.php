@@ -153,7 +153,7 @@ class job_repository {
      *
      * @param int $jobid The job ID.
      * @param string $status A job_status constant.
-     * @param string|null $errormessage An error to record, cut to 255 characters.
+     * @param string|null $errormessage An error to record, cut to 255 bytes.
      * @return void
      */
     public function set_job_status(int $jobid, string $status, ?string $errormessage = null): void {
@@ -196,7 +196,7 @@ class job_repository {
      *
      * @param int $rowid The row ID.
      * @param string $status A user_status constant.
-     * @param string|null $errormessage An error to record, cut to 255 characters.
+     * @param string|null $errormessage An error to record, cut to 255 bytes.
      * @param string|null $gamespaceid The gamespace ID to record.
      * @return void
      */
@@ -266,10 +266,10 @@ class job_repository {
     }
 
     /**
-     * Cuts a string to 255 characters, ending it with an ellipsis if it was longer.
+     * Cuts a string to 255 bytes, ending it with an ellipsis if it was longer.
      *
      * @param string $s The string.
-     * @return string The string, at most 255 characters long.
+     * @return string The string, at most 255 bytes long.
      */
     private static function truncate255(string $s): string {
         return strlen($s) <= 255 ? $s : substr($s, 0, 252) . '...';

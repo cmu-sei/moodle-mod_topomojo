@@ -45,7 +45,7 @@ namespace mod_topomojo\question\bank;
  */
 
 /**
- * Column that shows the question name followed by the start of the question text.
+ * Column that shows the question name.
  */
 class question_name_text_column extends \qbank_viewquestionname\viewquestionname_column_helper {
     /**

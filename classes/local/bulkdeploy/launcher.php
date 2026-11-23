@@ -304,7 +304,7 @@ class launcher {
      * Shortens a response body to fit an error message.
      *
      * @param string $body The response body.
-     * @return string The body, cut to 200 characters with an ellipsis if longer.
+     * @return string The body, cut to 200 bytes with an ellipsis if longer.
      */
     private function trim_for_message(string $body): string {
         $body = trim($body);
