@@ -97,8 +97,9 @@ class cleanup_gamespaces extends \core\task\scheduled_task {
                     $cleaned++;
                 }
             } catch (\Exception $e) {
-                // TopoMojo refuses a lookup or stop for a gamespace that is already gone, so there is nothing left to clean.
-                debugging($e->getMessage(), DEBUG_DEVELOPER);
+                // A gamespace TopoMojo no longer knows about fails the lookup or stop, and a failure from a gamespace that
+                // is still running is retried on the next run because the row stays expired.
+                mtrace("Failed to clean up expired deployment gamespace {$deploy->gamespaceid}: " . $e->getMessage());
             }
         }
 
