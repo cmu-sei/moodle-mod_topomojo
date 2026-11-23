@@ -50,10 +50,6 @@ $cmid = required_param('id', PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 require_sesskey();
 
-// Debug logging.
-error_log("manage_action.php: action=" . var_export($action, true));
-error_log("manage_action.php: all POST: " . var_export($_POST, true));
-
 [$course, $cm] = get_course_and_cm_from_cmid($cmid, 'topomojo');
 require_login($course, false, $cm);
 
