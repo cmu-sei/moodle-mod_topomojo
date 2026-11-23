@@ -69,13 +69,13 @@ final class topomojo_question_test extends \advanced_testcase {
         $question = new topomojo_question(1, 10.0, $questionobj);
 
         $this->assertInstanceOf(topomojo_question::class, $question);
-        $this->assertEquals(1, $question->getId());
-        $this->assertEquals(10.0, $question->getPoints());
-        $this->assertEquals($questionobj, $question->getQuestion());
+        $this->assertEquals(1, $question->getid());
+        $this->assertEquals(10.0, $question->getpoints());
+        $this->assertEquals($questionobj, $question->getquestion());
     }
 
     /**
-     * Test getId method.
+     * Test getid method.
      */
     public function test_getid(): void {
         $this->resetAfterTest();
@@ -85,11 +85,11 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(42, 5.0, $questionobj);
 
-        $this->assertEquals(42, $question->getId());
+        $this->assertEquals(42, $question->getid());
     }
 
     /**
-     * Test getPoints method.
+     * Test getpoints method.
      */
     public function test_getpoints(): void {
         $this->resetAfterTest();
@@ -99,11 +99,11 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 15.5, $questionobj);
 
-        $this->assertEquals(15.5, $question->getPoints());
+        $this->assertEquals(15.5, $question->getpoints());
     }
 
     /**
-     * Test getPoints with integer value.
+     * Test getpoints with integer value.
      */
     public function test_getpoints_integer(): void {
         $this->resetAfterTest();
@@ -113,11 +113,11 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 10, $questionobj);
 
-        $this->assertEquals(10, $question->getPoints());
+        $this->assertEquals(10, $question->getpoints());
     }
 
     /**
-     * Test getQuestion method.
+     * Test getquestion method.
      */
     public function test_getquestion(): void {
         $this->resetAfterTest();
@@ -130,7 +130,7 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 5.0, $questionobj);
 
-        $result = $question->getQuestion();
+        $result = $question->getquestion();
 
         $this->assertInstanceOf(\stdClass::class, $result);
         $this->assertEquals(75, $result->id);
@@ -206,13 +206,13 @@ final class topomojo_question_test extends \advanced_testcase {
         $question1 = new topomojo_question(1, 10.0, $questionobj1);
         $question2 = new topomojo_question(2, 20.0, $questionobj2);
 
-        $this->assertEquals(1, $question1->getId());
-        $this->assertEquals(10.0, $question1->getPoints());
-        $this->assertEquals('Question 1', $question1->getQuestion()->name);
+        $this->assertEquals(1, $question1->getid());
+        $this->assertEquals(10.0, $question1->getpoints());
+        $this->assertEquals('Question 1', $question1->getquestion()->name);
 
-        $this->assertEquals(2, $question2->getId());
-        $this->assertEquals(20.0, $question2->getPoints());
-        $this->assertEquals('Question 2', $question2->getQuestion()->name);
+        $this->assertEquals(2, $question2->getid());
+        $this->assertEquals(20.0, $question2->getpoints());
+        $this->assertEquals('Question 2', $question2->getquestion()->name);
     }
 
     /**
@@ -226,7 +226,7 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, 0, $questionobj);
 
-        $this->assertEquals(0, $question->getPoints());
+        $this->assertEquals(0, $question->getpoints());
     }
 
     /**
@@ -240,7 +240,7 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(1, -5.0, $questionobj);
 
-        $this->assertEquals(-5.0, $question->getPoints());
+        $this->assertEquals(-5.0, $question->getpoints());
     }
 
     /**
@@ -260,7 +260,7 @@ final class topomojo_question_test extends \advanced_testcase {
 
         $question = new topomojo_question(5, 10.0, $questionobj);
 
-        $retrieved = $question->getQuestion();
+        $retrieved = $question->getquestion();
 
         $this->assertEquals(123, $retrieved->id);
         $this->assertEquals('Complex Question', $retrieved->name);

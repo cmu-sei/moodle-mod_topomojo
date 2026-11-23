@@ -167,7 +167,7 @@ switch ($action) {
                 if ($object->topomojo->variant == 0 && $question && $question->qtype === 'mojomatch') {
                     $type = 'error';
                     $message = get_string('cannotaddvariantquestionrandom', 'topomojo');
-                    $renderer->setMessage($type, $message);
+                    $renderer->setmessage($type, $message);
                     continue; // Skip this question, continue with others.
                 }
 
@@ -181,7 +181,7 @@ switch ($action) {
                             'question_variant' => $questionvariant,
                             'activity_variant' => $object->topomojo->variant,
                         ]);
-                        $renderer->setMessage($type, $message);
+                        $renderer->setmessage($type, $message);
                         continue; // Skip this question, continue with others.
                     }
                 }
@@ -189,16 +189,16 @@ switch ($action) {
                 if (!$questionmanager->add_question($questionid)) {
                     $type = 'error';
                     $message = get_string('qadderror', 'topomojo');
-                    $renderer->setMessage($type, $message);
+                    $renderer->setmessage($type, $message);
                     break;
                 } else {
                     $type = 'success';
                     $message = get_string('qaddsuccess', 'topomojo');
-                    $renderer->setMessage($type, $message);
+                    $renderer->setmessage($type, $message);
                 }
             }
         }
-        $renderer->setMessage($type, $message);
+        $renderer->setmessage($type, $message);
         $renderer->print_header();
         $questions = $questionmanager->get_questions();
         $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
@@ -216,7 +216,7 @@ switch ($action) {
                 $type = 'error';
                 $message = get_string('qadderror', 'topomojo');
             }
-            $renderer->setMessage($type, $message);
+            $renderer->setmessage($type, $message);
             $renderer->print_header();
             $questions = $questionmanager->get_questions();
             $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);
@@ -235,7 +235,7 @@ switch ($action) {
                 $message = get_string('qdeleteerror', 'topomojo');
             }
 
-            $renderer->setMessage($type, $message);
+            $renderer->setmessage($type, $message);
             $renderer->print_header();
             $questions = $questionmanager->get_questions();
             $renderer->listquestions($topomojohasattempts, $questions, $questionbankview, $cm, $pagevars);

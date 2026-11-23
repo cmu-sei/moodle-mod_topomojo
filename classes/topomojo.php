@@ -220,7 +220,7 @@ class topomojo
      *
      * @return object
      */
-    public function getCM() {
+    public function getcm() {
         return $this->cm;
     }
 
@@ -229,7 +229,7 @@ class topomojo
      *
      * @return \context_module
      */
-    public function getContext() {
+    public function getcontext() {
         return $this->context;
     }
 
@@ -442,7 +442,7 @@ class topomojo
         }
         $questionmanager = $this->questionmanager;
 
-        $context = $this->getContext();
+        $context = $this->getcontext();
         $variantindex = $variant - 1; // Convert to 0-based for array access.
         $questionmanager->process_variant_questions($context, $this, $variantindex, $challenge, true);
     }

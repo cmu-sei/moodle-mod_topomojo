@@ -90,7 +90,7 @@ $pageurl = $url;
 $pagevars = ['a' => $a, 'pageurl' => $pageurl];
 $object = new \mod_topomojo\topomojo($cm, $course, $topomojo, $pageurl, $pagevars);
 $attempt = $object->get_attempt($attemptid);
-$cmid = $object->getCM()->id;
+$cmid = $object->getcm()->id;
 
 if (!$attempt) {
     $object->renderer->base_header();
@@ -107,10 +107,10 @@ if (!$attempt) {
                 $grader = new \mod_topomojo\utils\grade($object);
                 $grader->process_attempt($attempt);
 
-                $object->renderer->setMessage('success', 'Successfully saved comment/grade');
+                $object->renderer->setmessage('success', 'Successfully saved comment/grade');
                 $object->renderer->render_attempt($attempt);
             } else {
-                $object->renderer->setMessage('error', 'Couldn\'t save comment/grade');
+                $object->renderer->setmessage('error', 'Couldn\'t save comment/grade');
                 $object->renderer->render_attempt($attempt);
             }
             $object->renderer->base_footer();

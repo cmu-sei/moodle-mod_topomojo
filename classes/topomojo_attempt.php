@@ -104,7 +104,7 @@ class topomojo_attempt {
                 // Create a new quba since we're creating a new attempt.
                 $this->quba = \question_engine::make_questions_usage_by_activity(
                     'mod_topomojo',
-                    $this->questionmanager->gettopomojo()->getContext()
+                    $this->questionmanager->gettopomojo()->getcontext()
                 );
                 $this->quba->set_preferred_behaviour($this->questionmanager->gettopomojo()->topomojo->preferredbehaviour);
 
@@ -150,7 +150,7 @@ class topomojo_attempt {
      * @return string
      * @throws \Exception throws exception upon an undefined status
      */
-    public function getState() {
+    public function getstate() {
 
         switch ($this->attempt->state) {
             case self::NOTSTARTED:
@@ -174,7 +174,7 @@ class topomojo_attempt {
      *
      * @return bool
      */
-    public function setState($status) {
+    public function setstate($status) {
 
         switch ($status) {
             case 'notstarted':
@@ -307,7 +307,7 @@ class topomojo_attempt {
      *
      * @return array
      */
-    public function getSlots() {
+    public function getslots() {
         // explode(',', '') returns [''], which reads downstream as a single question sitting in
         // slot ''. An attempt whose variant carried no questions has no slots at all, so callers
         // that foreach over this must get nothing rather than one bogus entry.
@@ -360,7 +360,7 @@ class topomojo_attempt {
         $qtoutput = $question->get_renderer($page);
         $behaviour = $qa->get_behaviour();
         $displayoptions->context = $this->context;
-        $displayoptions->context = $this->questionmanager->gettopomojo()->getContext();
+        $displayoptions->context = $this->questionmanager->gettopomojo()->getcontext();
         return $behaviour->render($displayoptions, $questionnum, $qoutput, $qtoutput);
     }
     /**

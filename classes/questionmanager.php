@@ -450,7 +450,7 @@ class questionmanager {
         $desiredkey = $qbankkeys[$qnum - 1];
         $topomojoquestion = $this->qbankorderedquestions[$desiredkey];
 
-        return $topomojoquestion->getQuestion()->qtype;
+        return $topomojoquestion->getquestion()->qtype;
     }
 
     /**
@@ -474,7 +474,7 @@ class questionmanager {
      */
     public function get_question_with_slot($slotnum, $attempt) {
 
-        $slots = $attempt->getSlots();
+        $slots = $attempt->getslots();
         $quba = $attempt->get_quba();
 
         // First check if this is the last question.
@@ -491,7 +491,7 @@ class questionmanager {
         $qubaquestion = $quba->get_question($slots[$slotnum]);
 
         foreach ($this->qbankorderedquestions as $qbankquestion) {
-            if ($qbankquestion->getQuestion()->id == $qubaquestion->id) {
+            if ($qbankquestion->getquestion()->id == $qubaquestion->id) {
                 // Set the slot on the qbank question as this is the actual id we're using for question number.
                 $qbankquestion->set_slot($slots[$slotnum]);
 
@@ -583,7 +583,7 @@ class questionmanager {
         // Extract question IDs.
         $questionids = [];
         foreach ($variantquestions as $vq) {
-            $qid = $vq->getQuestion()->id;
+            $qid = $vq->getquestion()->id;
             if (!in_array($qid, $questionids)) {
                 $questionids[] = $qid;
             }
@@ -598,9 +598,9 @@ class questionmanager {
         // Loop through and add questions to quba.
         $attemptquestionorder = [];
         foreach ($variantquestions as $vq) {
-            $questionid = $vq->getQuestion()->id;
+            $questionid = $vq->getquestion()->id;
             $q = \question_bank::make_question($questions[$questionid]);
-            $attemptquestionorder[$vq->getId()] = $quba->add_question($q, $vq->getPoints());
+            $attemptquestionorder[$vq->getid()] = $quba->add_question($q, $vq->getpoints());
         }
 
         // Start the questions in the quba.
@@ -971,7 +971,7 @@ class questionmanager {
         }
 
         foreach ($currentquestions as $tq) {
-            $q = $tq->getQuestion();
+            $q = $tq->getquestion();
             if ($q->qtype !== 'mojomatch') {
                 continue;
             }
@@ -983,7 +983,7 @@ class questionmanager {
 
             if (!isset($expected[$questiontext]) || $expected[$questiontext] !== trim($answer)) {
                 $mismatched[] = [
-                    'id' => $tq->getId(),
+                    'id' => $tq->getid(),
                     'questiontext' => $questiontext,
                     'name' => $q->name,
                 ];
@@ -1120,7 +1120,7 @@ class questionmanager {
 
         // Step 2: Delete moodle activity questions if they do not match those in topomojo.
         foreach ($currentquestions as $tq) {
-            $q = $tq->getQuestion();
+            $q = $tq->getquestion();
             if ($q->qtype !== "mojomatch") {
                 continue;
             }
@@ -1131,7 +1131,7 @@ class questionmanager {
             // Check if question text exists in TopoMojo.
             if (!in_array($cleantext, $expectedquestiontexts)) {
                 $mismatchedquestions[] = $q->name;
-                $this->delete_question($tq->getId());
+                $this->delete_question($tq->getid());
                 question_delete_question($questionid);
                 continue;
             }
@@ -1156,7 +1156,7 @@ class questionmanager {
                 if (trim($storedanswer) !== $expectedanswer) {
                     $mismatchedquestions[] = $q->name;
                     $deletedquestiontexts[] = $cleantext;
-                    $this->delete_question($tq->getId());
+                    $this->delete_question($tq->getid());
                     question_delete_question($questionid);
                     continue;
                 }
@@ -1337,7 +1337,7 @@ class questionmanager {
                     }
                 }
                 if ($message) {
-                    $this->renderer->setMessage($type, $message);
+                    $this->renderer->setmessage($type, $message);
                 }
             }
 

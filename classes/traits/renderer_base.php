@@ -63,7 +63,7 @@ trait renderer_base {
      * @param string $type
      * @param string $message
      */
-    public function setMessage($type, $message) {
+    public function setmessage($type, $message) {
         $this->pagemessage = [$type, $message];
     }
 
@@ -75,7 +75,7 @@ trait renderer_base {
     public function base_header($tab = 'view') {
         echo $this->output->header();
         // echo topomojo_view_tabs($this->topomojo, $tab);
-        $this->showMessage(); // Shows a message if there is one.
+        $this->showmessage(); // Shows a message if there is one.
     }
 
     /**
@@ -90,7 +90,7 @@ trait renderer_base {
      * shows a message if there is one
      *
      */
-    public function showMessage() {
+    public function showmessage() {
 
         if (empty($this->pagemessage)) {
             return; // Return if there is no message.
@@ -126,9 +126,9 @@ trait renderer_base {
      */
     public function render_popup_error($message) {
 
-        $this->setMessage('error', $message);
+        $this->setmessage('error', $message);
         echo $this->output->header();
-        $this->showMessage();
+        $this->showmessage();
         $this->base_footer();
     }
 

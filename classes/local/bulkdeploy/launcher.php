@@ -441,7 +441,7 @@ class launcher {
             return new \mod_topomojo\topomojo_attempt(
                 $questionmanager,
                 null,
-                $object->getContext(),
+                $object->getcontext(),
                 $variant
             );
         } catch (\Throwable $e) {

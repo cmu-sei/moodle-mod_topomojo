@@ -128,7 +128,7 @@ class edit_renderer extends \plugin_renderer_base {
         $questioncount = count($questions);
         $questionnum = 1;
         foreach ($questions as $question) {
-            $return .= '<li class="flex-container" data-questionid="' . $question->getId() . '">';
+            $return .= '<li class="flex-container" data-questionid="' . $question->getid() . '">';
             $return .= $this->display_question_block($question, $questionnum, $questioncount);
             $return .= '</li>';
             $questionnum++;
@@ -154,11 +154,11 @@ class edit_renderer extends \plugin_renderer_base {
         // TODO disable reordering if attempts exist.
         $dragicon = new \pix_icon('i/dragdrop', 'dragdrop');
         $return .= \html_writer::div($this->output->render($dragicon), 'dragquestion');
-        $return .= \html_writer::div(print_question_icon($question->getQuestion()), 'icon');
+        $return .= \html_writer::div(print_question_icon($question->getquestion()), 'icon');
 
         $namehtml = \html_writer::start_tag('span');
-        $namehtml .= $question->getQuestion()->name . '<br />';
-        $namehtml .= get_string('points', 'topomojo') . ': ' . number_format($question->getPoints(), 2);
+        $namehtml .= $question->getquestion()->name . '<br />';
+        $namehtml .= get_string('points', 'topomojo') . ': ' . number_format($question->getpoints(), 2);
         $namehtml .= \html_writer::end_tag('span');
 
         $return .= \html_writer::div($namehtml, 'name');
@@ -171,7 +171,7 @@ class edit_renderer extends \plugin_renderer_base {
             // If we're on a later question than the first one add the move up control.
             $moveupurl = clone($this->pageurl);
             $moveupurl->param('action', 'moveup');
-            $moveupurl->param('questionid', $question->getId()); // Add the topomojoqid so that the question manager handles the translation.
+            $moveupurl->param('questionid', $question->getid()); // Add the topomojoqid so that the question manager handles the translation.
 
             $alt = get_string('questionmoveup', 'mod_topomojo', $qnum);
 
@@ -184,7 +184,7 @@ class edit_renderer extends \plugin_renderer_base {
             // If we're not on the last question add the move down control.
             $movedownurl = clone($this->pageurl);
             $movedownurl->param('action', 'movedown');
-            $movedownurl->param('questionid', $question->getId());
+            $movedownurl->param('questionid', $question->getid());
 
             $alt = get_string('questionmovedown', 'mod_topomojo', $qnum);
 
@@ -200,18 +200,18 @@ class edit_renderer extends \plugin_renderer_base {
         if (!$this->hasattempts) {
             $editurl = clone($this->pageurl);
             $editurl->param('action', 'editquestion');
-            $editurl->param('topomojoquestionid', $question->getId());
+            $editurl->param('topomojoquestionid', $question->getid());
             $alt = get_string('questionedit', 'topomojo', $qnum);
             $deleteicon = new \pix_icon('t/edit', $alt);
             $controlhtml .= \html_writer::link($editurl, $this->output->render($deleteicon));
             $deleteurl = clone($this->pageurl);
             $deleteurl->param('action', 'deletequestion');
-            $deleteurl->param('questionid', $question->getId());
+            $deleteurl->param('questionid', $question->getid());
             $alt = get_string('questiondelete', 'mod_topomojo', $qnum);
             $deleteicon = new \pix_icon('t/delete', $alt);
             $controlhtml .= \html_writer::link($deleteurl, $this->output->render($deleteicon));
         }
-        $previewurl = \qbank_previewquestion\helper::question_preview_url($question->getQuestion()->id);
+        $previewurl = \qbank_previewquestion\helper::question_preview_url($question->getquestion()->id);
         $previewicon = new \pix_icon('t/preview', get_string('preview'));
         $options = ['height' => 800, 'width' => 900];
         $popup = new \popup_action('click', $previewurl, 'preview', $options);

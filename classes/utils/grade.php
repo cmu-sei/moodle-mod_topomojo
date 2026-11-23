@@ -192,7 +192,7 @@ class grade {
         }
 
         $quba = $attempt->get_quba();
-        $slots = $attempt->getSlots();
+        $slots = $attempt->getslots();
 
         // An attempt can legitimately carry no questions: the variant had none to import, or the
         // attempt was created outside the interactive path (bulk deploy). topomojo_attempt leaves

@@ -289,14 +289,14 @@ final class grade_test extends \advanced_testcase {
     /**
      * An attempt with no question usage has to grade as zero rather than fatal.
      *
-     * Before the guard, getSlots() returned [''] for a null layout and grading dereferenced the
+     * Before the guard, getslots() returned [''] for a null layout and grading dereferenced the
      * null question usage: "Call to a member function get_question_max_mark() on null".
      */
     public function test_grading_an_attempt_with_no_question_usage_returns_zero(): void {
         [$object, $attempt] = $this->activity_with_questionless_attempt();
 
         $this->assertNull($attempt->get_quba(), 'A layout-less attempt should have no question usage.');
-        $this->assertSame([], $attempt->getSlots(), 'A layout-less attempt should report no slots.');
+        $this->assertSame([], $attempt->getslots(), 'A layout-less attempt should report no slots.');
 
         $grader = new grade($object);
         $this->assertSame(0, $grader->calculate_attempt_grade($attempt));

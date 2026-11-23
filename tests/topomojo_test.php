@@ -88,8 +88,8 @@ final class topomojo_test extends \advanced_testcase {
 
         // Assertions.
         $this->assertInstanceOf(topomojo::class, $topomojo);
-        $this->assertEquals($cm->id, $topomojo->getCM()->id);
-        $this->assertInstanceOf(\context_module::class, $topomojo->getContext());
+        $this->assertEquals($cm->id, $topomojo->getcm()->id);
+        $this->assertInstanceOf(\context_module::class, $topomojo->getcontext());
     }
 
     /**

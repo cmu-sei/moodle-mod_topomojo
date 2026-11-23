@@ -638,13 +638,13 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
             $output .= $instructions;
         $output .= html_writer::end_div();
         */
-        foreach ($attempt->getSlots() as $slot) {
+        foreach ($attempt->getslots() as $slot) {
             // Render question form.
             $output .= $this->render_question_form($slot, $attempt);
         }
 
         $output .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'slots',
-        'value' => implode(',', $attempt->getSlots())]);
+        'value' => implode(',', $attempt->getslots())]);
 
         // End the attempt with a named submit button on the response form, so that
         // it posts to the same place the answers do and challenge.php can tell it
@@ -704,7 +704,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
      */
     public function render_attempt($attempt) {
 
-        $this->showMessage();
+        $this->showmessage();
 
         $timenow = time();
         $timeopen = $this->topomojo->topomojo->timeopen;
@@ -735,7 +735,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         if (!$attempt->questionusageid) {
             echo html_writer::tag('p', get_string('nochallenge', 'topomojo'), ['id' => 'review_notavailable']);
         } else if ($attempt && ($canreviewattempt || $this->topomojo->is_instructor())) {
-            foreach ($attempt->getSlots() as $slot) {
+            foreach ($attempt->getslots() as $slot) {
                 if ($this->topomojo->is_instructor()) {
                     echo $this->render_edit_review_question($slot, $attempt);
                 } else {
@@ -799,7 +799,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output .= html_writer::end_tag('p');
 
         // Only add save button if attempt is finished.
-        if ($attempt->getState() === 'finished') {
+        if ($attempt->getstate() === 'finished') {
             $output .= html_writer::div($savebtn, 'save_row');
         }
 
@@ -847,7 +847,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
     public function render_return_button($attempt = null) {
         $output = '';
         $params = [
-            'id' => $this->topomojo->getCM()->id,
+            'id' => $this->topomojo->getcm()->id,
         ];
 
         if ($attempt) {
@@ -874,7 +874,7 @@ class mod_topomojo_renderer extends \plugin_renderer_base {
         $output = '';
         $output .= html_writer::tag('p', get_string('nochallenge', 'topomojo'), ['id' => 'review_notavailable']);
         $params = [
-            'id' => $this->topomojo->getCM()->id,
+            'id' => $this->topomojo->getcm()->id,
         ];
         $starturl = new moodle_url('/mod/topomojo/view.php', $params);
         $output .= $this->output->single_button($starturl, 'Return', 'get');
